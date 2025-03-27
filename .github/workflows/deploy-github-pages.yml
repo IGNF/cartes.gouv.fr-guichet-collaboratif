@@ -1,0 +1,53 @@
+name: Deploy to GitHub Pages
+
+on:
+    workflow_dispatch:
+    push:
+        branches:
+            - uat
+    pull_request:
+        branches:
+            - main
+            - develop
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v2
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v2
+              with:
+                  node-version: "22"
+
+            - name: Install dependencies
+              run: npm install
+
+            - name: Build the project
+              run: npm run build
+
+            - name: Deploy to GitHub Pages
+              uses: peaceiris/actions-gh-pages@v3
+              if: github.ref == 'refs/heads/main'
+              with:
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  publish_dir: ./dist
+                  publish_branch: gh-pages-prod
+
+            - name: Deploy to GitHub Pages (Sandbox)
+              uses: peaceiris/actions-gh-pages@v3
+              if: github.ref == 'refs/heads/develop'
+              with:
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  publish_dir: ./dist
+                  publish_branch: gh-pages-sandbox
+
+            - name: Deploy to GitHub Pages (UAT)
+              uses: peaceiris/actions-gh-pages@v3
+              if: github.ref == 'refs/heads/uat'
+              with:
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  publish_dir: ./dist
+                  publish_branch: gh-pages-uat
