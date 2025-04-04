@@ -1,7 +1,23 @@
 import Badge from "@codegouvfr/react-dsfr/Badge";
 import Header from "@codegouvfr/react-dsfr/Header";
+import { useUserStore } from "@/store";
+import { useNavigate } from "react-router-dom";
+import { ABOUT_URL, CARTE_URL, HOME_URL } from "@/constants/urls";
 
-export default function AppHeader() {
+function AppHeader() {
+    const { user, setUser, clearUser } = useUserStore();
+
+    const navigate = useNavigate();
+
+    const toggleLoggin = () => {
+        setTimeout(() => {
+            if (user) {
+                clearUser();
+            } else {
+                setUser({ id: "0", name: "Nom Utilisateur", isLoggedIn: true });
+            }
+        }, 1000);
+    };
     return (
         <Header
             brandTop={
@@ -12,7 +28,7 @@ export default function AppHeader() {
                 </>
             }
             homeLinkProps={{
-                href: "#",
+                href: HOME_URL,
                 title: "Accueil - cartes.gouv.fr-guichet-collaboratif",
             }}
             serviceTitle={
@@ -26,35 +42,31 @@ export default function AppHeader() {
             serviceTagline="Le guichet collaboratif de cartes.gouv.fr"
             quickAccessItems={[
                 {
-                    iconId: "fr-icon-arrow-right-line",
-                    linkProps: {
-                        href: "https://www.geoportail.gouv.fr/carte",
-                        className: "fr-btn--icon-right",
-                        target: "_blank",
-                        rel: "noreferrer",
-                        title: "Accéder au Géoportail - ouvre une nouvelle fenêtre",
+                    iconId: "ri-mind-map",
+                    buttonProps: {
+                        onClick: () => navigate(CARTE_URL),
+                        title: "Carte",
                     },
-                    text: "Accéder au Géoportail",
+                    text: "Carte",
                 },
                 {
-                    iconId: "fr-icon-arrow-right-line",
-                    linkProps: {
-                        href: "/catalogue",
-                        className: "fr-btn--icon-right",
-                        target: "_blank",
-                        rel: "noreferrer",
-                        title: "Catalogue - ouvre une nouvelle fenêtre",
+                    iconId: "ri-sidebar-fold-fill",
+                    buttonProps: {
+                        onClick: () => navigate(ABOUT_URL),
+                        title: "À propos des données",
                     },
-                    text: "Catalogue",
+                    text: "À propos",
                 },
                 {
                     iconId: "fr-icon-account-fill",
-                    linkProps: {
-                        href: "/login",
+                    buttonProps: {
+                        onClick: toggleLoggin,
                     },
-                    text: "Se connecter",
+                    text: user ? user.name : "Se connecter",
                 },
             ]}
         />
     );
 }
+
+export default AppHeader;
