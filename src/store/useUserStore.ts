@@ -1,19 +1,28 @@
 import { create } from "zustand";
 
-type User = {
+export type User = {
     id: string;
     name: string;
-    isLoggedIn: boolean;
-};
+} | null;
 
 interface UserStore {
-    user: User | null;
+    user: User;
+    isLoadingUser: boolean | null;
     setUser: (user: User) => void;
     clearUser: () => void;
+    setIsLoadingUser: (value: boolean) => void;
 }
 
 export const useUserStore = create<UserStore>((set) => ({
     user: null,
-    setUser: (user) => set({ user }),
-    clearUser: () => set({ user: null }),
+    isLoadingUser: null,
+    setUser: (user) => {
+        set({ user });
+    },
+    clearUser: () => {
+        set({ user: null });
+    },
+    setIsLoadingUser: (value) => {
+        set({ isLoadingUser: value });
+    },
 }));
