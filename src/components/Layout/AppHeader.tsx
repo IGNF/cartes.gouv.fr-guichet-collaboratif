@@ -1,23 +1,31 @@
 import Badge from "@codegouvfr/react-dsfr/Badge";
 import Header from "@codegouvfr/react-dsfr/Header";
+
 import { useUserStore } from "@/store";
-import { useNavigate } from "react-router-dom";
-import { ABOUT_URL, CARTE_URL, HOME_URL } from "@/constants/urls";
+import { HOME_URL, LOGIN_URL, LOGOUT_URL, PROFILE_URL } from "@/constants/urls";
 
-function AppHeader() {
-    const { user, setUser, clearUser } = useUserStore();
+import { memo, useEffect } from "react";
+import { useGetUSerProfile } from "@/api/userData";
 
-    const navigate = useNavigate();
+const AppHeader: React.FC = () => {
+    const { user, setUser, clearUser, setIsLoadingUser } = useUserStore();
 
-    const toggleLoggin = () => {
-        setTimeout(() => {
-            if (user) {
-                clearUser();
-            } else {
-                setUser({ id: "0", name: "Nom Utilisateur", isLoggedIn: true });
-            }
-        }, 1000);
-    };
+    const { data, error, isLoading } = useGetUSerProfile();
+
+    useEffect(() => {
+        if (data) {
+            setUser(data);
+        }
+        if (error) {
+            clearUser();
+        }
+        if (isLoading) {
+            setIsLoadingUser(true);
+        } else {
+            setIsLoadingUser(false);
+        }
+    }, [data, error, isLoading]);
+
     return (
         <Header
             brandTop={
@@ -41,32 +49,23 @@ function AppHeader() {
             }
             serviceTagline="Le guichet collaboratif de cartes.gouv.fr"
             quickAccessItems={[
-                {
-                    iconId: "ri-mind-map",
-                    buttonProps: {
-                        onClick: () => navigate(CARTE_URL),
-                        title: "Carte",
-                    },
-                    text: "Carte",
-                },
-                {
-                    iconId: "ri-sidebar-fold-fill",
-                    buttonProps: {
-                        onClick: () => navigate(ABOUT_URL),
-                        title: "À propos des données",
-                    },
-                    text: "À propos",
-                },
-                {
+                user && {
                     iconId: "fr-icon-account-fill",
-                    buttonProps: {
-                        onClick: toggleLoggin,
+                    linkProps: {
+                        href: PROFILE_URL,
                     },
-                    text: user ? user.name : "Se connecter",
+                    text: user.name,
+                },
+                {
+                    iconId: "fr-icon-logout-box-r-line",
+                    linkProps: {
+                        href: user ? LOGOUT_URL : LOGIN_URL,
+                    },
+                    text: user ? "Se déconnecter" : "Se connecter",
                 },
             ]}
         />
     );
-}
+};
 
-export default AppHeader;
+export default memo(AppHeader);

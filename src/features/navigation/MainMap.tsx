@@ -15,7 +15,7 @@ import Map from "ol/Map";
 import { fromLonLat } from "ol/proj";
 import VectorSource from "ol/source/Vector";
 import WMTS, { optionsFromCapabilities } from "ol/source/WMTS";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 // @ts-expect-error il manque les types
 import Gp from "geoportal-access-lib";
 
@@ -28,20 +28,22 @@ import "ol/ol.css";
 import "geopf-extensions-openlayers/css/Dsfr.css";
 
 import "./map-view.css";
+import { useCommunityStore } from "@/store";
 
 export default function MainMap() {
     const mapTargetRef = useRef<HTMLDivElement>(null);
     const mapRef = useRef<Map>(null);
-    const [dataConfig, setDataConfig] = useState({});
 
+    const { community } = useCommunityStore();
+
+    console.log(community);
     const { data: capabilities } = useGpWmtsCapabilities();
 
     useEffect(() => {
         const cfg = new Gp.Services.Config({
             customConfigFile: "https://raw.githubusercontent.com/IGNF/geoportal-configuration/new-url/dist/fullConfig.json",
             onSuccess: (data: object) => {
-                console.log("gp config loaded!");
-                setDataConfig(data);
+                console.log(data);
             },
             onFailure: (e: unknown) => {
                 console.error(e);
@@ -50,25 +52,25 @@ export default function MainMap() {
         cfg.call();
     }, []);
 
-    console.log("dataConfig", dataConfig);
+    //console.log("dataConfig", dataConfig);
 
     const extentLayer = useMemo(() => {
         const extentFeatures = new GeoJSON({
             dataProjection: "EPSG:4326",
             featureProjection: "EPSG:3857",
         }).readFeatures(extent);
-        console.log("extentFeatures", extentFeatures);
+        //console.log("extentFeatures", extentFeatures);
 
         const extentSource = new VectorSource({
             features: extentFeatures,
         });
-        console.log("extentSource", extentSource);
+        //console.log("extentSource", extentSource);
 
         return new VectorLayer({
             source: extentSource,
         });
     }, []);
-    console.log("extentLayer", extentLayer);
+    //console.log("extentLayer", extentLayer);
 
     const bgLayer = useMemo(() => {
         if (!capabilities) return;

@@ -5,12 +5,9 @@ import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client
 import AppLayout from "./components/Layout/AppLayout";
 import { BrowserRouter, Route, Routes } from "react-router";
 
-import Home from "./pages/Home";
-import Carte from "./pages/Carte";
-import About from "./pages/About";
 import NotFound from "./pages/NotFound";
-
-import { ABOUT_URL, CARTE_URL, HOME_URL } from "./constants/urls";
+import Carte from "./pages/Carte";
+import { HOME_URL } from "./constants/urls";
 
 const queryClient = new QueryClient();
 
@@ -26,10 +23,9 @@ export default function App() {
 
                 <AppLayout>
                     <Routes>
-                        <Route path={HOME_URL} element={<Home />} />
-                        <Route path={CARTE_URL} element={<Carte />} />
-                        <Route path={ABOUT_URL} element={<About />} />
-                        <Route path="*" element={<NotFound />} />
+                        <Route path={`${HOME_URL}/:communityId`} element={<Carte />} />
+                        <Route path={`${HOME_URL}/page-404`} element={<NotFound />} />
+                        <Route path={`*`} element={<NotFound />} />
                     </Routes>
                 </AppLayout>
             </BrowserRouter>

@@ -8,10 +8,13 @@ import logoIgn from "@/img/partners-logos/logo-ign.png";
 import logoMinistereTransformation from "@/img/partners-logos/logo-ministere-transformation.jpg";
 import logoMinistereEcologie from "@/img/partners-logos/logo-ministere-ecologie.jpg";
 import logoCnig from "@/img/partners-logos/logo-rf-cnig.jpg";
+import { useCommunityStore } from "@/store";
 
-const AppFooter = () => {
+const AppFooter: React.FC = () => {
+    const { community } = useCommunityStore();
     return (
         <Footer
+            className={community ? "app-footer" : ""}
             accessibility="partially compliant"
             accessibilityLinkProps={{
                 href: "/accessibilite",
