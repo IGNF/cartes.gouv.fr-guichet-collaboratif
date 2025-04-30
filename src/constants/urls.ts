@@ -1,7 +1,7 @@
-export const BASE_URL = import.meta.env.VITE_BASE_URL;
-export const API_URL = import.meta.env.VITE_API_URL;
+export const BASE_URL = "/cartes.gouv.fr";
+export const API_URL = "/cartes.gouv.fr/api";
 
-const FRONT_BASE_URL = import.meta.env.VITE_FRONT_BASE_URL;
+const FRONT_BASE_URL = "/cartes.gouv.fr/guichet-collaboratif";
 
 export const HOME_URL = FRONT_BASE_URL;
 export const PROFILE_URL = FRONT_BASE_URL + "/profile";
@@ -14,3 +14,4 @@ export const LOGOUT_URL = BASE_URL + "/logout?app=guichet-collaboratif";
 export const USER_PROFILE_API_URL = API_URL + "/users/me";
 export const USERS_API_URL = API_URL + "/users";
 export const COMMUNITIES_API_URL = API_URL + "/espaceco/community";
+export const GEOSERVICES_API_URL = API_URL + "/espaceco/geoservice";

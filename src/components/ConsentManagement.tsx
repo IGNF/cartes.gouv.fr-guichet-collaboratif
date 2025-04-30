@@ -2,10 +2,10 @@ import { createConsentManagement } from "@codegouvfr/react-dsfr/consentManagemen
 import { startEulerianAnalytics } from "@codegouvfr/react-dsfr/eulerianAnalytics";
 
 const prEulerianApi = startEulerianAnalytics({
-    domain: "acwg.cartes.gouv.fr", // domaine de tracking Eulerian
+    domain: "acwg.cartes.gouv.fr",
     site: {
-        environment: "development", // TODO: dépendre de l'environnement
-        entity: "IGN", // TODO: confirmer la valeur
+        environment: "development",
+        entity: "IGN",
     },
 });
 
