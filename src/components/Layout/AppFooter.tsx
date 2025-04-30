@@ -1,6 +1,6 @@
 import { headerFooterDisplayItem } from "@codegouvfr/react-dsfr/Display";
 import Footer from "@codegouvfr/react-dsfr/Footer";
-import { memo } from "react";
+import { useEffect, useState } from "react";
 
 import { FooterConsentManagementItem, FooterPersonalDataPolicyItem } from "@/components/ConsentManagement";
 
@@ -9,74 +9,100 @@ import logoMinistereTransformation from "@/img/partners-logos/logo-ministere-tra
 import logoMinistereEcologie from "@/img/partners-logos/logo-ministere-ecologie.jpg";
 import logoCnig from "@/img/partners-logos/logo-rf-cnig.jpg";
 import { useCommunityStore } from "@/store";
+import Button from "@codegouvfr/react-dsfr/Button";
 
 const AppFooter: React.FC = () => {
+    const [footerOpen, setFooterOpen] = useState(false);
+    const [buttonMarginBottom, setButtonMarginBottom] = useState(0);
     const { community } = useCommunityStore();
-    return (
-        <Footer
-            className={community ? "app-footer" : ""}
-            accessibility="partially compliant"
-            accessibilityLinkProps={{
-                href: "/accessibilite",
+
+    useEffect(() => {
+        const footer = document.getElementsByClassName("app-footer")[0];
+        if (footer) {
+            setButtonMarginBottom(footer.clientHeight);
+        }
+    }, [footerOpen]);
+
+    const toggleButton = (
+        <Button
+            iconId={footerOpen ? "ri-arrow-down-circle-fill" : "ri-arrow-up-circle-fill"}
+            onClick={() => {
+                if (footerOpen) {
+                    setButtonMarginBottom(0);
+                }
+                setFooterOpen(!footerOpen);
             }}
-            brandTop={
-                <>
-                    République
-                    <br />
-                    Française
-                </>
-            }
-            contentDescription="
+            priority="tertiary no outline"
+            title="Label button"
+            className="footer-button"
+            style={{ marginBottom: buttonMarginBottom }}
+        />
+    );
+
+    if (community && !footerOpen) return toggleButton;
+
+    return (
+        <>
+            {community && toggleButton}
+            <Footer
+                className={community ? "app-footer" : ""}
+                accessibility="partially compliant"
+                accessibilityLinkProps={{
+                    href: "/accessibilite",
+                }}
+                brandTop={
+                    <>
+                        République
+                        <br />
+                        Française
+                    </>
+                }
+                contentDescription="
                 Cartes.gouv.fr est développé par l’Institut national de l’information géographique et forestière (IGN) et ses partenaires. Le site s’appuie sur la Géoplateforme, la nouvelle infrastructure publique, ouverte et collaborative des données géographiques.
             "
-            bottomItems={[
-                {
-                    linkProps: {
-                        href: "/conditions-generales-d-utilisation",
-                    },
-                    text: "Conditions générales d’utilisation",
-                },
-                <FooterPersonalDataPolicyItem key="footer-personal-data-policy-item" />,
-                <FooterConsentManagementItem key="footer-consent-management-item" />,
-                // Choix du thème clair/sombre
-                headerFooterDisplayItem,
-            ]}
-            homeLinkProps={{
-                href: "/",
-                title: "Accueil - cartes.gouv.fr-guichet-collaboratif",
-            }}
-            // termsLinkProps={{
-            //     ...routes.legal_notice().link,
-            // }}
-            // websiteMapLinkProps={{
-            //     ...routes.sitemap().link,
-            // }}
-            partnersLogos={{
-                sub: [
+                bottomItems={[
                     {
-                        alt: "IGN",
-                        href: "https://www.ign.fr",
-                        imgUrl: logoIgn,
+                        linkProps: {
+                            href: "/conditions-generales-d-utilisation",
+                        },
+                        text: "Conditions générales d’utilisation",
                     },
-                    {
-                        alt: "MINISTÈRE DE LA TRANSFORMATION ET DE LA FONCTION PUBLIQUES",
-                        href: "https://www.transformation.gouv.fr/",
-                        imgUrl: logoMinistereTransformation,
-                    },
-                    {
-                        alt: "MINISTÈRE DE LA TRANSITION ÉCOLOGIQUE ET DE LA COHÉSION DES TERRITOIRES",
-                        href: "https://www.ecologie.gouv.fr/",
-                        imgUrl: logoMinistereEcologie,
-                    },
-                    {
-                        alt: "Conseil National de l’Information Géolocalisée",
-                        href: "https://cnig.gouv.fr/",
-                        imgUrl: logoCnig,
-                    },
-                ],
-            }}
-        />
+                    <FooterPersonalDataPolicyItem key="footer-personal-data-policy-item" />,
+                    <FooterConsentManagementItem key="footer-consent-management-item" />,
+
+                    headerFooterDisplayItem,
+                ]}
+                homeLinkProps={{
+                    href: "/",
+                    title: "Accueil - cartes.gouv.fr-guichet-collaboratif",
+                }}
+                partnersLogos={{
+                    sub: [
+                        {
+                            alt: "IGN",
+                            href: "https://www.ign.fr",
+                            imgUrl: logoIgn,
+                        },
+                        {
+                            alt: "MINISTÈRE DE LA TRANSFORMATION ET DE LA FONCTION PUBLIQUES",
+                            href: "https://www.transformation.gouv.fr/",
+                            imgUrl: logoMinistereTransformation,
+                        },
+                        {
+                            alt: "MINISTÈRE DE LA TRANSITION ÉCOLOGIQUE ET DE LA COHÉSION DES TERRITOIRES",
+                            href: "https://www.ecologie.gouv.fr/",
+                            imgUrl: logoMinistereEcologie,
+                        },
+                        {
+                            alt: "Conseil National de l’Information Géolocalisée",
+                            href: "https://cnig.gouv.fr/",
+                            imgUrl: logoCnig,
+                        },
+                    ],
+                }}
+            />
+        </>
     );
 };
 
-export default memo(AppFooter);
+export default AppFooter;

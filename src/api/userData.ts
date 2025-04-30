@@ -16,10 +16,10 @@ async function getUserProfile(): Promise<User> {
     };
 }
 
-export const useGetUSerProfile = () => {
+export const useGetUserProfileAPI = () => {
     const { user } = useUserStore();
     return useQuery({
-        queryKey: ["user_infos"],
+        queryKey: ["USER_DATA"],
         queryFn: () => getUserProfile(),
         retry: (failureCount, error) => {
             console.log(failureCount);

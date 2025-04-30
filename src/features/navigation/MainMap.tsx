@@ -1,192 +1,86 @@
 import { fr } from "@codegouvfr/react-dsfr";
 import { cx } from "@codegouvfr/react-dsfr/tools/cx";
-import Catalog from "geopf-extensions-openlayers/src/packages/Controls/Catalog/Catalog";
-import GeoportalFullScreen from "geopf-extensions-openlayers/src/packages/Controls/FullScreen/GeoportalFullScreen";
-import LayerSwitcher from "geopf-extensions-openlayers/src/packages/Controls/LayerSwitcher/LayerSwitcher";
-import SearchEngine from "geopf-extensions-openlayers/src/packages/Controls/SearchEngine/SearchEngine";
-import GeoportalZoom from "geopf-extensions-openlayers/src/packages/Controls/Zoom/GeoportalZoom";
 import { View } from "ol";
-import { ScaleLine } from "ol/control";
-import GeoJSON from "ol/format/GeoJSON";
 import { defaults as defaultInteractions } from "ol/interaction";
-import TileLayer from "ol/layer/Tile";
-import VectorLayer from "ol/layer/Vector";
 import Map from "ol/Map";
 import { fromLonLat } from "ol/proj";
-import VectorSource from "ol/source/Vector";
-import WMTS, { optionsFromCapabilities } from "ol/source/WMTS";
-import { useEffect, useMemo, useRef } from "react";
-// @ts-expect-error il manque les types
-import Gp from "geoportal-access-lib";
-
-import extent from "@/api/extent.json";
+import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
 import olDefaults from "@/api/ol-defaults.json";
-import useGpWmtsCapabilities from "@/hooks/useGpWmtsCapabilities";
 
 import "ol/ol.css";
 
 import "geopf-extensions-openlayers/css/Dsfr.css";
 
 import "./map-view.css";
+import getMapControls from "./controls";
 import { useCommunityStore } from "@/store";
+import LayerSwitcher from "geopf-extensions-openlayers/src/packages/Controls/LayerSwitcher/LayerSwitcher";
+import layerSwitcherControl from "./controls/layerSwitcherControl";
+import BaseLayer from "ol/layer/Base";
+import useGetLayersHook from "@/hooks/navigation/layers";
+import { SourceLayer } from "@/store/useCommunityStore";
+import useGpConfig from "@/hooks/navigation/useGpConfig";
 
 export default function MainMap() {
     const mapTargetRef = useRef<HTMLDivElement>(null);
     const mapRef = useRef<Map>(null);
+    const switcherRef = useRef<typeof LayerSwitcher>(null);
 
-    const { community } = useCommunityStore();
+    const { mapLayers, errorCommunity } = useCommunityStore();
+    useGetLayersHook();
 
-    console.log(community);
-    const { data: capabilities } = useGpWmtsCapabilities();
+    if (errorCommunity) console.error(errorCommunity);
 
-    useEffect(() => {
-        const cfg = new Gp.Services.Config({
-            customConfigFile: "https://raw.githubusercontent.com/IGNF/geoportal-configuration/new-url/dist/fullConfig.json",
-            onSuccess: (data: object) => {
-                console.log(data);
-            },
-            onFailure: (e: unknown) => {
-                console.error(e);
-            },
-        });
-        cfg.call();
-    }, []);
+    const mapControls = getMapControls();
 
-    //console.log("dataConfig", dataConfig);
-
-    const extentLayer = useMemo(() => {
-        const extentFeatures = new GeoJSON({
-            dataProjection: "EPSG:4326",
-            featureProjection: "EPSG:3857",
-        }).readFeatures(extent);
-        //console.log("extentFeatures", extentFeatures);
-
-        const extentSource = new VectorSource({
-            features: extentFeatures,
-        });
-        //console.log("extentSource", extentSource);
-
-        return new VectorLayer({
-            source: extentSource,
+    const addLayer = useCallback((layer: BaseLayer): void => {
+        mapRef.current?.addLayer(layer);
+        switcherRef.current?.addLayer(layer, {
+            title: layer.get("title"),
+            description: layer.get("description"),
         });
     }, []);
-    //console.log("extentLayer", extentLayer);
 
-    const bgLayer = useMemo(() => {
-        if (!capabilities) return;
-
-        const wmtsOptions = optionsFromCapabilities(capabilities, {
-            layer: olDefaults.default_background_layer,
-        });
-
-        if (!wmtsOptions) return;
-
-        const bgLayer = new TileLayer();
-        bgLayer.setSource(new WMTS(wmtsOptions));
-
-        return bgLayer;
-    }, [capabilities]);
+    const { data: cfg } = useGpConfig();
 
     useEffect(() => {
-        if (!bgLayer || !extentLayer) return;
+        if (cfg && typeof cfg.call === "function") cfg.call();
+    }, [cfg]);
 
-        const layerSwitcher = new LayerSwitcher({
-            layers: [
-                {
-                    layer: bgLayer,
-                    config: {
-                        title: "Plan IGN v2",
-                    },
-                },
-                {
-                    layer: extentLayer,
-                    config: {
-                        title: "Emprise",
-                    },
-                },
-            ],
-            options: {
-                position: "top-right",
-                collapsed: true,
-                panel: true,
-                counter: true,
-            },
-        });
-
-        const catalog = new Catalog({
-            collapsed: true,
-            draggable: false,
-            titlePrimary: "",
-            titleSecondary: "Gérer vos couches de données",
-            layerLabel: "title",
-            layerFilter: [],
-            search: {
-                display: true,
-                criteria: ["name", "title", "description"],
-            },
-            addToMap: true,
-            categories: [
-                {
-                    title: "Données",
-                    id: "data",
-                    default: true,
-                    filter: null,
-                    // sous categories
-                    // items : [
-                    //     {
-                    //         title : "",
-                    //         default : true,
-                    //         filter : {
-                    //             field : "",
-                    //             value : ""
-                    //         }
-                    //     }
-                    // ]
-                },
-            ],
-            configuration: {
-                type: "json", // type:"service"
-                urls: [
-                    // data:{}
-                    "https://raw.githubusercontent.com/IGNF/cartes.gouv.fr-entree-carto/main/public/data/layers.json",
-                    "https://raw.githubusercontent.com/IGNF/cartes.gouv.fr-entree-carto/main/public/data/edito.json",
-                ],
-            },
-            position: "top-left",
-        });
-
-        const controls = [
-            layerSwitcher,
-            new SearchEngine({
-                collapsed: true,
-                displayAdvancedSearch: false,
-                apiKey: "essentiels",
-                zoomTo: "auto",
-            }),
-            new ScaleLine(),
-            new GeoportalZoom({ position: "top-left" }),
-            new GeoportalFullScreen({ position: "bottom-right" }),
-            catalog,
-        ];
+    useLayoutEffect(() => {
+        if (mapRef.current && switcherRef.current) return;
+        const mapLayersSource: BaseLayer[] = mapLayers.map((layer: SourceLayer) => layer.source);
 
         mapRef.current = new Map({
             target: mapTargetRef.current as HTMLElement,
-            layers: [bgLayer, extentLayer],
+            layers: mapLayersSource,
             interactions: defaultInteractions(),
-            controls: controls,
+            controls: mapControls,
             view: new View({
                 projection: olDefaults.projection,
                 center: fromLonLat(olDefaults.center),
                 zoom: olDefaults.zoom,
             }),
         });
-        const extentLayerSource = extentLayer.getSource();
-        if (extentLayerSource) {
-            mapRef.current.getView().fit(extentLayerSource.getExtent());
-        }
 
-        return () => mapRef.current?.setTarget(undefined);
-    }, [bgLayer, extentLayer]);
+        const switcher = layerSwitcherControl(mapLayers);
+
+        mapRef.current.addControl(switcher);
+
+        switcherRef.current = switcher;
+
+        mapRef.current?.render();
+    });
+
+    useEffect(() => {
+        (async () => {
+            if (!mapRef.current || !switcherRef.current) return;
+            mapRef.current?.getLayers().clear();
+            mapLayers.forEach((layer: SourceLayer) => {
+                addLayer(layer.source);
+            });
+        })();
+    }, [mapLayers, addLayer]);
 
     return (
         <div className={fr.cx("fr-grid-row")}>

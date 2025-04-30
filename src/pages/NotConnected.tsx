@@ -4,7 +4,7 @@ import { Button } from "@codegouvfr/react-dsfr/Button";
 const NotConnected: React.FC = () => {
     return (
         <div className="container">
-            <h1>Vous n'êtes pas connecter !</h1>
+            <h1>Vous n'êtes pas connecté !</h1>
             <Button
                 iconId="ri-login-box-line"
                 size="large"
