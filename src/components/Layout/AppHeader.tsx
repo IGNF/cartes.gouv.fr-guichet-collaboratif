@@ -1,4 +1,3 @@
-import Badge from "@codegouvfr/react-dsfr/Badge";
 import Header from "@codegouvfr/react-dsfr/Header";
 
 import { useCommunityStore, useUserStore } from "@/store";
@@ -6,6 +5,8 @@ import { HOME_URL, LOGIN_URL, LOGOUT_URL, PROFILE_URL } from "@/constants/urls";
 
 import { useEffect, useState } from "react";
 import Button from "@codegouvfr/react-dsfr/Button";
+
+import MapToolbar from "@/features/navigation/MapToolbar"; // ← ici tu importes ton MapToolbar !
 
 const AppHeader: React.FC = () => {
     const [headerOpen, setHeaderOpen] = useState(false);
@@ -55,15 +56,7 @@ const AppHeader: React.FC = () => {
                     href: HOME_URL,
                     title: "Accueil - cartes.gouv.fr-guichet-collaboratif",
                 }}
-                serviceTitle={
-                    <>
-                        cartes.gouv.fr-guichet-collaboratif{" "}
-                        <Badge severity="success" noIcon={true} as="span">
-                            Bêta
-                        </Badge>
-                    </>
-                }
-                serviceTagline="Le guichet collaboratif de cartes.gouv.fr"
+                serviceTitle="cartes.gouv.fr-guichet-collaboratif"
                 quickAccessItems={[
                     user && {
                         iconId: "fr-icon-account-fill",
@@ -81,6 +74,9 @@ const AppHeader: React.FC = () => {
                     },
                 ]}
             />
+
+            {/* 2. Toolbar personnalisée pour le guichet */}
+            <MapToolbar />
         </>
     );
 };

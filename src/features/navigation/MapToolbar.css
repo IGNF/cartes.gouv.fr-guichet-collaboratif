@@ -1,0 +1,123 @@
+.map-toolbar-container {
+    background-color: #ffffff;
+}
+
+.map-toolbar-top {
+    padding: 1rem 0;
+}
+
+.map-toolbar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.map-toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.map-toolbar-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.map-toolbar-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+}
+
+.map-toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.map-toolbar-button-group {
+    display: inline-flex;
+    position: relative;
+}
+
+.map-toolbar-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 0.5rem;
+    background: white;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    padding: 1rem;
+    border-radius: 4px;
+    z-index: 1000;
+}
+
+.map-toolbar-review {
+    margin-top: 1rem;
+    padding: 0.75rem;
+}
+
+.map-toolbar-review a {
+    color: #0063cb;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.95rem;
+    display: block;
+    text-align: center;
+}
+
+.map-toolbar-reset {
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+.map-toolbar-bottom {
+    background-color: #f5f8ff;
+    padding: 1rem 0;
+}
+
+.map-toolbar-bottom-inner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    font-weight: bold;
+}
+
+.map-toolbar-label {
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.map-toolbar-button-primary {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.map-toolbar-button-toggle {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    margin-left: 1px;
+}
+
+.map-toolbar-line {
+    font-weight: bold;
+}
+
+.map-toolbar-line-count {
+    font-weight: 600;
+}
+
+.map-toolbar-review-link {
+    text-align: center;
+    width: 100%;
+}
+
+.map-toolbar-layer-label {
+    font-weight: bold;
+}
