@@ -10,10 +10,9 @@ import { LIST_COMMUNITIES_URL } from "@/constants/urls";
 
 const Carte: React.FC = () => {
     const params = useParams();
+    const [communityNotFound, setCommunityNotFound] = useState(false);
 
-    const [communityNotFount, setCommunityNotFount] = useState(false);
-
-    const { community, communityLayers, isLoadingCommunity, setCommunity, setCommunityLayers, setIsLoadingCommunity } = useCommunityStore();
+    const { community, isLoadingCommunity, setCommunity, setCommunityLayers, setIsLoadingCommunity } = useCommunityStore();
     const { user, isLoadingUser, setUser, setIsLoadingUser } = useUserStore();
 
     const communityId = params.communityId || "";
@@ -27,7 +26,7 @@ const Carte: React.FC = () => {
             setUser(userData);
         }
         if (userError) {
-            setCommunityNotFount(true);
+            setCommunityNotFound(true);
             setCommunity(null);
         }
         setIsLoadingUser(userIsLoading);
@@ -41,7 +40,7 @@ const Carte: React.FC = () => {
             setCommunityLayers(communityData[1]);
         }
         if (communityError) {
-            setCommunityNotFount(true);
+            setCommunityNotFound(true);
             setCommunity(null);
         }
         setIsLoadingCommunity(communityIsLoading);
@@ -52,14 +51,20 @@ const Carte: React.FC = () => {
     if (!isLoadingUser && !user) {
         return <NotConnected />;
     } else if (isLoadingCommunity || isLoadingUser) {
-        return <div className="container">Chargements...</div>;
+        return <div className="container">Chargement...</div>;
     } else if (!isDigital(communityId)) {
         return <NotFound />;
-    } else if (communityNotFount) {
+    } else if (communityNotFound) {
         window.location.href = LIST_COMMUNITIES_URL;
     }
 
-    return community && communityLayers && <MainMap />;
+    return (
+        community && (
+            <>
+                <MainMap />
+            </>
+        )
+    );
 };
 
 export default Carte;
