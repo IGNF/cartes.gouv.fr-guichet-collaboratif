@@ -1,0 +1,8 @@
+/.vscode
+/.github
+/node_modules/
+/docs
+/dist
+/.husky
+compose*.yml
+renovate.json
