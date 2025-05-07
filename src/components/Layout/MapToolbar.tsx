@@ -22,13 +22,16 @@ const MapToolbar: React.FC = () => {
     if (!community) return null;
 
     return (
-        <div className="map-toolbar-container">
+        <div id="map-toolbar-header" className="map-toolbar-container">
             <div className={`${fr.cx("fr-container")} map-toolbar-top`}>
                 <div className="map-toolbar-header">
                     <div className="map-toolbar-left">
                         <div className="map-toolbar-title">
                             <img
-                                src="https://media.istockphoto.com/id/528909900/photo/sunbeams-rays-of-light-shining-through-green-foliage-into-forest.webp?a=1&b=1&s=612x612&w=0&k=20&c=XvEKcyRQSLGgeTULTqy53TTuno_IevpN9VVUg3nXkjA="
+                                src={
+                                    community.logoUrl ||
+                                    "https://media.istockphoto.com/id/528909900/photo/sunbeams-rays-of-light-shining-through-green-foliage-into-forest.webp?a=1&b=1&s=612x612&w=0&k=20&c=XvEKcyRQSLGgeTULTqy53TTuno_IevpN9VVUg3nXkjA="
+                                }
                                 alt="Icône Guichet"
                                 className="map-toolbar-avatar"
                             />
@@ -42,15 +45,21 @@ const MapToolbar: React.FC = () => {
                                 iconId="fr-icon-save-fill"
                                 priority="primary"
                                 title="Enregistrer vos contributions"
-                                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                                onClick={() => {
+                                    const event = new CustomEvent("save-view-button");
+                                    document.dispatchEvent(event);
+                                }}
                                 className="map-toolbar-button-primary"
                             >
                                 Enregistrer vos contributions (1)
                             </Button>
 
-                            <Button onClick={() => setIsDropdownOpen(!isDropdownOpen)} title="Afficher plus" className="map-toolbar-button-toggle">
-                                {isDropdownOpen ? "▲" : "▼"}
-                            </Button>
+                            <Button
+                                iconId={isDropdownOpen ? `fr-icon-arrow-up-s-line` : `fr-icon-arrow-down-s-line`}
+                                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                                title="Afficher plus"
+                                className="map-toolbar-button-toggle"
+                            ></Button>
 
                             {isDropdownOpen && (
                                 <div className="map-toolbar-dropdown" style={{ width: dropdownWidth }}>

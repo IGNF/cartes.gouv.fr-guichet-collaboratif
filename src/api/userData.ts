@@ -1,7 +1,8 @@
 import axios from "axios";
 import { USER_PROFILE_API_URL } from "@/constants/urls";
 import { useQuery } from "@tanstack/react-query";
-import { User, useUserStore } from "@/store/useUserStore";
+import { useUserStore } from "@/store/useUserStore";
+import { User } from "@/constants/user/types";
 
 async function getUserProfile(): Promise<User> {
     const res = await axios.get(USER_PROFILE_API_URL, {

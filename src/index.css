@@ -37,3 +37,36 @@
     margin-top: 5rem;
     margin-bottom: 5rem;
 }
+
+.alert-message {
+    position: absolute;
+    bottom: 20px;
+    margin-bottom: 50px;
+    width: auto;
+    right: 10px;
+    z-index: 99999999;
+    background-color: white;
+    opacity: 1;
+    animation: slideIn 0.2s ease;
+    transition:
+        opacity 0.2s ease,
+        bottom 0.2s ease,
+        margin-bottom 0.2s ease;
+}
+
+.alert-message.fadeout {
+    opacity: 0;
+    margin-bottom: 0;
+    bottom: 0;
+}
+
+@keyframes slideIn {
+    0% {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    100% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}

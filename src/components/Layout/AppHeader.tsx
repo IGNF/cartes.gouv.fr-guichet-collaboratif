@@ -3,46 +3,16 @@ import Header from "@codegouvfr/react-dsfr/Header";
 import { useCommunityStore, useUserStore } from "@/store";
 import { HOME_URL, LOGIN_URL, LOGOUT_URL, PROFILE_URL } from "@/constants/urls";
 
-import { useEffect, useState } from "react";
-import Button from "@codegouvfr/react-dsfr/Button";
-
-import MapToolbar from "@/features/navigation/MapToolbar"; // ← ici tu importes ton MapToolbar !
+import MapToolbar from "./MapToolbar";
 
 const AppHeader: React.FC = () => {
-    const [headerOpen, setHeaderOpen] = useState(false);
-    const [buttonMarginTop, setButtonMarginTop] = useState(0);
-
     const { user } = useUserStore();
     const { community } = useCommunityStore();
 
-    useEffect(() => {
-        const header = document.getElementsByClassName("app-header")[0];
-        if (header) {
-            setButtonMarginTop(header.clientHeight);
-        }
-    }, [headerOpen]);
-
-    const toggleButton = (
-        <Button
-            iconId={headerOpen ? "ri-arrow-up-circle-fill" : "ri-arrow-down-circle-fill"}
-            onClick={() => {
-                if (headerOpen) {
-                    setButtonMarginTop(0);
-                }
-                setHeaderOpen(!headerOpen);
-            }}
-            priority="tertiary no outline"
-            title="Label button"
-            className="header-button"
-            style={{ marginTop: buttonMarginTop }}
-        />
-    );
-
-    if (community && !headerOpen) return toggleButton;
+    if (community) return <MapToolbar />;
 
     return (
         <>
-            {community && toggleButton}
             <Header
                 className={community ? "app-header" : ""}
                 brandTop={
@@ -58,6 +28,17 @@ const AppHeader: React.FC = () => {
                 }}
                 serviceTitle="cartes.gouv.fr-guichet-collaboratif"
                 quickAccessItems={[
+                    {
+                        iconId: "ri-save-2-fill",
+                        buttonProps: {
+                            onClick: () => {
+                                const event = new CustomEvent("save-view-button");
+
+                                document.dispatchEvent(event);
+                            },
+                        },
+                        text: "Enregistrer",
+                    },
                     user && {
                         iconId: "fr-icon-account-fill",
                         linkProps: {
@@ -74,9 +55,6 @@ const AppHeader: React.FC = () => {
                     },
                 ]}
             />
-
-            {/* 2. Toolbar personnalisée pour le guichet */}
-            <MapToolbar />
         </>
     );
 };

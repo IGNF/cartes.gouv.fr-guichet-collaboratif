@@ -1,7 +1,7 @@
-import { SourceLayer } from "@/store/useCommunityStore";
+import { MapLayer } from "@/constants/communities/types";
 import LayerSwitcher from "geopf-extensions-openlayers/src/packages/Controls/LayerSwitcher/LayerSwitcher";
 
-const layerSwitcherControl = (layers: SourceLayer[]) => {
+const layerSwitcherControl = (layers: MapLayer[]) => {
     return new LayerSwitcher({
         layers: layers.map((layer) => {
             return {

@@ -31,6 +31,7 @@
         "geopf-extensions-openlayers": "^1.0.0-beta.3",
         "geoportal-access-lib": "^3.4.6",
         "lint-staged": "^15.5.0",
+        "lodash.isequal": "^4.5.0",
         "ol": "^10.4.0",
         "pako": "^2.1.0",
         "prettier": "^3.5.3",
@@ -41,6 +42,7 @@
     },
     "devDependencies": {
         "@eslint/js": "^9.22.0",
+        "@types/lodash.isequal": "^4.5.8",
         "@types/pako": "^2.0.3",
         "@types/react": "^19.0.10",
         "@types/react-dom": "^19.0.4",

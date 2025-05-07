@@ -1,9 +1,5 @@
+import { User } from "@/constants/user/types";
 import { create } from "zustand";
-
-export type User = {
-    id: string;
-    name: string;
-} | null;
 
 interface UserStore {
     user: User;

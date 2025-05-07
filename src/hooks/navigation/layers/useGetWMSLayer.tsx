@@ -1,32 +1,24 @@
 import TileLayer from "ol/layer/Tile";
 import { TileWMS } from "ol/source";
 import { useEffect, useMemo } from "react";
-import { CommunityGeoservice, CommunityLayer, useCommunityStore } from "@/store/useCommunityStore";
+import { useCommunityStore } from "@/store/useCommunityStore";
 import useGetCapabilitiesWMS from "../capabilities/useGetCapabilitiesWMS";
 import { transformExtent } from "ol/proj";
+import { CommunityGeoservice, StatusMessage } from "@/constants/communities/types";
 
 type CapabilityLayer = {
     Name: string;
 };
 
-const GetWMSLayer: React.FC<CommunityLayer> = (layer: CommunityLayer) => {
-    const geoservice = layer.geoservice;
-    const { addMapLayers, mapLayers } = useCommunityStore();
-    const wmsLayerSource = useGetWMSLayer(geoservice);
-    useEffect(() => {
-        wmsLayerSource?.setOpacity(layer.opacity);
-        wmsLayerSource?.setVisible(layer.visibility);
-        if (wmsLayerSource) {
-            const wmsLayer = { source: wmsLayerSource, title: geoservice.title, order: layer.order };
-            addMapLayers(wmsLayer);
-        }
-    }, [wmsLayerSource, geoservice, layer, mapLayers, addMapLayers]);
-
-    return null;
-};
-
 function useGetWMSLayer(geoservice: CommunityGeoservice) {
-    const { data: capabilities } = useGetCapabilitiesWMS(geoservice);
+    const { data: capabilities, error } = useGetCapabilitiesWMS(geoservice);
+
+    const { addAlertMessage } = useCommunityStore();
+    useEffect(() => {
+        if (error) {
+            addAlertMessage(StatusMessage.error, `Erreur dans le chargement de la couche ${geoservice.title}`);
+        }
+    }, [error, geoservice, addAlertMessage]);
 
     const wmsLayer = useMemo(() => {
         if (!capabilities) return;
@@ -70,4 +62,4 @@ function useGetWMSLayer(geoservice: CommunityGeoservice) {
     return wmsLayer;
 }
 
-export default GetWMSLayer;
+export default useGetWMSLayer;

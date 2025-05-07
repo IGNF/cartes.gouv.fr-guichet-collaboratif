@@ -1,5 +1,5 @@
+import { CommunityGeoservice } from "@/constants/communities/types";
 import { GEOSERVICES_API_URL } from "@/constants/urls";
-import { CommunityGeoservice } from "@/store/useCommunityStore";
 import axios from "axios";
 
 export function getGeoserviceById(geoserviceId: number) {
