@@ -1,7 +1,8 @@
-export const BASE_URL = "/cartes.gouv.fr";
-export const API_URL = "/cartes.gouv.fr/api";
+export const BASE_URL = import.meta.env.VITE_BASE_URL;
+export const FRONT_URL = import.meta.env.VITE_FRONT_URL;
+export const API_URL = BASE_URL + "/api";
 
-const FRONT_BASE_URL = "/cartes.gouv.fr/guichet-collaboratif";
+const FRONT_BASE_URL = BASE_URL + FRONT_URL;
 
 export const HOME_URL = FRONT_BASE_URL;
 export const PROFILE_URL = FRONT_BASE_URL + "/profile";
