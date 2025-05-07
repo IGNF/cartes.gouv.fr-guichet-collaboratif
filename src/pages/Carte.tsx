@@ -2,18 +2,21 @@ import { useParams } from "react-router-dom";
 import NotFound from "./NotFound";
 import NotConnected from "./NotConnected";
 import { useEffect, useState } from "react";
-import { useCommunityStore, useUserStore } from "@/store";
+import { useCommunityStore, useLocalStorageStore, useUserStore } from "@/store";
 import { isDigital, useGetCommunityByIdAPI } from "@/api/communityData";
 import { useGetUserProfileAPI } from "@/api/userData";
 import MainMap from "@/features/navigation/MainMap";
 import { LIST_COMMUNITIES_URL } from "@/constants/urls";
+import AlertComponent from "@/components/AlertComponent";
+import { StatusMessage } from "@/constants/communities/types";
 
 const Carte: React.FC = () => {
     const params = useParams();
     const [communityNotFound, setCommunityNotFound] = useState(false);
 
-    const { community, isLoadingCommunity, setCommunity, setCommunityLayers, setIsLoadingCommunity } = useCommunityStore();
+    const { community, communityLayers, isLoadingCommunity, setCommunity, setCommunityLayers, setIsLoadingCommunity, addAlertMessage } = useCommunityStore();
     const { user, isLoadingUser, setUser, setIsLoadingUser } = useUserStore();
+    const { initLocalStorage } = useLocalStorageStore();
 
     const communityId = params.communityId || "";
 
@@ -26,27 +29,32 @@ const Carte: React.FC = () => {
             setUser(userData);
         }
         if (userError) {
-            setCommunityNotFound(true);
+            setUser(null);
             setCommunity(null);
+            addAlertMessage(StatusMessage.error, userError.message);
         }
         setIsLoadingUser(userIsLoading);
 
-        return () => setCommunity(null);
-    }, [userData, userError, userIsLoading, setCommunity, setUser, setIsLoadingUser]);
+        return () => setUser(null);
+    }, [userData, userError, userIsLoading, setCommunity, setUser, setIsLoadingUser, addAlertMessage]);
 
     useEffect(() => {
         if (communityData) {
-            setCommunity(communityData[0]);
-            setCommunityLayers(communityData[1]);
+            const community = communityData[0];
+            const layers = communityData[1];
+            setCommunity(community);
+            setCommunityLayers(layers);
+            initLocalStorage(community.name);
         }
         if (communityError) {
             setCommunityNotFound(true);
             setCommunity(null);
+            addAlertMessage(StatusMessage.error, communityError.message);
         }
         setIsLoadingCommunity(communityIsLoading);
 
         return () => setCommunity(null);
-    }, [communityData, communityError, communityIsLoading, setCommunity, setCommunityLayers, setIsLoadingCommunity]);
+    }, [communityData, communityError, communityIsLoading, setCommunity, setCommunityLayers, setIsLoadingCommunity, initLocalStorage, addAlertMessage]);
 
     if (!isLoadingUser && !user) {
         return <NotConnected />;
@@ -59,11 +67,10 @@ const Carte: React.FC = () => {
     }
 
     return (
-        community && (
-            <>
-                <MainMap />
-            </>
-        )
+        <>
+            <AlertComponent />
+            {community && communityLayers && <MainMap />}
+        </>
     );
 };
 

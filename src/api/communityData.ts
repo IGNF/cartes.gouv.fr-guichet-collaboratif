@@ -1,9 +1,10 @@
 import axios from "axios";
-import { Community, CommunityLayer, useCommunityStore } from "@/store/useCommunityStore";
+import { useCommunityStore } from "@/store/useCommunityStore";
 import { COMMUNITIES_API_URL, LIST_COMMUNITIES_URL } from "@/constants/urls";
 import { useQuery } from "@tanstack/react-query";
 import { useUserStore } from "@/store/useUserStore";
 import { getGeoserviceAll } from "./geoservicesData";
+import { Community, CommunityLayer } from "@/constants/communities/types";
 
 type layerData = {
     id: number;
@@ -21,12 +22,12 @@ export const isDigital = (value: string): boolean => {
     return regex.test(value);
 };
 
-async function getCommunityLayers(communityId: number): Promise<CommunityLayer[] | null> {
+async function getCommunityLayers(communityId: number): Promise<CommunityLayer[]> {
     const res = await axios.get(`${COMMUNITIES_API_URL}/${communityId}/layer/get_all`, {
         headers: { "X-Requested-With": "XMLHttpRequest" },
     });
 
-    if (!res.data || res.status !== 200) return null;
+    if (!res.data || res.status !== 200) return [];
     const layers = res.data;
     const geoservicesIds = layers.map((layer: layerData) => layer.geoservice.id);
     const geoRes = await getGeoserviceAll(geoservicesIds);
@@ -44,7 +45,7 @@ async function getCommunityLayers(communityId: number): Promise<CommunityLayer[]
     });
 }
 
-async function getCommunityById(communityId: string): Promise<[Community, CommunityLayer[] | null] | null> {
+async function getCommunityById(communityId: string): Promise<[Community, CommunityLayer[]] | null> {
     const res = await axios.get(`${COMMUNITIES_API_URL}/${communityId}`, {
         headers: { "X-Requested-With": "XMLHttpRequest" },
     });
@@ -55,7 +56,7 @@ async function getCommunityById(communityId: string): Promise<[Community, Commun
     }
     if (!res.data || res.status !== 200) return null;
 
-    const community = {
+    const community: Community = {
         id: res.data.id,
         listed: res.data.listed,
         description: res.data.description,
@@ -64,7 +65,7 @@ async function getCommunityById(communityId: string): Promise<[Community, Commun
         functionalities: res.data.functionalities,
         logoUrl: res.data.logo_url,
     };
-    const layers = await getCommunityLayers(community.id);
+    const layers: CommunityLayer[] = await getCommunityLayers(community.id);
     return [community, layers];
 }
 

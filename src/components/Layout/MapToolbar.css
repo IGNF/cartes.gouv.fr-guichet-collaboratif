@@ -3,14 +3,13 @@
 }
 
 .map-toolbar-top {
-    padding: 1rem 0;
+    padding: 20px 0;
 }
 
 .map-toolbar-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1rem;
 }
 
 .map-toolbar-left {
@@ -76,7 +75,7 @@
 
 .map-toolbar-bottom {
     background-color: #f5f8ff;
-    padding: 1rem 0;
+    padding: 20px 0;
 }
 
 .map-toolbar-bottom-inner {

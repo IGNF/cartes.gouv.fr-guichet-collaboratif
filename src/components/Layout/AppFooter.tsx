@@ -1,6 +1,5 @@
 import { headerFooterDisplayItem } from "@codegouvfr/react-dsfr/Display";
 import Footer from "@codegouvfr/react-dsfr/Footer";
-import { useEffect, useState } from "react";
 
 import { FooterConsentManagementItem, FooterPersonalDataPolicyItem } from "@/components/ConsentManagement";
 
@@ -9,41 +8,14 @@ import logoMinistereTransformation from "@/img/partners-logos/logo-ministere-tra
 import logoMinistereEcologie from "@/img/partners-logos/logo-ministere-ecologie.jpg";
 import logoCnig from "@/img/partners-logos/logo-rf-cnig.jpg";
 import { useCommunityStore } from "@/store";
-import Button from "@codegouvfr/react-dsfr/Button";
 
 const AppFooter: React.FC = () => {
-    const [footerOpen, setFooterOpen] = useState(false);
-    const [buttonMarginBottom, setButtonMarginBottom] = useState(0);
     const { community } = useCommunityStore();
 
-    useEffect(() => {
-        const footer = document.getElementsByClassName("app-footer")[0];
-        if (footer) {
-            setButtonMarginBottom(footer.clientHeight);
-        }
-    }, [footerOpen]);
-
-    const toggleButton = (
-        <Button
-            iconId={footerOpen ? "ri-arrow-down-circle-fill" : "ri-arrow-up-circle-fill"}
-            onClick={() => {
-                if (footerOpen) {
-                    setButtonMarginBottom(0);
-                }
-                setFooterOpen(!footerOpen);
-            }}
-            priority="tertiary no outline"
-            title="Label button"
-            className="footer-button"
-            style={{ marginBottom: buttonMarginBottom }}
-        />
-    );
-
-    if (community && !footerOpen) return toggleButton;
+    if (community) return null;
 
     return (
         <>
-            {community && toggleButton}
             <Footer
                 className={community ? "app-footer" : ""}
                 accessibility="partially compliant"

@@ -3,28 +3,19 @@ import { WMTS } from "ol/source";
 import { useEffect, useMemo } from "react";
 import { optionsFromCapabilities } from "ol/source/WMTS";
 import useGetCapabilitiesWMTS from "@/hooks/navigation/capabilities/useGetCapabilitiesWMTS";
-import { CommunityGeoservice, CommunityLayer, useCommunityStore } from "@/store/useCommunityStore";
+import { useCommunityStore } from "@/store/useCommunityStore";
 import { transformExtent } from "ol/proj";
-
-const GetWMTSLayer: React.FC<CommunityLayer> = (layer) => {
-    const geoservice = layer.geoservice;
-    const { addMapLayers, mapLayers } = useCommunityStore();
-    const wmtsLayerSource = useGetWMTSLayer(geoservice);
-
-    useEffect(() => {
-        wmtsLayerSource?.setOpacity(layer.opacity);
-        wmtsLayerSource?.setVisible(layer.visibility);
-        if (wmtsLayerSource) {
-            const wmtsLayer = { source: wmtsLayerSource, title: geoservice.title, order: layer.order };
-            addMapLayers(wmtsLayer);
-        }
-    }, [wmtsLayerSource, geoservice, layer, mapLayers, addMapLayers]);
-
-    return null;
-};
+import { CommunityGeoservice, StatusMessage } from "@/constants/communities/types";
 
 function useGetWMTSLayer(geoservice: CommunityGeoservice) {
-    const { data: capabilities } = useGetCapabilitiesWMTS(geoservice);
+    const { data: capabilities, error } = useGetCapabilitiesWMTS(geoservice);
+
+    const { addAlertMessage } = useCommunityStore();
+    useEffect(() => {
+        if (error) {
+            addAlertMessage(StatusMessage.error, `Erreur dans le chargement de la couche ${geoservice.title}`);
+        }
+    }, [error, geoservice, addAlertMessage]);
 
     const wmtsLayer = useMemo(() => {
         if (!capabilities) return;
@@ -60,4 +51,4 @@ function useGetWMTSLayer(geoservice: CommunityGeoservice) {
     return wmtsLayer;
 }
 
-export default GetWMTSLayer;
+export default useGetWMTSLayer;
