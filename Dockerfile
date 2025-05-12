@@ -3,11 +3,16 @@
 #----------------------------------------------------------------------
 FROM node:22-alpine AS builder
 
+ARG http_proxy=""
+ARG https_proxy=$http_proxy
+ARG HTTP_PROXY=$http_proxy
+ARG HTTPS_PROXY=$http_proxy
+
 WORKDIR /app
 COPY . .
 
 RUN npm ci \
-    && BASE_URL='/guichet-collaboratif' npm run build
+    && VITE_BASE_URL="" VITE_FRONT_URL="/guichet-collaboratif" npm run build
 
 #----------------------------------------------------------------------
 # cartesgouvfr-guichet-collaboratif : Config d'un serveur statique avec nginx

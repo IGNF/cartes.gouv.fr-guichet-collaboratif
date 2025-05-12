@@ -1,0 +1,29 @@
+networks:
+    web_dev:
+        external: true
+
+services:
+    site:
+        image: ignf/cartes.gouv.fr-guichet-collaboratif
+        build:
+            context: .
+            dockerfile: "Dockerfile"
+            args:
+                - HTTP_PROXY
+                - HTTPS_PROXY
+        # Décommenter les lignes suivantes pour exposer le port 8082 si pas de reverse proxy
+        # ports:
+        #     - 8082:8082
+        environment:
+            - HTTP_PROXY=${HTTP_PROXY}
+            - HTTPS_PROXY=${HTTPS_PROXY}
+            - http_proxy=${HTTP_PROXY}
+            - https_proxy=${HTTPS_PROXY}
+        restart: unless-stopped
+        networks:
+            - web_dev
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.cartesgouvfr-guichet-collaboratif.rule=Host(`cartesgouvfr-dev.docker.localhost`) && PathPrefix(`/guichet-collaboratif`)"
+            - "traefik.http.routers.cartesgouvfr-guichet-collaboratif.entrypoints=websecure"
+            - "traefik.http.services.cartesgouvfr-guichet-collaboratif.loadbalancer.server.port=8082"

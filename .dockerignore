@@ -1,3 +1,4 @@
+/.git
 /.vscode
 /.github
 /node_modules/
@@ -6,3 +7,8 @@
 /.husky
 compose*.yml
 renovate.json
+
+.eslint*
+.prettier*
+.editorconfig
+.DS_Store
