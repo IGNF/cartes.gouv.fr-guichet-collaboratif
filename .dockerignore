@@ -1,0 +1,14 @@
+/.git
+/.vscode
+/.github
+/node_modules/
+/docs
+/dist
+/.husky
+compose*.yml
+renovate.json
+
+.eslint*
+.prettier*
+.editorconfig
+.DS_Store
