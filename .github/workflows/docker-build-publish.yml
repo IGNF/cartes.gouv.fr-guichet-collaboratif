@@ -34,6 +34,18 @@ jobs:
               uses: docker/metadata-action@v5
               with:
                   images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+                  tags: |
+                      type=ref,event=branch
+                      type=ref,event=pr
+                      type=semver,pattern={{version}}
+
+            - name: Extract first non-latest tag
+              id: tag
+              run: |
+                  first_tag=$(echo '${{ steps.meta.outputs.tags }}' | tr ',' '\n' | grep -v ':latest' | head -n1)
+                  echo "tag<<EOF" >> $GITHUB_OUTPUT
+                  echo "${first_tag}" >> $GITHUB_OUTPUT
+                  echo "EOF" >> $GITHUB_OUTPUT
 
             - name: Build Docker image
               id: build
@@ -52,7 +64,7 @@ jobs:
             - name: Run Trivy vulnerability scanner
               uses: aquasecurity/trivy-action@0.30.0
               with:
-                  image-ref: ${{ steps.meta.outputs.tags }}
+                  image-ref: ${{ steps.tag.outputs.tag }}
                   format: "sarif"
                   output: "trivy-results.sarif"
 
@@ -91,9 +103,9 @@ jobs:
                   tags: |
                       type=ref,event=branch
                       type=ref,event=pr
-                      type=semver,pattern={{version}}
                       type=sha
-                  # type=semver,pattern={{major}}.{{minor}}
+                      type=semver,pattern={{version}}
+                      type=semver,pattern={{major}}.{{minor}}
 
             - name: Build & Push image to github registry and generate SBOM
               uses: docker/build-push-action@v6
