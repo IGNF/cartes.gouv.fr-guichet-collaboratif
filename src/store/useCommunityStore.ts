@@ -1,4 +1,5 @@
 import { AlertMessageType, Community, CommunityGeoservice, CommunityLayer, MapLayer, StatusMessage } from "@/constants/communities/types";
+import { CommunityReport } from "@/constants/reports/types";
 import { create } from "zustand";
 
 let idMessageCounter = 0;
@@ -8,6 +9,7 @@ interface CommunityStore {
     communityLayers: CommunityLayer[] | null;
     mapLayers: MapLayer[];
     geoservices: CommunityGeoservice[];
+    reports: CommunityReport[];
     alertMessages: AlertMessageType[];
     isLoadingCommunity: boolean;
     setCommunity: (community: Community | null) => void;
@@ -17,6 +19,7 @@ interface CommunityStore {
     setIsLoadingCommunity: (value: boolean) => void;
     addMapLayer: (layer: MapLayer) => void;
     addGeoservice: (geoservice: CommunityGeoservice) => void;
+    setCommunityReports: (reports: CommunityReport[]) => void;
 }
 
 export const useCommunityStore = create<CommunityStore>((set, get) => ({
@@ -25,6 +28,7 @@ export const useCommunityStore = create<CommunityStore>((set, get) => ({
     alertMessages: [],
     mapLayers: [],
     geoservices: [],
+    reports: [],
     isLoadingCommunity: false,
     setCommunity: (community) => {
         set({ community });
@@ -64,6 +68,11 @@ export const useCommunityStore = create<CommunityStore>((set, get) => ({
             return {
                 geoservices: [...state.geoservices, geoservice],
             };
+        });
+    },
+    setCommunityReports: (reports) => {
+        set({
+            reports,
         });
     },
 }));

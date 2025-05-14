@@ -38,6 +38,14 @@ export interface CommunityLayer {
     role: string;
 }
 
+export type CommunityTheme = {
+    theme: string;
+    help?: string;
+    attributes: string[];
+};
+
+export type PointString = `POINT(${string})`;
+
 export interface Community {
     id: number;
     listed: boolean;
@@ -46,6 +54,9 @@ export interface Community {
     about: string;
     functionalities: string[];
     logoUrl: string;
+    themes: CommunityTheme[];
+    position: PointString;
+    zoom: number;
 }
 
 export const enum StatusMessage {

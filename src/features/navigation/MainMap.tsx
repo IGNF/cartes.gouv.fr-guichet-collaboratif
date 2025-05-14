@@ -3,14 +3,10 @@ import { cx } from "@codegouvfr/react-dsfr/tools/cx";
 import { View } from "ol";
 import { defaults as defaultInteractions } from "ol/interaction";
 import Map from "ol/Map";
-import { fromLonLat } from "ol/proj";
 import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
 import olDefaults from "@/api/ol-defaults.json";
-
 import "ol/ol.css";
-
 import "geopf-extensions-openlayers/css/Dsfr.css";
-
 import "./map-view.css";
 import getMapControls from "./controls";
 import { useCommunityStore, useLocalStorageStore, useMapStore } from "@/store";
@@ -18,10 +14,10 @@ import LayerSwitcher from "geopf-extensions-openlayers/src/packages/Controls/Lay
 import layerSwitcherControl from "./controls/layerSwitcherControl";
 import useGpConfig from "@/hooks/navigation/useGpConfig";
 import GetAllLayers from "./layers";
-
-import isEqual from "lodash.isequal";
-import { MapLayer, MapLayerSource, StatusMessage } from "@/constants/communities/types";
-import { LocalStorageData } from "@/constants/localStorage/types";
+import { MapLayer, MapLayerSource } from "@/constants/communities/types";
+import ShowReportModal from "../reports/ShowReportModal";
+import { getLonLatFromPoint } from "@/constants/utils";
+import SaveButtonHandler from "./SaveButtonHandler";
 
 export default function MainMap() {
     const mapTargetRef = useRef<HTMLDivElement>(null);
@@ -29,8 +25,8 @@ export default function MainMap() {
     const viewRef = useRef<View>(null);
     const switcherRef = useRef<typeof LayerSwitcher>(null);
 
-    const { community, mapLayers, addAlertMessage } = useCommunityStore();
-    const { localStorageData, setLocalStorage } = useLocalStorageStore();
+    const { community, mapLayers } = useCommunityStore();
+    const { localStorageData } = useLocalStorageStore();
     const { map, setMap } = useMapStore();
 
     const mapControls = getMapControls();
@@ -55,8 +51,8 @@ export default function MainMap() {
 
         const mapView = new View({
             projection: localStorageData?.projection || olDefaults.projection,
-            center: localStorageData?.center || fromLonLat(olDefaults.center),
-            zoom: localStorageData?.zoom || olDefaults.zoom,
+            center: localStorageData?.center || getLonLatFromPoint(community?.position),
+            zoom: localStorageData?.zoom || community?.zoom,
         });
 
         mapRef.current = new Map({
@@ -81,53 +77,17 @@ export default function MainMap() {
     });
 
     useEffect(() => {
-        if (!mapRef.current || !switcherRef.current) return;
-        mapRef.current?.getLayers().clear();
+        (async () => {
+            if (!mapRef.current || !switcherRef.current) return;
+            mapRef.current?.getLayers().clear();
 
-        mapLayers.forEach((layer: MapLayer) => {
-            addLayer(layer.source);
-        });
-        console.log(switcherRef.current, mapRef.current);
+            mapLayers.forEach((layer: MapLayer) => {
+                addLayer(layer.source);
+            });
+        })();
     }, [mapLayers, addLayer]);
 
-    const handleSaveButton = async () => {
-        if (!community?.name || !mapRef.current || !switcherRef.current) return;
-        await switcherRef.current?._updateLayersOrder();
-        const layers = mapRef.current.getAllLayers();
-        const view = mapRef.current.getView();
-        const mapControls = mapRef.current.getControls().getArray();
-        const switcher: typeof LayerSwitcher = mapControls[mapControls.length - 1];
-        const newLocalStorageData: LocalStorageData = {
-            activeLayer: layers[layers.length - 1].get("title"),
-            center: view.getCenter()?.map((c) => c) || [],
-            layers: switcher._layersOrder.reverse().map((layer: { title: string }, index: number) => {
-                const mapLayer = layers.find((l) => l.get("title") === layer.title);
-                return {
-                    name: mapLayer?.get("title"),
-                    opacity: mapLayer?.getOpacity(),
-                    type: mapLayer?.get("type"),
-                    visibility: mapLayer?.getVisible(),
-                    order: index,
-                };
-            }),
-            zoom: view.getZoom() || 0,
-            projection: view.getProjection().getCode(),
-        };
-        if (isEqual(newLocalStorageData, localStorageData)) return;
-        await setLocalStorage(community?.name, newLocalStorageData);
-        addAlertMessage(StatusMessage.success, "Enregistrement fait avec succès");
-    };
-
-    useEffect(() => {
-        document.addEventListener("save-view-button", handleSaveButton);
-
-        return () => {
-            document.removeEventListener("save-view-button", handleSaveButton);
-        };
-    });
-
     const mapToolbarHeader = document.getElementById("map-toolbar-header");
-    console.log(mapLayers);
 
     return (
         <div className={fr.cx("fr-grid-row")}>
@@ -136,7 +96,11 @@ export default function MainMap() {
                 ref={mapTargetRef}
                 style={{ height: `calc(100vh - ${mapToolbarHeader?.clientHeight || 0}px)` }}
             ></div>
+
+            <SaveButtonHandler map={mapRef.current} mapSwitcher={switcherRef.current} />
             <GetAllLayers />
+
+            <ShowReportModal map={mapRef.current} />
         </div>
     );
 }

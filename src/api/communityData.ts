@@ -22,7 +22,7 @@ export const isDigital = (value: string): boolean => {
     return regex.test(value);
 };
 
-async function getCommunityLayers(communityId: number): Promise<CommunityLayer[]> {
+async function getCommunityLayers(communityId: string): Promise<CommunityLayer[]> {
     const res = await axios.get(`${COMMUNITIES_API_URL}/${communityId}/layer/get_all`, {
         headers: { "X-Requested-With": "XMLHttpRequest" },
     });
@@ -64,8 +64,11 @@ async function getCommunityById(communityId: string): Promise<[Community, Commun
         about: res.data.about,
         functionalities: res.data.functionalities,
         logoUrl: res.data.logo_url,
+        themes: res.data.attributes,
+        position: res.data.position,
+        zoom: res.data.zoom,
     };
-    const layers: CommunityLayer[] = await getCommunityLayers(community.id);
+    const layers: CommunityLayer[] = await getCommunityLayers(communityId);
     return [community, layers];
 }
 
