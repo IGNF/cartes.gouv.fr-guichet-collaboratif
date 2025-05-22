@@ -4,9 +4,11 @@ import GeoportalZoom from "geopf-extensions-openlayers/src/packages/Controls/Zoo
 import GeoportalFullScreen from "geopf-extensions-openlayers/src/packages/Controls/FullScreen/GeoportalFullScreen";
 import { catalogControl } from "./catalogControl";
 import { Collection } from "ol";
+import addReportControl from "./addReportControl";
 
-export const getMapControls = (): Collection<Control> | Control[] | undefined => {
+const getMapControls = (): Collection<Control> | Control[] | undefined => {
     return [
+        addReportControl,
         new SearchEngine({
             collapsed: true,
             displayAdvancedSearch: false,

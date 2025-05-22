@@ -14,12 +14,13 @@ interface CommunityStore {
     isLoadingCommunity: boolean;
     setCommunity: (community: Community | null) => void;
     setCommunityLayers: (layers: CommunityLayer[] | null) => void;
-    addAlertMessage: (status: StatusMessage, message: string) => void;
+    addAlertMessage: (status: StatusMessage, message: string, duration?: number | null) => void;
     removeAlertMessage: (id: number) => void;
     setIsLoadingCommunity: (value: boolean) => void;
     addMapLayer: (layer: MapLayer) => void;
     addGeoservice: (geoservice: CommunityGeoservice) => void;
     setCommunityReports: (reports: CommunityReport[]) => void;
+    addCommunityReport: (report: CommunityReport) => void;
 }
 
 export const useCommunityStore = create<CommunityStore>((set, get) => ({
@@ -39,8 +40,8 @@ export const useCommunityStore = create<CommunityStore>((set, get) => ({
     setIsLoadingCommunity: (value) => {
         set({ isLoadingCommunity: value });
     },
-    addAlertMessage: (status, message) => {
-        set({ alertMessages: [...get().alertMessages, { id: idMessageCounter++, status, text: message }] });
+    addAlertMessage: (status, message, duration) => {
+        set({ alertMessages: [...get().alertMessages, { id: idMessageCounter++, status, text: message, duration: duration ?? null }] });
     },
     removeAlertMessage: (id) => {
         const newMessages = get().alertMessages.filter((m) => m.id !== id);
@@ -73,6 +74,11 @@ export const useCommunityStore = create<CommunityStore>((set, get) => ({
     setCommunityReports: (reports) => {
         set({
             reports,
+        });
+    },
+    addCommunityReport: (report) => {
+        set((state) => {
+            return { reports: [...state.reports, report] };
         });
     },
 }));

@@ -1,11 +1,9 @@
 import { CommunityGeoservice } from "@/constants/communities/types";
 import { GEOSERVICES_API_URL } from "@/constants/urls";
-import axios from "axios";
+import { axiosApi } from ".";
 
 export function getGeoserviceById(geoserviceId: number) {
-    return axios.get(`${GEOSERVICES_API_URL}/get/${geoserviceId}`, {
-        headers: { "X-Requested-With": "XMLHttpRequest" },
-    });
+    return axiosApi.get(`${GEOSERVICES_API_URL}/get/${geoserviceId}`);
 }
 
 export async function getGeoserviceAll(geoserviceIds: number[]): Promise<CommunityGeoservice[]> {

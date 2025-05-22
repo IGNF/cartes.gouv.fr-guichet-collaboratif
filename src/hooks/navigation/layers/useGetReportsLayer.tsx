@@ -17,46 +17,49 @@ function useGetReportsLayer(communityId: number) {
     const reportLayer = useMemo(() => {
         const reportSource = new VectorSource<Feature<Geometry>>({
             loader: async function (extent) {
-                const reports = await getCommunityReports(communityId, extent);
+                try {
+                    const reports = await getCommunityReports(communityId, extent);
 
-                if (!reports) {
-                    addAlertMessage(StatusMessage.error, `Erreur dans le chargement de la couche Signalements`);
-                    return null;
-                }
-                setCommunityReports(reports);
-                const features = reports.map((report: CommunityReport) => {
-                    const lonLat = getLonLatFromPoint(report.geometry as PointString);
-                    const feature = new Feature({
-                        geometry: new Point(lonLat),
-                        reportData: report,
+                    if (!reports) {
+                        addAlertMessage(StatusMessage.error, `Erreur dans le chargement de la couche Signalements`);
+                        return null;
+                    }
+                    setCommunityReports(reports);
+                    const features = reports.map((report: CommunityReport) => {
+                        const lonLat = getLonLatFromPoint(report.geometry as PointString);
+                        const feature = new Feature({
+                            geometry: new Point(lonLat),
+                            reportData: report,
+                        });
+
+                        feature.setStyle(
+                            new Style({
+                                image: new Icon({
+                                    src: reportImgStatus[report.status].img,
+                                    scale: 0.5,
+                                }),
+                                text: new Text({
+                                    text: report.themes[0].theme,
+                                    offsetY: -15,
+                                    fill: new Fill({ color: "#000" }),
+                                    stroke: new Stroke({ color: "#fff", width: 3 }),
+                                }),
+                            })
+                        );
+                        return feature;
                     });
-
-                    feature.setStyle(
-                        new Style({
-                            image: new Icon({
-                                src: reportImgStatus[report.status],
-                                scale: 0.5,
-                            }),
-                            text: new Text({
-                                text: report.themes[0].theme,
-                                offsetY: -15,
-                                fill: new Fill({ color: "#000" }),
-                                stroke: new Stroke({ color: "#fff", width: 3 }),
-                            }),
-                        })
-                    );
-                    return feature;
-                });
-                reportSource.addFeatures(features);
+                    reportSource.addFeatures(features);
+                } catch (error) {
+                    addAlertMessage(StatusMessage.error, `Erreur dans le chargement de la couche Signalements`, 5000);
+                    console.error(error);
+                }
             },
             strategy: bbox,
         });
         const reportLayer = new VectorLayer<VectorSource<Feature<Geometry>>>({
             source: reportSource,
         });
-        reportLayer.set("title", "Signalements");
 
-        reportLayer.set("description", "");
         return reportLayer;
     }, [communityId, addAlertMessage, setCommunityReports]);
 

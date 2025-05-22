@@ -6,7 +6,6 @@ import { useCommunityStore, useLocalStorageStore, useUserStore } from "@/store";
 import { isDigital, useGetCommunityByIdAPI } from "@/api/communityData";
 import { useGetUserProfileAPI } from "@/api/userData";
 import MainMap from "@/features/navigation/MainMap";
-import { LIST_COMMUNITIES_URL } from "@/constants/urls";
 import AlertComponent from "@/components/AlertComponent";
 import { StatusMessage } from "@/constants/communities/types";
 
@@ -60,10 +59,8 @@ const Carte: React.FC = () => {
         return <NotConnected />;
     } else if (isLoadingCommunity || isLoadingUser) {
         return <div className="container">Chargement...</div>;
-    } else if (!isDigital(communityId)) {
+    } else if (!isDigital(communityId) || communityNotFound) {
         return <NotFound />;
-    } else if (communityNotFound) {
-        window.location.href = LIST_COMMUNITIES_URL;
     }
 
     return (

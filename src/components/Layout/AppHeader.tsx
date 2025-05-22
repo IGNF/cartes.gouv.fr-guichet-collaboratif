@@ -28,17 +28,6 @@ const AppHeader: React.FC = () => {
                 }}
                 serviceTitle="cartes.gouv.fr-guichet-collaboratif"
                 quickAccessItems={[
-                    {
-                        iconId: "ri-save-2-fill",
-                        buttonProps: {
-                            onClick: () => {
-                                const event = new CustomEvent("save-view-button");
-
-                                document.dispatchEvent(event);
-                            },
-                        },
-                        text: "Enregistrer",
-                    },
                     user && {
                         iconId: "fr-icon-account-fill",
                         linkProps: {

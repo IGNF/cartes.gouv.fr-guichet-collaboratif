@@ -1,10 +1,10 @@
-import axios from "axios";
 import { useCommunityStore } from "@/store/useCommunityStore";
 import { COMMUNITIES_API_URL, LIST_COMMUNITIES_URL } from "@/constants/urls";
 import { useQuery } from "@tanstack/react-query";
 import { useUserStore } from "@/store/useUserStore";
 import { getGeoserviceAll } from "./geoservicesData";
 import { Community, CommunityLayer } from "@/constants/communities/types";
+import { axiosApi } from ".";
 
 type layerData = {
     id: number;
@@ -23,9 +23,7 @@ export const isDigital = (value: string): boolean => {
 };
 
 async function getCommunityLayers(communityId: string): Promise<CommunityLayer[]> {
-    const res = await axios.get(`${COMMUNITIES_API_URL}/${communityId}/layer/get_all`, {
-        headers: { "X-Requested-With": "XMLHttpRequest" },
-    });
+    const res = await axiosApi.get(`${COMMUNITIES_API_URL}/${communityId}/layer/get_all`);
 
     if (!res.data || res.status !== 200) return [];
     const layers = res.data;
@@ -46,11 +44,9 @@ async function getCommunityLayers(communityId: string): Promise<CommunityLayer[]
 }
 
 async function getCommunityById(communityId: string): Promise<[Community, CommunityLayer[]] | null> {
-    const res = await axios.get(`${COMMUNITIES_API_URL}/${communityId}`, {
-        headers: { "X-Requested-With": "XMLHttpRequest" },
-    });
+    const res = await axiosApi.get(`${COMMUNITIES_API_URL}/${communityId}`);
 
-    if (res.status === 401) {
+    if (res.status === 403) {
         window.location.href = LIST_COMMUNITIES_URL;
         return null;
     }
