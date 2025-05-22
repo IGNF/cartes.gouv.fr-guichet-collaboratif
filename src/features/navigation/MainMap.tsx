@@ -8,16 +8,17 @@ import olDefaults from "@/api/ol-defaults.json";
 import "ol/ol.css";
 import "geopf-extensions-openlayers/css/Dsfr.css";
 import "./map-view.css";
-import getMapControls from "./controls";
 import { useCommunityStore, useLocalStorageStore, useMapStore } from "@/store";
 import LayerSwitcher from "geopf-extensions-openlayers/src/packages/Controls/LayerSwitcher/LayerSwitcher";
 import layerSwitcherControl from "./controls/layerSwitcherControl";
 import useGpConfig from "@/hooks/navigation/useGpConfig";
 import GetAllLayers from "./layers";
 import { MapLayer, MapLayerSource } from "@/constants/communities/types";
-import ShowReportModal from "../reports/ShowReportModal";
 import { getLonLatFromPoint } from "@/constants/utils";
 import SaveButtonHandler from "./SaveButtonHandler";
+import ShowReportDrawer from "../reports/ShowReportDrawer";
+import CreateReportDrawer from "../reports/CreateReportDrawer";
+import getMapControls from "./controls";
 
 export default function MainMap() {
     const mapTargetRef = useRef<HTMLDivElement>(null);
@@ -41,7 +42,6 @@ export default function MainMap() {
     }, []);
 
     const { data: cfg } = useGpConfig();
-
     useEffect(() => {
         if (cfg && typeof cfg.call === "function") cfg.call();
     }, [cfg]);
@@ -64,7 +64,6 @@ export default function MainMap() {
         });
 
         const switcher = layerSwitcherControl(mapLayers);
-
         mapRef.current.addControl(switcher);
 
         viewRef.current = mapView;
@@ -100,7 +99,8 @@ export default function MainMap() {
             <SaveButtonHandler map={mapRef.current} mapSwitcher={switcherRef.current} />
             <GetAllLayers />
 
-            <ShowReportModal map={mapRef.current} />
+            <ShowReportDrawer />
+            <CreateReportDrawer />
         </div>
     );
 }

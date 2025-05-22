@@ -23,7 +23,6 @@ export default function useGetCapabilitiesReports() {
         }
 
         const geojson = await response.text();
-        console.log(geojson);
         const parser = new DOMParser();
         const xml = parser.parseFromString(geojson, "application/xml");
 

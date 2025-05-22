@@ -1,8 +1,3 @@
-#main {
-    width: 100%;
-    min-height: calc(100vh - 541px);
-}
-
 .page-title {
     display: block;
     text-align: center;
@@ -42,7 +37,7 @@
     position: absolute;
     bottom: 20px;
     margin-bottom: 50px;
-    width: auto;
+    max-width: 60%;
     right: 10px;
     z-index: 99999999;
     background-color: white;
@@ -69,4 +64,48 @@
         transform: translateX(0);
         opacity: 1;
     }
+}
+
+.drawer-close {
+    display: flex;
+    justify-content: end;
+}
+
+.loader {
+    position: absolute;
+    display: flex;
+    width: 100%;
+    left: 0px;
+    top: 0px;
+    height: 100%;
+    background-clip: content-box;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.21);
+    z-index: 9;
+}
+
+.loader::before {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 20px auto;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(180deg);
+    }
+}
+
+.layer-switcher-legends {
+    padding: 10px;
+}
+
+.layer-switcher-legends div {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 10px;
+    align-items: center;
 }

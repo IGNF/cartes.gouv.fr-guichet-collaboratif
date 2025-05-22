@@ -1,10 +1,10 @@
-import { StatusMessage } from "@/constants/communities/types";
 import { LocalStorageData } from "@/constants/localStorage/types";
+import useDebounce from "@/hooks/useDebounce";
 import { useCommunityStore, useLocalStorageStore } from "@/store";
 import LayerSwitcher from "geopf-extensions-openlayers/src/packages/Controls/LayerSwitcher/LayerSwitcher";
 import isEqual from "lodash.isequal";
 import { Map } from "ol";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 interface Props {
     map: Map | null;
@@ -12,8 +12,11 @@ interface Props {
 }
 
 const SaveButtonHandler: React.FC<Props> = ({ map, mapSwitcher }) => {
-    const { community, addAlertMessage } = useCommunityStore();
+    const { community } = useCommunityStore();
     const { localStorageData, setLocalStorage } = useLocalStorageStore();
+    const [changed, setChanged] = useState({ map, mapSwitcher });
+
+    const debounced = useDebounce(changed, 1000);
 
     const handleSaveButton = useCallback(async () => {
         if (!community?.name || !map || !mapSwitcher) return;
@@ -40,16 +43,34 @@ const SaveButtonHandler: React.FC<Props> = ({ map, mapSwitcher }) => {
         };
         if (isEqual(newLocalStorageData, localStorageData)) return;
         await setLocalStorage(community?.name, newLocalStorageData);
-        addAlertMessage(StatusMessage.success, "Enregistrement fait avec succès");
-    }, [map, mapSwitcher, community, localStorageData, setLocalStorage, addAlertMessage]);
+    }, [map, mapSwitcher, community, localStorageData, setLocalStorage]);
 
     useEffect(() => {
-        document.addEventListener("save-view-button", handleSaveButton);
+        if (debounced) {
+            handleSaveButton();
+        }
+    }, [debounced, handleSaveButton]);
+
+    const onChange = useCallback(() => {
+        setChanged({ map: map!, mapSwitcher });
+    }, [map, mapSwitcher]);
+
+    useEffect(() => {
+        const mapView = map?.getView();
+        mapView?.on("change:center", onChange);
+        mapView?.on("change:rotation", onChange);
+        mapSwitcher?.on("layerswitcher:change:visibility", onChange);
+        mapSwitcher?.on("layerswitcher:change:opacity", onChange);
+        mapSwitcher?.on("layerswitcher:change:position", onChange);
 
         return () => {
-            document.removeEventListener("save-view-button", handleSaveButton);
+            mapView?.un("change:center", onChange);
+            mapView?.un("change:rotation", onChange);
+            mapSwitcher?.un("layerswitcher:change:visibility", onChange);
+            mapSwitcher?.un("layerswitcher:change:opacity", onChange);
+            mapSwitcher?.un("layerswitcher:change:position", onChange);
         };
-    });
+    }, [map, mapSwitcher, onChange]);
 
     return null;
 };

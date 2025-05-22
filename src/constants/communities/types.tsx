@@ -38,10 +38,18 @@ export interface CommunityLayer {
     role: string;
 }
 
+export interface ThemeItem {
+    default: string;
+    help: string;
+    name: string;
+    type: string;
+    values?: string[];
+}
+
 export type CommunityTheme = {
     theme: string;
     help?: string;
-    attributes: string[];
+    attributes: ThemeItem[];
 };
 
 export type PointString = `POINT(${string})`;
@@ -70,4 +78,5 @@ export type AlertMessageType = {
     id: number;
     status: StatusMessage;
     text: string;
+    duration?: number | null;
 };

@@ -1,20 +1,11 @@
 import { useCommunityStore } from "@/store/useCommunityStore";
 import { useQuery } from "@tanstack/react-query";
 import { useUserStore } from "@/store/useUserStore";
-import { CommunityReport, StatusKey } from "@/constants/reports/types";
+import { CommunityReport, GeometryType, PostReport, reportData, StatusKey } from "@/constants/reports/types";
 import { REPORTS_API_URL } from "@/constants/urls";
-import axios from "axios";
 import { transformExtent } from "ol/proj";
 import { Extent } from "ol/extent";
-import { CommunityTheme } from "@/constants/communities/types";
-
-type reportData = {
-    id: number;
-    geometry: string;
-    comment: string;
-    attributes: CommunityTheme[];
-    status: StatusKey;
-};
+import { axiosApi } from ".";
 
 export const isDigital = (value: string): boolean => {
     const regex = /^[1-9]\d*$/;
@@ -22,14 +13,7 @@ export const isDigital = (value: string): boolean => {
 };
 
 export async function getCommunityReports(communityId: number, extent: Extent): Promise<CommunityReport[] | null> {
-    const res = await axios.get(
-        `${REPORTS_API_URL}?communities=${communityId}` +
-            `&fields=id,status,geometry,attributes,comment` +
-            `&box=${transformExtent(extent, "EPSG:3857", "EPSG:4326")}`,
-        {
-            headers: { "X-Requested-With": "XMLHttpRequest" },
-        }
-    );
+    const res = await axiosApi.get(`${REPORTS_API_URL}?communities=${communityId}` + `&box=${transformExtent(extent, "EPSG:3857", "EPSG:4326")}`);
     if (!res.data || (res.status !== 200 && res.status !== 206)) return null;
 
     return res.data.map((report: reportData) => {
@@ -39,25 +23,99 @@ export async function getCommunityReports(communityId: number, extent: Extent): 
             comment: report.comment,
             themes: report.attributes,
             status: report.status as StatusKey,
+            attachments: report.attachments.map((attachment) => {
+                return {
+                    id: attachment.id,
+                    name: attachment.short_fileName,
+                    type: attachment.mime_type,
+                    size: attachment.size,
+                    url: attachment.uri,
+                };
+            }),
         };
     });
 }
 
 async function getCommunityReportById(reportId: number): Promise<CommunityReport | null> {
-    const res = await axios.get(`${REPORTS_API_URL}/${reportId}`, {
-        headers: { "X-Requested-With": "XMLHttpRequest" },
-    });
+    const res = await axiosApi.get(`${REPORTS_API_URL}/${reportId}`);
 
     if (!res.data || res.status !== 200) return null;
     const report: reportData = res.data;
     if (!report) return null;
     return {
         id: report.id,
-        geometry: report.geometry,
+        geometry: report.geometry as GeometryType,
         comment: report.comment,
         themes: report.attributes,
         status: report.status as StatusKey,
+        attachments: report.attachments.map((attachment) => {
+            return {
+                id: attachment.id,
+                name: attachment.short_fileName,
+                type: attachment.mime_type,
+                size: attachment.size,
+                url: attachment.uri,
+            };
+        }),
     };
+}
+
+export async function postCommunityReport(report: PostReport): Promise<CommunityReport | null> {
+    const res = await axiosApi.post(`${REPORTS_API_URL}`, report);
+
+    if (!res.data || res.status !== 200) return null;
+
+    const newReport: reportData = res.data;
+
+    return {
+        id: newReport.id,
+        geometry: newReport.geometry,
+        comment: newReport.comment,
+        themes: newReport.attributes,
+        status: newReport.status as StatusKey,
+        attachments: newReport.attachments.map((attachment) => {
+            return {
+                id: attachment.id,
+                name: attachment.short_fileName,
+                type: attachment.mime_type,
+                size: attachment.size,
+                url: attachment.uri,
+            };
+        }),
+    };
+}
+
+export async function updateCommunityReport(report: PostReport, reportId: number): Promise<CommunityReport | null> {
+    const res = await axiosApi.put(`${REPORTS_API_URL}/${reportId}`, report);
+
+    if (!res.data || res.status !== 200) return null;
+
+    const newReport: reportData = res.data;
+
+    return {
+        id: newReport.id,
+        geometry: newReport.geometry,
+        comment: newReport.comment,
+        themes: newReport.attributes,
+        status: newReport.status as StatusKey,
+        attachments: newReport.attachments.map((attachment) => {
+            return {
+                id: attachment.id,
+                name: attachment.short_fileName,
+                type: attachment.mime_type,
+                size: attachment.size,
+                url: attachment.uri,
+            };
+        }),
+    };
+}
+
+export async function deleteCommunityReport(report: CommunityReport): Promise<boolean> {
+    const res = await axiosApi.delete(`${REPORTS_API_URL}/${report.id}`);
+
+    if (res.status !== 204) return false;
+
+    return true;
 }
 
 export const useGetCommunityReportByIdAPI = (reportId: number) => {
