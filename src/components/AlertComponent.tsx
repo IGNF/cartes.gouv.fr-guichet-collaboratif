@@ -40,7 +40,7 @@ const AlertMessage: React.FC<AlertMessageProps> = memo(({ message, index }) => {
         <Alert
             className={`alert-message ${fadeOut ? "fadeout" : ""}`}
             severity={message?.status || "info"}
-            description={`${message?.text}`}
+            description={message?.text}
             small={true}
             closable
             onClose={() => onClose(message.id)}

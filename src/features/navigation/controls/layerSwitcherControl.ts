@@ -20,21 +20,6 @@ const layerSwitcherControl: typeof LayerSwitcher = (layers: MapLayer[]) => {
         },
     });
 
-    /* const originalAddLayer = switcher.addLayer.bind(switcher);
-
-    switcher.addLayer = function (layer, container) {
-        // Your custom code
-        if (layer.get("title") === "Mon Croquis") {
-            console.log("Custom logic for layer:", layer.get("title"), this);
-            return;
-        }
-
-        // Call the original
-        originalAddLayer(layer, container);
-
-        // Or do something after
-    }; */
-
     return switcher;
 };
 

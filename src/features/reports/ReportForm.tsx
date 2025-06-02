@@ -11,6 +11,9 @@ import { ChangeEvent, useEffect, useState } from "react";
 import ReportAttachments from "./ReportAttachments";
 import ThemeForm from "./ThemeForm";
 import { getThemeAttributes } from "@/constants/utils";
+import DrawingForm from "./DrawingForm";
+import { Feature } from "ol";
+import CenterFeature from "./CenterFeature";
 
 const allowedTypes = ["image/png", "image/jpg", "application/pdf"];
 const maxSizeMB = 3;
@@ -18,7 +21,7 @@ const maxSizeBytes = maxSizeMB * 1024 * 1024;
 
 interface Props {
     selectedReport?: CommunityReport;
-    handleSubmit: (theme: CommunityTheme, themeAttributes: PostThemeReport, description: string, files: File[]) => Promise<void>;
+    handleSubmit: (theme: CommunityTheme, themeAttributes: PostThemeReport, description: string, files: File[], features: Feature[]) => Promise<void>;
     handleDelete?: () => void;
     handleClose?: () => void;
 }
@@ -28,7 +31,9 @@ const ReportForm: React.FC<Props> = ({ selectedReport, handleSubmit, handleDelet
     const [themeAttributes, setThemeAttributes] = useState<PostThemeReport>({});
     const [description, setDescription] = useState<string>(selectedReport?.comment ?? "");
     const [filesUploaded, setFilesUploaded] = useState<File[]>([]);
+    const [features, setFeatures] = useState<Feature[]>([]);
 
+    const [expendedDrawing, setExpendedDrawing] = useState<boolean>(false);
     const [expendedDescription, setExpendedDescription] = useState<boolean>(false);
     const [expendedDocument, setExpendedDocument] = useState<boolean>(false);
 
@@ -76,7 +81,8 @@ const ReportForm: React.FC<Props> = ({ selectedReport, handleSubmit, handleDelet
     };
 
     const onSubmit = async () => {
-        if (!community) return;
+        if (!community || !features?.length) return;
+
         await validateTheme();
         await validateFiles(filesUploaded);
         if (!selectedTheme || errorTheme || errorFiles.length) {
@@ -84,7 +90,7 @@ const ReportForm: React.FC<Props> = ({ selectedReport, handleSubmit, handleDelet
         }
         try {
             setLoading(true);
-            await handleSubmit(selectedTheme, themeAttributes, description, filesUploaded);
+            await handleSubmit(selectedTheme, themeAttributes, description, filesUploaded, features);
             onClose();
         } catch (error) {
             setLoading(false);
@@ -114,6 +120,8 @@ const ReportForm: React.FC<Props> = ({ selectedReport, handleSubmit, handleDelet
         setErrorTheme("");
         setErrorFiles([]);
         setLoading(false);
+        setFeatures([]);
+
         if (handleClose) handleClose();
     };
 
@@ -142,125 +150,142 @@ const ReportForm: React.FC<Props> = ({ selectedReport, handleSubmit, handleDelet
     };
 
     return (
-        <div className="report-drawer">
-            {loading && <LoaderComponent />}
-            <h1 className="fr-mt-4v fr-mb-1v fr-text--md">
-                {selectedReport ? `Modification du signalement ${selectedReport.id}` : "Soumettre un signalement"}
-            </h1>
-            {!selectedReport && (
-                <p className="fr-text--sm fr-mb-1v ">
-                    Si vous ne l’avez pas encore fait, localisez sur la carte l’endroit où effectuer un signalement, ou dessinez un croquis explicatif à cet
-                    endroit.
-                </p>
-            )}
-            <p className="fr-text--xs ">Seule la rubrique “Choisir un thème” est obligatoire.</p>
-            <RadioButtons
-                legend="Choisir un thème *:"
-                options={community.themes.map((theme) => {
-                    return {
-                        label: theme.theme,
-                        nativeInputProps: {
-                            checked: selectedTheme?.theme === theme.theme,
-                            onClick: () => {
-                                setSelectedTheme(theme);
-                                setThemeAttributes(getThemeAttributes(theme));
+        <>
+            <div className="report-drawer">
+                {loading && <LoaderComponent />}
+                <h1 className="fr-mt-4v fr-mb-1v fr-text--md">
+                    {selectedReport ? `Modification du signalement ${selectedReport.id}` : "Soumettre un signalement"}
+                </h1>
+                {!selectedReport && (
+                    <p className={`fr-text--sm fr-mb-1v ${features && !features.length ? "fr-message--error" : ""}`}>
+                        Si vous ne l’avez pas encore fait, localisez sur la carte l’endroit où effectuer un signalement, ou dessinez un croquis explicatif à cet
+                        endroit.
+                    </p>
+                )}
+                <p className="fr-text--xs ">Seule la rubrique “Choisir un thème” est obligatoire.</p>
+                <RadioButtons
+                    legend="Choisir un thème *:"
+                    options={community.themes.map((theme) => {
+                        return {
+                            label: theme.theme,
+                            nativeInputProps: {
+                                checked: selectedTheme?.theme === theme.theme,
+                                onClick: () => {
+                                    setSelectedTheme(theme);
+                                    setThemeAttributes(getThemeAttributes(theme));
 
-                                setErrorTheme("");
+                                    setErrorTheme("");
+                                },
+                                required: true,
                             },
-                            required: true,
-                        },
-                    };
-                })}
-                state={selectedTheme ? "success" : errorTheme ? "error" : "default"}
-                stateRelatedMessage={errorTheme ?? ""}
-                orientation="horizontal"
-                small
-                className="theme-radio fr-mt-4v fr-mb-1v fr-text--md"
-            />
-
-            {selectedTheme && <ThemeForm theme={selectedTheme} themeAttributes={themeAttributes} onChangeThemeAttributes={onChangeThemeAttributes} />}
-
-            <Accordion
-                label="Décrire le signalement"
-                onExpandedChange={() => {
-                    if (selectedTheme) {
-                        setExpendedDescription(!expendedDescription);
-                    } else {
-                        validateTheme();
-                        setExpendedDescription(false);
-                    }
-                }}
-                expanded={expendedDescription}
-            >
-                <Input
-                    label="Explicitez votre signalement de façon la plus détaillée possible :"
-                    textArea
-                    nativeTextAreaProps={{
-                        value: description,
-                        rows: 5,
-                        onChange: (e) => {
-                            setDescription(e.target.value);
-                        },
-                    }}
+                        };
+                    })}
+                    state={selectedTheme ? "success" : errorTheme ? "error" : "default"}
+                    stateRelatedMessage={errorTheme ?? ""}
+                    orientation="horizontal"
+                    small
+                    className="theme-radio fr-mt-4v fr-mb-1v fr-text--md"
                 />
-            </Accordion>
 
-            <Accordion
-                label="Joindre des documents"
-                onExpandedChange={() => {
-                    if (selectedTheme) {
-                        setExpendedDocument(!expendedDocument);
-                    } else {
-                        validateTheme();
-                        setExpendedDocument(false);
-                    }
-                }}
-                expanded={expendedDocument}
-            >
-                <div
-                    style={{
-                        width: "100%",
+                {selectedTheme && <ThemeForm theme={selectedTheme} themeAttributes={themeAttributes} onChangeThemeAttributes={onChangeThemeAttributes} />}
+
+                <Accordion
+                    label="Dessiner un croquis"
+                    onExpandedChange={() => {
+                        if (selectedTheme) {
+                            setExpendedDrawing(!expendedDrawing);
+                        } else {
+                            validateTheme();
+                            setExpendedDrawing(false);
+                        }
                     }}
+                    expanded={expendedDrawing}
                 >
-                    <Upload
-                        label="Aidez nous à comprendre votre signalement. Ajouter par exemple des photos ou autres documents pour préciser votre message."
-                        hint={`Taille maximale : ${maxSizeMB} Mo. Formats supportés : JPG, PNG, PDF`}
-                        state={errorFiles.length ? "error" : filesUploaded.length ? "success" : "default"}
-                        stateRelatedMessage=""
-                        multiple
-                        className="upload-file"
-                        nativeInputProps={{
-                            value: "",
-                            accept: ".jpg,.png,.pdf",
-                            onChange: (e) => onUploadChange(e),
+                    <DrawingForm features={features} selectedReport={selectedReport} setFeatures={setFeatures} />
+                </Accordion>
+                <Accordion
+                    label="Décrire le signalement"
+                    onExpandedChange={() => {
+                        if (selectedTheme) {
+                            setExpendedDescription(!expendedDescription);
+                        } else {
+                            validateTheme();
+                            setExpendedDescription(false);
+                        }
+                    }}
+                    expanded={expendedDescription}
+                >
+                    <Input
+                        label="Explicitez votre signalement de façon la plus détaillée possible :"
+                        textArea
+                        nativeTextAreaProps={{
+                            value: description,
+                            rows: 5,
+                            onChange: (e) => {
+                                setDescription(e.target.value);
+                            },
                         }}
                     />
-                    <ReportAttachments selectedReport={selectedReport} newFiles={filesUploaded} errorFiles={errorFiles} removeFile={removeFile} />
-                </div>
-            </Accordion>
-            <div className="note">
-                <p>Pour soumettre un signalement hors guichet, accédez au portail cartographique de l’IGN :</p>
-                <a href="http://" target="_blank" rel="noopener noreferrer">
-                    Signalement hors guichet
-                </a>
-            </div>
+                </Accordion>
 
-            {!selectedReport ? (
-                <Button size="large" onClick={onSubmit} className="submit">
-                    Envoyer le signalement
-                </Button>
-            ) : (
-                <div className="buttons">
-                    <Button priority="secondary" onClick={onDelete}>
-                        Supprimer
-                    </Button>
-                    <Button priority="secondary" onClick={onClose}>
-                        Annuler
-                    </Button>
-                    <Button onClick={onSubmit}>Modifier</Button>
+                <Accordion
+                    label="Joindre des documents"
+                    onExpandedChange={() => {
+                        if (selectedTheme) {
+                            setExpendedDocument(!expendedDocument);
+                        } else {
+                            validateTheme();
+                            setExpendedDocument(false);
+                        }
+                    }}
+                    expanded={expendedDocument}
+                >
+                    <div
+                        style={{
+                            width: "100%",
+                        }}
+                    >
+                        <Upload
+                            label="Aidez nous à comprendre votre signalement. Ajouter par exemple des photos ou autres documents pour préciser votre message."
+                            hint={`Taille maximale : ${maxSizeMB} Mo. Formats supportés : JPG, PNG, PDF`}
+                            state={errorFiles.length ? "error" : filesUploaded.length ? "success" : "default"}
+                            stateRelatedMessage=""
+                            multiple
+                            className="upload-file"
+                            nativeInputProps={{
+                                value: "",
+                                accept: ".jpg,.png,.pdf",
+                                onChange: (e) => onUploadChange(e),
+                            }}
+                        />
+                        <ReportAttachments selectedReport={selectedReport} newFiles={filesUploaded} errorFiles={errorFiles} removeFile={removeFile} />
+                    </div>
+                </Accordion>
+                <div className="note">
+                    <p>Pour soumettre un signalement hors guichet, accédez au portail cartographique de l’IGN :</p>
+                    <a href="http://" target="_blank" rel="noopener noreferrer">
+                        Signalement hors guichet
+                    </a>
                 </div>
-            )}
-        </div>
+
+                {!selectedReport ? (
+                    <Button size="large" onClick={onSubmit} className="submit">
+                        Envoyer le signalement
+                    </Button>
+                ) : (
+                    <div className="buttons">
+                        <Button priority="secondary" onClick={onDelete}>
+                            Supprimer
+                        </Button>
+                        <Button priority="secondary" onClick={onClose}>
+                            Annuler
+                        </Button>
+                        <Button onClick={onSubmit}>Modifier</Button>
+                    </div>
+                )}
+            </div>
+            <CenterFeature features={features} />
+        </>
     );
 };
 

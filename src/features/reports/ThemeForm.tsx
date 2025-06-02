@@ -15,7 +15,7 @@ interface ThemeProps {
 const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeThemeAttributes }) => {
     const { community } = useCommunityStore();
 
-    const onChange = (key: string, value: string) => {
+    const handleChange = (key: string, value: string) => {
         onChangeThemeAttributes({
             ...themeAttributes,
             [key]: value,
@@ -28,12 +28,12 @@ const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeTheme
 
     return (
         <div className="report-theme-form">
-            {communityTheme?.attributes?.map((item) => {
+            {communityTheme?.attributes?.map((item, index) => {
                 switch (item.type) {
                     case "text":
                         return (
                             <Input
-                                key={item.type}
+                                key={item.type + index}
                                 textArea
                                 hintText={item.help}
                                 label={item.name}
@@ -42,7 +42,7 @@ const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeTheme
                                 nativeTextAreaProps={{
                                     defaultValue: themeAttributes ? (themeAttributes[item.name] ?? "") : item.default,
                                     onChange: (e) => {
-                                        onChange(item.name, e.target.value);
+                                        handleChange(item.name, e.target.value);
                                     },
                                 }}
                             />
@@ -51,7 +51,7 @@ const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeTheme
                     case "integer":
                         return (
                             <Input
-                                key={item.type}
+                                key={item.type + index}
                                 hintText={item.help}
                                 label={item.name}
                                 state="default"
@@ -63,7 +63,7 @@ const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeTheme
                                     step: "1",
                                     defaultValue: themeAttributes ? themeAttributes[item.name] : item.default,
                                     onChange: (e) => {
-                                        onChange(item.name, e.target.value);
+                                        handleChange(item.name, e.target.value);
                                     },
                                 }}
                             />
@@ -72,16 +72,15 @@ const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeTheme
                     case "checkbox":
                         return (
                             <Checkbox
-                                key={item.type}
+                                key={item.type + index}
                                 options={[
                                     {
                                         label: item.name,
                                         hintText: item.help,
                                         nativeInputProps: {
-                                            name: item.name,
                                             checked: themeAttributes ? themeAttributes[item.name] === "1" : item.default === "1",
                                             onChange: (e) => {
-                                                onChange(item.name, e.target.checked ? "1" : "0");
+                                                handleChange(item.name, e.target.checked ? "1" : "0");
                                             },
                                         },
                                     },
@@ -92,12 +91,12 @@ const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeTheme
                     case "list":
                         return (
                             <Select
-                                key={item.type}
+                                key={item.type + index}
                                 hint={item.help}
                                 label={item.name}
                                 nativeSelectProps={{
                                     onChange: (e) => {
-                                        onChange(item.name, e.target.value);
+                                        handleChange(item.name, e.target.value);
                                     },
                                     defaultValue: themeAttributes[item.name] ?? item.default,
                                 }}
@@ -118,7 +117,7 @@ const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeTheme
                     case "date":
                         return (
                             <Input
-                                key={item.type}
+                                key={item.type + index}
                                 hintText={item.help}
                                 label={item.name}
                                 state="default"
@@ -127,7 +126,7 @@ const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeTheme
                                     type: "date",
                                     defaultValue: themeAttributes ? themeAttributes[item.name] : item.default,
                                     onChange: (e) => {
-                                        onChange(item.name, e.target.value);
+                                        handleChange(item.name, e.target.value);
                                     },
                                 }}
                             />
@@ -136,7 +135,7 @@ const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeTheme
                     case "double":
                         return (
                             <Input
-                                key={item.type}
+                                key={item.type + index}
                                 hintText={item.help}
                                 label={item.name}
                                 state="default"
@@ -148,7 +147,7 @@ const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeTheme
                                     step: "0.001",
                                     defaultValue: themeAttributes ? themeAttributes[item.name] : item.default,
                                     onChange: (e) => {
-                                        onChange(item.name, e.target.value);
+                                        handleChange(item.name, e.target.value);
                                     },
                                 }}
                             />

@@ -1,12 +1,28 @@
 import { Feature } from "ol";
 import { CommunityTheme } from "../communities/types";
+import { Geometry } from "ol/geom";
+import { Coordinate } from "ol/coordinate";
 
 export type StatusKey = "submit" | "pending" | "valid" | "reject" | "test";
-export type GeometryType = `POINT(${string})`;
+export type SketchType = "Point" | "Ligne" | "MultiPolygone";
+export enum SketchFeatureType {
+    Point = "Point",
+    LineString = "Ligne",
+    Polygon = "MultiPolygone",
+    LinearRing = "LinearRing",
+    MultiPoint = "MultiPoint",
+    MultiLineString = "MultiLineString",
+    MultiPolygon = "MultiPolygon",
+    GeometryCollection = "GeometryCollection",
+    Circle = "Circle",
+}
+export type GeometryType = `POINT(${string})` | `LINESTRING(${string})` | `MULTIPOLYGON(((${string})))`;
 export type ParamsReport = {
     feature: Feature;
     closeFunc: () => void;
 };
+
+export type GeometryFeatueParams = (Geometry & { getCoordinates: () => Coordinate; setCoordinates: (center: number[]) => void }) | undefined;
 
 export interface ReportAttachment {
     id: number;
@@ -23,6 +39,7 @@ export interface CommunityReport {
     themes: CommunityTheme[];
     status: StatusKey;
     attachments: ReportAttachment[];
+    sketch: SketchReport | null;
 }
 
 export type PostThemeReport = { [key: string]: string };
@@ -32,6 +49,7 @@ export interface PostReport {
     geometry: GeometryType;
     comment: string;
     attributes: { community: number; theme: string; attributes: PostThemeReport };
+    sketch?: SketchReport | null;
 }
 
 export interface FileUpload {
@@ -56,9 +74,34 @@ export type reportData = {
     attributes: CommunityTheme[];
     status: StatusKey;
     attachments: attachmentData[];
+    sketch: string | null;
 };
 
 export type ErrorFile = {
     file: File;
     message: string;
 };
+
+export interface SketchReport {
+    name: string;
+    desc: string;
+    contexte: {
+        lat: number | string;
+        lon: number | string;
+        zoom: number;
+    };
+    objects: SketchObject[];
+}
+
+export interface SketchObject {
+    geometry: GeometryType;
+    type: SketchType;
+    style?: {
+        backcolor?: string;
+        diam: number;
+        frontcolor: string;
+    };
+    attributes?: {
+        nom?: string | string[];
+    };
+}

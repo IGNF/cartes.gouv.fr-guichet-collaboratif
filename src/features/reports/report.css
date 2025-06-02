@@ -105,3 +105,42 @@
     padding: 15px;
     margin-bottom: 1.5rem !important;
 }
+
+.custom-button-top-right {
+    position: absolute;
+    right: 16px;
+    top: 50px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.report-tools div {
+    display: flex;
+    gap: 13px;
+}
+
+.report-tools button {
+    padding-left: 11px;
+    padding-right: 11px;
+}
+
+.report-features {
+    display: flex;
+    flex-direction: column;
+    margin-top: 10px;
+    gap: 5px;
+}
+
+.report-features div {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    border: 1px solid var(--border-default-grey);
+    padding: 5px 10px;
+    cursor: pointer;
+}
+.report-features span {
+    width: 100%;
+    margin-left: 10px;
+}

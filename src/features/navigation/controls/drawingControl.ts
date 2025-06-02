@@ -2,10 +2,10 @@ import { ParamsReport } from "@/constants/reports/types";
 import { reportImgStatus } from "@/constants/utils";
 import Drawing from "geopf-extensions-openlayers/src/packages/Controls/Drawing/Drawing";
 
-const addReportControl = new Drawing({
-    id: undefined,
+const drawingControl = new Drawing({
     collapsed: true,
     position: "top-left",
+    removable: true,
     layerDescription: {
         title: "",
         description: "",
@@ -16,15 +16,17 @@ const addReportControl = new Drawing({
         tooltip: "tooltip",
         display: "display",
         saveDescription: "Créer le signalement",
-        setAsDefault: "setAsDefault",
-        applyToObject: "applyToObject",
-        strokeColor: "strokeColor",
-        markerSize: "markerSize",
+        setAsDefault: "Définir par défaut",
+        applyToObject: "Appliquer",
+        strokeColor: "Couleur du trait",
+        markerSize: "Taille du marqueur",
     },
     markersList: [
         {
             src: reportImgStatus.pending.img,
             anchor: [0.5, 1],
+            scale: 0.5,
+            preload: true,
         },
     ],
     tools: {
@@ -36,7 +38,7 @@ const addReportControl = new Drawing({
         remove: true,
         display: true,
         tooltip: true,
-        export: true,
+        export: false,
         measure: true,
     },
     popup: {
@@ -51,4 +53,4 @@ const addReportControl = new Drawing({
     },
 });
 
-export default addReportControl;
+export default drawingControl;
