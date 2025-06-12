@@ -4,7 +4,7 @@ import { CommunityReport, PostReport, PostThemeReport } from "@/constants/report
 import { useCommunityStore, useMapStore } from "@/store";
 import FormReport from "./ReportForm";
 import { deleteCommunityReportAllAttachments, postCommunityReportAttachments } from "@/api/attachmentData";
-import { clearDrawingLayer, getReportAllFeatures, getReportSketch } from "@/constants/utils";
+import { clearDrawingLayer, getLonLatFromFeature, getReportAllFeatures, getReportSketch } from "@/constants/utils";
 import { Feature } from "ol";
 import VectorSource from "ol/source/Vector";
 
@@ -38,7 +38,6 @@ const ShowReport: React.FC<Props> = ({ selectedReport, handleCloseDrawer }) => {
             const reportSource = reportLayer?.getSource() as VectorSource;
             const reportFeatures = getReportAllFeatures(selectedReport);
             reportSource.removeFeatures(reportFeatures);
-            console.log(reportSource, reportFeatures, [...reports.filter((report) => report.id !== selectedReport.id)], reports);
             setCommunityReports([...reports.filter((report) => report.id !== selectedReport.id)], true);
             handleCloseDrawer();
             clearDrawingLayer(map);
@@ -55,9 +54,10 @@ const ShowReport: React.FC<Props> = ({ selectedReport, handleCloseDrawer }) => {
         filesUploaded: File[],
         features: Feature[]
     ) => {
+        const mainFeature = features.find((f) => f.get("reportData") && f.get("main"));
         const newReport: PostReport = {
             community: community?.id,
-            geometry: selectedReport.geometry,
+            geometry: `POINT(${getLonLatFromFeature(mainFeature)?.join(" ")})`,
             comment: description,
             attributes: { community: community?.id, theme: selectedTheme.theme, attributes: themeAttributes },
         };

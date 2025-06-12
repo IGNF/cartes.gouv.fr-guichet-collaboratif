@@ -1,67 +1,28 @@
-import { CommunityReport, SketchFeatureType } from "@/constants/reports/types";
-import { getFeatureDiam } from "@/constants/utils";
+import { ClickedTool, CommunityReport, ReportTool, SketchFeatureType, toolNames } from "@/constants/reports/types";
+import { reportTools } from "@/constants/reports/utils";
+import { getFeatureDiam, getReportAllFeatures } from "@/constants/utils";
 import { useMapStore } from "@/store";
 import Button from "@codegouvfr/react-dsfr/Button";
-import CreateLabelImg from "geopf-extensions-openlayers/src/packages/CSS/Controls/Drawing/img/dsfr/create-label.svg";
-import CreateLineImg from "geopf-extensions-openlayers/src/packages/CSS/Controls/Drawing/img/dsfr/create-line.svg";
-import CreatePointImg from "geopf-extensions-openlayers/src/packages/CSS/Controls/Drawing/img/dsfr/create-point.svg";
-import CreatePolygonImg from "geopf-extensions-openlayers/src/packages/CSS/Controls/Drawing/img/dsfr/create-polygon.svg";
-import DeleteImg from "geopf-extensions-openlayers/src/packages/CSS/Controls/Drawing/img/dsfr/delete.svg";
-import EditGeomImg from "geopf-extensions-openlayers/src/packages/CSS/Controls/Drawing/img/dsfr/edit-geom.svg";
-import EditStyleImg from "geopf-extensions-openlayers/src/packages/CSS/Controls/Drawing/img/dsfr/edit-style.svg";
-import EditTextImg from "geopf-extensions-openlayers/src/packages/CSS/Controls/Drawing/img/dsfr/edit-text.svg";
+
 import { Feature } from "ol";
 import Layer from "ol/layer/Layer";
 import { Size } from "ol/size";
 import VectorSource, { VectorSourceEvent } from "ol/source/Vector";
 import { Style } from "ol/style";
-import { useEffect, useMemo, useState } from "react";
-
-enum toolNames {
-    point = "drawing-tool-point",
-    line = "drawing-tool-line",
-    polygon = "drawing-tool-polygon",
-    text = "drawing-tool-text",
-    edit = "drawing-tool-edit",
-    display = "drawing-tool-display",
-    tooltip = "drawing-tool-tooltip",
-    remove = "drawing-tool-remove",
-}
-interface ReportTool {
-    type: string;
-    name: string;
-    imgSrc: string;
-    order: number;
-    title: string;
-    featureType?: string;
-}
-
-const reportCreationTools: ReportTool[] = [
-    { type: "creation", name: toolNames.point, imgSrc: CreatePointImg, order: 0, title: "Créer un signalement", featureType: "Point" },
-    { type: "creation", name: toolNames.line, imgSrc: CreateLineImg, order: 1, title: "Dessiner des lignes", featureType: "LineString" },
-    { type: "creation", name: toolNames.polygon, imgSrc: CreatePolygonImg, order: 2, title: "Dessiner des polygones", featureType: "Polygon" },
-    { type: "creation", name: toolNames.text, imgSrc: CreateLabelImg, order: 3, title: "Ecrire sur la carte", featureType: "Write" },
-];
-
-const reportEditTools: ReportTool[] = [
-    { type: "edit", name: toolNames.edit, imgSrc: EditGeomImg, order: 0, title: "Editer les georèmes" },
-    { type: "edit", name: toolNames.display, imgSrc: EditStyleImg, order: 1, title: "Editer le style" },
-    { type: "edit", name: toolNames.tooltip, imgSrc: EditTextImg, order: 2, title: "Editer le texte" },
-    { type: "edit", name: toolNames.remove, imgSrc: DeleteImg, order: 3, title: "Supprimer des objets" },
-];
+import { useCallback, useEffect, useMemo } from "react";
 
 const hoveredFeatureStyle: { strockWidth: number; imageScale: number | Size } = { strockWidth: 1, imageScale: 0.5 };
 
 interface Props {
     features: Feature[];
     selectedReport: CommunityReport | undefined;
+    clickedTool: ClickedTool;
     setFeatures: (features: Feature[]) => void;
+    handleToolClick: (tool: ReportTool | undefined) => void;
 }
 
-const DrawingForm: React.FC<Props> = ({ features, selectedReport, setFeatures }) => {
-    const [clickedTool, setClickedTool] = useState({ name: "", clicked: false });
-
-    const { map, clickedFeature, setClickedFeature } = useMapStore();
+const DrawingForm: React.FC<Props> = ({ features, selectedReport, clickedTool, setFeatures, handleToolClick }) => {
+    const { map } = useMapStore();
 
     const reportLayer = map?.getAllLayers().find((layer) => layer.get("title") === "Signalements");
     const reportSource = reportLayer?.getSource() as VectorSource;
@@ -70,22 +31,18 @@ const DrawingForm: React.FC<Props> = ({ features, selectedReport, setFeatures })
     const drawingSource = drawingLayer?.getSource() as VectorSource;
 
     const mainFeature = useMemo(() => {
-        if (clickedFeature?.get("new")) {
-            return drawingSource.getFeatures().find((f) => f.get("new") && f.get("main"));
-        } else {
-            return features.find((f) => f.get("main"));
+        if (selectedReport) {
+            return features.find((f) => f.get("reportData") && f.get("main"));
         }
-    }, [clickedFeature, drawingSource, features]);
+        return features.find((f) => (f.get("reportData") && f.get("main")) || f.get("main"));
+    }, [features, selectedReport]);
 
-    const handleClick = (name: string) => {
-        const toolButton = document.querySelector(`button[id*="${name}"]`) as HTMLButtonElement | null;
-        if (toolButton) {
-            toolButton.click();
-        }
-    };
+    const sketchFeatures = useMemo(() => {
+        return features.filter((feat) => feat !== mainFeature);
+    }, [features, mainFeature]);
 
-    useEffect(() => {
-        const handleDrawingChange = (e: VectorSourceEvent) => {
+    const handleDrawingChange = useCallback(
+        (e: VectorSourceEvent) => {
             if (e.feature) {
                 if (e.type === "addfeature") {
                     if (selectedReport) {
@@ -94,20 +51,19 @@ const DrawingForm: React.FC<Props> = ({ features, selectedReport, setFeatures })
                         e.feature.set("new", true);
                         if (!features.length) {
                             e.feature.set("main", true);
-                            setClickedFeature(e.feature);
                         }
                     }
                     setFeatures([...features, e.feature]);
                 } else if (e.type === "removefeature") {
                     const newFatures = features.filter((feat) => feat !== e.feature);
                     setFeatures(newFatures);
-                    if (!newFatures.length) {
-                        setClickedFeature(null);
-                    }
                 }
             }
-        };
+        },
+        [features, selectedReport, setFeatures]
+    );
 
+    useEffect(() => {
         drawingSource?.on("addfeature", handleDrawingChange);
         drawingSource?.on("removefeature", handleDrawingChange);
 
@@ -115,19 +71,33 @@ const DrawingForm: React.FC<Props> = ({ features, selectedReport, setFeatures })
             drawingSource?.un("addfeature", handleDrawingChange);
             drawingSource?.un("removefeature", handleDrawingChange);
         };
-    }, [drawingSource, features, selectedReport, clickedTool, setFeatures, setClickedFeature]);
+    }, [drawingSource, features, selectedReport, clickedTool, setFeatures, handleDrawingChange]);
 
     useEffect(() => {
         let selectedReportFeatures: Feature[] = [];
-        let reportFeaturesDrawing: Feature[] = [];
+        let reportMainFeature: Feature | undefined;
+
         if (selectedReport) {
-            selectedReportFeatures = reportSource?.getFeatures().filter((feature: Feature) => feature.get("reportData").id === selectedReport.id) || [];
-            reportFeaturesDrawing = drawingSource?.getFeatures().filter((feature: Feature) => feature.get("reportData").id === selectedReport.id) || [];
-        } else {
-            reportFeaturesDrawing = drawingSource?.getFeatures().filter((feature: Feature) => feature.get("new")) || [];
+            const editTool = reportTools.find((t) => t.name === toolNames.edit);
+            handleToolClick(editTool);
+            selectedReportFeatures = getReportAllFeatures(selectedReport);
+            handleToolClick(editTool);
+            drawingSource?.addFeatures(selectedReportFeatures);
+            reportMainFeature = reportSource?.getFeatures().find((f) => f.get("reportData").id === selectedReport?.id);
+            if (reportMainFeature) reportSource?.removeFeature(reportMainFeature);
         }
-        setFeatures([...selectedReportFeatures, ...reportFeaturesDrawing]);
-    }, [reportSource, drawingSource, selectedReport, setFeatures]);
+        if (drawingSource) setFeatures(drawingSource?.getFeatures());
+        return () => {
+            if (selectedReport) {
+                drawingSource?.removeFeatures(selectedReportFeatures);
+                const reportMainFeatureUpdated = reportSource?.getFeatures().find((f) => f.get("reportData").id === selectedReport?.id);
+                if (reportMainFeature && !reportMainFeatureUpdated) {
+                    reportSource?.addFeature(reportMainFeature);
+                }
+                setFeatures([]);
+            }
+        };
+    }, [selectedReport, drawingSource, reportSource, handleToolClick, setFeatures]);
 
     useEffect(() => {
         const mainPointFeatureStyle = mainFeature?.getStyle() as Style;
@@ -139,24 +109,6 @@ const DrawingForm: React.FC<Props> = ({ features, selectedReport, setFeatures })
         };
     }, [mainFeature]);
 
-    useEffect(() => {
-        if (selectedReport) {
-            features.forEach((feature) => {
-                if (feature.getStyle()) (feature.getStyle() as Style)?.setZIndex(5);
-                feature?.changed();
-            });
-        }
-
-        return () => {
-            if (selectedReport) {
-                features.forEach((feature) => {
-                    if (feature.getStyle()) (feature.getStyle() as Style)?.setZIndex(1);
-                    feature?.changed();
-                });
-            }
-        };
-    }, [features, selectedReport]);
-
     const getToolPriority = (tool: ReportTool) => {
         if (isToolDisabled(tool)) return "primary";
         if (clickedTool.name === tool.name && clickedTool.clicked) return "secondary";
@@ -164,7 +116,7 @@ const DrawingForm: React.FC<Props> = ({ features, selectedReport, setFeatures })
     };
 
     const isToolDisabled = (tool: ReportTool): boolean => {
-        if (!mainFeature && tool.name !== toolNames.point) {
+        if (!features.length && tool.name !== toolNames.point) {
             return true;
         }
         return false;
@@ -180,7 +132,7 @@ const DrawingForm: React.FC<Props> = ({ features, selectedReport, setFeatures })
 
     const handleHoverFeature = (feature: Feature, mouseEnter: boolean) => {
         const featureStyle = feature.getStyle() as Style;
-        const featureText = featureStyle.getText();
+        const featureText = "getText" in featureStyle && featureStyle.getText();
         if (mouseEnter) {
             if (featureText) {
                 hoveredFeatureStyle.strockWidth = getFeatureDiam(feature);
@@ -212,78 +164,78 @@ const DrawingForm: React.FC<Props> = ({ features, selectedReport, setFeatures })
             <div className="report-tools">
                 <p className="fr-mt-4v fr-mb-2v fr-text--sm">Outils de création</p>
                 <div>
-                    {reportCreationTools.map((tool) => (
-                        <Button
-                            key={tool.name}
-                            onClick={() => {
-                                handleClick(tool.name);
-                                setClickedTool(() => {
-                                    return { name: tool.name, clicked: clickedTool.name === tool.name ? !clickedTool.clicked : true };
-                                });
-                            }}
-                            priority={getToolPriority(tool)}
-                            title={tool.title}
-                            disabled={isToolDisabled(tool)}
-                        >
-                            <img width={20} height={20} src={tool.imgSrc} alt={tool.name} />
-                        </Button>
-                    ))}
+                    {reportTools
+                        .filter((tool) => tool.type === "create")
+                        .map((tool) => (
+                            <Button
+                                key={tool.name}
+                                id={`${tool.type}-sketch-${tool.name}`}
+                                onClick={() => {
+                                    handleToolClick(tool);
+                                }}
+                                priority={getToolPriority(tool)}
+                                title={tool.title}
+                                disabled={isToolDisabled(tool)}
+                            >
+                                <img width={20} height={20} src={tool.imgSrc} alt={tool.name} />
+                            </Button>
+                        ))}
                 </div>
             </div>
             <div className="report-tools">
                 <p className="fr-mt-4v fr-mb-2v fr-text--sm">Outils de modification</p>
                 <div>
-                    {reportEditTools.map((tool) => (
-                        <Button
-                            key={tool.name}
-                            onClick={() => {
-                                handleClick(tool.name);
-                                setClickedTool(() => {
-                                    return { name: tool.name, clicked: clickedTool.name === tool.name ? !clickedTool.clicked : true };
-                                });
-                            }}
-                            priority={clickedTool.name === tool.name && clickedTool.clicked ? "secondary" : "tertiary"}
-                            title={tool.title}
-                        >
-                            <img width={20} height={20} src={tool.imgSrc} alt={tool.name} />
-                        </Button>
-                    ))}
+                    {reportTools
+                        .filter((tool) => tool.type === "edit")
+                        .map((tool) => (
+                            <Button
+                                key={tool.name}
+                                id={`${tool.type}-sketch-${tool.name}`}
+                                onClick={() => {
+                                    handleToolClick(tool);
+                                }}
+                                priority={clickedTool.name === tool.name && clickedTool.clicked ? "secondary" : "tertiary"}
+                                title={tool.title}
+                            >
+                                <img width={20} height={20} src={tool.imgSrc} alt={tool.name} />
+                            </Button>
+                        ))}
                 </div>
             </div>
-            {features.length > 0 && (
+            {sketchFeatures.length > 0 && (
                 <div className="report-features">
-                    {features
-                        .filter((feat) => feat !== mainFeature)
-                        .map((feature, index) => {
-                            const featureType = feature.getGeometry()?.getType();
-                            const featureText = (feature.getStyle() as Style)?.getText();
-                            return (
-                                <div
-                                    key={`feature_${index}`}
-                                    onMouseEnter={() => handleHoverFeature(feature, true)}
-                                    onMouseLeave={() => handleHoverFeature(feature, false)}
-                                >
-                                    <img
-                                        width={20}
-                                        height={20}
-                                        src={
-                                            featureText
-                                                ? reportEditTools.find((tool) => tool.name === toolNames.tooltip)?.imgSrc
-                                                : reportCreationTools.find((tool) => tool.featureType === featureType)?.imgSrc
-                                        }
-                                        alt={featureType ? SketchFeatureType[featureType] : ""}
-                                    />
-                                    <span>{featureText ? featureText.getText() : featureType ? SketchFeatureType[featureType] : ""}</span>
-                                    <Button
-                                        iconId="ri-delete-bin-2-fill"
-                                        priority={"tertiary"}
-                                        onClick={() => handleFeatureRemove(feature)}
-                                        title="Supprimer"
-                                        size="small"
-                                    />
-                                </div>
-                            );
-                        })}
+                    {sketchFeatures.map((feature, index) => {
+                        const featureType = feature.getGeometry()?.getType();
+                        const featureStyle = feature.getStyle() as Style;
+                        const featureText = featureStyle && "getText" in featureStyle && featureStyle?.getText();
+
+                        return (
+                            <div
+                                key={`feature_${index}`}
+                                onMouseEnter={() => handleHoverFeature(feature, true)}
+                                onMouseLeave={() => handleHoverFeature(feature, false)}
+                            >
+                                <img
+                                    width={20}
+                                    height={20}
+                                    src={
+                                        featureText
+                                            ? reportTools.find((tool) => tool.name === toolNames.tooltip)?.imgSrc
+                                            : reportTools.find((tool) => tool.featureType === featureType)?.imgSrc
+                                    }
+                                    alt={featureType ? SketchFeatureType[featureType] : ""}
+                                />
+                                <span>{featureText ? featureText?.getText() : featureType ? SketchFeatureType[featureType] : ""}</span>
+                                <Button
+                                    iconId="ri-delete-bin-2-fill"
+                                    priority={"tertiary"}
+                                    onClick={() => handleFeatureRemove(feature)}
+                                    title="Supprimer"
+                                    size="small"
+                                />
+                            </div>
+                        );
+                    })}
                 </div>
             )}
         </>

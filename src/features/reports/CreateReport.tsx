@@ -26,10 +26,10 @@ const CreateReport: React.FC<Props> = ({ handleCloseDrawer }) => {
         filesUpload: File[],
         features: Feature[]
     ) => {
-        const mainPointFeature = features?.find((f) => f.getGeometry()?.getType() === "Point");
+        const mainFeature = features.find((f) => f.get("main"));
         const newReport: PostReport = {
             community: community?.id,
-            geometry: `POINT(${getLonLatFromFeature(mainPointFeature)?.join(" ")})`,
+            geometry: `POINT(${getLonLatFromFeature(mainFeature)?.join(" ")})`,
             comment: description,
             attributes: { community: community?.id, theme: selectedTheme.theme, attributes: themeAttributes },
         };

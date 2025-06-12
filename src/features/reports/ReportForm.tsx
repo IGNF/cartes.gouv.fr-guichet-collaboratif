@@ -1,19 +1,20 @@
 import LoaderComponent from "@/components/LoaderComponent";
 import { CommunityTheme } from "@/constants/communities/types";
-import { CommunityReport, ErrorFile, PostThemeReport } from "@/constants/reports/types";
+import { ClickedTool, CommunityReport, ErrorFile, PostThemeReport, ReportTool } from "@/constants/reports/types";
 import { useCommunityStore } from "@/store";
 import Accordion from "@codegouvfr/react-dsfr/Accordion";
 import Button from "@codegouvfr/react-dsfr/Button";
 import Input from "@codegouvfr/react-dsfr/Input";
 import RadioButtons from "@codegouvfr/react-dsfr/RadioButtons";
 import { Upload } from "@codegouvfr/react-dsfr/Upload";
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, useCallback, useEffect, useState } from "react";
 import ReportAttachments from "./ReportAttachments";
 import ThemeForm from "./ThemeForm";
 import { getThemeAttributes } from "@/constants/utils";
 import DrawingForm from "./DrawingForm";
 import { Feature } from "ol";
 import CenterFeature from "./CenterFeature";
+import { reportTools } from "@/constants/reports/utils";
 
 const allowedTypes = ["image/png", "image/jpg", "application/pdf"];
 const maxSizeMB = 3;
@@ -32,6 +33,7 @@ const ReportForm: React.FC<Props> = ({ selectedReport, handleSubmit, handleDelet
     const [description, setDescription] = useState<string>(selectedReport?.comment ?? "");
     const [filesUploaded, setFilesUploaded] = useState<File[]>([]);
     const [features, setFeatures] = useState<Feature[]>([]);
+    const [clickedTool, setClickedTool] = useState<ClickedTool>({ name: "", clicked: false });
 
     const [expendedDrawing, setExpendedDrawing] = useState<boolean>(false);
     const [expendedDescription, setExpendedDescription] = useState<boolean>(false);
@@ -43,6 +45,17 @@ const ReportForm: React.FC<Props> = ({ selectedReport, handleSubmit, handleDelet
     const [loading, setLoading] = useState<boolean>(false);
 
     const { community } = useCommunityStore();
+
+    const handleToolClick = useCallback((tool: ReportTool | undefined) => {
+        if (!tool) return;
+        const toolButton = document.querySelector(`button[id*="${tool.name}"]`) as HTMLButtonElement | null;
+        if (toolButton) {
+            toolButton.click();
+            setClickedTool((prev) => {
+                return { name: tool.name, clicked: prev.name === tool.name ? !prev.clicked : true };
+            });
+        }
+    }, []);
 
     useEffect(() => {
         if (selectedReport) {
@@ -82,7 +95,7 @@ const ReportForm: React.FC<Props> = ({ selectedReport, handleSubmit, handleDelet
 
     const onSubmit = async () => {
         if (!community || !features?.length) return;
-
+        handleToolClick(reportTools.find((tool) => tool.name === clickedTool.name));
         await validateTheme();
         await validateFiles(filesUploaded);
         if (!selectedTheme || errorTheme || errorFiles.length) {
@@ -201,7 +214,13 @@ const ReportForm: React.FC<Props> = ({ selectedReport, handleSubmit, handleDelet
                     }}
                     expanded={expendedDrawing}
                 >
-                    <DrawingForm features={features} selectedReport={selectedReport} setFeatures={setFeatures} />
+                    <DrawingForm
+                        features={features}
+                        selectedReport={selectedReport}
+                        clickedTool={clickedTool}
+                        setFeatures={setFeatures}
+                        handleToolClick={handleToolClick}
+                    />
                 </Accordion>
                 <Accordion
                     label="Décrire le signalement"

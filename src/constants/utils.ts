@@ -135,7 +135,7 @@ export const getSketchFeatureType = (feature: Feature): SketchType => {
 
 export const getFeatureDiam = (feature: Feature) => {
     const featureStyle = feature.getStyle() as Style;
-    const featureText = featureStyle.getText();
+    const featureText = "getText" in featureStyle && featureStyle?.getText();
     const featureType = feature.getGeometry()?.getType();
     let diam = featureStyle.getStroke()?.getWidth() ?? 1;
     if (featureType === "Point") {
@@ -160,7 +160,7 @@ export const getReportSketch = (features: Feature[], map: Map, edit: boolean = f
         desc: "export espace collaboratif",
         objects: newFeatures.map((feature) => {
             const featureStyle = feature.getStyle() as Style;
-            const featureText = featureStyle.getText();
+            const featureText = "getText" in featureStyle && featureStyle?.getText();
 
             if (featureText) {
                 return {
@@ -172,7 +172,7 @@ export const getReportSketch = (features: Feature[], map: Map, edit: boolean = f
                         frontcolor: (featureText.getStroke()?.getColor() as string) ?? "",
                     },
                     attributes: {
-                        nom: featureText.getText() ?? "",
+                        nom: featureText?.getText() ?? "",
                     },
                 };
             }
@@ -273,8 +273,8 @@ export const getFeatureLine = (report: CommunityReport, featData: SketchObject) 
     return feature;
 };
 
-export const getReportSketchFeatures = (report: CommunityReport) => {
-    if (!report.sketch) return;
+export const getReportSketchFeatures = (report: CommunityReport | undefined) => {
+    if (!report?.sketch) return [];
     return report.sketch.objects.map((featData) => {
         if (featData.type === SketchFeatureType.LineString) {
             return getFeatureLine(report, featData);

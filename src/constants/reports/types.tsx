@@ -105,3 +105,27 @@ export interface SketchObject {
         nom?: string | string[];
     };
 }
+
+export enum toolNames {
+    point = "drawing-tool-point",
+    line = "drawing-tool-line",
+    polygon = "drawing-tool-polygon",
+    text = "drawing-tool-text",
+    edit = "drawing-tool-edit",
+    display = "drawing-tool-display",
+    tooltip = "drawing-tool-tooltip",
+    remove = "drawing-tool-remove",
+}
+export interface ReportTool {
+    type: string;
+    name: string;
+    imgSrc: string;
+    order: number;
+    title: string;
+    featureType?: string;
+}
+
+export type ClickedTool = {
+    name: string;
+    clicked: boolean;
+};

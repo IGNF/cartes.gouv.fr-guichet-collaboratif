@@ -5,8 +5,8 @@ import VectorLayer from "ol/layer/Vector";
 import { Feature } from "ol";
 import { Geometry } from "ol/geom";
 import { getCommunityReports } from "@/api/reportsData";
-import { getReportAllFeatures } from "@/constants/utils";
-import { CommunityReport } from "@/constants/reports/types";
+import { getFeaturePoint } from "@/constants/utils";
+import { CommunityReport, SketchType } from "@/constants/reports/types";
 import { StatusMessage } from "@/constants/communities/types";
 import { bbox } from "ol/loadingstrategy";
 import { useQueryClient } from "@tanstack/react-query";
@@ -49,7 +49,11 @@ function useGetReportsLayer(communityId: number) {
 
     useEffect(() => {
         const features = reports.map((report: CommunityReport) => {
-            return getReportAllFeatures(report);
+            const mainFeatData = {
+                type: "Point" as SketchType,
+                geometry: report.geometry,
+            };
+            return getFeaturePoint(report, mainFeatData, true);
         });
         reportLayer?.getSource()?.clear();
         reportLayer?.getSource()?.addFeatures(features.flat());
