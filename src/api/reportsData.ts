@@ -1,7 +1,7 @@
 import { useCommunityStore } from "@/store/useCommunityStore";
 import { useQuery } from "@tanstack/react-query";
 import { useUserStore } from "@/store/useUserStore";
-import { CommunityReport, GeometryType, PostReport, reportData, SketchReport, StatusKey } from "@/constants/reports/types";
+import { CommunityReport, PostReport, reportData, SketchReport, StatusKey } from "@/constants/reports/types";
 import { REPORTS_API_URL } from "@/constants/urls";
 import { transformExtent } from "ol/proj";
 import { Extent } from "ol/extent";
@@ -63,7 +63,7 @@ async function getCommunityReportById(reportId: number): Promise<CommunityReport
     const sketchReport: SketchReport | null = getCommunityReportSketch(report);
     return {
         id: report.id,
-        geometry: report.geometry as GeometryType,
+        geometry: report.geometry,
         comment: report.comment,
         themes: report.attributes,
         status: report.status as StatusKey,

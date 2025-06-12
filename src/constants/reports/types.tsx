@@ -16,13 +16,14 @@ export enum SketchFeatureType {
     GeometryCollection = "GeometryCollection",
     Circle = "Circle",
 }
-export type GeometryType = `POINT(${string})` | `LINESTRING(${string})` | `MULTIPOLYGON(((${string})))`;
 export type ParamsReport = {
     feature: Feature;
     closeFunc: () => void;
 };
 
-export type GeometryFeatueParams = (Geometry & { getCoordinates: () => Coordinate; setCoordinates: (center: number[]) => void }) | undefined;
+export type GeometryFeatueParams =
+    | (Geometry & { getCoordinates: () => Coordinate | Coordinate[] | Coordinate[][] | Coordinate[][][]; setCoordinates: (center: number[]) => void })
+    | undefined;
 
 export interface ReportAttachment {
     id: number;
@@ -34,7 +35,7 @@ export interface ReportAttachment {
 
 export interface CommunityReport {
     id: number;
-    geometry: GeometryType;
+    geometry: string;
     comment: string;
     themes: CommunityTheme[];
     status: StatusKey;
@@ -46,7 +47,7 @@ export type PostThemeReport = { [key: string]: string };
 
 export interface PostReport {
     community: number;
-    geometry: GeometryType;
+    geometry: string;
     comment: string;
     attributes: { community: number; theme: string; attributes: PostThemeReport };
     sketch?: SketchReport | null;
@@ -69,7 +70,7 @@ export type attachmentData = {
 };
 export type reportData = {
     id: number;
-    geometry: GeometryType;
+    geometry: string;
     comment: string;
     attributes: CommunityTheme[];
     status: StatusKey;
@@ -94,7 +95,7 @@ export interface SketchReport {
 }
 
 export interface SketchObject {
-    geometry: GeometryType;
+    geometry: string;
     type: SketchType;
     style?: {
         backcolor?: string;

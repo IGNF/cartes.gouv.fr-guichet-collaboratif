@@ -4,9 +4,10 @@ import { CommunityReport, PostReport, PostThemeReport } from "@/constants/report
 import { useCommunityStore, useMapStore } from "@/store";
 import FormReport from "./ReportForm";
 import { deleteCommunityReportAllAttachments, postCommunityReportAttachments } from "@/api/attachmentData";
-import { clearDrawingLayer, getLonLatFromFeature, getReportAllFeatures, getReportSketch } from "@/constants/utils";
+import { clearDrawingLayer, getFeatureGeometryWKT } from "@/constants/utils";
 import { Feature } from "ol";
 import VectorSource from "ol/source/Vector";
+import { getReportAllFeatures, getReportSketch } from "@/constants/reports/utils";
 
 interface Props {
     selectedReport: CommunityReport | undefined;
@@ -55,9 +56,10 @@ const ShowReport: React.FC<Props> = ({ selectedReport, handleCloseDrawer }) => {
         features: Feature[]
     ) => {
         const mainFeature = features.find((f) => f.get("reportData") && f.get("main"));
+        if (!mainFeature) return;
         const newReport: PostReport = {
             community: community?.id,
-            geometry: `POINT(${getLonLatFromFeature(mainFeature)?.join(" ")})`,
+            geometry: getFeatureGeometryWKT(mainFeature),
             comment: description,
             attributes: { community: community?.id, theme: selectedTheme.theme, attributes: themeAttributes },
         };

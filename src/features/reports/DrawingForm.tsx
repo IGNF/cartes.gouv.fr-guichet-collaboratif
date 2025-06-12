@@ -1,6 +1,6 @@
 import { ClickedTool, CommunityReport, ReportTool, SketchFeatureType, toolNames } from "@/constants/reports/types";
-import { reportTools } from "@/constants/reports/utils";
-import { getFeatureDiam, getReportAllFeatures } from "@/constants/utils";
+import { getReportAllFeatures, reportTools } from "@/constants/reports/utils";
+import { getFeatureDiam } from "@/constants/utils";
 import { useMapStore } from "@/store";
 import Button from "@codegouvfr/react-dsfr/Button";
 
