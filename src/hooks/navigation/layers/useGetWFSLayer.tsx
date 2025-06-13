@@ -9,9 +9,12 @@ import GeoJSON from "ol/format/GeoJSON";
 import { bbox as bboxStrategy } from "ol/loadingstrategy";
 import { CommunityGeoservice, StatusMessage } from "@/constants/communities/types";
 import { useQueryClient } from "@tanstack/react-query";
+import { useMapStore } from "@/store";
 
 function useGetWFSLayer(geoservice: CommunityGeoservice) {
     const { addAlertMessage } = useCommunityStore();
+    const { map } = useMapStore();
+
     const queryClient = useQueryClient();
 
     const wfsLayer = useMemo(() => {
@@ -55,10 +58,17 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
         wfsLayer.set("description", geoservice.description);
         wfsLayer.setMinZoom(geoservice.minZoom);
         wfsLayer.setMaxZoom(geoservice.maxZoom);
+        if (map) {
+            const mapView = map.getView();
+            const minResolution = mapView?.getResolutionForZoom(geoservice.maxZoom);
+            const maxResolution = mapView?.getResolutionForZoom(geoservice.minZoom);
+            wfsLayer.setMinResolution(minResolution);
+            wfsLayer.setMaxResolution(maxResolution);
+        }
         const extent = geoservice.extent.split(",")?.map((extent) => parseFloat(extent));
         wfsLayer.setExtent(transformExtent(extent, "EPSG:4326", "EPSG:3857"));
         return wfsLayer;
-    }, [geoservice, queryClient, addAlertMessage]);
+    }, [geoservice, queryClient, map, addAlertMessage]);
 
     return wfsLayer;
 }
