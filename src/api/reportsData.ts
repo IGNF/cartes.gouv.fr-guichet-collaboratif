@@ -1,7 +1,7 @@
 import { useCommunityStore } from "@/store/useCommunityStore";
 import { useQuery } from "@tanstack/react-query";
 import { useUserStore } from "@/store/useUserStore";
-import { CommunityReport, GeometryType, PostReport, reportData, StatusKey } from "@/constants/reports/types";
+import { CommunityReport, PostReport, reportData, SketchReport, StatusKey } from "@/constants/reports/types";
 import { REPORTS_API_URL } from "@/constants/urls";
 import { transformExtent } from "ol/proj";
 import { Extent } from "ol/extent";
@@ -12,11 +12,28 @@ export const isDigital = (value: string): boolean => {
     return regex.test(value);
 };
 
+export const getCommunityReportSketch = (report: reportData) => {
+    const sketchJson = report.sketch ? JSON.parse(report.sketch) : null;
+    return sketchJson
+        ? {
+              name: sketchJson.name,
+              desc: sketchJson.name,
+              contexte: {
+                  lat: sketchJson.name,
+                  lon: sketchJson.name,
+                  zoom: sketchJson.name,
+              },
+              objects: sketchJson.objects,
+          }
+        : null;
+};
+
 export async function getCommunityReports(communityId: number, extent: Extent): Promise<CommunityReport[] | null> {
-    const res = await axiosApi.get(`${REPORTS_API_URL}?communities=${communityId}` + `&box=${transformExtent(extent, "EPSG:3857", "EPSG:4326")}`);
+    const res = await axiosApi.get(`${REPORTS_API_URL}?communities=${communityId}` + `&limit=20` + `&box=${transformExtent(extent, "EPSG:3857", "EPSG:4326")}`);
     if (!res.data || (res.status !== 200 && res.status !== 206)) return null;
 
     return res.data.map((report: reportData) => {
+        const sketchReport: SketchReport | null = getCommunityReportSketch(report);
         return {
             id: report.id,
             geometry: report.geometry,
@@ -32,6 +49,7 @@ export async function getCommunityReports(communityId: number, extent: Extent): 
                     url: attachment.uri,
                 };
             }),
+            sketch: sketchReport,
         };
     });
 }
@@ -42,9 +60,10 @@ async function getCommunityReportById(reportId: number): Promise<CommunityReport
     if (!res.data || res.status !== 200) return null;
     const report: reportData = res.data;
     if (!report) return null;
+    const sketchReport: SketchReport | null = getCommunityReportSketch(report);
     return {
         id: report.id,
-        geometry: report.geometry as GeometryType,
+        geometry: report.geometry,
         comment: report.comment,
         themes: report.attributes,
         status: report.status as StatusKey,
@@ -57,6 +76,7 @@ async function getCommunityReportById(reportId: number): Promise<CommunityReport
                 url: attachment.uri,
             };
         }),
+        sketch: sketchReport,
     };
 }
 
@@ -67,6 +87,7 @@ export async function postCommunityReport(report: PostReport): Promise<Community
 
     const newReport: reportData = res.data;
 
+    const sketchReport: SketchReport | null = getCommunityReportSketch(newReport);
     return {
         id: newReport.id,
         geometry: newReport.geometry,
@@ -82,6 +103,7 @@ export async function postCommunityReport(report: PostReport): Promise<Community
                 url: attachment.uri,
             };
         }),
+        sketch: sketchReport,
     };
 }
 
@@ -92,6 +114,7 @@ export async function updateCommunityReport(report: PostReport, reportId: number
 
     const newReport: reportData = res.data;
 
+    const sketchReport: SketchReport | null = getCommunityReportSketch(newReport);
     return {
         id: newReport.id,
         geometry: newReport.geometry,
@@ -107,10 +130,11 @@ export async function updateCommunityReport(report: PostReport, reportId: number
                 url: attachment.uri,
             };
         }),
+        sketch: sketchReport,
     };
 }
 
-export async function deleteCommunityReport(report: CommunityReport): Promise<boolean> {
+export async function deleteCommunityReportAPI(report: CommunityReport): Promise<boolean> {
     const res = await axiosApi.delete(`${REPORTS_API_URL}/${report.id}`);
 
     if (res.status !== 204) return false;

@@ -1,4 +1,6 @@
 import { LocalStorageData } from "@/constants/localStorage/types";
+import { StatusKey } from "@/constants/reports/types";
+import { reportImgStatus } from "@/constants/utils";
 import useDebounce from "@/hooks/useDebounce";
 import { useCommunityStore, useLocalStorageStore } from "@/store";
 import LayerSwitcher from "geopf-extensions-openlayers/src/packages/Controls/LayerSwitcher/LayerSwitcher";
@@ -71,6 +73,13 @@ const SaveButtonHandler: React.FC<Props> = ({ map, mapSwitcher }) => {
             mapSwitcher?.un("layerswitcher:change:position", onChange);
         };
     }, [map, mapSwitcher, onChange]);
+
+    useEffect(() => {
+        Object.keys(reportImgStatus).forEach((key: string) => {
+            const img = new Image();
+            img.src = reportImgStatus[key as StatusKey].img;
+        });
+    });
 
     return null;
 };

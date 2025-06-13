@@ -1,6 +1,7 @@
 import BaseLayer from "ol/layer/Base";
 import TileLayer from "ol/layer/Tile";
 import VectorLayer from "ol/layer/Vector";
+import { ReactNode } from "react";
 
 export interface LayerGeoservice {
     id: number;
@@ -77,6 +78,6 @@ export const enum StatusMessage {
 export type AlertMessageType = {
     id: number;
     status: StatusMessage;
-    text: string;
+    text: string | NonNullable<ReactNode>;
     duration?: number | null;
 };

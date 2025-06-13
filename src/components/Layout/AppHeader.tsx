@@ -9,7 +9,7 @@ const AppHeader: React.FC = () => {
     const { user } = useUserStore();
     const { community } = useCommunityStore();
 
-    if (community) return <MapToolbar />;
+    if (community && user) return <MapToolbar />;
 
     return (
         <>

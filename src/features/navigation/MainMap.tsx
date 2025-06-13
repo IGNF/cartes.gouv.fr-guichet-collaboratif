@@ -16,9 +16,8 @@ import GetAllLayers from "./layers";
 import { MapLayer, MapLayerSource } from "@/constants/communities/types";
 import { getLonLatFromPoint } from "@/constants/utils";
 import SaveButtonHandler from "./SaveButtonHandler";
-import ShowReportDrawer from "../reports/ShowReportDrawer";
-import CreateReportDrawer from "../reports/CreateReportDrawer";
 import getMapControls from "./controls";
+import ReportDrawer from "../reports/ReportDrawer";
 
 export default function MainMap() {
     const mapTargetRef = useRef<HTMLDivElement>(null);
@@ -99,8 +98,7 @@ export default function MainMap() {
             <SaveButtonHandler map={mapRef.current} mapSwitcher={switcherRef.current} />
             <GetAllLayers />
 
-            <ShowReportDrawer />
-            <CreateReportDrawer />
+            <ReportDrawer />
         </div>
     );
 }
