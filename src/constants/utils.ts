@@ -131,7 +131,7 @@ export const getFeaturePoint = (report: CommunityReport, featData: SketchObject,
             new Style({
                 image: new Icon({
                     src: reportImgStatus[report.status].img,
-                    scale: 0.5,
+                    scale: 1,
                 }),
                 zIndex: 1,
             })
