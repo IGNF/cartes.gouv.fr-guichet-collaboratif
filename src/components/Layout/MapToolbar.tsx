@@ -1,17 +1,51 @@
 import { Button } from "@codegouvfr/react-dsfr/Button";
 import { Select } from "@codegouvfr/react-dsfr/Select";
 import { fr } from "@codegouvfr/react-dsfr";
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useCommunityStore } from "@/store";
+import { useMapStore } from "@/store/useMapStore";
 
 import "./MapToolbar.css";
 
 const MapToolbar: React.FC = () => {
-    const [selectedLayer, setSelectedLayer] = useState("Zones de sismicité");
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [dropdownWidth, setDropdownWidth] = useState<number>(0);
+    const [layerOptions, setLayerOptions] = useState<string[]>([]);
     const buttonGroupRef = useRef<HTMLDivElement>(null);
-    const { community } = useCommunityStore();
+
+    const { community, mapLayers } = useCommunityStore();
+    const { map, selectedLayer, setSelectedLayer } = useMapStore();
+
+    useEffect(() => {
+        if (!mapLayers) return;
+
+        const titles = mapLayers
+            .filter((layer) => layer.title?.toLowerCase() !== "signalements")
+            .map((layer) => layer.title)
+            .filter(Boolean)
+            .sort((a, b) => a.localeCompare(b));
+
+        setLayerOptions(titles);
+
+        if (titles.length > 0 && !selectedLayer) {
+            setSelectedLayer(titles[0]);
+        }
+
+        console.log("✅ Couches affichées (hors Signalements) :", titles);
+    }, [mapLayers, selectedLayer, setSelectedLayer]);
+
+    // ✅ Ne rend visible que la couche sélectionnée si elle ne l’est pas déjà
+    useEffect(() => {
+        if (!map || !selectedLayer) return;
+
+        const layers = map.getLayers().getArray();
+
+        const selectedMapLayer = layers.find((layer) => layer.get("title") === selectedLayer);
+
+        if (selectedMapLayer && !selectedMapLayer.getVisible()) {
+            selectedMapLayer.setVisible(true);
+        }
+    }, [selectedLayer, map]);
 
     useEffect(() => {
         if (isDropdownOpen && buttonGroupRef.current) {
@@ -30,7 +64,7 @@ const MapToolbar: React.FC = () => {
                             <img
                                 src={
                                     community.logoUrl ||
-                                    "https://media.istockphoto.com/id/528909900/photo/sunbeams-rays-of-light-shining-through-green-foliage-into-forest.webp?a=1&b=1&s=612x612&w=0&k=20&c=XvEKcyRQSLGgeTULTqy53TTuno_IevpN9VVUg3nXkjA="
+                                    "https://media.istockphoto.com/id/528909900/photo/sunbeams-rays-of-light-shining-through-green-foliage-into-forest.webp"
                                 }
                                 alt="Icône Guichet"
                                 className="map-toolbar-avatar"
@@ -55,11 +89,11 @@ const MapToolbar: React.FC = () => {
                             </Button>
 
                             <Button
-                                iconId={isDropdownOpen ? `fr-icon-arrow-up-s-line` : `fr-icon-arrow-down-s-line`}
+                                iconId={isDropdownOpen ? "fr-icon-arrow-up-s-line" : "fr-icon-arrow-down-s-line"}
                                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                                 title="Afficher plus"
                                 className="map-toolbar-button-toggle"
-                            ></Button>
+                            />
 
                             {isDropdownOpen && (
                                 <div className="map-toolbar-dropdown" style={{ width: dropdownWidth }}>
@@ -103,10 +137,11 @@ const MapToolbar: React.FC = () => {
                             onChange: (e) => setSelectedLayer(e.target.value),
                         }}
                     >
-                        <option>Zones de sismicité</option>
-                        <option>Option 2</option>
-                        <option>Option 3</option>
-                        <option>Option 4</option>
+                        {layerOptions.map((label) => (
+                            <option key={label} value={label}>
+                                {label}
+                            </option>
+                        ))}
                     </Select>
                 </div>
             </div>

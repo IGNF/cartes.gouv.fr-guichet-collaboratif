@@ -8,6 +8,7 @@ import olDefaults from "@/api/ol-defaults.json";
 import "ol/ol.css";
 import "geopf-extensions-openlayers/css/Dsfr.css";
 import "./map-view.css";
+
 import getMapControls from "./controls";
 import { useCommunityStore, useLocalStorageStore, useMapStore } from "@/store";
 import LayerSwitcher from "geopf-extensions-openlayers/src/packages/Controls/LayerSwitcher/LayerSwitcher";
@@ -18,6 +19,9 @@ import { MapLayer, MapLayerSource } from "@/constants/communities/types";
 import ShowReportModal from "../reports/ShowReportModal";
 import { getLonLatFromPoint } from "@/constants/utils";
 import SaveButtonHandler from "./SaveButtonHandler";
+import TileLayer from "ol/layer/Tile";
+import TileWMS from "ol/source/TileWMS";
+import { GetFeatureInfosHandler } from "./GetFeatureInfosHandler";
 
 export default function MainMap() {
     const mapTargetRef = useRef<HTMLDivElement>(null);
@@ -30,6 +34,7 @@ export default function MainMap() {
     const { map, setMap } = useMapStore();
 
     const mapControls = getMapControls();
+    const { data: cfg } = useGpConfig();
 
     const addLayer = useCallback((layer: MapLayerSource): void => {
         mapRef.current?.addLayer(layer);
@@ -39,8 +44,6 @@ export default function MainMap() {
             type: layer.get("type"),
         });
     }, []);
-
-    const { data: cfg } = useGpConfig();
 
     useEffect(() => {
         if (cfg && typeof cfg.call === "function") cfg.call();
@@ -64,11 +67,32 @@ export default function MainMap() {
         });
 
         const switcher = layerSwitcherControl(mapLayers);
-
         mapRef.current.addControl(switcher);
 
         viewRef.current = mapView;
         switcherRef.current = switcher;
+
+        const geoLayer = new TileLayer({
+            source: new TileWMS({
+                url: "https://data.geopf.fr/wms-v/ows",
+                params: {
+                    LAYERS: "PROTECTEDAREAS.PRSF",
+                    TILED: true,
+                },
+                serverType: "geoserver",
+            }),
+            visible: true,
+        });
+
+        geoLayer.set("title", "Zones protégées - Géoportail");
+        geoLayer.set("name", "PROTECTEDAREAS.PRSF");
+        geoLayer.set("infoFormat", "text/html");
+
+        mapRef.current.addLayer(geoLayer);
+        switcherRef.current.addLayer(geoLayer, {
+            title: "Zones protégées - Géoportail",
+            description: "Couches issues de data.geopf.fr",
+        });
 
         mapRef.current?.render();
         if (!map) {
@@ -86,6 +110,7 @@ export default function MainMap() {
             });
         })();
     }, [mapLayers, addLayer]);
+    console.log("Map Current", mapRef.current);
 
     const mapToolbarHeader = document.getElementById("map-toolbar-header");
 
@@ -96,11 +121,10 @@ export default function MainMap() {
                 ref={mapTargetRef}
                 style={{ height: `calc(100vh - ${mapToolbarHeader?.clientHeight || 0}px)` }}
             ></div>
-
             <SaveButtonHandler map={mapRef.current} mapSwitcher={switcherRef.current} />
-            <GetAllLayers />
-
+            <GetAllLayers />;
             <ShowReportModal map={mapRef.current} />
+            <GetFeatureInfosHandler map={mapRef.current} />;
         </div>
     );
 }

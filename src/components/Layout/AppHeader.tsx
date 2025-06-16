@@ -1,6 +1,6 @@
 import Header from "@codegouvfr/react-dsfr/Header";
 
-import { useCommunityStore, useUserStore } from "@/store";
+import { useCommunityStore, useMapStore, useUserStore } from "@/store";
 import { HOME_URL, LOGIN_URL, LOGOUT_URL, PROFILE_URL } from "@/constants/urls";
 
 import MapToolbar from "./MapToolbar";
@@ -8,8 +8,9 @@ import MapToolbar from "./MapToolbar";
 const AppHeader: React.FC = () => {
     const { user } = useUserStore();
     const { community } = useCommunityStore();
+    const { map } = useMapStore();
 
-    if (community) return <MapToolbar />;
+    if (community && map) return <MapToolbar />;
 
     return (
         <>

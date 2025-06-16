@@ -41,6 +41,7 @@ function useGetWMTSLayer(geoservice: CommunityGeoservice) {
 
         wmtsLayer.set("title", geoservice.title);
         wmtsLayer.set("description", geoservice.description);
+        wmtsLayer.set("name", geoservice.layer);
         wmtsLayer.setMinZoom(geoservice.minZoom);
         wmtsLayer.setMaxZoom(geoservice.maxZoom);
         const extent = geoservice.extent.split(",")?.map((extent) => parseFloat(extent));
