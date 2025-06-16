@@ -17,11 +17,9 @@ import GetAllLayers from "./layers";
 import { MapLayer, MapLayerSource } from "@/constants/communities/types";
 import { getLonLatFromPoint } from "@/constants/utils";
 import SaveButtonHandler from "./SaveButtonHandler";
-import TileLayer from "ol/layer/Tile";
-import TileWMS from "ol/source/TileWMS";
 import { GetFeatureInfosHandler } from "./GetFeatureInfosHandler";
-import getMapControls from "./controls";
 import ReportDrawer from "../reports/ReportDrawer";
+import { useAddProtectedAreaLayer } from "@/hooks/useAddProtectedAreaLayer";
 
 export default function MainMap() {
     const mapTargetRef = useRef<HTMLDivElement>(null);
@@ -32,6 +30,8 @@ export default function MainMap() {
     const { community, mapLayers } = useCommunityStore();
     const { localStorageData } = useLocalStorageStore();
     const { map, setMap } = useMapStore();
+
+    const addProtectedAreaLayer = useAddProtectedAreaLayer();
 
     const mapControls = getMapControls();
     const { data: cfg } = useGpConfig();
@@ -44,8 +44,6 @@ export default function MainMap() {
             type: layer.get("type"),
         });
     }, []);
-
-    const { data: cfg } = useGpConfig();
 
     useEffect(() => {
         if (cfg && typeof cfg.call === "function") cfg.call();
@@ -74,33 +72,13 @@ export default function MainMap() {
         viewRef.current = mapView;
         switcherRef.current = switcher;
 
-        const geoLayer = new TileLayer({
-            source: new TileWMS({
-                url: "https://data.geopf.fr/wms-v/ows",
-                params: {
-                    LAYERS: "PROTECTEDAREAS.PRSF",
-                    TILED: true,
-                },
-                serverType: "geoserver",
-            }),
-            visible: true,
-        });
-
-        geoLayer.set("title", "Zones protégées - Géoportail");
-        geoLayer.set("name", "PROTECTEDAREAS.PRSF");
-        geoLayer.set("infoFormat", "text/html");
-
-        mapRef.current.addLayer(geoLayer);
-        switcherRef.current.addLayer(geoLayer, {
-            title: "Zones protégées - Géoportail",
-            description: "Couches issues de data.geopf.fr",
-        });
+        addProtectedAreaLayer();
 
         mapRef.current?.render();
         if (!map) {
             setMap(mapRef.current);
         }
-    });
+    }, [addProtectedAreaLayer, community?.position, localStorageData]);
 
     useEffect(() => {
         (async () => {
@@ -112,7 +90,6 @@ export default function MainMap() {
             });
         })();
     }, [mapLayers, addLayer]);
-    console.log("Map Current", mapRef.current);
 
     const mapToolbarHeader = document.getElementById("map-toolbar-header");
 
@@ -124,11 +101,9 @@ export default function MainMap() {
                 style={{ height: `calc(100vh - ${mapToolbarHeader?.clientHeight || 0}px)` }}
             ></div>
             <SaveButtonHandler map={mapRef.current} mapSwitcher={switcherRef.current} />
-
-            <GetAllLayers />;
-            <ShowReportModal map={mapRef.current} />
             <GetFeatureInfosHandler map={mapRef.current} />;
             <ReportDrawer />
+            <GetAllLayers />;
         </div>
     );
 }

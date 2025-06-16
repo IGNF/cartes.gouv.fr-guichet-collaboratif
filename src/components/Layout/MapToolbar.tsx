@@ -4,6 +4,7 @@ import { fr } from "@codegouvfr/react-dsfr";
 import { useEffect, useRef, useState } from "react";
 import { useCommunityStore } from "@/store";
 import { useMapStore } from "@/store/useMapStore";
+import PlaceholderImg from "../../img/dsfr/placeholder.1x1.png";
 
 import "./MapToolbar.css";
 
@@ -30,11 +31,8 @@ const MapToolbar: React.FC = () => {
         if (titles.length > 0 && !selectedLayer) {
             setSelectedLayer(titles[0]);
         }
-
-        console.log("✅ Couches affichées (hors Signalements) :", titles);
     }, [mapLayers, selectedLayer, setSelectedLayer]);
 
-    // ✅ Ne rend visible que la couche sélectionnée si elle ne l’est pas déjà
     useEffect(() => {
         if (!map || !selectedLayer) return;
 
@@ -61,14 +59,7 @@ const MapToolbar: React.FC = () => {
                 <div className="map-toolbar-header">
                     <div className="map-toolbar-left">
                         <div className="map-toolbar-title">
-                            <img
-                                src={
-                                    community.logoUrl ||
-                                    "https://media.istockphoto.com/id/528909900/photo/sunbeams-rays-of-light-shining-through-green-foliage-into-forest.webp"
-                                }
-                                alt="Icône Guichet"
-                                className="map-toolbar-avatar"
-                            />
+                            <img src={community.logoUrl || PlaceholderImg} alt="Icône Guichet" className="map-toolbar-avatar" />
                             <span className="map-toolbar-label">Guichet - {community.name || "Aucun titre"}</span>
                         </div>
                     </div>
@@ -133,7 +124,7 @@ const MapToolbar: React.FC = () => {
                     <Select
                         label=""
                         nativeSelectProps={{
-                            value: selectedLayer,
+                            value: selectedLayer ?? undefined,
                             onChange: (e) => setSelectedLayer(e.target.value),
                         }}
                     >
