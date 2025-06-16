@@ -18,6 +18,7 @@ export enum SketchFeatureType {
 }
 export type ParamsReport = {
     feature: Feature;
+    geomType: string;
     closeFunc: () => void;
 };
 

@@ -15,6 +15,13 @@ import DrawingForm from "./DrawingForm";
 import { Feature } from "ol";
 import CenterFeature from "./CenterFeature";
 import { reportTools } from "@/constants/reports/utils";
+import { createModal } from "@codegouvfr/react-dsfr/Modal";
+import ConfirmCancelModal from "./ConfirmCancelModal";
+
+const confirmModal = createModal({
+    id: "confirm-modal",
+    isOpenedByDefault: false,
+});
 
 const allowedTypes = ["image/png", "image/jpg", "application/pdf"];
 const maxSizeMB = 3;
@@ -288,9 +295,14 @@ const ReportForm: React.FC<Props> = ({ selectedReport, handleSubmit, handleDelet
                 </div>
 
                 {!selectedReport ? (
-                    <Button size="large" onClick={onSubmit} className="submit">
-                        Envoyer le signalement
-                    </Button>
+                    <div className="submit">
+                        <Button size="large" onClick={onSubmit}>
+                            Envoyer le signalement
+                        </Button>
+                        <Button nativeButtonProps={confirmModal.buttonProps} priority="tertiary no outline" title="Annuler">
+                            Annuler
+                        </Button>
+                    </div>
                 ) : (
                     <div className="buttons">
                         <Button priority="secondary" onClick={onDelete}>
@@ -304,6 +316,7 @@ const ReportForm: React.FC<Props> = ({ selectedReport, handleSubmit, handleDelet
                 )}
             </div>
             <CenterFeature features={features} />
+            <ConfirmCancelModal modal={confirmModal} onClose={onClose} />
         </>
     );
 };

@@ -32,9 +32,9 @@ const DrawingForm: React.FC<Props> = ({ features, selectedReport, clickedTool, s
 
     const mainFeature = useMemo(() => {
         if (selectedReport) {
-            return features.find((f) => f.get("reportData") && f.get("main"));
+            return features.find((f) => f.get("reportData") && f.get("main") && !f.get("new"));
         }
-        return features.find((f) => (f.get("reportData") && f.get("main")) || f.get("main"));
+        return features.find((f) => f.get("new") && f.get("main"));
     }, [features, selectedReport]);
 
     const sketchFeatures = useMemo(() => {
