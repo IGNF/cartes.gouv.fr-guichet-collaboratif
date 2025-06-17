@@ -1,17 +1,19 @@
-import { ClickedTool, CommunityReport, ReportTool, SketchFeatureType, toolNames } from "@/constants/reports/types";
+import { ClickedTool, CommunityReport, GeometryFeatueParams, ReportTool, SketchFeatureType, toolNames } from "@/constants/reports/types";
 import { getReportAllFeatures, reportTools } from "@/constants/reports/utils";
 import { getFeatureDiam } from "@/constants/utils";
 import { useMapStore } from "@/store";
 import Button from "@codegouvfr/react-dsfr/Button";
 
 import { Feature } from "ol";
+import { Coordinate } from "ol/coordinate";
+import { Circle } from "ol/geom";
 import Layer from "ol/layer/Layer";
 import { Size } from "ol/size";
 import VectorSource, { VectorSourceEvent } from "ol/source/Vector";
-import { Style } from "ol/style";
+import { Fill, Style } from "ol/style";
 import { useCallback, useEffect, useMemo } from "react";
 
-const hoveredFeatureStyle: { strockWidth: number; imageScale: number | Size } = { strockWidth: 1, imageScale: 0.5 };
+const hoveredFeatureStyle: { strockWidth: number; imageScale: number | Size } = { strockWidth: 1, imageScale: 1 };
 
 interface Props {
     features: Feature[];
@@ -100,14 +102,24 @@ const DrawingForm: React.FC<Props> = ({ features, selectedReport, clickedTool, s
     }, [selectedReport, drawingSource, reportSource, handleToolClick, setFeatures]);
 
     useEffect(() => {
-        const mainPointFeatureStyle = mainFeature?.getStyle() as Style;
-        mainPointFeatureStyle?.getImage()?.setScale(0.8);
+        const mainFeatureStyle = mainFeature?.getStyle() as Style;
+        mainFeature?.setStyle([
+            new Style({
+                geometry: (f) => {
+                    const center = (f.getGeometry() as GeometryFeatueParams)?.getCoordinates() as Coordinate;
+                    const mapResolution = map?.getView().getResolution() || 1;
+                    return new Circle(center, 50 * mapResolution);
+                },
+                fill: new Fill({ color: "rgba(0,0,145,0.2)" }),
+            }),
+            mainFeatureStyle,
+        ]);
         mainFeature?.changed();
         return () => {
-            mainPointFeatureStyle?.getImage()?.setScale(0.5);
+            mainFeature?.setStyle(mainFeatureStyle);
             mainFeature?.changed();
         };
-    }, [mainFeature]);
+    }, [mainFeature, map]);
 
     const getToolPriority = (tool: ReportTool) => {
         if (isToolDisabled(tool)) return "primary";
@@ -126,7 +138,7 @@ const DrawingForm: React.FC<Props> = ({ features, selectedReport, clickedTool, s
         reportSource?.removeFeature(feature);
         drawingSource?.removeFeature(feature);
         hoveredFeatureStyle.strockWidth = 1;
-        hoveredFeatureStyle.imageScale = 0.5;
+        hoveredFeatureStyle.imageScale = 1;
         setFeatures(features.filter((feat) => feat !== feature));
     };
 
