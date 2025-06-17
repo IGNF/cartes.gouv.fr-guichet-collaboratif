@@ -61,6 +61,13 @@
 .report-drawer .submit {
     width: 100%;
     display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.report-drawer .submit button {
+    width: 100%;
+    display: flex;
     justify-content: center;
 }
 

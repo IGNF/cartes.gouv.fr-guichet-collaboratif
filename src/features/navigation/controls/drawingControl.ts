@@ -33,7 +33,7 @@ const drawingControl = new Drawing({
         points: true,
         lines: true,
         polygons: true,
-        holes: true,
+        holes: false,
         text: true,
         remove: true,
         display: true,

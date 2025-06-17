@@ -61,7 +61,7 @@ const CreateReport: React.FC<Props> = ({ handleCloseDrawer }) => {
         handleCloseDrawer();
     };
 
-    return <ReportForm handleSubmit={handleSubmit} />;
+    return <ReportForm handleSubmit={handleSubmit} handleClose={handleCloseDrawer} />;
 };
 
 export default CreateReport;
