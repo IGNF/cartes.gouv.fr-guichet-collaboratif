@@ -1,6 +1,6 @@
 import { ClickedTool, CommunityReport, GeometryFeatueParams, ReportTool, SketchFeatureType, toolNames } from "@/constants/reports/types";
 import { getReportAllFeatures, reportTools } from "@/constants/reports/utils";
-import { getFeatureDiam } from "@/constants/utils";
+import { getFeatureDiam, mainMarker, markersStyles, otherMarkers } from "@/constants/utils";
 import { useMapStore } from "@/store";
 import Button from "@codegouvfr/react-dsfr/Button";
 
@@ -11,7 +11,10 @@ import Layer from "ol/layer/Layer";
 import { Size } from "ol/size";
 import VectorSource, { VectorSourceEvent } from "ol/source/Vector";
 import { Fill, Style } from "ol/style";
+import ImageStyle from "ol/style/Image";
 import { useCallback, useEffect, useMemo } from "react";
+import Drawing from "geopf-extensions-openlayers/src/packages/Controls/Drawing/Drawing";
+import { Control } from "ol/control";
 
 const hoveredFeatureStyle: { strockWidth: number; imageScale: number | Size } = { strockWidth: 1, imageScale: 1 };
 
@@ -102,6 +105,15 @@ const DrawingForm: React.FC<Props> = ({ features, selectedReport, clickedTool, s
     }, [selectedReport, drawingSource, reportSource, handleToolClick, setFeatures]);
 
     useEffect(() => {
+        const drawingControl: typeof Drawing = map
+            ?.getControls()
+            .getArray()
+            .find((c: Control) => "layer" in c && c.layer === drawingLayer);
+        if (drawingControl) {
+            if (mainFeature) {
+                drawingControl.options.markersList = otherMarkers;
+            }
+        }
         const mainFeatureStyle = mainFeature?.getStyle() as Style;
         mainFeature?.setStyle([
             new Style({
@@ -118,8 +130,11 @@ const DrawingForm: React.FC<Props> = ({ features, selectedReport, clickedTool, s
         return () => {
             mainFeature?.setStyle(mainFeatureStyle);
             mainFeature?.changed();
+            if (drawingControl) {
+                drawingControl.options.markersList = [mainMarker, ...otherMarkers];
+            }
         };
-    }, [mainFeature, map]);
+    }, [mainFeature, drawingLayer, map]);
 
     const getToolPriority = (tool: ReportTool) => {
         if (isToolDisabled(tool)) return "primary";
@@ -219,7 +234,21 @@ const DrawingForm: React.FC<Props> = ({ features, selectedReport, clickedTool, s
                     {sketchFeatures.map((feature, index) => {
                         const featureType = feature.getGeometry()?.getType();
                         const featureStyle = feature.getStyle() as Style;
+                        const featureImage = featureStyle?.getImage() as ImageStyle & { getSrc: () => string };
+                        const markerStyle = markersStyles.find((m) => m.imgSrc === featureImage?.getSrc());
                         const featureText = featureStyle && "getText" in featureStyle && featureStyle?.getText();
+
+                        let icon = reportTools.find((tool) => tool.featureType === featureType)?.imgSrc;
+                        let text = featureType ? SketchFeatureType[featureType] : "";
+                        if (featureText) {
+                            icon = reportTools.find((tool) => tool.name === toolNames.tooltip)?.imgSrc;
+                            text = featureText?.getText() as string;
+                        }
+
+                        if (markerStyle) {
+                            icon = markerStyle.imgSrc;
+                            text = markerStyle.name;
+                        }
 
                         return (
                             <div
@@ -227,17 +256,8 @@ const DrawingForm: React.FC<Props> = ({ features, selectedReport, clickedTool, s
                                 onMouseEnter={() => handleHoverFeature(feature, true)}
                                 onMouseLeave={() => handleHoverFeature(feature, false)}
                             >
-                                <img
-                                    width={20}
-                                    height={20}
-                                    src={
-                                        featureText
-                                            ? reportTools.find((tool) => tool.name === toolNames.tooltip)?.imgSrc
-                                            : reportTools.find((tool) => tool.featureType === featureType)?.imgSrc
-                                    }
-                                    alt={featureType ? SketchFeatureType[featureType] : ""}
-                                />
-                                <span>{featureText ? featureText?.getText() : featureType ? SketchFeatureType[featureType] : ""}</span>
+                                <img width={20} height={20} src={icon} alt={text} />
+                                <span>{text}</span>
                                 <Button
                                     iconId="ri-delete-bin-2-fill"
                                     priority={"tertiary"}

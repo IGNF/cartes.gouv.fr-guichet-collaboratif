@@ -137,8 +137,10 @@ const ReportDrawer = () => {
         if (!selectedReport) {
             const drawingLayer = map?.getAllLayers().find((layer: Layer & { gpResultLayerId?: string }) => layer.gpResultLayerId === "drawing");
             const drawingSource = drawingLayer?.getSource() as VectorSource;
-            const newFeatures = drawingSource?.getFeatures()?.filter((f) => f.get("new")) || [];
-            drawingSource.removeFeatures(newFeatures);
+            if (drawingSource) {
+                const newFeatures = drawingSource?.getFeatures()?.filter((f) => f.get("new")) || [];
+                drawingSource.removeFeatures(newFeatures);
+            }
         }
         setSelectedReport(undefined);
         setDrawerOpened(false);

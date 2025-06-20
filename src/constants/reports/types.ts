@@ -105,6 +105,7 @@ export interface SketchObject {
     };
     attributes?: {
         nom?: string | string[];
+        nature?: string;
     };
 }
 

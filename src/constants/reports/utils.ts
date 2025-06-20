@@ -1,4 +1,4 @@
-import { CommunityReport, GeometryFeatueParams, ReportTool, SketchFeatureType, SketchReport, SketchType, toolNames } from "./types";
+import { CommunityReport, GeometryFeatueParams, ReportTool, SketchFeatureType, SketchObject, SketchReport, SketchType, toolNames } from "./types";
 import CreateLabelImg from "geopf-extensions-openlayers/src/packages/CSS/Controls/Drawing/img/dsfr/create-label.svg";
 import CreateLineImg from "geopf-extensions-openlayers/src/packages/CSS/Controls/Drawing/img/dsfr/create-line.svg";
 import CreatePointImg from "geopf-extensions-openlayers/src/packages/CSS/Controls/Drawing/img/dsfr/create-point.svg";
@@ -10,7 +10,8 @@ import EditTextImg from "geopf-extensions-openlayers/src/packages/CSS/Controls/D
 import { Feature, Map } from "ol";
 import { Coordinate } from "ol/coordinate";
 import { Style } from "ol/style";
-import { getFeatureDiam, getFeatureGeometryWKT, getFeatureLine, getFeaturePoint, getFeaturePolygon, getSketchFeatureType } from "../utils";
+import { getFeatureDiam, getFeatureGeometryWKT, getFeatureLine, getFeaturePoint, getFeaturePolygon, getSketchFeatureType, markersStyles } from "../utils";
+import ImageStyle from "ol/style/Image";
 
 export const reportTools: ReportTool[] = [
     { type: "create", name: toolNames.point, imgSrc: CreatePointImg, order: 0, title: "Créer un signalement", featureType: "Point" },
@@ -36,24 +37,11 @@ export const getReportSketch = (features: Feature[], map: Map, edit: boolean = f
         desc: "export espace collaboratif",
         objects: newFeatures.map((feature) => {
             const featureStyle = feature.getStyle() as Style;
+            const featureImage = featureStyle?.getImage() as ImageStyle & { getSrc: () => string };
+            const markerStyle = markersStyles.find((m) => m.imgSrc === featureImage?.getSrc());
             const featureText = "getText" in featureStyle && featureStyle?.getText();
 
-            if (featureText) {
-                return {
-                    type: getSketchFeatureType(feature) as SketchType,
-                    geometry: getFeatureGeometryWKT(feature),
-                    style: {
-                        backcolor: (featureText?.getFill()?.getColor() as string) ?? "",
-                        diam: getFeatureDiam(feature),
-                        frontcolor: (featureText.getStroke()?.getColor() as string) ?? "",
-                    },
-                    attributes: {
-                        nom: featureText?.getText() ?? "",
-                    },
-                };
-            }
-
-            return {
+            const sketch: SketchObject = {
                 type: getSketchFeatureType(feature) as SketchType,
                 geometry: getFeatureGeometryWKT(feature),
                 style: {
@@ -62,6 +50,20 @@ export const getReportSketch = (features: Feature[], map: Map, edit: boolean = f
                     frontcolor: (featureStyle.getStroke()?.getColor() as string) ?? "",
                 },
             };
+
+            if (featureText) {
+                sketch.attributes = {
+                    nom: featureText?.getText() ?? "",
+                };
+            }
+
+            if (markerStyle) {
+                sketch.attributes = {
+                    nature: markerStyle.name,
+                };
+            }
+
+            return sketch;
         }),
         contexte: {
             lat: mainCoordinates![0] ?? "0",
