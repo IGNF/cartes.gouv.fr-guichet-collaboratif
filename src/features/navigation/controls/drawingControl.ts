@@ -1,6 +1,8 @@
 import { ParamsReport } from "@/constants/reports/types";
-import { reportImgStatus } from "@/constants/utils";
 import Drawing from "geopf-extensions-openlayers/src/packages/Controls/Drawing/Drawing";
+import { mainMarker, otherMarkers } from "@/constants/utils";
+
+const markersList = [mainMarker, ...otherMarkers];
 
 const drawingControl = new Drawing({
     collapsed: true,
@@ -10,25 +12,7 @@ const drawingControl = new Drawing({
         title: "",
         description: "",
     },
-    labels: {
-        control: "Soumettre un signalement",
-        points: "Créer un signalement",
-        tooltip: "tooltip",
-        display: "display",
-        saveDescription: "Créer le signalement",
-        setAsDefault: "Définir par défaut",
-        applyToObject: "Appliquer",
-        strokeColor: "Couleur du trait",
-        markerSize: "Taille du marqueur",
-    },
-    markersList: [
-        {
-            src: reportImgStatus.pending.img,
-            anchor: [0.5, 1],
-            scale: 0.5,
-            preload: true,
-        },
-    ],
+    markersList: markersList,
     tools: {
         points: true,
         lines: true,

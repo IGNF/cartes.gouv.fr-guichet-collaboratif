@@ -14,8 +14,40 @@ import Layer from "ol/layer/Layer";
 import VectorSource from "ol/source/Vector";
 import WKT from "ol/format/WKT";
 import { Coordinate } from "ol/coordinate";
+import createStarImg from "../img/reports/marketlist/star.png";
+import createCircleImg from "../img/reports/marketlist/circle.png";
+import createSquareImg from "../img/reports/marketlist/square.png";
+import createCrossImg from "../img/reports/marketlist/cross.png";
+import createXImg from "../img/reports/marketlist/x.png";
+import createTriangleImg from "../img/reports/marketlist/triangle.png";
+import createPointImg from "../img/reports/create_point.png";
 
 const wktFormat = new WKT();
+
+export const markersStyles = [
+    { name: "circle", imgSrc: createCircleImg },
+    { name: "square", imgSrc: createSquareImg },
+    { name: "triangle", imgSrc: createTriangleImg },
+    { name: "cross", imgSrc: createCrossImg },
+    { name: "x", imgSrc: createXImg },
+    { name: "star", imgSrc: createStarImg },
+];
+export const mainMarker = {
+    src: createPointImg,
+    anchor: [0.5, 0.5],
+    scale: 1,
+    preload: true,
+};
+
+export const otherMarkers = markersStyles.map((style) => {
+    return {
+        src: style.imgSrc,
+        anchor: [0.5, 0.5],
+        scale: 0.5,
+        preload: true,
+    };
+});
+
 export const reportImgStatus = {
     submit: { img: imgSubmit, text: "Reçu dans nos services" },
     pending: { img: imgPending, text: "En cours de traitement" },
@@ -110,9 +142,18 @@ export const getFeaturePoint = (report: CommunityReport, featData: SketchObject,
         main: main,
     });
 
+    let style = new Style({
+        image: new Icon({
+            src: reportImgStatus[report.status].img,
+            scale: 1,
+        }),
+        zIndex: 1,
+    });
+
     if (featData.attributes) {
-        feature.setStyle(
-            new Style({
+        const { nom, nature } = featData.attributes;
+        if (nom) {
+            style = new Style({
                 text: new Text({
                     offsetY: -15,
                     fill: new Fill({ color: featData.style?.backcolor }),
@@ -124,19 +165,22 @@ export const getFeaturePoint = (report: CommunityReport, featData: SketchObject,
                     }),
                 }),
                 zIndex: 1,
-            })
-        );
-    } else {
-        feature.setStyle(
-            new Style({
-                image: new Icon({
-                    src: reportImgStatus[report.status].img,
-                    scale: 1,
-                }),
-                zIndex: 1,
-            })
-        );
+            });
+        } else if (nature) {
+            const markerStyle = markersStyles.find((m) => m.name === nature);
+            if (markerStyle) {
+                style = new Style({
+                    image: new Icon({
+                        src: markerStyle.imgSrc,
+                        scale: featData.style?.diam,
+                    }),
+                    zIndex: 1,
+                });
+            }
+        }
     }
+
+    feature.setStyle(style);
 
     return feature;
 };
