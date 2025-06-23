@@ -71,41 +71,65 @@ const ReportForm: React.FC<Props> = ({ selectedReport, handleSubmit, handleDelet
         }
     }, [selectedReport]);
 
-    if (!community) return;
+    const validateThemeAttributes = useCallback(
+        (attributes: PostThemeReport) => {
+            const communityTheme = community?.themes.find((t) => t.theme === selectedTheme?.theme);
+            const errors: string[] = [];
+            Object.keys(attributes).forEach((key) => {
+                const item = communityTheme?.attributes.find((attr) => attr.name === key);
+                const itemValue = attributes[key];
+                if (item?.mandatory && !itemValue) {
+                    errors.push(item.name);
+                }
+            });
+            if (errors.length) {
+                setErrorTheme(() => "Merci de remplir tous les champs obligatoire");
+            } else {
+                setErrorTheme(() => "");
+            }
+            return !errors.length;
+        },
+        [community, selectedTheme]
+    );
 
-    const validateTheme = async () => {
+    const validateTheme = useCallback(() => {
         if (!selectedTheme) {
-            setErrorTheme("Vous devez obligatoirement choisir un thème et ses attributs pour envoyer un signalement");
-            return;
+            setErrorTheme(() => "Vous devez obligatoirement choisir un thème et ses attributs pour envoyer un signalement");
+            return false;
         } else {
-            setErrorTheme("");
+            return validateThemeAttributes(themeAttributes);
         }
-    };
+    }, [selectedTheme, themeAttributes, validateThemeAttributes]);
 
-    const validateFiles = (files: File[]) => {
+    const validateFiles = useCallback((files: File[]) => {
+        const errors = [];
         if (files.length) {
             files.forEach((file: File) => {
                 if (!allowedTypes.includes(file.type)) {
                     setErrorFiles((errorFiles) => [...errorFiles, { file, message: `Formats supportés : JPG, PNG, PDF` }]);
+                    errors.push(file.name);
                     return;
                 }
 
                 if (file.size > maxSizeBytes) {
                     setErrorFiles((errorFiles) => [...errorFiles, { file, message: `Taille maximale : ${maxSizeMB} Mo.` }]);
+                    errors.push(file.name);
                     return;
                 }
             });
-        } else {
+        }
+
+        if (!errors.length) {
             setErrorFiles([]);
         }
-    };
+        return !errors.length;
+    }, []);
 
     const onSubmit = async () => {
-        if (!community || !features?.length) return;
+        if (!community || !features?.length || !selectedTheme) return;
         handleToolClick(reportTools.find((tool) => tool.name === clickedTool.name));
-        await validateTheme();
-        await validateFiles(filesUploaded);
-        if (!selectedTheme || errorTheme || errorFiles.length) {
+
+        if (!validateTheme() || !validateFiles(filesUploaded)) {
             return;
         }
         try {
@@ -137,7 +161,7 @@ const ReportForm: React.FC<Props> = ({ selectedReport, handleSubmit, handleDelet
         setFilesUploaded([]);
         setExpendedDescription(false);
         setExpendedDocument(false);
-        setErrorTheme("");
+        setErrorTheme(() => "");
         setErrorFiles([]);
         setLoading(false);
         setFeatures([]);
@@ -166,8 +190,11 @@ const ReportForm: React.FC<Props> = ({ selectedReport, handleSubmit, handleDelet
     };
 
     const onChangeThemeAttributes = (attributes: PostThemeReport) => {
+        validateThemeAttributes(attributes);
         setThemeAttributes(attributes);
     };
+
+    if (!community) return;
 
     return (
         <>
@@ -194,13 +221,13 @@ const ReportForm: React.FC<Props> = ({ selectedReport, handleSubmit, handleDelet
                                     setSelectedTheme(theme);
                                     setThemeAttributes(getThemeAttributes(theme));
 
-                                    setErrorTheme("");
+                                    setErrorTheme(() => "");
                                 },
                                 required: true,
                             },
                         };
                     })}
-                    state={selectedTheme ? "success" : errorTheme ? "error" : "default"}
+                    state={errorTheme ? "error" : selectedTheme ? "success" : "default"}
                     stateRelatedMessage={errorTheme ?? ""}
                     orientation="horizontal"
                     small
@@ -311,7 +338,9 @@ const ReportForm: React.FC<Props> = ({ selectedReport, handleSubmit, handleDelet
                         <Button priority="secondary" onClick={onClose}>
                             Annuler
                         </Button>
-                        <Button onClick={onSubmit}>Modifier</Button>
+                        <Button onClick={onSubmit} disabled={!!errorTheme || !!errorFiles.length}>
+                            Modifier
+                        </Button>
                     </div>
                 )}
             </div>

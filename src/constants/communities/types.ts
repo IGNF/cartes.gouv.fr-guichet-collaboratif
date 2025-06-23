@@ -40,6 +40,7 @@ export interface CommunityLayer {
 }
 
 export interface ThemeItem {
+    mandatory: boolean;
     default: string;
     help: string;
     name: string;

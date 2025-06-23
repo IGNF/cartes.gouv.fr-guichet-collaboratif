@@ -36,10 +36,11 @@ const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeTheme
                                 key={item.type + index}
                                 textArea
                                 hintText={item.help}
-                                label={item.name}
-                                state="default"
-                                stateRelatedMessage=""
+                                label={item.name + (item.mandatory ? " *" : "")}
+                                state={item.mandatory && !themeAttributes[item.name] ? "error" : "default"}
+                                stateRelatedMessage={item.mandatory && !themeAttributes[item.name] ? "Ce champ est obligatoire." : ""}
                                 nativeTextAreaProps={{
+                                    required: !!item.mandatory,
                                     defaultValue: themeAttributes ? (themeAttributes[item.name] ?? "") : item.default,
                                     onChange: (e) => {
                                         handleChange(item.name, e.target.value);
@@ -53,10 +54,11 @@ const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeTheme
                             <Input
                                 key={item.type + index}
                                 hintText={item.help}
-                                label={item.name}
-                                state="default"
-                                stateRelatedMessage=""
+                                label={item.name + (item.mandatory ? " *" : "")}
+                                state={item.mandatory && !themeAttributes[item.name] ? "error" : "default"}
+                                stateRelatedMessage={item.mandatory && !themeAttributes[item.name] ? "Ce champ est obligatoire." : ""}
                                 nativeInputProps={{
+                                    required: !!item.mandatory,
                                     inputMode: "numeric",
                                     pattern: "[0-9]*",
                                     type: "number",
@@ -93,8 +95,9 @@ const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeTheme
                             <Select
                                 key={item.type + index}
                                 hint={item.help}
-                                label={item.name}
+                                label={item.name + (item.mandatory ? " *" : "")}
                                 nativeSelectProps={{
+                                    required: !!item.mandatory,
                                     onChange: (e) => {
                                         handleChange(item.name, e.target.value);
                                     },
@@ -119,10 +122,11 @@ const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeTheme
                             <Input
                                 key={item.type + index}
                                 hintText={item.help}
-                                label={item.name}
-                                state="default"
-                                stateRelatedMessage=""
+                                label={item.name + (item.mandatory ? " *" : "")}
+                                state={item.mandatory && !themeAttributes[item.name] ? "error" : "default"}
+                                stateRelatedMessage={item.mandatory && !themeAttributes[item.name] ? "Ce champ est obligatoire." : ""}
                                 nativeInputProps={{
+                                    required: !!item.mandatory,
                                     type: "date",
                                     defaultValue: themeAttributes ? themeAttributes[item.name] : item.default,
                                     onChange: (e) => {
@@ -137,10 +141,11 @@ const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeTheme
                             <Input
                                 key={item.type + index}
                                 hintText={item.help}
-                                label={item.name}
-                                state="default"
-                                stateRelatedMessage=""
+                                label={item.name + (item.mandatory ? " *" : "")}
+                                state={item.mandatory && !themeAttributes[item.name] ? "error" : "default"}
+                                stateRelatedMessage={item.mandatory && !themeAttributes[item.name] ? "Ce champ est obligatoire." : ""}
                                 nativeInputProps={{
+                                    required: !!item.mandatory,
                                     inputMode: "numeric",
                                     pattern: "[0-9]*",
                                     type: "number",
