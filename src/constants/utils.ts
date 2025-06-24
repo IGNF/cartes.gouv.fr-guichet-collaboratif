@@ -56,25 +56,21 @@ export const reportImgStatus = {
     test: { img: imgTest, text: "En mode test" },
 };
 
+type LonLatCoordinate = Coordinate | Coordinate[] | Coordinate[][] | Coordinate[][][];
+
+export const getLonLatFormCoordinates = (coordinates: LonLatCoordinate): LonLatCoordinate => {
+    if (Array.isArray(coordinates[0])) {
+        return (coordinates as LonLatCoordinate).map((ring) => getLonLatFormCoordinates(ring as LonLatCoordinate)) as LonLatCoordinate;
+    } else {
+        return fromLonLat(coordinates as Coordinate);
+    }
+};
+
 export const getLonLatFromPoint = (point: string | undefined) => {
     if (!point) return [];
     const wktGeometry = wktFormat.readGeometry(point) as GeometryFeatueParams;
-    const coordinates = wktGeometry?.getCoordinates() as Coordinate;
-    return fromLonLat(coordinates);
-};
-
-export const getLonLatFromLine = (sketchObject: SketchObject) => {
-    if (!sketchObject) return [];
-    const wktGeometry = wktFormat.readGeometry(sketchObject.geometry) as GeometryFeatueParams;
-    const coordinates = wktGeometry?.getCoordinates() as Coordinate[];
-    return coordinates?.map((line) => fromLonLat(line));
-};
-
-export const getLonLatFromPolygon = (sketchObject: SketchObject) => {
-    if (!sketchObject) return [];
-    const wktGeometry = wktFormat.readGeometry(sketchObject.geometry) as GeometryFeatueParams;
-    const coordinates = wktGeometry?.getCoordinates() as Coordinate[][];
-    return coordinates?.map((ring) => ring?.map((coord) => fromLonLat(coord)));
+    const coordinates = wktGeometry?.getCoordinates() as LonLatCoordinate;
+    return getLonLatFormCoordinates(coordinates);
 };
 
 export const refreshReportLayer = (map: Map | null) => {
@@ -135,7 +131,7 @@ export const getFeatureDiam = (feature: Feature) => {
 };
 
 export const getFeaturePoint = (report: CommunityReport, featData: SketchObject, main: boolean = false) => {
-    const lonLat = getLonLatFromPoint(featData.geometry);
+    const lonLat = getLonLatFromPoint(featData.geometry) as Coordinate;
     const feature = new Feature({
         geometry: new Point(lonLat),
         reportData: report,
@@ -147,7 +143,7 @@ export const getFeaturePoint = (report: CommunityReport, featData: SketchObject,
             src: reportImgStatus[report.status].img,
             scale: 1,
         }),
-        zIndex: 1,
+        zIndex: 2,
     });
 
     if (featData.attributes) {
@@ -186,7 +182,8 @@ export const getFeaturePoint = (report: CommunityReport, featData: SketchObject,
 };
 
 export const getFeaturePolygon = (report: CommunityReport, featData: SketchObject) => {
-    const lonLat = getLonLatFromPolygon(featData);
+    let lonLat = getLonLatFromPoint(featData.geometry);
+    lonLat = (featData.geometry.includes("MULTIPOLYGON") ? lonLat[0] : lonLat) as Coordinate[][] | number[];
     const feature = new Feature({
         geometry: new Polygon(lonLat),
         reportData: report,
@@ -207,7 +204,7 @@ export const getFeaturePolygon = (report: CommunityReport, featData: SketchObjec
 };
 
 export const getFeatureLine = (report: CommunityReport, featData: SketchObject) => {
-    const lonLat = getLonLatFromLine(featData);
+    const lonLat = getLonLatFromPoint(featData.geometry) as Coordinate;
     const feature = new Feature({
         geometry: new LineString(lonLat),
         reportData: report,

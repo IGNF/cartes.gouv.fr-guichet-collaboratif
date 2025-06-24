@@ -1,19 +1,18 @@
 import DrawerComponent from "@/components/DrawerComponent";
-import { CommunityReport, ParamsReport, toolNames } from "@/constants/reports/types";
-import { useCommunityStore, useMapStore } from "@/store";
+import { ParamsReport, toolNames } from "@/constants/reports/types";
+import { useMapStore, useReportStore } from "@/store";
 import { Feature, MapBrowserEvent } from "ol";
 import { Style } from "ol/style";
 import { useCallback, useEffect, useState } from "react";
-import ShowReport from "./ShowReport";
 import CreateReport from "./CreateReport";
 import Layer from "ol/layer/Layer";
 import VectorSource from "ol/source/Vector";
+import ShowReport from "./ShowReport";
 
 const ReportDrawer = () => {
     const [drawerOpened, setDrawerOpened] = useState<boolean>(false);
-    const [selectedReport, setSelectedReport] = useState<CommunityReport | undefined>(undefined);
 
-    const { reports } = useCommunityStore();
+    const { reports, selectedReport, setEditReport, setSelectedReport, setSelectedFeatures } = useReportStore();
     const { map } = useMapStore();
 
     const handleSingleClick = useCallback(
@@ -47,7 +46,7 @@ const ReportDrawer = () => {
                 }
             }
         },
-        [map, drawerOpened]
+        [map, drawerOpened, setSelectedReport]
     );
 
     const handlePointerMove = useCallback(
@@ -80,13 +79,13 @@ const ReportDrawer = () => {
         map?.on("singleclick", handleSingleClick);
         map?.on("pointermove", handlePointerMove);
         if (selectedReport) {
-            setSelectedReport(reports.find((r) => r.id === selectedReport.id));
+            setSelectedReport(reports.find((r) => r.id === selectedReport.id) ?? null);
         }
         return () => {
             map?.un("singleclick", handleSingleClick);
             map?.un("pointermove", handlePointerMove);
         };
-    }, [map, reports, selectedReport, drawerOpened, handleSingleClick, handlePointerMove]);
+    }, [map, reports, selectedReport, drawerOpened, handleSingleClick, handlePointerMove, setSelectedReport]);
 
     const handleDrawingAdd = useCallback(
         (e: Event) => {
@@ -141,21 +140,26 @@ const ReportDrawer = () => {
                 const newFeatures = drawingSource?.getFeatures()?.filter((f) => f.get("new")) || [];
                 drawingSource.removeFeatures(newFeatures);
             }
+        } else {
+            const reportLayer = map?.getAllLayers().find((layer) => layer.get("title") === "Signalements");
+            const reportSource = reportLayer?.getSource() as VectorSource;
+            const reportFeatures = reportSource.getFeatures().filter((f) => f.get("reportData").id === selectedReport.id);
+            reportSource.removeFeatures(reportFeatures?.filter((f) => !f.get("main")));
         }
-        setSelectedReport(undefined);
+        setSelectedReport(null);
         setDrawerOpened(false);
+        setEditReport(false);
+        setSelectedFeatures([]);
     };
 
     return (
         <DrawerComponent anchor="left" isOpen={drawerOpened} create={!selectedReport} onClose={handleCloseDrawer}>
             {drawerOpened ? (
-                <>
-                    {selectedReport ? (
-                        <ShowReport selectedReport={selectedReport} handleCloseDrawer={handleCloseDrawer} />
-                    ) : (
-                        <CreateReport handleCloseDrawer={handleCloseDrawer} />
-                    )}
-                </>
+                selectedReport ? (
+                    <ShowReport handleCloseDrawer={handleCloseDrawer} />
+                ) : (
+                    <CreateReport handleCloseDrawer={handleCloseDrawer} />
+                )
             ) : (
                 <></>
             )}

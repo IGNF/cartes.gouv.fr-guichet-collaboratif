@@ -1,22 +1,22 @@
 import LoaderComponent from "@/components/LoaderComponent";
 import { CommunityTheme } from "@/constants/communities/types";
-import { ClickedTool, CommunityReport, ErrorFile, PostThemeReport, ReportTool } from "@/constants/reports/types";
-import { useCommunityStore } from "@/store";
+import { ClickedTool, ErrorFile, PostThemeReport, ReportTool } from "@/constants/reports/types";
+import { useCommunityStore, useReportStore } from "@/store";
 import Accordion from "@codegouvfr/react-dsfr/Accordion";
 import Button from "@codegouvfr/react-dsfr/Button";
 import Input from "@codegouvfr/react-dsfr/Input";
 import RadioButtons from "@codegouvfr/react-dsfr/RadioButtons";
 import { Upload } from "@codegouvfr/react-dsfr/Upload";
 import { ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
-import ReportAttachments from "./ReportAttachments";
 import ThemeForm from "./ThemeForm";
 import { getThemeAttributes } from "@/constants/utils";
 import DrawingForm from "./DrawingForm";
 import { Feature } from "ol";
-import CenterFeature from "./CenterFeature";
+import CenterFeature from "../CenterFeature";
 import { reportTools } from "@/constants/reports/utils";
 import { createModal } from "@codegouvfr/react-dsfr/Modal";
 import ConfirmCancelModal from "./ConfirmCancelModal";
+import AttachmentList from "./AttachmentList";
 
 const confirmModal = createModal({
     id: "confirm-modal",
@@ -28,18 +28,16 @@ const maxSizeMB = 3;
 const maxSizeBytes = maxSizeMB * 1024 * 1024;
 
 interface Props {
-    selectedReport?: CommunityReport;
     handleSubmit: (theme: CommunityTheme, themeAttributes: PostThemeReport, description: string, files: File[], features: Feature[]) => Promise<void>;
     handleDelete?: () => void;
     handleClose?: () => void;
 }
 
-const ReportForm: React.FC<Props> = ({ selectedReport, handleSubmit, handleDelete, handleClose }) => {
+const ReportForm: React.FC<Props> = ({ handleSubmit, handleDelete, handleClose }) => {
     const [selectedTheme, setSelectedTheme] = useState<CommunityTheme | null>(null);
     const [themeAttributes, setThemeAttributes] = useState<PostThemeReport>({});
-    const [description, setDescription] = useState<string>(selectedReport?.comment ?? "");
+    const [description, setDescription] = useState<string>("");
     const [filesUploaded, setFilesUploaded] = useState<File[]>([]);
-    const [features, setFeatures] = useState<Feature[]>([]);
     const [clickedTool, setClickedTool] = useState<ClickedTool>({ name: "", clicked: false });
 
     const [expendedDrawing, setExpendedDrawing] = useState<boolean>(false);
@@ -55,6 +53,7 @@ const ReportForm: React.FC<Props> = ({ selectedReport, handleSubmit, handleDelet
     const [loading, setLoading] = useState<boolean>(false);
 
     const { community } = useCommunityStore();
+    const { selectedReport, selectedFeatures, setSelectedFeatures } = useReportStore();
 
     const handleToolClick = useCallback((tool: ReportTool | undefined) => {
         if (!tool) return;
@@ -71,6 +70,7 @@ const ReportForm: React.FC<Props> = ({ selectedReport, handleSubmit, handleDelet
         if (selectedReport) {
             setSelectedTheme(selectedReport?.themes[0]);
             setThemeAttributes(getThemeAttributes(selectedReport?.themes[0]));
+            setDescription(selectedReport.comment ?? "");
         }
     }, [selectedReport]);
 
@@ -147,10 +147,10 @@ const ReportForm: React.FC<Props> = ({ selectedReport, handleSubmit, handleDelet
         if (!validateTheme() || !validateFiles(filesUploaded)) {
             return;
         }
-        if (!community || !features?.length || !selectedTheme) return;
+        if (!community || !selectedTheme) return;
         try {
             setLoading(true);
-            await handleSubmit(selectedTheme, themeAttributes, description, filesUploaded, features);
+            await handleSubmit(selectedTheme, themeAttributes, description, filesUploaded, selectedFeatures);
             onClose();
         } catch (error) {
             setLoading(false);
@@ -180,7 +180,7 @@ const ReportForm: React.FC<Props> = ({ selectedReport, handleSubmit, handleDelet
         setErrorTheme(() => "");
         setErrorFiles([]);
         setLoading(false);
-        setFeatures([]);
+        setSelectedFeatures([]);
 
         if (handleClose) handleClose();
     };
@@ -216,16 +216,14 @@ const ReportForm: React.FC<Props> = ({ selectedReport, handleSubmit, handleDelet
         <>
             <div className="report-drawer">
                 {loading && <LoaderComponent />}
-                <h1 className="fr-mt-4v fr-mb-1v fr-text--md">
-                    {selectedReport ? `Modification du signalement ${selectedReport.id}` : "Soumettre un signalement"}
-                </h1>
+                <h1 className="fr-mt-4v fr-mb-1v fr-text--md">{selectedReport ? `Signalement ${selectedReport.id}` : "Soumettre un signalement"}</h1>
                 {!selectedReport && (
-                    <p className={`fr-text--sm fr-mb-1v ${features && !features.length ? "fr-message--error" : ""}`}>
+                    <p className={`fr-text--sm fr-mb-1v ${selectedFeatures && !selectedFeatures.length ? "fr-message--error" : ""}`}>
                         Si vous ne l’avez pas encore fait, localisez sur la carte l’endroit où effectuer un signalement, ou dessinez un croquis explicatif à cet
                         endroit.
                     </p>
                 )}
-                <p className="fr-text--xs ">Seule la rubrique “Choisir un thème” est obligatoire.</p>
+
                 <RadioButtons
                     ref={themeRef}
                     legend="Choisir un thème *:"
@@ -260,13 +258,7 @@ const ReportForm: React.FC<Props> = ({ selectedReport, handleSubmit, handleDelet
                     }}
                     expanded={expendedDrawing}
                 >
-                    <DrawingForm
-                        features={features}
-                        selectedReport={selectedReport}
-                        clickedTool={clickedTool}
-                        setFeatures={setFeatures}
-                        handleToolClick={handleToolClick}
-                    />
+                    <DrawingForm clickedTool={clickedTool} handleToolClick={handleToolClick} />
                 </Accordion>
                 <Accordion
                     label="Décrire le signalement"
@@ -314,11 +306,11 @@ const ReportForm: React.FC<Props> = ({ selectedReport, handleSubmit, handleDelet
                                 onChange: (e) => onUploadChange(e),
                             }}
                         />
-                        <ReportAttachments selectedReport={selectedReport} newFiles={filesUploaded} errorFiles={errorFiles} removeFile={removeFile} />
+                        <AttachmentList newFiles={filesUploaded} errorFiles={errorFiles} removeFile={removeFile} />
                     </div>
                 </Accordion>
                 <div className="note">
-                    <p>Pour soumettre un signalement hors guichet, accédez au portail cartographique de l’IGN :</p>
+                    <p>Si votre signalement ne concerne pas les thèmes ou données de ce guichet :</p>
                     <a href="http://" target="_blank" rel="noopener noreferrer">
                         Signalement hors guichet
                     </a>
@@ -341,13 +333,11 @@ const ReportForm: React.FC<Props> = ({ selectedReport, handleSubmit, handleDelet
                         <Button priority="secondary" onClick={onClose}>
                             Annuler
                         </Button>
-                        <Button onClick={onSubmit} disabled={!!errorTheme || !!errorFiles.length}>
-                            Modifier
-                        </Button>
+                        <Button onClick={onSubmit}>Enregistrer</Button>
                     </div>
                 )}
             </div>
-            <CenterFeature features={features} />
+            <CenterFeature />
             <ConfirmCancelModal modal={confirmModal} onClose={onClose} />
         </>
     );

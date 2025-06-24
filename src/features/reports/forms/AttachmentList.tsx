@@ -1,23 +1,21 @@
-import { CommunityReport, ErrorFile, ReportAttachment } from "@/constants/reports/types";
-import fileUploadIcon from "../../icons/file-upload-icon.jpg";
+import { ErrorFile, ReportAttachment } from "@/constants/reports/types";
+import fileUploadIcon from "../../../icons/file-upload-icon.jpg";
 import Button from "@codegouvfr/react-dsfr/Button";
 import { deleteCommunityReportAttachment } from "@/api/attachmentData";
-import { useCommunityStore, useMapStore } from "@/store";
+import { useCommunityStore, useReportStore } from "@/store";
 import { StatusMessage } from "@/constants/communities/types";
 import { Fragment, useMemo, useState } from "react";
-import { refreshReportLayer } from "@/constants/utils";
 import LoaderComponent from "@/components/LoaderComponent";
 
 interface Props {
-    selectedReport: CommunityReport | undefined;
-    newFiles: File[] | null;
-    errorFiles: ErrorFile[];
-    removeFile: (file: File) => void;
+    newFiles?: File[] | null;
+    errorFiles?: ErrorFile[];
+    removeFile?: (file: File) => void;
 }
 
-const ReportAttachments: React.FC<Props> = ({ selectedReport, newFiles, errorFiles, removeFile }) => {
-    const { reports, addAlertMessage } = useCommunityStore();
-    const { map } = useMapStore();
+const AttachmentList: React.FC<Props> = ({ newFiles, errorFiles, removeFile }) => {
+    const { addAlertMessage } = useCommunityStore();
+    const { reports, selectedReport, setReports, isShowReport } = useReportStore();
 
     const [loading, setLoading] = useState(false);
 
@@ -33,13 +31,16 @@ const ReportAttachments: React.FC<Props> = ({ selectedReport, newFiles, errorFil
             setLoading(false);
             return;
         }
+        report.attachments = report.attachments.filter((doc) => doc.id !== attachment.id);
         addAlertMessage(StatusMessage.success, `Suppression du document ${attachment.name} avec succès`);
-        refreshReportLayer(map);
+        setReports([...reports.filter((r) => r.id !== report.id), report], true);
         setLoading(false);
     };
+
     return (
         <div className="report-attachments">
             {loading && <LoaderComponent />}
+            {isShowReport() && !report?.attachments.length && <p>Aucun document associé</p>}
             {report &&
                 report.attachments.map((attachment) => (
                     <div key={`attachment_${attachment.id}`}>
@@ -47,17 +48,19 @@ const ReportAttachments: React.FC<Props> = ({ selectedReport, newFiles, errorFil
                         <a href={attachment.url} target="_blank">
                             {attachment.name}
                         </a>
-                        <Button
-                            iconId="ri-delete-bin-2-fill"
-                            title={`Supprimer ${attachment.name}`}
-                            priority="tertiary"
-                            onClick={() => deleteAttachment(attachment)}
-                        ></Button>
+                        {!isShowReport() && (
+                            <Button
+                                iconId="ri-delete-bin-2-fill"
+                                title={`Supprimer ${attachment.name}`}
+                                priority="tertiary"
+                                onClick={() => deleteAttachment(attachment)}
+                            ></Button>
+                        )}
                     </div>
                 ))}
             {newFiles &&
                 newFiles.map((file, index) => {
-                    const errorFile = errorFiles.find((error) => error.file === file);
+                    const errorFile = errorFiles?.find((error) => error.file === file);
                     return (
                         <Fragment key={`file_${index}`}>
                             <div>
@@ -65,7 +68,14 @@ const ReportAttachments: React.FC<Props> = ({ selectedReport, newFiles, errorFil
                                 <a href={URL.createObjectURL(file)} target="_blank">
                                     {file.name}
                                 </a>
-                                <Button iconId="ri-delete-bin-2-fill" title={`Supprimer ${file.name}`} priority="tertiary" onClick={() => removeFile(file)} />
+                                {removeFile && (
+                                    <Button
+                                        iconId="ri-delete-bin-2-fill"
+                                        title={`Supprimer ${file.name}`}
+                                        priority="tertiary"
+                                        onClick={() => removeFile(file)}
+                                    />
+                                )}
                             </div>
                             {errorFile && <p className="fr-error-text">{errorFile.message}</p>}
                         </Fragment>
@@ -75,4 +85,4 @@ const ReportAttachments: React.FC<Props> = ({ selectedReport, newFiles, errorFil
     );
 };
 
-export default ReportAttachments;
+export default AttachmentList;

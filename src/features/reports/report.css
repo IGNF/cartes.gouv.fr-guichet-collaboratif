@@ -50,12 +50,11 @@
 
 .report-drawer {
     max-width: 500px;
-    padding: 10px 12px 36px 150px;
+    padding: 10px 12px 36px 140px;
 }
 
 .report-drawer .note {
     margin-top: 24px;
-    margin-bottom: 24px;
 }
 
 .report-drawer .submit {
@@ -74,6 +73,12 @@
 .report-drawer .buttons {
     display: flex;
     gap: 16px;
+    margin-top: 24px;
+}
+
+.report-drawer .buttons button {
+    width: 100%;
+    justify-content: center;
 }
 
 .report-attachments div {

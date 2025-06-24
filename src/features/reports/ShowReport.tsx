@@ -1,101 +1,75 @@
-import { deleteCommunityReportAPI, updateCommunityReport } from "@/api/reportsData";
-import { CommunityTheme, StatusMessage } from "@/constants/communities/types";
-import { CommunityReport, PostReport, PostThemeReport } from "@/constants/reports/types";
-import { useCommunityStore, useMapStore } from "@/store";
-import FormReport from "./ReportForm";
-import { deleteCommunityReportAllAttachments, postCommunityReportAttachments } from "@/api/attachmentData";
-import { clearDrawingLayer, getFeatureGeometryWKT } from "@/constants/utils";
-import { Feature } from "ol";
-import VectorSource from "ol/source/Vector";
-import { getReportAllFeatures, getReportSketch } from "@/constants/reports/utils";
+import Accordion from "@codegouvfr/react-dsfr/Accordion";
+import Button from "@codegouvfr/react-dsfr/Button";
+import AttachmentList from "./forms/AttachmentList";
+import ThemeForm from "./forms/ThemeForm";
+import RadioButtons from "@codegouvfr/react-dsfr/RadioButtons";
+import { useCommunityStore, useReportStore } from "@/store";
+import { getThemeAttributes } from "@/constants/utils";
+import SketchList from "./forms/SketchList";
+import EditReport from "./EditReport";
 
 interface Props {
-    selectedReport: CommunityReport | undefined;
     handleCloseDrawer: () => void;
 }
 
-const ShowReport: React.FC<Props> = ({ selectedReport, handleCloseDrawer }) => {
-    const { community, reports, setCommunityReports, addAlertMessage } = useCommunityStore();
+const ShowReport: React.FC<Props> = ({ handleCloseDrawer }) => {
+    const { selectedReport, editReport, setEditReport } = useReportStore();
+    const { community } = useCommunityStore();
 
-    const { map } = useMapStore();
+    if (!community || !selectedReport) return;
+    if (editReport) return <EditReport handleCloseDrawer={handleCloseDrawer} />;
 
-    if (!community || !map || !selectedReport) return null;
+    const selectedTheme = selectedReport.themes[0];
+    const themeAttributes = getThemeAttributes(selectedTheme);
+    const description = selectedReport.comment || "";
+    const reportTheme = community.themes.find((theme) => theme.theme === selectedTheme.theme);
 
-    const handleDeleteReport = async () => {
-        try {
-            const attachmentsDeleted = await deleteCommunityReportAllAttachments(selectedReport);
-            if (!attachmentsDeleted) {
-                addAlertMessage(StatusMessage.error, `Erreur dans la suppression des documents du signalement !`);
-                return;
-            }
+    return (
+        <div className="report-drawer">
+            <h1 className="fr-mt-4v fr-mb-1v fr-text--md">Signalement {selectedReport.id}</h1>
 
-            const reportDeleted = await deleteCommunityReportAPI(selectedReport);
-            if (!reportDeleted) {
-                addAlertMessage(StatusMessage.error, "Erreur dans la suppression du signalement !");
-                return;
-            }
-            addAlertMessage(StatusMessage.success, `Le signalement ${selectedReport.id} est supprimé avec succès.`);
-            const reportLayer = map?.getAllLayers().find((layer) => layer.get("title") === "Signalements");
-            const reportSource = reportLayer?.getSource() as VectorSource;
-            const reportFeatures = getReportAllFeatures(selectedReport);
-            reportSource.removeFeatures(reportFeatures);
-            setCommunityReports([...reports.filter((report) => report.id !== selectedReport.id)], true);
-            handleCloseDrawer();
-            clearDrawingLayer(map);
-        } catch {
-            addAlertMessage(StatusMessage.error, `Erreur dans la suppression des documents du signalement !`);
-            throw new Error();
-        }
-    };
+            <RadioButtons
+                legend="Thème :"
+                options={[
+                    {
+                        label: reportTheme?.theme,
+                        nativeInputProps: {
+                            checked: true,
+                        },
+                    },
+                ]}
+                state="default"
+                stateRelatedMessage=""
+                orientation="vertical"
+                small
+                disabled={true}
+                className="theme-radio fr-mt-4v fr-mb-1v fr-text--md"
+            />
 
-    const handleUpdateReport = async (
-        selectedTheme: CommunityTheme,
-        themeAttributes: PostThemeReport,
-        description: string,
-        filesUploaded: File[],
-        features: Feature[]
-    ) => {
-        const mainFeature = features.find((f) => f.get("reportData") && f.get("main"));
-        if (!mainFeature) return;
-        const newReport: PostReport = {
-            community: community?.id,
-            geometry: getFeatureGeometryWKT(mainFeature),
-            comment: description,
-            attributes: { community: community?.id, theme: selectedTheme.theme, attributes: themeAttributes },
-        };
+            {selectedTheme && <ThemeForm theme={selectedTheme} themeAttributes={themeAttributes} />}
 
-        if (features.length > 1) {
-            newReport.sketch = getReportSketch(features, map, true);
-        }
+            <Accordion label="Liste des croquis :" defaultExpanded={true}>
+                <SketchList />
+            </Accordion>
+            <Accordion label="Description :" defaultExpanded={true}>
+                <p>{description || "Aucune description associée"}</p>
+            </Accordion>
 
-        try {
-            const reportUpdated = await updateCommunityReport(newReport, selectedReport.id);
+            <Accordion label="Liste des documents :" defaultExpanded={true}>
+                <div
+                    style={{
+                        width: "100%",
+                    }}
+                >
+                    <AttachmentList />
+                </div>
+            </Accordion>
 
-            if (!reportUpdated) {
-                addAlertMessage(StatusMessage.error, "Erreur dans la mise à jour du signalement");
-                return;
-            }
-
-            if (filesUploaded.length) {
-                const attachmentsUploaded = await postCommunityReportAttachments({ ...reportUpdated, id: selectedReport.id }, filesUploaded);
-
-                if (!attachmentsUploaded || !attachmentsUploaded.length) {
-                    addAlertMessage(StatusMessage.error, "Erreur dans le chargement de document");
-                } else {
-                    addAlertMessage(StatusMessage.success, "Chargement du document avec succès.");
-                }
-            }
-            addAlertMessage(StatusMessage.success, `Le signalement ${selectedReport.id} a été mis à jour avec succès.`);
-
-            setCommunityReports([...reports.filter((report) => report.id !== selectedReport.id), reportUpdated], true);
-            clearDrawingLayer(map);
-        } catch {
-            addAlertMessage(StatusMessage.error, "Erreur dans la mise à jour du signalement");
-            throw new Error();
-        }
-    };
-
-    return <FormReport selectedReport={selectedReport} handleClose={handleCloseDrawer} handleDelete={handleDeleteReport} handleSubmit={handleUpdateReport} />;
+            <div className="buttons">
+                <Button onClick={() => setEditReport(true)}>Modifier</Button>
+            </div>
+        </div>
+    );
 };
 
 export default ShowReport;

@@ -1,11 +1,11 @@
-import { useCommunityStore, useMapStore } from "@/store";
+import { useCommunityStore, useMapStore, useReportStore } from "@/store";
 
 import "./report.css";
 import { CommunityTheme, StatusMessage } from "@/constants/communities/types";
 import { postCommunityReport } from "@/api/reportsData";
 import { CommunityReport, PostReport, PostThemeReport } from "@/constants/reports/types";
 import { clearDrawingLayer, getFeatureGeometryWKT } from "@/constants/utils";
-import ReportForm from "./ReportForm";
+import ReportForm from "./forms/ReportForm";
 import { postCommunityReportAttachments } from "@/api/attachmentData";
 import { Feature } from "ol";
 import { getReportSketch } from "@/constants/reports/utils";
@@ -16,7 +16,8 @@ interface Props {
 }
 
 const CreateReport: React.FC<Props> = ({ handleCloseDrawer }) => {
-    const { community, reports, setCommunityReports, addAlertMessage } = useCommunityStore();
+    const { community, addAlertMessage } = useCommunityStore();
+    const { reports, setReports } = useReportStore();
     const { map } = useMapStore();
 
     const [currentReport, setCurrentReport] = useState<CommunityReport | null>(null);
@@ -51,11 +52,13 @@ const CreateReport: React.FC<Props> = ({ handleCloseDrawer }) => {
         }
 
         if (filesUpload.length) {
-            const documentUploaded = await postCommunityReportAttachments({ ...reportCreated, id: reportCreated.id }, filesUpload);
-            if (!documentUploaded) {
+            const attachmentsUploaded = await postCommunityReportAttachments({ ...reportCreated, id: reportCreated.id }, filesUpload);
+
+            if (!attachmentsUploaded) {
                 addAlertMessage(StatusMessage.error, "Erreur dans le chargement de document");
                 throw Error;
             } else {
+                reportCreated.attachments = attachmentsUploaded;
                 addAlertMessage(StatusMessage.success, "Chargement du document avec succès.");
                 setCurrentReport(null);
             }
@@ -63,7 +66,7 @@ const CreateReport: React.FC<Props> = ({ handleCloseDrawer }) => {
 
         addAlertMessage(StatusMessage.success, "Votre signalement a été envoyé avec succès.");
 
-        setCommunityReports([...reports, reportCreated]);
+        setReports([...reports, reportCreated]);
         clearDrawingLayer(map);
         handleCloseDrawer();
     };
