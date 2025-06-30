@@ -6,11 +6,13 @@ import useGetCapabilitiesWMTS from "@/hooks/navigation/capabilities/useGetCapabi
 import { useCommunityStore } from "@/store/useCommunityStore";
 import { transformExtent } from "ol/proj";
 import { CommunityGeoservice, StatusMessage } from "@/constants/communities/types";
+import { useMapStore } from "@/store";
 
 function useGetWMTSLayer(geoservice: CommunityGeoservice) {
     const { data: capabilities, error } = useGetCapabilitiesWMTS(geoservice);
 
     const { addAlertMessage } = useCommunityStore();
+    const { map } = useMapStore();
     useEffect(() => {
         if (error) {
             addAlertMessage(StatusMessage.error, `Erreur dans le chargement de la couche ${geoservice.title}`);
@@ -43,10 +45,19 @@ function useGetWMTSLayer(geoservice: CommunityGeoservice) {
         wmtsLayer.set("description", geoservice.description);
         wmtsLayer.setMinZoom(geoservice.minZoom);
         wmtsLayer.setMaxZoom(geoservice.maxZoom);
+
+        if (map) {
+            const mapView = map.getView();
+            const minResolution = mapView?.getResolutionForZoom(geoservice.maxZoom);
+            const maxResolution = mapView?.getResolutionForZoom(geoservice.minZoom);
+            wmtsLayer.setMinResolution(minResolution);
+            wmtsLayer.setMaxResolution(maxResolution);
+        }
+
         const extent = geoservice.extent.split(",")?.map((extent) => parseFloat(extent));
         wmtsLayer.setExtent(transformExtent(extent, "EPSG:4326", "EPSG:3857"));
         return wmtsLayer;
-    }, [capabilities, geoservice]);
+    }, [capabilities, geoservice, map]);
 
     return wmtsLayer;
 }

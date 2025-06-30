@@ -49,21 +49,15 @@ function useGetReportsLayer(communityId: number) {
     }, [communityId, queryClient, addAlertMessage, setReports]);
 
     useEffect(() => {
-        reports.forEach((report: CommunityReport) => {
-            const mainFeature = reportLayer
-                ?.getSource()
-                ?.getFeatures()
-                ?.find((f) => f.get("reportData").id === report.id && f.get("main"));
-            if (mainFeature) {
-                reportLayer?.getSource()?.removeFeature(mainFeature);
-            }
+        const features = reports.map((report: CommunityReport) => {
             const mainFeatData = {
                 type: "Point" as SketchType,
                 geometry: report.geometry,
             };
-            const feature = getFeaturePoint(report, mainFeatData, true);
-            reportLayer?.getSource()?.addFeature(feature);
+            return getFeaturePoint(report, mainFeatData, true);
         });
+        reportLayer?.getSource()?.clear();
+        reportLayer?.getSource()?.addFeatures(features.flat());
     }, [map, reports, reportLayer]);
 
     return reportLayer;
