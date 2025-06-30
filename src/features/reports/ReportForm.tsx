@@ -7,7 +7,7 @@ import Button from "@codegouvfr/react-dsfr/Button";
 import Input from "@codegouvfr/react-dsfr/Input";
 import RadioButtons from "@codegouvfr/react-dsfr/RadioButtons";
 import { Upload } from "@codegouvfr/react-dsfr/Upload";
-import { ChangeEvent, useCallback, useEffect, useState } from "react";
+import { ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
 import ReportAttachments from "./ReportAttachments";
 import ThemeForm from "./ThemeForm";
 import { getThemeAttributes } from "@/constants/utils";
@@ -49,6 +49,9 @@ const ReportForm: React.FC<Props> = ({ selectedReport, handleSubmit, handleDelet
     const [errorTheme, setErrorTheme] = useState<string>("");
     const [errorFiles, setErrorFiles] = useState<ErrorFile[]>([]);
 
+    const themeRef = useRef<HTMLFieldSetElement>(null);
+    const filesRef = useRef<HTMLDivElement>(null);
+
     const [loading, setLoading] = useState<boolean>(false);
 
     const { community } = useCommunityStore();
@@ -71,43 +74,80 @@ const ReportForm: React.FC<Props> = ({ selectedReport, handleSubmit, handleDelet
         }
     }, [selectedReport]);
 
-    if (!community) return;
+    const validateThemeAttributes = useCallback(
+        (attributes: PostThemeReport) => {
+            const communityTheme = community?.themes.find((t) => t.theme === selectedTheme?.theme);
+            const errors: string[] = [];
+            Object.keys(attributes).forEach((key) => {
+                const item = communityTheme?.attributes.find((attr) => attr.name === key);
+                const itemValue = attributes[key];
+                if (item?.mandatory && !itemValue) {
+                    errors.push(item.name);
+                }
+            });
+            if (errors.length) {
+                setErrorTheme(() => "Merci de remplir tous les champs obligatoire");
+                themeRef?.current?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                });
+            } else {
+                setErrorTheme(() => "");
+            }
+            return !errors.length;
+        },
+        [community, selectedTheme]
+    );
 
-    const validateTheme = async () => {
+    const validateTheme = useCallback(() => {
         if (!selectedTheme) {
-            setErrorTheme("Vous devez obligatoirement choisir un thème et ses attributs pour envoyer un signalement");
-            return;
+            setErrorTheme(() => "Vous devez obligatoirement choisir un thème et ses attributs pour envoyer un signalement");
+            themeRef?.current?.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+            });
+            return false;
         } else {
-            setErrorTheme("");
+            return validateThemeAttributes(themeAttributes);
         }
-    };
+    }, [selectedTheme, themeAttributes, validateThemeAttributes]);
 
-    const validateFiles = (files: File[]) => {
+    const validateFiles = useCallback((files: File[]) => {
+        const errors = [];
         if (files.length) {
             files.forEach((file: File) => {
                 if (!allowedTypes.includes(file.type)) {
                     setErrorFiles((errorFiles) => [...errorFiles, { file, message: `Formats supportés : JPG, PNG, PDF` }]);
+                    errors.push(file.name);
                     return;
                 }
 
                 if (file.size > maxSizeBytes) {
                     setErrorFiles((errorFiles) => [...errorFiles, { file, message: `Taille maximale : ${maxSizeMB} Mo.` }]);
+                    errors.push(file.name);
                     return;
                 }
             });
-        } else {
-            setErrorFiles([]);
         }
-    };
+
+        if (!errors.length) {
+            setErrorFiles([]);
+        } else {
+            filesRef?.current?.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+            });
+        }
+        return !errors.length;
+    }, []);
 
     const onSubmit = async () => {
-        if (!community || !features?.length) return;
         handleToolClick(reportTools.find((tool) => tool.name === clickedTool.name));
-        await validateTheme();
-        await validateFiles(filesUploaded);
-        if (!selectedTheme || errorTheme || errorFiles.length) {
+
+        if (!validateTheme() || !validateFiles(filesUploaded)) {
             return;
         }
+        if (!community || !features?.length || !selectedTheme) return;
         try {
             setLoading(true);
             await handleSubmit(selectedTheme, themeAttributes, description, filesUploaded, features);
@@ -137,7 +177,7 @@ const ReportForm: React.FC<Props> = ({ selectedReport, handleSubmit, handleDelet
         setFilesUploaded([]);
         setExpendedDescription(false);
         setExpendedDocument(false);
-        setErrorTheme("");
+        setErrorTheme(() => "");
         setErrorFiles([]);
         setLoading(false);
         setFeatures([]);
@@ -166,8 +206,11 @@ const ReportForm: React.FC<Props> = ({ selectedReport, handleSubmit, handleDelet
     };
 
     const onChangeThemeAttributes = (attributes: PostThemeReport) => {
+        validateThemeAttributes(attributes);
         setThemeAttributes(attributes);
     };
+
+    if (!community) return;
 
     return (
         <>
@@ -184,6 +227,7 @@ const ReportForm: React.FC<Props> = ({ selectedReport, handleSubmit, handleDelet
                 )}
                 <p className="fr-text--xs ">Seule la rubrique “Choisir un thème” est obligatoire.</p>
                 <RadioButtons
+                    ref={themeRef}
                     legend="Choisir un thème *:"
                     options={community.themes.map((theme) => {
                         return {
@@ -194,13 +238,13 @@ const ReportForm: React.FC<Props> = ({ selectedReport, handleSubmit, handleDelet
                                     setSelectedTheme(theme);
                                     setThemeAttributes(getThemeAttributes(theme));
 
-                                    setErrorTheme("");
+                                    setErrorTheme(() => "");
                                 },
                                 required: true,
                             },
                         };
                     })}
-                    state={selectedTheme ? "success" : errorTheme ? "error" : "default"}
+                    state={errorTheme ? "error" : selectedTheme ? "success" : "default"}
                     stateRelatedMessage={errorTheme ?? ""}
                     orientation="horizontal"
                     small
@@ -212,12 +256,7 @@ const ReportForm: React.FC<Props> = ({ selectedReport, handleSubmit, handleDelet
                 <Accordion
                     label="Dessiner un croquis"
                     onExpandedChange={() => {
-                        if (selectedTheme) {
-                            setExpendedDrawing(!expendedDrawing);
-                        } else {
-                            validateTheme();
-                            setExpendedDrawing(false);
-                        }
+                        setExpendedDrawing(!expendedDrawing);
                     }}
                     expanded={expendedDrawing}
                 >
@@ -232,12 +271,7 @@ const ReportForm: React.FC<Props> = ({ selectedReport, handleSubmit, handleDelet
                 <Accordion
                     label="Décrire le signalement"
                     onExpandedChange={() => {
-                        if (selectedTheme) {
-                            setExpendedDescription(!expendedDescription);
-                        } else {
-                            validateTheme();
-                            setExpendedDescription(false);
-                        }
+                        setExpendedDescription(!expendedDescription);
                     }}
                     expanded={expendedDescription}
                 >
@@ -257,12 +291,7 @@ const ReportForm: React.FC<Props> = ({ selectedReport, handleSubmit, handleDelet
                 <Accordion
                     label="Joindre des documents"
                     onExpandedChange={() => {
-                        if (selectedTheme) {
-                            setExpendedDocument(!expendedDocument);
-                        } else {
-                            validateTheme();
-                            setExpendedDocument(false);
-                        }
+                        setExpendedDocument(!expendedDocument);
                     }}
                     expanded={expendedDocument}
                 >
@@ -272,6 +301,7 @@ const ReportForm: React.FC<Props> = ({ selectedReport, handleSubmit, handleDelet
                         }}
                     >
                         <Upload
+                            ref={filesRef}
                             label="Aidez nous à comprendre votre signalement. Ajouter par exemple des photos ou autres documents pour préciser votre message."
                             hint={`Taille maximale : ${maxSizeMB} Mo. Formats supportés : JPG, PNG, PDF`}
                             state={errorFiles.length ? "error" : filesUploaded.length ? "success" : "default"}
@@ -311,7 +341,9 @@ const ReportForm: React.FC<Props> = ({ selectedReport, handleSubmit, handleDelet
                         <Button priority="secondary" onClick={onClose}>
                             Annuler
                         </Button>
-                        <Button onClick={onSubmit}>Modifier</Button>
+                        <Button onClick={onSubmit} disabled={!!errorTheme || !!errorFiles.length}>
+                            Modifier
+                        </Button>
                     </div>
                 )}
             </div>

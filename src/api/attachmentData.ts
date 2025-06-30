@@ -16,7 +16,7 @@ export async function postCommunityReportAttachments(report: CommunityReport, fi
     if (!res.data || res.status !== 200) return null;
 
     const newAttachments: attachmentData[] = res.data;
-    if (!newAttachments) return null;
+    if (!Array.isArray(newAttachments)) return null;
     return newAttachments.map((attachment) => {
         return {
             id: attachment.id,

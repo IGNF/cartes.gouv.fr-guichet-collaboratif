@@ -9,6 +9,7 @@ import ReportForm from "./ReportForm";
 import { postCommunityReportAttachments } from "@/api/attachmentData";
 import { Feature } from "ol";
 import { getReportSketch } from "@/constants/reports/utils";
+import { useState } from "react";
 
 interface Props {
     handleCloseDrawer: () => void;
@@ -17,6 +18,8 @@ interface Props {
 const CreateReport: React.FC<Props> = ({ handleCloseDrawer }) => {
     const { community, reports, setCommunityReports, addAlertMessage } = useCommunityStore();
     const { map } = useMapStore();
+
+    const [currentReport, setCurrentReport] = useState<CommunityReport | null>(null);
 
     if (!community || !map) return;
 
@@ -39,18 +42,22 @@ const CreateReport: React.FC<Props> = ({ handleCloseDrawer }) => {
         if (features.length > 1) {
             newReport.sketch = getReportSketch(features, map);
         }
-        const reportCreated: CommunityReport | null = await postCommunityReport(newReport);
+        const reportCreated: CommunityReport | null = currentReport ?? (await postCommunityReport(newReport));
         if (!reportCreated) {
             addAlertMessage(StatusMessage.error, "Erreur dans la création du signalement");
-            return;
+            throw Error;
+        } else {
+            setCurrentReport(reportCreated);
         }
+
         if (filesUpload.length) {
             const documentUploaded = await postCommunityReportAttachments({ ...reportCreated, id: reportCreated.id }, filesUpload);
-
             if (!documentUploaded) {
                 addAlertMessage(StatusMessage.error, "Erreur dans le chargement de document");
+                throw Error;
             } else {
                 addAlertMessage(StatusMessage.success, "Chargement du document avec succès.");
+                setCurrentReport(null);
             }
         }
 
