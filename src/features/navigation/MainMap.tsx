@@ -50,7 +50,7 @@ export default function MainMap() {
 
         const mapView = new View({
             projection: localStorageData?.projection || olDefaults.projection,
-            center: localStorageData?.center || getLonLatFromPoint(community?.position),
+            center: localStorageData?.center || (getLonLatFromPoint(community?.position) as number[]),
             zoom: localStorageData?.zoom || community?.zoom,
         });
 

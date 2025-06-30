@@ -1,5 +1,4 @@
 import { AlertMessageType, Community, CommunityGeoservice, CommunityLayer, MapLayer, StatusMessage } from "@/constants/communities/types";
-import { CommunityReport } from "@/constants/reports/types";
 import { ReactNode } from "react";
 import { create } from "zustand";
 
@@ -10,7 +9,6 @@ interface CommunityStore {
     communityLayers: CommunityLayer[] | null;
     mapLayers: MapLayer[];
     geoservices: CommunityGeoservice[];
-    reports: CommunityReport[];
     alertMessages: AlertMessageType[];
     isLoadingCommunity: boolean;
     setCommunity: (community: Community | null) => void;
@@ -21,7 +19,6 @@ interface CommunityStore {
     addMapLayer: (layer: MapLayer) => void;
     setMapLayers: (layers: MapLayer[]) => void;
     addGeoservice: (geoservice: CommunityGeoservice) => void;
-    setCommunityReports: (reports: CommunityReport[], shouldReset?: boolean) => void;
 }
 
 export const useCommunityStore = create<CommunityStore>((set, get) => ({
@@ -30,7 +27,6 @@ export const useCommunityStore = create<CommunityStore>((set, get) => ({
     alertMessages: [],
     mapLayers: [],
     geoservices: [],
-    reports: [],
     isLoadingCommunity: false,
     setCommunity: (community) => {
         set(() => {
@@ -86,23 +82,5 @@ export const useCommunityStore = create<CommunityStore>((set, get) => ({
                 geoservices: [...state.geoservices, geoservice],
             };
         });
-    },
-    setCommunityReports: (reports, shouldReset = false) => {
-        if (shouldReset) {
-            set(() => {
-                return {
-                    reports,
-                };
-            });
-        } else {
-            const oldReports = get().reports;
-            const newReports = reports.filter((item) => !oldReports.find((r) => r.id === item.id));
-            const allReports = [...oldReports, ...newReports];
-            set(() => {
-                return {
-                    reports: allReports,
-                };
-            });
-        }
     },
 }));

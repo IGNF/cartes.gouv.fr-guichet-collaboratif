@@ -11,10 +11,11 @@ import { StatusMessage } from "@/constants/communities/types";
 import { bbox } from "ol/loadingstrategy";
 import { useQueryClient } from "@tanstack/react-query";
 import { transformExtent } from "ol/proj";
-import { useMapStore } from "@/store";
+import { useMapStore, useReportStore } from "@/store";
 
 function useGetReportsLayer(communityId: number) {
-    const { reports, addAlertMessage, setCommunityReports } = useCommunityStore();
+    const { addAlertMessage } = useCommunityStore();
+    const { reports, setReports } = useReportStore();
     const { map } = useMapStore();
     const queryClient = useQueryClient();
 
@@ -32,7 +33,7 @@ function useGetReportsLayer(communityId: number) {
                         addAlertMessage(StatusMessage.error, `Erreur dans le chargement de la couche Signalements`);
                         return null;
                     }
-                    setCommunityReports(reports);
+                    setReports(reports);
                 } catch (error) {
                     addAlertMessage(StatusMessage.error, `Erreur dans le chargement de la couche Signalements`, 5000);
                     console.error(error);
@@ -45,18 +46,24 @@ function useGetReportsLayer(communityId: number) {
         });
 
         return reportLayer;
-    }, [communityId, queryClient, addAlertMessage, setCommunityReports]);
+    }, [communityId, queryClient, addAlertMessage, setReports]);
 
     useEffect(() => {
-        const features = reports.map((report: CommunityReport) => {
+        reports.forEach((report: CommunityReport) => {
+            const mainFeature = reportLayer
+                ?.getSource()
+                ?.getFeatures()
+                ?.find((f) => f.get("reportData").id === report.id && f.get("main"));
+            if (mainFeature) {
+                reportLayer?.getSource()?.removeFeature(mainFeature);
+            }
             const mainFeatData = {
                 type: "Point" as SketchType,
                 geometry: report.geometry,
             };
-            return getFeaturePoint(report, mainFeatData, true);
+            const feature = getFeaturePoint(report, mainFeatData, true);
+            reportLayer?.getSource()?.addFeature(feature);
         });
-        reportLayer?.getSource()?.clear();
-        reportLayer?.getSource()?.addFeatures(features.flat());
     }, [map, reports, reportLayer]);
 
     return reportLayer;

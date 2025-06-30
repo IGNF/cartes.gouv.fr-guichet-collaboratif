@@ -1,14 +1,9 @@
 import { StatusMessage } from "@/constants/communities/types";
 import { GeometryFeatueParams } from "@/constants/reports/types";
 import useDebounce from "@/hooks/useDebounce";
-import { useCommunityStore, useMapStore } from "@/store";
-import { Feature } from "ol";
+import { useCommunityStore, useMapStore, useReportStore } from "@/store";
 import { getCenter, intersects } from "ol/extent";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-
-interface Props {
-    features: Feature[] | null;
-}
 
 const CenterMessage: React.FC<{ onClick: () => void }> = ({ onClick }) => {
     return (
@@ -20,14 +15,15 @@ const CenterMessage: React.FC<{ onClick: () => void }> = ({ onClick }) => {
         </p>
     );
 };
-const CenterFeature: React.FC<Props> = ({ features }) => {
+const CenterFeature = () => {
     const { alertMessages, addAlertMessage, removeAlertMessage } = useCommunityStore();
     const { map } = useMapStore();
+    const { selectedFeatures } = useReportStore();
 
     const [center, setCenter] = useState<number[]>([]);
     const debounced = useDebounce(center, 500);
 
-    const mainPointFeature = useMemo(() => features?.find((f) => f.getGeometry()?.getType() === "Point"), [features]);
+    const mainPointFeature = useMemo(() => selectedFeatures?.find((f) => f.getGeometry()?.getType() === "Point"), [selectedFeatures]);
 
     const handleCenterToFeature = useCallback(() => {
         const geometry: GeometryFeatueParams = mainPointFeature?.getGeometry() as GeometryFeatueParams;
