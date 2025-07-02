@@ -7,12 +7,13 @@ import logoIgn from "@/img/partners-logos/logo-ign.png";
 import logoMinistereTransformation from "@/img/partners-logos/logo-ministere-transformation.jpg";
 import logoMinistereEcologie from "@/img/partners-logos/logo-ministere-ecologie.jpg";
 import logoCnig from "@/img/partners-logos/logo-rf-cnig.jpg";
-import { useCommunityStore } from "@/store";
+import { useCommunityStore, useUserStore } from "@/store";
 
 const AppFooter: React.FC = () => {
+    const { user } = useUserStore();
     const { community } = useCommunityStore();
 
-    if (community) return null;
+    if (community && user) return null;
 
     return (
         <>

@@ -1,7 +1,7 @@
-import { AlertMessageType } from "@/constants/communities/types";
+import { AlertMessageType, StatusMessage } from "@/constants/communities/types";
 import { useCommunityStore } from "@/store";
 import Alert from "@codegouvfr/react-dsfr/Alert";
-import { memo, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 
 interface AlertMessageProps {
     message: AlertMessageType;
@@ -10,30 +10,42 @@ interface AlertMessageProps {
 const AlertMessage: React.FC<AlertMessageProps> = memo(({ message, index }) => {
     const { removeAlertMessage } = useCommunityStore();
     const [fadeOut, setFadeOut] = useState(false);
-    useEffect(() => {
-        const removeDuration = 3000;
-        const fadeDuration = 200;
-        const fadeTimer = setTimeout(() => {
+    const [isClosed, setIsClosed] = useState(false);
+
+    const onClose = useCallback(
+        (messageId: number) => {
+            const removeDuration = 200;
             setFadeOut(true);
-        }, removeDuration - fadeDuration);
-        const removeTimer = setTimeout(() => {
-            removeAlertMessage(message.id);
-        }, removeDuration);
-        return () => {
-            clearTimeout(fadeTimer);
-            clearTimeout(removeTimer);
-        };
-    }, [message, removeAlertMessage]);
+            setTimeout(() => {
+                setIsClosed(true);
+                removeAlertMessage(messageId);
+            }, removeDuration);
+        },
+        [removeAlertMessage]
+    );
+
+    useEffect(() => {
+        if (message?.status === StatusMessage.success || message?.duration) {
+            const removeDuration = message?.duration ?? 3000;
+            const removeTimer = setTimeout(() => {
+                onClose(message.id);
+            }, removeDuration);
+            return () => {
+                clearTimeout(removeTimer);
+            };
+        }
+    }, [message, onClose]);
 
     return (
         <Alert
             className={`alert-message ${fadeOut ? "fadeout" : ""}`}
             severity={message?.status || "info"}
-            description={`${message?.text}`}
+            description={message?.text}
             small={true}
             closable
-            onClose={() => removeAlertMessage(message.id)}
+            onClose={() => onClose(message.id)}
             style={{ marginBottom: index * 50 }}
+            isClosed={isClosed}
         />
     );
 });

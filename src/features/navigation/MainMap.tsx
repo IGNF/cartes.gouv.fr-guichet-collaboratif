@@ -8,7 +8,6 @@ import olDefaults from "@/api/ol-defaults.json";
 import "ol/ol.css";
 import "geopf-extensions-openlayers/css/Dsfr.css";
 import "./map-view.css";
-
 import getMapControls from "./controls";
 import { useCommunityStore, useLocalStorageStore, useMapStore } from "@/store";
 import LayerSwitcher from "geopf-extensions-openlayers/src/packages/Controls/LayerSwitcher/LayerSwitcher";
@@ -16,12 +15,13 @@ import layerSwitcherControl from "./controls/layerSwitcherControl";
 import useGpConfig from "@/hooks/navigation/useGpConfig";
 import GetAllLayers from "./layers";
 import { MapLayer, MapLayerSource } from "@/constants/communities/types";
-import ShowReportModal from "../reports/ShowReportModal";
 import { getLonLatFromPoint } from "@/constants/utils";
 import SaveButtonHandler from "./SaveButtonHandler";
 import TileLayer from "ol/layer/Tile";
 import TileWMS from "ol/source/TileWMS";
 import { GetFeatureInfosHandler } from "./GetFeatureInfosHandler";
+import getMapControls from "./controls";
+import ReportDrawer from "../reports/ReportDrawer";
 
 export default function MainMap() {
     const mapTargetRef = useRef<HTMLDivElement>(null);
@@ -45,6 +45,8 @@ export default function MainMap() {
         });
     }, []);
 
+    const { data: cfg } = useGpConfig();
+
     useEffect(() => {
         if (cfg && typeof cfg.call === "function") cfg.call();
     }, [cfg]);
@@ -54,7 +56,7 @@ export default function MainMap() {
 
         const mapView = new View({
             projection: localStorageData?.projection || olDefaults.projection,
-            center: localStorageData?.center || getLonLatFromPoint(community?.position),
+            center: localStorageData?.center || (getLonLatFromPoint(community?.position) as number[]),
             zoom: localStorageData?.zoom || community?.zoom,
         });
 
@@ -122,9 +124,11 @@ export default function MainMap() {
                 style={{ height: `calc(100vh - ${mapToolbarHeader?.clientHeight || 0}px)` }}
             ></div>
             <SaveButtonHandler map={mapRef.current} mapSwitcher={switcherRef.current} />
+
             <GetAllLayers />;
             <ShowReportModal map={mapRef.current} />
             <GetFeatureInfosHandler map={mapRef.current} />;
+            <ReportDrawer />
         </div>
     );
 }

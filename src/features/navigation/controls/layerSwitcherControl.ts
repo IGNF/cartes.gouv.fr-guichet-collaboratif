@@ -1,8 +1,8 @@
 import { MapLayer } from "@/constants/communities/types";
 import LayerSwitcher from "geopf-extensions-openlayers/src/packages/Controls/LayerSwitcher/LayerSwitcher";
 
-const layerSwitcherControl = (layers: MapLayer[]) => {
-    return new LayerSwitcher({
+const layerSwitcherControl: typeof LayerSwitcher = (layers: MapLayer[]) => {
+    const switcher = new LayerSwitcher({
         layers: layers.map((layer) => {
             return {
                 layer: layer.source,
@@ -19,6 +19,8 @@ const layerSwitcherControl = (layers: MapLayer[]) => {
             counter: true,
         },
     });
+
+    return switcher;
 };
 
 export default layerSwitcherControl;

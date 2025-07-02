@@ -9,8 +9,8 @@ const AppHeader: React.FC = () => {
     const { user } = useUserStore();
     const { community } = useCommunityStore();
     const { map } = useMapStore();
-
-    if (community && map) return <MapToolbar />;
+  
+    if (community && user && map) return <MapToolbar />;
 
     return (
         <>
@@ -29,17 +29,6 @@ const AppHeader: React.FC = () => {
                 }}
                 serviceTitle="cartes.gouv.fr-guichet-collaboratif"
                 quickAccessItems={[
-                    {
-                        iconId: "ri-save-2-fill",
-                        buttonProps: {
-                            onClick: () => {
-                                const event = new CustomEvent("save-view-button");
-
-                                document.dispatchEvent(event);
-                            },
-                        },
-                        text: "Enregistrer",
-                    },
                     user && {
                         iconId: "fr-icon-account-fill",
                         linkProps: {

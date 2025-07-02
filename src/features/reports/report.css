@@ -1,0 +1,162 @@
+.theme-radio {
+    padding: 4px !important;
+}
+.theme-radio label {
+    padding: 0.125rem 0.5rem !important;
+    border-radius: 0.75rem;
+    cursor: pointer;
+    color: var(--text-action-high-purple-glycine);
+    background-color: var(--background-action-low-purple-glycine);
+    background-image: unset !important;
+    font-size: 0.75rem;
+    transition:
+        background 0.3s,
+        border-color 0.3s;
+}
+
+.theme-radio:focus-within input[type="radio"]:checked + label {
+    outline: 2px solid #0a76f6 !important;
+}
+
+.theme-radio input[type="radio"]:checked + label:after {
+    color: #f767ef;
+    width: 0.75rem;
+    height: 0.75rem;
+    right: 2px;
+    top: 5px;
+    background-color: currentColor;
+    content: " ";
+    display: inline-block;
+    flex: 0 0 auto;
+    margin: -0.5rem;
+    mask-size: 100% 100%;
+    position: absolute;
+    vertical-align: calc(-0.125rem);
+    mask-image: url(../../icons/checkbox-circle-line.svg);
+}
+
+.theme-radio input[type="radio"]:checked + label {
+    background-color: #f767ef !important;
+    color: #fff !important;
+}
+
+.theme-radio .fr-radio-group {
+    margin-right: 10px !important;
+}
+
+.upload-file input {
+    width: 100%;
+}
+
+.report-drawer {
+    max-width: 500px;
+    padding: 10px 12px 36px 140px;
+}
+
+.report-drawer .note {
+    margin-top: 24px;
+}
+
+.report-drawer .submit {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.report-drawer .submit button {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.report-drawer .buttons {
+    display: flex;
+    gap: 16px;
+    margin-top: 24px;
+}
+
+.report-drawer .buttons button {
+    width: 100%;
+    justify-content: center;
+}
+
+.report-attachments div {
+    display: flex;
+    width: 100%;
+    gap: 10px;
+    border-top: 1px solid #d9d9d9;
+    align-items: center;
+    padding: 10px 0 6px;
+}
+
+.report-attachments div:first-child {
+    border-top: 0px;
+}
+
+.report-attachments img {
+    max-width: 32px;
+    border-radius: 100%;
+    border: 1px solid #000;
+    margin-right: 10px;
+    -webkit-box-shadow: 0px 3px 3px 0 rgba(0, 0, 0, 0.2);
+    box-shadow: 0px 3px 3px 0 rgba(0, 0, 0, 0.2);
+}
+
+.report-attachments p {
+    margin: unset !important;
+}
+
+.report-attachments a {
+    width: 100% !important;
+    background: none;
+}
+
+.report-theme-form {
+    border: 1px solid var(--border-default-grey);
+    padding: 15px;
+    margin-bottom: 1.5rem !important;
+}
+
+.custom-button-top-right {
+    position: absolute;
+    right: 16px;
+    top: 50px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.report-tools div {
+    display: flex;
+    gap: 13px;
+}
+
+.report-tools button {
+    padding-left: 11px;
+    padding-right: 11px;
+}
+
+.report-features {
+    display: flex;
+    flex-direction: column;
+    margin-top: 10px;
+    gap: 5px;
+}
+
+.report-features div {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    border: 1px solid var(--border-default-grey);
+    padding: 5px 10px;
+    cursor: pointer;
+}
+.report-features span {
+    width: 100%;
+    margin-left: 10px;
+}
+
+.outOfRange .GPlayerName {
+    color: #aaa;
+}

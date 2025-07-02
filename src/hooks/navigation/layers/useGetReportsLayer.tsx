@@ -1,64 +1,64 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useCommunityStore } from "@/store/useCommunityStore";
 import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
 import { Feature } from "ol";
-import { Geometry, Point } from "ol/geom";
+import { Geometry } from "ol/geom";
 import { getCommunityReports } from "@/api/reportsData";
-import { Style, Fill, Stroke, Text, Icon } from "ol/style";
-import { getLonLatFromPoint, reportImgStatus } from "@/constants/utils";
-import { CommunityReport } from "@/constants/reports/types";
-import { PointString, StatusMessage } from "@/constants/communities/types";
+import { getFeaturePoint } from "@/constants/utils";
+import { CommunityReport, SketchType } from "@/constants/reports/types";
+import { StatusMessage } from "@/constants/communities/types";
 import { bbox } from "ol/loadingstrategy";
+import { useQueryClient } from "@tanstack/react-query";
+import { transformExtent } from "ol/proj";
+import { useMapStore, useReportStore } from "@/store";
 
 function useGetReportsLayer(communityId: number) {
-    const { addAlertMessage, setCommunityReports } = useCommunityStore();
+    const { addAlertMessage } = useCommunityStore();
+    const { reports, setReports } = useReportStore();
+    const { map } = useMapStore();
+    const queryClient = useQueryClient();
 
     const reportLayer = useMemo(() => {
         const reportSource = new VectorSource<Feature<Geometry>>({
             loader: async function (extent) {
-                const reports = await getCommunityReports(communityId, extent);
-
-                if (!reports) {
-                    addAlertMessage(StatusMessage.error, `Erreur dans le chargement de la couche Signalements`);
-                    return null;
-                }
-                setCommunityReports(reports);
-                const features = reports.map((report: CommunityReport) => {
-                    const lonLat = getLonLatFromPoint(report.geometry as PointString);
-                    const feature = new Feature({
-                        geometry: new Point(lonLat),
-                        reportData: report,
+                try {
+                    const queryKey = `GET_REPORTS_communities=${communityId}` + `_limit=20` + `_box=${transformExtent(extent, "EPSG:3857", "EPSG:4326")}`;
+                    const reports = await queryClient.fetchQuery({
+                        queryKey: [queryKey],
+                        queryFn: () => getCommunityReports(communityId, extent),
                     });
 
-                    feature.setStyle(
-                        new Style({
-                            image: new Icon({
-                                src: reportImgStatus[report.status],
-                                scale: 0.5,
-                            }),
-                            text: new Text({
-                                text: report.themes[0].theme,
-                                offsetY: -15,
-                                fill: new Fill({ color: "#000" }),
-                                stroke: new Stroke({ color: "#fff", width: 3 }),
-                            }),
-                        })
-                    );
-                    return feature;
-                });
-                reportSource.addFeatures(features);
+                    if (!reports) {
+                        addAlertMessage(StatusMessage.error, `Erreur dans le chargement de la couche Signalements`);
+                        return null;
+                    }
+                    setReports(reports);
+                } catch (error) {
+                    addAlertMessage(StatusMessage.error, `Erreur dans le chargement de la couche Signalements`, 5000);
+                    console.error(error);
+                }
             },
             strategy: bbox,
         });
         const reportLayer = new VectorLayer<VectorSource<Feature<Geometry>>>({
             source: reportSource,
         });
-        reportLayer.set("title", "Signalements");
 
-        reportLayer.set("description", "");
         return reportLayer;
-    }, [communityId, addAlertMessage, setCommunityReports]);
+    }, [communityId, queryClient, addAlertMessage, setReports]);
+
+    useEffect(() => {
+        const features = reports.map((report: CommunityReport) => {
+            const mainFeatData = {
+                type: "Point" as SketchType,
+                geometry: report.geometry,
+            };
+            return getFeaturePoint(report, mainFeatData, true);
+        });
+        reportLayer?.getSource()?.clear();
+        reportLayer?.getSource()?.addFeatures(features.flat());
+    }, [map, reports, reportLayer]);
 
     return reportLayer;
 }

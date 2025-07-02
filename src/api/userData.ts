@@ -1,13 +1,11 @@
-import axios from "axios";
 import { USER_PROFILE_API_URL } from "@/constants/urls";
 import { useQuery } from "@tanstack/react-query";
 import { useUserStore } from "@/store/useUserStore";
 import { User } from "@/constants/user/types";
+import { axiosApi } from ".";
 
 async function getUserProfile(): Promise<User> {
-    const res = await axios.get(USER_PROFILE_API_URL, {
-        headers: { "X-Requested-With": "XMLHttpRequest" },
-    });
+    const res = await axiosApi.get(USER_PROFILE_API_URL);
     if (res.data.code === 401) {
         return null;
     }

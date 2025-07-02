@@ -1,6 +1,7 @@
 import BaseLayer from "ol/layer/Base";
 import TileLayer from "ol/layer/Tile";
 import VectorLayer from "ol/layer/Vector";
+import { ReactNode } from "react";
 
 export interface LayerGeoservice {
     id: number;
@@ -38,10 +39,19 @@ export interface CommunityLayer {
     role: string;
 }
 
+export interface ThemeItem {
+    mandatory: boolean;
+    default: string;
+    help: string;
+    name: string;
+    type: string;
+    values?: string[];
+}
+
 export type CommunityTheme = {
     theme: string;
     help?: string;
-    attributes: string[];
+    attributes: ThemeItem[];
 };
 
 export type PointString = `POINT(${string})`;
@@ -69,5 +79,6 @@ export const enum StatusMessage {
 export type AlertMessageType = {
     id: number;
     status: StatusMessage;
-    text: string;
+    text: string | NonNullable<ReactNode>;
+    duration?: number | null;
 };
