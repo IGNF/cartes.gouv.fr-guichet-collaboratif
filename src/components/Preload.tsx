@@ -6,8 +6,8 @@ const preloadImgList = [createPointImg, ...otherMarkers.map((marker) => marker.s
 const Preload = () => {
     return (
         <>
-            {preloadImgList.map((imgSrc) => (
-                <img src={imgSrc} property="low" style={{ display: "none" }} />
+            {preloadImgList.map((imgSrc, index) => (
+                <img key={`preload-img-${index}`} src={imgSrc} property="low" style={{ display: "none" }} />
             ))}
         </>
     );

@@ -29,10 +29,34 @@ export const getCommunityReportSketch = (report: reportData) => {
 };
 
 export async function getCommunityReports(communityId: number, extent: Extent): Promise<CommunityReport[] | null> {
-    const res = await axiosApi.get(`${REPORTS_API_URL}?communities=${communityId}` + `&limit=20` + `&box=${transformExtent(extent, "EPSG:3857", "EPSG:4326")}`);
+    const limit = 100;
+    const data = [];
+    const res = await axiosApi.get(
+        `${REPORTS_API_URL}?communities=${communityId}` + `&limit=${limit}` + `&box=${transformExtent(extent, "EPSG:3857", "EPSG:4326")}`
+    );
     if (!res.data || (res.status !== 200 && res.status !== 206)) return null;
 
-    return res.data.map((report: reportData) => {
+    data.push(...res.data);
+    const total = parseInt(res.headers["content-range"]?.split("/")[1]) || limit;
+    const pages = Array.from({ length: Math.ceil(total / limit) - 1 }, (_, i) => i + 2);
+
+    if (pages.length > 0) {
+        const resAll = await Promise.all(
+            pages.map((page) =>
+                axiosApi.get(
+                    `${REPORTS_API_URL}?communities=${communityId}` +
+                        `&limit=${limit}` +
+                        `&page=${page}` +
+                        `&box=${transformExtent(extent, "EPSG:3857", "EPSG:4326")}`
+                )
+            )
+        );
+
+        if (!resAll.length) return null;
+        resAll.forEach((res) => data.push(...res.data));
+    }
+
+    return data.map((report: reportData) => {
         const sketchReport: SketchReport | null = getCommunityReportSketch(report);
         return {
             id: report.id,

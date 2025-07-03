@@ -23,7 +23,7 @@ const CenterFeature = () => {
     const [center, setCenter] = useState<number[]>([]);
     const debounced = useDebounce(center, 500);
 
-    const mainPointFeature = useMemo(() => selectedFeatures?.find((f) => f.getGeometry()?.getType() === "Point"), [selectedFeatures]);
+    const mainPointFeature = useMemo(() => selectedFeatures?.find((f) => f.get("main")), [selectedFeatures]);
 
     const handleCenterToFeature = useCallback(() => {
         const geometry: GeometryFeatueParams = mainPointFeature?.getGeometry() as GeometryFeatueParams;

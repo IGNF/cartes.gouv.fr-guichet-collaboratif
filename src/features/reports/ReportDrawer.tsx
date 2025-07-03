@@ -13,7 +13,7 @@ import { getReportSketchFeatures } from "@/constants/reports/utils";
 const ReportDrawer = () => {
     const [drawerOpened, setDrawerOpened] = useState<boolean>(false);
 
-    const { reports, selectedReport, setEditReport, setSelectedReport, setSelectedFeatures } = useReportStore();
+    const { reports, selectedReport, selectedFeatures, setEditReport, setSelectedReport, setSelectedFeatures } = useReportStore();
     const { map } = useMapStore();
 
     const reportLayer = map?.getAllLayers().find((layer) => layer.get("title") === "Signalements");
@@ -21,23 +21,24 @@ const ReportDrawer = () => {
 
     const handleSingleClick = useCallback(
         (evt: MapBrowserEvent) => {
+            if (selectedFeatures.find((f) => f.get("new"))) return;
             const features: { feature: Feature; zIndex: number }[] = [];
 
             map?.forEachFeatureAtPixel(evt.pixel, function (feature) {
                 const currentFeature = feature as Feature;
                 const currentFeatureStyle = currentFeature.getStyle() as Style;
-                const cuurentZIndex = "getStyle" in currentFeatureStyle ? (currentFeatureStyle?.getZIndex() ?? 1) : 1;
+                const currentZIndex = "getStyle" in currentFeatureStyle ? (currentFeatureStyle?.getZIndex() ?? 1) : 1;
                 if (currentFeature.get("new") && currentFeature.get("main")) {
                     features.push({
                         feature: currentFeature,
-                        zIndex: cuurentZIndex,
+                        zIndex: currentZIndex,
                     });
                     return;
                 }
                 if (currentFeature.get("reportData") && currentFeature.get("main")) {
                     features.push({
                         feature: currentFeature,
-                        zIndex: cuurentZIndex,
+                        zIndex: currentZIndex,
                     });
                     return;
                 }
@@ -58,16 +59,20 @@ const ReportDrawer = () => {
                 }
             }
         },
-        [map, reportSource, selectedReport, setSelectedReport, setSelectedFeatures, setEditReport]
+        [map, reportSource, selectedReport, selectedFeatures, setSelectedReport, setSelectedFeatures, setEditReport]
     );
 
     const handlePointerMove = useCallback(
         (evt: MapBrowserEvent) => {
             const features = map?.getFeaturesAtPixel(evt.pixel);
-            const feature = features?.find((f) => f.get("reportData") || f.get("new"));
+            const feature = features?.find((f) => f.get("reportData") || f.get("new")) as Feature;
 
             const targetElement = map?.getTargetElement();
             if (targetElement) {
+                if (selectedFeatures.length && !selectedFeatures.includes(feature) && selectedFeatures.find((f) => f.get("new"))) {
+                    targetElement.style.cursor = "";
+                    return;
+                }
                 if (feature) {
                     const geomType = feature.getGeometry()?.getType();
                     if (geomType === "Point") {
@@ -84,7 +89,7 @@ const ReportDrawer = () => {
                 return;
             }
         },
-        [map]
+        [map, selectedFeatures]
     );
 
     useEffect(() => {

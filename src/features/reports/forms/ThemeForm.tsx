@@ -44,11 +44,7 @@ const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeTheme
                                 disabled={isShowReport()}
                                 nativeTextAreaProps={{
                                     required: !!item.mandatory,
-                                    defaultValue: themeAttributes
-                                        ? themeAttributes[item.name] && !isShowReport()
-                                            ? themeAttributes[item.name]
-                                            : ""
-                                        : item.default,
+                                    defaultValue: themeAttributes ? themeAttributes[item.name] : item.default,
                                     onChange: (e) => {
                                         handleChange(item.name, e.target.value);
                                     },
@@ -87,7 +83,6 @@ const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeTheme
                                     {
                                         label: item.name,
                                         hintText: isShowReport() ? "" : item.help,
-
                                         nativeInputProps: {
                                             checked: themeAttributes ? themeAttributes[item.name] === "1" : item.default === "1",
                                             onChange: (e) => {
@@ -112,7 +107,7 @@ const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeTheme
                                     onChange: (e) => {
                                         handleChange(item.name, e.target.value);
                                     },
-                                    defaultValue: themeAttributes[item.name] && !isShowReport() ? themeAttributes[item.name] : item.default,
+                                    defaultValue: themeAttributes ? themeAttributes[item.name] : item.default,
                                 }}
                             >
                                 <Fragment>
