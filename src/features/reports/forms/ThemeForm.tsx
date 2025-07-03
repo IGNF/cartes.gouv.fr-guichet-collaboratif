@@ -83,7 +83,6 @@ const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeTheme
                                     {
                                         label: item.name,
                                         hintText: isShowReport() ? "" : item.help,
-
                                         nativeInputProps: {
                                             checked: themeAttributes ? themeAttributes[item.name] === "1" : item.default === "1",
                                             onChange: (e) => {
