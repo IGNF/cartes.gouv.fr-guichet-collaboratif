@@ -37,14 +37,18 @@ const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeTheme
                             <Input
                                 key={item.type + index}
                                 textArea
-                                label={item.name + (item.mandatory ? " *" : "")}
-                                state={item.mandatory && !themeAttributes[item.name] ? "error" : "default"}
-                                stateRelatedMessage={item.mandatory && !themeAttributes[item.name] ? "Ce champ est obligatoire." : ""}
+                                label={item.name + (item.mandatory && !isShowReport() ? " *" : "")}
+                                state={item.mandatory && !themeAttributes[item.name] && !isShowReport() ? "error" : "default"}
+                                stateRelatedMessage={item.mandatory && !themeAttributes[item.name] && !isShowReport() ? "Ce champ est obligatoire." : ""}
                                 hintText={isShowReport() ? "" : item.help}
                                 disabled={isShowReport()}
                                 nativeTextAreaProps={{
                                     required: !!item.mandatory,
-                                    defaultValue: themeAttributes ? (themeAttributes[item.name] ?? "") : item.default,
+                                    defaultValue: themeAttributes
+                                        ? themeAttributes[item.name] && !isShowReport()
+                                            ? themeAttributes[item.name]
+                                            : ""
+                                        : item.default,
                                     onChange: (e) => {
                                         handleChange(item.name, e.target.value);
                                     },
@@ -57,8 +61,8 @@ const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeTheme
                             <Input
                                 key={item.type + index}
                                 label={item.name + (item.mandatory ? " *" : "")}
-                                state={item.mandatory && !themeAttributes[item.name] ? "error" : "default"}
-                                stateRelatedMessage={item.mandatory && !themeAttributes[item.name] ? "Ce champ est obligatoire." : ""}
+                                state={item.mandatory && !themeAttributes[item.name] && !isShowReport() ? "error" : "default"}
+                                stateRelatedMessage={item.mandatory && !themeAttributes[item.name] && !isShowReport() ? "Ce champ est obligatoire." : ""}
                                 hintText={isShowReport() ? "" : item.help}
                                 disabled={isShowReport()}
                                 nativeInputProps={{
@@ -79,16 +83,17 @@ const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeTheme
                         return (
                             <Checkbox
                                 key={item.type + index}
-                                disabled={isShowReport()}
                                 options={[
                                     {
                                         label: item.name,
                                         hintText: isShowReport() ? "" : item.help,
+
                                         nativeInputProps: {
                                             checked: themeAttributes ? themeAttributes[item.name] === "1" : item.default === "1",
                                             onChange: (e) => {
                                                 handleChange(item.name, e.target.checked ? "1" : "0");
                                             },
+                                            disabled: isShowReport(),
                                         },
                                     },
                                 ]}
@@ -107,7 +112,7 @@ const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeTheme
                                     onChange: (e) => {
                                         handleChange(item.name, e.target.value);
                                     },
-                                    defaultValue: themeAttributes[item.name] ?? item.default,
+                                    defaultValue: themeAttributes[item.name] && !isShowReport() ? themeAttributes[item.name] : item.default,
                                 }}
                             >
                                 <Fragment>
@@ -128,8 +133,8 @@ const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeTheme
                             <Input
                                 key={item.type + index}
                                 label={item.name + (item.mandatory ? " *" : "")}
-                                state={item.mandatory && !themeAttributes[item.name] ? "error" : "default"}
-                                stateRelatedMessage={item.mandatory && !themeAttributes[item.name] ? "Ce champ est obligatoire." : ""}
+                                state={item.mandatory && !themeAttributes[item.name] && !isShowReport() ? "error" : "default"}
+                                stateRelatedMessage={item.mandatory && !themeAttributes[item.name] && !isShowReport() ? "Ce champ est obligatoire." : ""}
                                 hintText={isShowReport() ? "" : item.help}
                                 disabled={isShowReport()}
                                 nativeInputProps={{
@@ -148,8 +153,8 @@ const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeTheme
                             <Input
                                 key={item.type + index}
                                 label={item.name + (item.mandatory ? " *" : "")}
-                                state={item.mandatory && !themeAttributes[item.name] ? "error" : "default"}
-                                stateRelatedMessage={item.mandatory && !themeAttributes[item.name] ? "Ce champ est obligatoire." : ""}
+                                state={item.mandatory && !themeAttributes[item.name] && !isShowReport() ? "error" : "default"}
+                                stateRelatedMessage={item.mandatory && !themeAttributes[item.name] && !isShowReport() ? "Ce champ est obligatoire." : ""}
                                 hintText={isShowReport() ? "" : item.help}
                                 disabled={isShowReport()}
                                 nativeInputProps={{

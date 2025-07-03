@@ -53,7 +53,7 @@ const ReportForm: React.FC<Props> = ({ handleSubmit, handleDelete, handleClose }
     const [loading, setLoading] = useState<boolean>(false);
 
     const { community } = useCommunityStore();
-    const { selectedReport, selectedFeatures, setSelectedFeatures } = useReportStore();
+    const { editReport, selectedReport, selectedFeatures, setSelectedFeatures } = useReportStore();
 
     const handleToolClick = useCallback((tool: ReportTool | undefined) => {
         if (!tool) return;
@@ -66,18 +66,13 @@ const ReportForm: React.FC<Props> = ({ handleSubmit, handleDelete, handleClose }
         }
     }, []);
 
-    useEffect(() => {
-        if (selectedReport) {
-            setSelectedTheme(selectedReport?.themes[0]);
-            setThemeAttributes(getThemeAttributes(selectedReport?.themes[0]));
-            setDescription(selectedReport.comment ?? "");
-        }
-    }, [selectedReport]);
-
     const validateThemeAttributes = useCallback(
         (attributes: PostThemeReport) => {
             const communityTheme = community?.themes.find((t) => t.theme === selectedTheme?.theme);
             const errors: string[] = [];
+            if (communityTheme?.attributes.length && !Object.keys(attributes).length) {
+                errors.push("tous les champs");
+            }
             Object.keys(attributes).forEach((key) => {
                 const item = communityTheme?.attributes.find((attr) => attr.name === key);
                 const itemValue = attributes[key];
@@ -141,8 +136,22 @@ const ReportForm: React.FC<Props> = ({ handleSubmit, handleDelete, handleClose }
         return !errors.length;
     }, []);
 
+    useEffect(() => {
+        if (selectedReport) {
+            setSelectedTheme(selectedReport?.themes[0]);
+            setThemeAttributes(getThemeAttributes(selectedReport?.themes[0]));
+            setDescription(selectedReport.comment ?? "");
+        }
+    }, [selectedReport]);
+
+    useEffect(() => {
+        if (editReport) {
+            validateThemeAttributes(themeAttributes);
+        }
+    }, [editReport, themeAttributes, validateThemeAttributes]);
+
     const onSubmit = async () => {
-        handleToolClick(reportTools.find((tool) => tool.name === clickedTool.name));
+        if (clickedTool.clicked) handleToolClick(reportTools.find((tool) => tool.name === clickedTool.name));
 
         if (!validateTheme() || !validateFiles(filesUploaded)) {
             return;
@@ -172,6 +181,7 @@ const ReportForm: React.FC<Props> = ({ handleSubmit, handleDelete, handleClose }
     };
 
     const onClose = () => {
+        if (clickedTool.clicked) handleToolClick(reportTools.find((tool) => tool.name === clickedTool.name));
         setSelectedTheme(null);
         setDescription("");
         setFilesUploaded([]);
@@ -309,19 +319,21 @@ const ReportForm: React.FC<Props> = ({ handleSubmit, handleDelete, handleClose }
                         <AttachmentList newFiles={filesUploaded} errorFiles={errorFiles} removeFile={removeFile} />
                     </div>
                 </Accordion>
-                <div className="note">
-                    <p>Si votre signalement ne concerne pas les thèmes ou données de ce guichet :</p>
-                    <a href="http://" target="_blank" rel="noopener noreferrer">
-                        Signalement hors guichet
-                    </a>
-                </div>
+                {!selectedReport && (
+                    <div className="note">
+                        <p>Si votre signalement ne concerne pas les thèmes ou données de ce guichet :</p>
+                        <a href="http://" target="_blank" rel="noopener noreferrer">
+                            Signalement hors guichet
+                        </a>
+                    </div>
+                )}
 
                 {!selectedReport ? (
                     <div className="submit">
                         <Button size="large" onClick={onSubmit}>
                             Envoyer le signalement
                         </Button>
-                        <Button nativeButtonProps={confirmModal.buttonProps} priority="tertiary no outline" title="Annuler">
+                        <Button nativeButtonProps={confirmModal.buttonProps} priority="tertiary" title="Annuler">
                             Annuler
                         </Button>
                     </div>

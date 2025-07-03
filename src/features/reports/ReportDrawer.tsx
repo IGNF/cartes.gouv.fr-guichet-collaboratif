@@ -8,6 +8,7 @@ import CreateReport from "./CreateReport";
 import Layer from "ol/layer/Layer";
 import VectorSource from "ol/source/Vector";
 import ShowReport from "./ShowReport";
+import { getReportSketchFeatures } from "@/constants/reports/utils";
 
 const ReportDrawer = () => {
     const [drawerOpened, setDrawerOpened] = useState<boolean>(false);
@@ -15,23 +16,25 @@ const ReportDrawer = () => {
     const { reports, selectedReport, setEditReport, setSelectedReport, setSelectedFeatures } = useReportStore();
     const { map } = useMapStore();
 
+    const reportLayer = map?.getAllLayers().find((layer) => layer.get("title") === "Signalements");
+    const reportSource = reportLayer?.getSource() as VectorSource;
+
     const handleSingleClick = useCallback(
-        (evt: MapBrowserEvent<PointerEvent>) => {
-            if (drawerOpened) return;
+        (evt: MapBrowserEvent) => {
             const features: { feature: Feature; zIndex: number }[] = [];
 
             map?.forEachFeatureAtPixel(evt.pixel, function (feature) {
                 const currentFeature = feature as Feature;
                 const currentFeatureStyle = currentFeature.getStyle() as Style;
                 const cuurentZIndex = "getStyle" in currentFeatureStyle ? (currentFeatureStyle?.getZIndex() ?? 1) : 1;
-                if (currentFeature.get("new")) {
+                if (currentFeature.get("new") && currentFeature.get("main")) {
                     features.push({
                         feature: currentFeature,
                         zIndex: cuurentZIndex,
                     });
                     return;
                 }
-                if (currentFeature.get("reportData")) {
+                if (currentFeature.get("reportData") && currentFeature.get("main")) {
                     features.push({
                         feature: currentFeature,
                         zIndex: cuurentZIndex,
@@ -41,16 +44,25 @@ const ReportDrawer = () => {
             });
             const topFeature = features[0];
             if (topFeature) {
-                if (topFeature.feature.get("reportData")) {
-                    setSelectedReport(topFeature.feature.get("reportData"));
+                if (selectedReport) {
+                    const reportFeatures = reportSource.getFeatures().filter((f) => f.get("reportData").id === selectedReport.id);
+                    reportSource.removeFeatures(reportFeatures?.filter((f) => !f.get("main")));
+                }
+                const report = topFeature.feature.get("reportData");
+                if (report) {
+                    const selectedReportFeatures = getReportSketchFeatures(report);
+                    reportSource?.addFeatures(selectedReportFeatures);
+                    setSelectedFeatures(reportSource?.getFeatures().filter((f) => f.get("reportData").id === report.id) || []);
+                    setEditReport(false);
+                    setSelectedReport(report);
                 }
             }
         },
-        [map, drawerOpened, setSelectedReport]
+        [map, reportSource, selectedReport, setSelectedReport, setSelectedFeatures, setEditReport]
     );
 
     const handlePointerMove = useCallback(
-        (evt: MapBrowserEvent<PointerEvent>) => {
+        (evt: MapBrowserEvent) => {
             const features = map?.getFeaturesAtPixel(evt.pixel);
             const feature = features?.find((f) => f.get("reportData") || f.get("new"));
 
@@ -107,21 +119,8 @@ const ReportDrawer = () => {
     useEffect(() => {
         if (!drawerOpened) {
             document.addEventListener("create-report-event", handleDrawingAdd);
-            const createReportButton = document.querySelector(`button[id*="GPshowDrawingPicto"]`) as HTMLButtonElement | null;
-
-            if (createReportButton) {
-                if (!drawerOpened) {
-                    if (createReportButton.getAttribute("aria-pressed") === "true") {
-                        createReportButton.click();
-                    }
-                }
-
-                if (selectedReport && !drawerOpened) {
-                    setDrawerOpened(true);
-                    if (createReportButton.getAttribute("aria-pressed") === "false") {
-                        createReportButton.click();
-                    }
-                }
+            if (selectedReport && !drawerOpened) {
+                setDrawerOpened(true);
             }
         } else {
             document.removeEventListener("create-report-event", handleDrawingAdd);
@@ -154,15 +153,15 @@ const ReportDrawer = () => {
 
     return (
         <DrawerComponent anchor="left" isOpen={drawerOpened} create={!selectedReport} onClose={handleCloseDrawer}>
-            {drawerOpened ? (
-                selectedReport ? (
-                    <ShowReport handleCloseDrawer={handleCloseDrawer} />
-                ) : (
-                    <CreateReport handleCloseDrawer={handleCloseDrawer} />
-                )
-            ) : (
-                <></>
-            )}
+            <>
+                {drawerOpened ? (
+                    selectedReport ? (
+                        <ShowReport handleCloseDrawer={handleCloseDrawer} />
+                    ) : (
+                        <CreateReport handleCloseDrawer={handleCloseDrawer} />
+                    )
+                ) : null}
+            </>
         </DrawerComponent>
     );
 };

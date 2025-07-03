@@ -9,6 +9,7 @@ import { deflate, inflate } from "pako";
 import NotFound from "./pages/NotFound";
 import Carte from "./pages/Carte";
 import { HOME_URL } from "./constants/urls";
+import Preload from "./components/Preload";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,7 @@ export default function App() {
     return (
         <PersistQueryClientProvider client={queryClient} persistOptions={{ persister }}>
             <BrowserRouter>
+                <Preload />
                 <ReactQueryDevtools initialIsOpen={false} />
 
                 <AppLayout>
