@@ -111,6 +111,10 @@ const ReportDrawer = () => {
             if (customEvent.detail.geomType === "Point" && !drawerOpened) {
                 customEvent.detail.feature.set("main", true);
                 const toolButton = document.querySelector(`button[id*="${toolNames.point}"]`) as HTMLButtonElement | null;
+                const creatButton = document.querySelector(`button[id^="GPshowDrawingPicto-"]`) as HTMLButtonElement | null;
+                if (creatButton && creatButton.classList.contains("active")) {
+                    creatButton.classList.remove("active");
+                }
 
                 if (toolButton && toolButton.classList.contains("drawing-tool-active")) {
                     toolButton.click();

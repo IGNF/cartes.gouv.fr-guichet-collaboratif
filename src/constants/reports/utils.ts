@@ -14,11 +14,11 @@ import { getFeatureDiam, getFeatureGeometryWKT, getFeatureLine, getFeaturePoint,
 import ImageStyle from "ol/style/Image";
 
 export const reportTools: ReportTool[] = [
-    { type: "create", name: toolNames.point, imgSrc: CreatePointImg, order: 0, title: "Créer un signalement", featureType: "Point" },
+    { type: "create", name: toolNames.point, imgSrc: CreatePointImg, order: 0, title: "Créer un marqueur", featureType: "Point" },
     { type: "create", name: toolNames.line, imgSrc: CreateLineImg, order: 1, title: "Dessiner des lignes", featureType: "LineString" },
     { type: "create", name: toolNames.polygon, imgSrc: CreatePolygonImg, order: 2, title: "Dessiner des polygones", featureType: "Polygon" },
     { type: "create", name: toolNames.text, imgSrc: CreateLabelImg, order: 3, title: "Ecrire sur la carte", featureType: "Write" },
-    { type: "edit", name: toolNames.edit, imgSrc: EditGeomImg, order: 0, title: "Editer les georèmes" },
+    { type: "edit", name: toolNames.edit, imgSrc: EditGeomImg, order: 0, title: "Modifier la géométrie ou déplacer le texte" },
     { type: "edit", name: toolNames.display, imgSrc: EditStyleImg, order: 1, title: "Editer le style" },
     { type: "edit", name: toolNames.tooltip, imgSrc: EditTextImg, order: 2, title: "Editer le texte" },
     { type: "edit", name: toolNames.remove, imgSrc: DeleteImg, order: 3, title: "Supprimer des objets" },

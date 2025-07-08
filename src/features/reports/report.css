@@ -165,3 +165,9 @@
 .active {
     background-color: var(--hover-tint) !important;
 }
+
+button[id^="GPshowDrawingPicto-"]::after {
+    mask: url("geopf-extensions-openlayers/src/packages/CSS/Controls/Drawing/img/dsfr/create-point.svg");
+    mask-repeat: no-repeat;
+    mask-position: center;
+}
