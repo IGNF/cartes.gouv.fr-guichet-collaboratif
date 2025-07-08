@@ -145,7 +145,7 @@
     gap: 5px;
 }
 
-.report-features div {
+.report-features > div {
     display: flex;
     gap: 5px;
     align-items: center;
@@ -153,6 +153,11 @@
     padding: 5px 10px;
     cursor: pointer;
 }
+
+.report-features .sketch {
+    width: 100%;
+}
+
 .report-features span {
     width: 100%;
     margin-left: 10px;

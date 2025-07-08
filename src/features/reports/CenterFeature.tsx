@@ -21,7 +21,7 @@ const CenterFeature = () => {
     const { selectedFeatures } = useReportStore();
 
     const [center, setCenter] = useState<number[]>([]);
-    const debounced = useDebounce(center, 500);
+    const debounced = useDebounce(center, 50);
 
     const mainPointFeature = useMemo(() => selectedFeatures?.find((f) => f.get("main")), [selectedFeatures]);
 
@@ -87,7 +87,7 @@ const CenterFeature = () => {
         if (debounced.length) {
             onCenterChange();
         }
-    }, [debounced, onCenterChange]);
+    }, [debounced, selectedFeatures, onCenterChange]);
 
     useEffect(() => {
         const mapView = map?.getView();

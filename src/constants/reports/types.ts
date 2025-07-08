@@ -11,7 +11,7 @@ export enum SketchFeatureType {
     Polygon = "MultiPolygone",
     LinearRing = "LinearRing",
     MultiPoint = "MultiPoint",
-    MultiLineString = "MultiLineString",
+    MultiLineString = "MultiLigne",
     MultiPolygon = "MultiPolygon",
     GeometryCollection = "GeometryCollection",
     Circle = "Circle",
@@ -97,7 +97,7 @@ export interface SketchReport {
 
 export interface SketchObject {
     geometry: string;
-    type: SketchType;
+    type: SketchFeatureType;
     style?: {
         backcolor?: string;
         diam: number;
@@ -118,6 +118,7 @@ export enum toolNames {
     display = "drawing-tool-display",
     tooltip = "drawing-tool-tooltip",
     remove = "drawing-tool-remove",
+    import = "drawing-tool-import",
 }
 export interface ReportTool {
     type: string;
@@ -125,7 +126,7 @@ export interface ReportTool {
     imgSrc: string;
     order: number;
     title: string;
-    featureType?: string;
+    featureType?: string[];
 }
 
 export type ClickedTool = {
