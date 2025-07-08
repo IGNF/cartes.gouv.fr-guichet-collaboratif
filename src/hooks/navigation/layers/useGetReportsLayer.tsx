@@ -6,7 +6,7 @@ import { Feature } from "ol";
 import { Geometry } from "ol/geom";
 import { getCommunityReports } from "@/api/reportsData";
 import { getFeaturePoint } from "@/constants/utils";
-import { CommunityReport, SketchType } from "@/constants/reports/types";
+import { CommunityReport, SketchFeatureType } from "@/constants/reports/types";
 import { StatusMessage } from "@/constants/communities/types";
 import { bbox } from "ol/loadingstrategy";
 import { useQueryClient } from "@tanstack/react-query";
@@ -57,7 +57,7 @@ function useGetReportsLayer(communityId: number) {
         );
         reports.forEach((report: CommunityReport) => {
             const mainFeatData = {
-                type: "Point" as SketchType,
+                type: SketchFeatureType.Point,
                 geometry: report.geometry,
             };
             reportLayer?.getSource()?.addFeature(getFeaturePoint(report, mainFeatData, true));

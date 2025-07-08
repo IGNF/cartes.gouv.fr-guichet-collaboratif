@@ -110,16 +110,18 @@ const SketchList = () => {
                 let text = featureType ? SketchFeatureType[featureType] : "";
 
                 if (featureStyle) {
-                    const featureImage = "getImage" in featureStyle ? (featureStyle?.getImage() as ImageStyle & { getSrc: () => string }) : null;
-                    const markerStyle = markersStyles.find((m) => m.imgSrc === featureImage?.getSrc());
                     const featureText = "getText" in featureStyle && featureStyle?.getText();
                     if (featureText && featureText?.getText()) {
                         icon = reportTools.find((tool) => tool.name === toolNames.tooltip)?.imgSrc;
                         text = featureText?.getText() as string;
                     }
-                    if (markerStyle) {
-                        icon = markerStyle.imgSrc;
-                        text = markerStyle.name;
+                    const featureImage = "getImage" in featureStyle ? (featureStyle?.getImage() as ImageStyle & { getSrc: () => string }) : null;
+                    if (featureImage) {
+                        const markerStyle = "getSrc" in featureImage ? markersStyles.find((m) => m.imgSrc === featureImage?.getSrc()) : null;
+                        if (markerStyle) {
+                            icon = markerStyle.imgSrc;
+                            text = markerStyle.name;
+                        }
                     }
                 }
                 return (

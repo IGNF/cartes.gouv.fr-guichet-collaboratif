@@ -110,7 +110,7 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick }) => {
                             .map((tool) => (
                                 <Button
                                     key={tool.name}
-                                    id={`${tool.type}-sketch-${tool.name}`}
+                                    id={`${tool.name}-report-drawer-${tool.type}`}
                                     onClick={() => {
                                         if (tool.name === toolNames.import) {
                                             importFileRef?.current?.click();
@@ -120,9 +120,10 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick }) => {
                                     }}
                                     priority={getToolPriority(tool)}
                                     title={tool.title}
+                                    className="gpf-btn--tertiary drawing-tool"
                                     disabled={isToolDisabled(tool)}
                                 >
-                                    <img width={20} height={20} src={tool.imgSrc} alt={tool.name} />
+                                    <></>
                                 </Button>
                             ))}
                         <ImportSketchFile inputRef={importFileRef} />
@@ -137,14 +138,15 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick }) => {
                             .map((tool) => (
                                 <Button
                                     key={tool.name}
-                                    id={`${tool.type}-sketch-${tool.name}`}
+                                    id={`${tool.name}-report-drawer-${tool.type}`}
                                     onClick={() => {
                                         handleToolClick(tool);
                                     }}
                                     priority={clickedTool.name === tool.name && clickedTool.clicked ? "secondary" : "tertiary"}
                                     title={tool.title}
+                                    className="gpf-btn--tertiary drawing-tool"
                                 >
-                                    <img width={20} height={20} src={tool.imgSrc} alt={tool.name} />
+                                    <></>
                                 </Button>
                             ))}
                     </div>

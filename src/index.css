@@ -40,7 +40,7 @@
     max-width: 60%;
     right: 10px;
     z-index: 99999999;
-    background-color: white;
+    background-color: var(--text-inverted-grey);
     opacity: 1;
     animation: slideIn 0.2s ease;
     transition:
