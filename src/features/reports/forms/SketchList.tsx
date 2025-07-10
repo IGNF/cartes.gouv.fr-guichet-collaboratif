@@ -1,5 +1,5 @@
 import { GeometryFeatueParams, SketchFeatureType, toolNames } from "@/constants/reports/types";
-import { getReportAllFeatures, reportTools } from "@/constants/reports/utils";
+import { reportTools } from "@/constants/reports/utils";
 import { getFeatureDiam, mainMarker, markersStyles, otherMarkers } from "@/constants/utils";
 import { useMapStore, useReportStore } from "@/store";
 import Button from "@codegouvfr/react-dsfr/Button";
@@ -19,7 +19,7 @@ const hoveredFeatureStyle: { strockWidth: number; imageScale: number | Size } = 
 
 const SketchList = () => {
     const { map } = useMapStore();
-    const { selectedReport, selectedFeatures, editReport, isShowReport, setSelectedFeatures } = useReportStore();
+    const { selectedFeatures, isShowReport, setSelectedFeatures } = useReportStore();
 
     const reportLayer = map?.getAllLayers().find((layer) => layer.get("title") === "Signalements");
     const reportSource = reportLayer?.getSource() as VectorSource;
@@ -27,27 +27,19 @@ const SketchList = () => {
     const drawingLayer = map?.getAllLayers().find((layer: Layer & { gpResultLayerId?: string }) => layer.gpResultLayerId === "drawing");
     const drawingSource = drawingLayer?.getSource() as VectorSource;
 
-    const mainFeature = useMemo(() => {
-        if (selectedReport) {
-            return selectedFeatures.find((f) => f.get("reportData") && f.get("main") && !f.get("new"));
-        }
-        return selectedFeatures.find((f) => f.get("new") && f.get("main"));
-    }, [selectedFeatures, selectedReport]);
-
-    const sketchFeatures = useMemo(() => {
-        return selectedFeatures.filter((feat) => feat !== mainFeature);
-    }, [selectedFeatures, mainFeature]);
+    const mainFeature = useMemo(() => selectedFeatures.find((f) => f.get("main")), [selectedFeatures]);
+    const sketchFeatures = useMemo(() => selectedFeatures.filter((f) => !f.get("main")), [selectedFeatures]);
 
     useEffect(() => {
         const drawingControl: typeof Drawing = map
             ?.getControls()
             .getArray()
             .find((c: Control) => "layer" in c && c.layer === drawingLayer);
-        if (drawingControl) {
-            if (mainFeature) {
-                drawingControl.options.markersList = otherMarkers;
-            }
+
+        if (drawingControl && mainFeature) {
+            drawingControl.options.markersList = otherMarkers;
         }
+
         const mainFeatureStyle = mainFeature?.getStyle() as Style;
         mainFeature?.setStyle([
             new Style({
@@ -70,17 +62,6 @@ const SketchList = () => {
             }
         };
     }, [mainFeature, drawingLayer, map]);
-
-    useEffect(() => {
-        let selectedReportFeatures: Feature[] = [];
-
-        if (selectedReport && isShowReport()) {
-            selectedReportFeatures = getReportAllFeatures(selectedReport);
-            reportSource?.addFeatures(selectedReportFeatures);
-
-            if (!selectedFeatures.length) setSelectedFeatures(selectedReportFeatures);
-        }
-    }, [selectedReport, selectedFeatures, editReport, reportSource, setSelectedFeatures, isShowReport]);
 
     const handleRemoveFeature = (feature: Feature) => {
         reportSource?.removeFeature(feature);

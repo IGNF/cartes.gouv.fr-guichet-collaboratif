@@ -51,9 +51,11 @@ const ShowReport: React.FC<Props> = ({ handleCloseDrawer }) => {
             <Accordion label="Liste des croquis :" defaultExpanded={true}>
                 <SketchList />
             </Accordion>
-            <Accordion label="Description :" defaultExpanded={true}>
-                <p>{description || "Aucune description associée"}</p>
-            </Accordion>
+            {description && (
+                <Accordion label="Description :" defaultExpanded={true}>
+                    <p>{description}</p>
+                </Accordion>
+            )}
 
             <Accordion label="Liste des documents :" defaultExpanded={true}>
                 <div
