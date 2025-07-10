@@ -18,6 +18,37 @@ import { getLonLatFromPoint } from "@/constants/utils";
 import SaveButtonHandler from "./SaveButtonHandler";
 import getMapControls from "./controls";
 import ReportDrawer from "../reports/ReportDrawer";
+import { Cluster } from "ol/source";
+import VectorLayer from "ol/layer/Vector";
+import { Fill, Stroke, Style, Text, Circle } from "ol/style";
+
+import type { FeatureLike } from "ol/Feature";
+
+const clusterStyle = (feature: FeatureLike): Style => {
+    const features = feature.get("features");
+    const size = features.length;
+
+    if (size === 1) {
+        return features[0].getStyle();
+    } else {
+        return new Style({
+            image: new Circle({
+                radius: 20,
+                fill: new Fill({
+                    color: "#1e90ff",
+                }),
+                stroke: new Stroke({ color: "white", width: 1 }),
+            }),
+            text: new Text({
+                text: size.toString(),
+                scale: 2,
+                fill: new Fill({
+                    color: "white",
+                }),
+            }),
+        });
+    }
+};
 
 export default function MainMap() {
     const mapTargetRef = useRef<HTMLDivElement>(null);
@@ -32,8 +63,25 @@ export default function MainMap() {
     const mapControls = getMapControls();
 
     const addLayer = useCallback((layer: MapLayerSource): void => {
-        mapRef.current?.addLayer(layer);
-        switcherRef.current?.addLayer(layer, {
+        let newLayer: MapLayerSource | Cluster = layer;
+
+        if (layer.get("title") === "Signalements") {
+            const reportCluster = new Cluster({
+                distance: 60,
+                source: (layer as VectorLayer).getSource() || undefined,
+            });
+
+            newLayer = new VectorLayer({
+                source: reportCluster,
+                style: clusterStyle,
+            });
+
+            newLayer.set("title", layer.get("title"));
+            newLayer.set("description", layer.get("description"));
+            newLayer.set("type", layer.get("type"));
+        }
+        mapRef.current?.addLayer(newLayer);
+        switcherRef.current?.addLayer(newLayer, {
             title: layer.get("title"),
             description: layer.get("description"),
             type: layer.get("type"),

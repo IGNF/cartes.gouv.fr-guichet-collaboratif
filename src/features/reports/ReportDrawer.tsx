@@ -13,11 +13,11 @@ import { getReportSketchFeatures } from "@/constants/reports/utils";
 const ReportDrawer = () => {
     const [drawerOpened, setDrawerOpened] = useState<boolean>(false);
 
-    const { reports, selectedReport, selectedFeatures, editReport, setEditReport, setSelectedReport, setSelectedFeatures } = useReportStore();
+    const { reports, selectedReport, editReport, selectedFeatures, setEditReport, setSelectedReport, setSelectedFeatures } = useReportStore();
     const { map } = useMapStore();
 
-    const reportLayer = map?.getAllLayers().find((layer) => layer.get("title") === "Signalements");
-    const reportSource = reportLayer?.getSource() as VectorSource;
+    const clusterLayer = map?.getAllLayers().find((layer) => layer.get("title") === "Signalements");
+    const clusterSource = clusterLayer?.getSource() as VectorSource;
 
     const handleSingleClick = useCallback(
         (evt: MapBrowserEvent) => {
@@ -26,7 +26,13 @@ const ReportDrawer = () => {
             const features: { feature: Feature; zIndex: number }[] = [];
 
             map?.forEachFeatureAtPixel(evt.pixel, function (feature) {
-                const currentFeature = feature as Feature;
+                let currentFeature = feature as Feature;
+                const currentFeatures = currentFeature.get("features");
+                if (currentFeatures?.length === 1) {
+                    currentFeature = currentFeatures[0];
+                } else {
+                    return;
+                }
                 const currentFeatureStyle = currentFeature.getStyle() as Style;
                 const currentZIndex = currentFeatureStyle && "getStyle" in currentFeatureStyle ? (currentFeatureStyle?.getZIndex() ?? 1) : 1;
                 if (currentFeature.get("new") && currentFeature.get("main")) {
@@ -47,29 +53,34 @@ const ReportDrawer = () => {
             const topFeature = features[0];
             if (topFeature) {
                 if (selectedReport) {
-                    const reportFeatures = reportSource.getFeatures().filter((f) => f.get("reportData").id === selectedReport.id);
-                    reportSource.removeFeatures(reportFeatures?.filter((f) => !f.get("main")));
+                    const reportFeatures = clusterSource.getFeatures().filter((f) => f.get("reportData").id === selectedReport.id);
+                    clusterSource.removeFeatures(reportFeatures?.filter((f) => !f.get("main")));
                 }
                 const report = topFeature.feature.get("reportData");
                 if (report) {
                     const selectedReportFeatures = getReportSketchFeatures(report);
-                    reportSource?.addFeatures(selectedReportFeatures);
-                    setSelectedFeatures(reportSource?.getFeatures().filter((f) => f.get("reportData").id === report.id) || []);
+                    clusterSource?.addFeatures(selectedReportFeatures);
+                    setSelectedFeatures(clusterSource?.getFeatures().filter((f) => f.get("reportData").id === report.id) || []);
 
                     setSelectedReport(report);
                 }
             }
         },
-        [map, reportSource, selectedReport, selectedFeatures, editReport, setSelectedReport, setSelectedFeatures]
+        [map, clusterSource, selectedReport, selectedFeatures, editReport, setSelectedReport, setSelectedFeatures]
     );
 
     const handlePointerMove = useCallback(
         (evt: MapBrowserEvent) => {
             const features = map?.getFeaturesAtPixel(evt.pixel);
-            const feature = features?.find((f) => f.get("reportData") || f.get("new")) as Feature;
+
+            const feature = features?.find((f) => {
+                const fCluster = f.get("features");
+                if (fCluster?.length > 1) return null;
+                return fCluster?.find((fc: Feature) => fc.get("reportData") || fc.get("new"));
+            }) as Feature;
 
             const targetElement = map?.getTargetElement();
-            if (targetElement) {
+            if (targetElement && feature) {
                 if (selectedFeatures.length && !selectedFeatures.includes(feature) && selectedFeatures.find((f) => f.get("new"))) {
                     targetElement.style.cursor = "";
                     return;
@@ -93,17 +104,36 @@ const ReportDrawer = () => {
         [map, selectedFeatures]
     );
 
+    const handleClusterChange = useCallback(() => {
+        if (!selectedReport || !drawerOpened) return;
+        console.log("hello");
+        console.log(clusterSource, selectedFeatures);
+        const clusterFeatures = clusterSource?.getFeatures();
+        if (clusterFeatures) {
+            const allFeatures = clusterFeatures.map((fc) => fc.get("features") || fc).flat();
+            if (selectedFeatures.length > 1) {
+                const sketchExist = allFeatures.find((fc) => fc.get("reportData")?.id === selectedReport?.id && !fc.get("main"));
+                if (!sketchExist) {
+                    clusterSource.addFeatures(selectedFeatures.filter((f) => !f.get("main")));
+                }
+            }
+        }
+    }, [clusterSource, selectedReport, selectedFeatures, drawerOpened]);
+
     useEffect(() => {
-        map?.on("singleclick", handleSingleClick);
-        map?.on("pointermove", handlePointerMove);
+        if (!map) return;
+        map.on("singleclick", handleSingleClick);
+        map.on("pointermove", handlePointerMove);
+        map.getView()?.on("change:resolution", handleClusterChange);
         if (selectedReport) {
             setSelectedReport(reports.find((r) => r.id === selectedReport.id) ?? null);
         }
         return () => {
-            map?.un("singleclick", handleSingleClick);
-            map?.un("pointermove", handlePointerMove);
+            map.un("singleclick", handleSingleClick);
+            map.un("pointermove", handlePointerMove);
+            map.getView().un("change:resolution", handleClusterChange);
         };
-    }, [map, reports, selectedReport, drawerOpened, handleSingleClick, handlePointerMove, setSelectedReport]);
+    }, [map, reports, selectedReport, drawerOpened, handleSingleClick, handlePointerMove, setSelectedReport, handleClusterChange]);
 
     const handleDrawingAdd = useCallback(
         (e: Event) => {
@@ -152,12 +182,17 @@ const ReportDrawer = () => {
         } else {
             const reportLayer = map?.getAllLayers().find((layer) => layer.get("title") === "Signalements");
             const reportSource = reportLayer?.getSource() as VectorSource;
-            const reportFeatures = reportSource.getFeatures().filter((f) => f.get("reportData").id === selectedReport.id);
-            reportSource.removeFeatures(reportFeatures?.filter((f) => !f.get("main")));
+            const clusterFeatures = reportSource
+                ?.getFeatures()
+                .map((f) => f.get("features") || f)
+                .flat();
+
+            const reportFeatures = clusterFeatures.filter((fc) => fc && !fc.get("main") && fc.get("reportData")?.id === selectedReport.id);
+            reportSource?.removeFeatures(reportFeatures);
         }
-        setSelectedReport(null);
         setDrawerOpened(false);
         setEditReport(false);
+        setSelectedReport(null);
         setSelectedFeatures([]);
     };
 

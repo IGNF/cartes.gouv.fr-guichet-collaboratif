@@ -69,14 +69,28 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick }) => {
             selectedReportFeatures = getReportAllFeatures(selectedReport);
             handleToolClick(editTool);
             drawingSource?.addFeatures(selectedReportFeatures);
-            reportMainFeature = reportSource?.getFeatures().find((f) => f.get("reportData").id === selectedReport?.id && f.get("main"));
+            const clusterFeatures = reportSource
+                ?.getFeatures()
+                .map((f) => {
+                    if (f.get("features")) return f.get("features");
+                    return f;
+                })
+                .flat();
+            reportMainFeature = clusterFeatures.find((f) => f.get("reportData").id === selectedReport?.id && f.get("main"));
             if (reportMainFeature) reportSource?.removeFeature(reportMainFeature);
         }
         if (drawingSource) setSelectedFeatures(drawingSource?.getFeatures());
         return () => {
             if (selectedReport) {
                 drawingSource?.removeFeatures(selectedReportFeatures);
-                const reportMainFeatureUpdated = reportSource?.getFeatures().find((f) => f.get("reportData").id === selectedReport?.id && f.get("main"));
+                const clusterFeatures = reportSource
+                    ?.getFeatures()
+                    .map((f) => {
+                        if (f.get("features")) return f.get("features");
+                        return f;
+                    })
+                    .flat();
+                const reportMainFeatureUpdated = clusterFeatures.find((f) => f.get("reportData")?.id === selectedReport?.id && f.get("main"));
                 if (reportMainFeature && !reportMainFeatureUpdated) {
                     reportSource?.addFeature(reportMainFeature);
                 }
