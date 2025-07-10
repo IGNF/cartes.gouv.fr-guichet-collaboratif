@@ -1,5 +1,6 @@
 import { ParamsReport, toolNames } from "@/constants/reports/types";
 import Drawing from "geopf-extensions-openlayers/src/packages/Controls/Drawing/Drawing";
+import "geopf-extensions-openlayers/src/packages/CSS/Controls/Drawing/DSFRdrawingStyle.css";
 import { mainMarker, otherMarkers } from "@/constants/utils";
 
 const markersList = [mainMarker, ...otherMarkers];

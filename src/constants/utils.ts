@@ -7,9 +7,9 @@ import { fromLonLat } from "ol/proj";
 import { CommunityTheme } from "./communities/types";
 import Feature from "ol/Feature";
 import { Map } from "ol";
-import { CommunityReport, GeometryFeatueParams, PostThemeReport, SketchFeatureType, SketchObject, SketchType } from "./reports/types";
+import { CommunityReport, GeometryFeatueParams, PostThemeReport, SketchFeatureType, SketchObject } from "./reports/types";
 import { Fill, Icon, Stroke, Style, Text } from "ol/style";
-import { Geometry, LineString, Point, Polygon } from "ol/geom";
+import { Geometry, LineString, MultiLineString, Point, Polygon } from "ol/geom";
 import Layer from "ol/layer/Layer";
 import VectorSource from "ol/source/Vector";
 import WKT from "ol/format/WKT";
@@ -21,6 +21,7 @@ import createCrossImg from "../img/reports/marketlist/cross.png";
 import createXImg from "../img/reports/marketlist/x.png";
 import createTriangleImg from "../img/reports/marketlist/triangle.png";
 import createPointImg from "../img/reports/create_point.png";
+import { getCenter } from "ol/extent";
 
 const wktFormat = new WKT();
 
@@ -106,24 +107,22 @@ export const getFeatureGeometryWKT = (feature: Feature) => {
     return wktFormat.writeGeometry(geom4326);
 };
 
-export const getSketchFeatureType = (feature: Feature): SketchType => {
+export const getSketchFeatureType = (feature: Feature): SketchFeatureType => {
     const featureType = feature.getGeometry()?.getType();
-
-    if (featureType === "LineString") return SketchFeatureType.LineString;
-    if (featureType === "Polygon") return SketchFeatureType.Polygon;
-    return SketchFeatureType.Point;
+    if (!featureType) return SketchFeatureType.Point;
+    return SketchFeatureType[featureType];
 };
 
 export const getFeatureDiam = (feature: Feature) => {
     const featureStyle = feature.getStyle() as Style;
     const featureText = "getText" in featureStyle && featureStyle?.getText();
     const featureType = feature.getGeometry()?.getType();
-    let diam = featureStyle.getStroke()?.getWidth() ?? 1;
+    let diam = "getStroke" in featureStyle ? (featureStyle.getStroke()?.getWidth() ?? 1) : 1;
     if (featureType === "Point") {
         if (featureText) {
-            diam = featureText.getStroke()?.getWidth() ?? 1;
+            diam = "getStroke" in featureText ? (featureText.getStroke()?.getWidth() ?? 1) : 1;
         } else {
-            const scale = featureStyle.getImage()?.getScale() ?? 0.5;
+            const scale = "getImage" in featureStyle ? (featureStyle.getImage()?.getScale() ?? 0.5) : 0.5;
             diam = Array.isArray(scale) ? (scale[0] + scale[1]) / 2 : scale;
         }
     }
@@ -203,6 +202,24 @@ export const getFeaturePolygon = (report: CommunityReport, featData: SketchObjec
     return feature;
 };
 
+export const getFeatureMultiLine = (report: CommunityReport, featData: SketchObject) => {
+    const lonLat = getLonLatFromPoint(featData.geometry) as Coordinate;
+    const feature = new Feature({
+        geometry: new MultiLineString(lonLat),
+        reportData: report,
+    });
+    feature.setStyle(
+        new Style({
+            stroke: new Stroke({
+                color: featData.style?.frontcolor,
+                width: featData.style?.diam,
+            }),
+            zIndex: 1,
+        })
+    );
+    return feature;
+};
+
 export const getFeatureLine = (report: CommunityReport, featData: SketchObject) => {
     const lonLat = getLonLatFromPoint(featData.geometry) as Coordinate;
     const feature = new Feature({
@@ -219,4 +236,35 @@ export const getFeatureLine = (report: CommunityReport, featData: SketchObject) 
         })
     );
     return feature;
+};
+
+export const handleFeatureToCenter = (map: Map, feature: Feature) => {
+    const viewCenter = map?.getView().getCenter();
+
+    if (!viewCenter || !feature) return;
+    const geometry: GeometryFeatueParams = feature?.getGeometry() as GeometryFeatueParams;
+
+    const geomExtent = geometry?.getExtent() || [];
+    const geomCenter = getCenter(geomExtent);
+    const deltaX = viewCenter[0] - geomCenter[0];
+    const deltaY = viewCenter[1] - geomCenter[1];
+    geometry?.translate(deltaX, deltaY);
+};
+
+export const handleCenterToFeature = (map: Map | null, feature: Feature) => {
+    const geometry: GeometryFeatueParams = feature?.getGeometry() as GeometryFeatueParams;
+
+    const featureExtent = geometry?.getExtent() || [];
+    const view = map?.getView();
+
+    const size = map?.getSize();
+    const resolution = view?.getResolutionForExtent(featureExtent, size);
+
+    const featureZoom = view?.getZoomForResolution(resolution!);
+
+    if (featureZoom) {
+        view?.setZoom(featureZoom);
+    }
+    const featureCenter = getCenter(featureExtent);
+    view?.setCenter(featureCenter);
 };

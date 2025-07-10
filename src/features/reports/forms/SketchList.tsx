@@ -1,6 +1,6 @@
 import { GeometryFeatueParams, SketchFeatureType, toolNames } from "@/constants/reports/types";
 import { reportTools } from "@/constants/reports/utils";
-import { getFeatureDiam, mainMarker, markersStyles, otherMarkers } from "@/constants/utils";
+import { getFeatureDiam, handleCenterToFeature, mainMarker, markersStyles, otherMarkers } from "@/constants/utils";
 import { useMapStore, useReportStore } from "@/store";
 import Button from "@codegouvfr/react-dsfr/Button";
 import Drawing from "geopf-extensions-openlayers/src/packages/Controls/Drawing/Drawing";
@@ -73,12 +73,12 @@ const SketchList = () => {
 
     const handleHoverFeature = (feature: Feature, mouseEnter: boolean) => {
         const featureStyle = feature.getStyle() as Style;
-        const featureText = "getText" in featureStyle && featureStyle.getText();
+        const featureText = featureStyle && "getText" in featureStyle && featureStyle.getText();
         if (mouseEnter) {
             if (featureText) {
                 hoveredFeatureStyle.strockWidth = getFeatureDiam(feature);
                 featureText?.getStroke()?.setWidth(hoveredFeatureStyle.strockWidth * 2);
-            } else {
+            } else if (featureStyle) {
                 if ("getStroke" in featureStyle) {
                     hoveredFeatureStyle.strockWidth = getFeatureDiam(feature);
                     featureStyle?.getStroke()?.setWidth(hoveredFeatureStyle.strockWidth * 2);
@@ -88,7 +88,7 @@ const SketchList = () => {
                     featureStyle?.getImage()?.setScale(hoveredFeatureStyle.imageScale + 0.3);
                 }
             }
-        } else {
+        } else if (featureStyle) {
             if (featureText) {
                 featureText?.getStroke()?.setWidth(hoveredFeatureStyle.strockWidth);
             } else {
@@ -105,30 +105,36 @@ const SketchList = () => {
             {sketchFeatures.map((feature, index) => {
                 const featureType = feature.getGeometry()?.getType();
                 const featureStyle = feature.getStyle() as Style;
-                const featureImage = featureStyle?.getImage() as ImageStyle & { getSrc: () => string };
-                const markerStyle = markersStyles.find((m) => m.imgSrc === featureImage?.getSrc());
-                const featureText = featureStyle && "getText" in featureStyle && featureStyle?.getText();
 
-                let icon = reportTools.find((tool) => tool.featureType === featureType)?.imgSrc;
+                let icon = reportTools.find((tool) => tool.featureType?.includes(featureType!))?.imgSrc;
                 let text = featureType ? SketchFeatureType[featureType] : "";
-                if (featureText) {
-                    icon = reportTools.find((tool) => tool.name === toolNames.tooltip)?.imgSrc;
-                    text = featureText?.getText() as string;
-                }
 
-                if (markerStyle) {
-                    icon = markerStyle.imgSrc;
-                    text = markerStyle.name;
+                if (featureStyle) {
+                    const featureText = "getText" in featureStyle && featureStyle?.getText();
+                    if (featureText && featureText?.getText()) {
+                        icon = reportTools.find((tool) => tool.name === toolNames.tooltip)?.imgSrc;
+                        text = featureText?.getText() as string;
+                    }
+                    const featureImage = "getImage" in featureStyle ? (featureStyle?.getImage() as ImageStyle & { getSrc: () => string }) : null;
+                    if (featureImage) {
+                        const markerStyle = "getSrc" in featureImage ? markersStyles.find((m) => m.imgSrc === featureImage?.getSrc()) : null;
+                        if (markerStyle) {
+                            icon = markerStyle.imgSrc;
+                            text = markerStyle.name;
+                        }
+                    }
                 }
-
                 return (
                     <div
                         key={`feature_${index}`}
                         onMouseEnter={() => handleHoverFeature(feature, true)}
                         onMouseLeave={() => handleHoverFeature(feature, false)}
                     >
-                        <img width={20} height={20} src={icon} alt={text} />
-                        <span>{text}</span>
+                        <div className="sketch" onClick={() => handleCenterToFeature(map, feature)}>
+                            <img width={20} height={20} src={icon} alt={text} />
+                            <span>{text}</span>
+                        </div>
+
                         {!isShowReport() && (
                             <Button
                                 iconId="ri-delete-bin-2-fill"

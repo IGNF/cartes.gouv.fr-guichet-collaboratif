@@ -133,11 +133,6 @@
     gap: 13px;
 }
 
-.report-tools button {
-    padding-left: 11px;
-    padding-right: 11px;
-}
-
 .report-features {
     display: flex;
     flex-direction: column;
@@ -145,7 +140,7 @@
     gap: 5px;
 }
 
-.report-features div {
+.report-features > div {
     display: flex;
     gap: 5px;
     align-items: center;
@@ -153,6 +148,14 @@
     padding: 5px 10px;
     cursor: pointer;
 }
+
+.report-features .sketch {
+    width: 100%;
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+
 .report-features span {
     width: 100%;
     margin-left: 10px;
@@ -167,7 +170,9 @@
 }
 
 button[id^="GPshowDrawingPicto-"]::after {
-    mask: url("geopf-extensions-openlayers/src/packages/CSS/Controls/Drawing/img/dsfr/create-point.svg");
-    mask-repeat: no-repeat;
-    mask-position: center;
+    mask: url("geopf-extensions-openlayers/src/packages/CSS/Controls/Drawing/img/dsfr/create-point.svg") center no-repeat;
+}
+
+button[id^="drawing-tool-import-"]::after {
+    mask: url("../../img/reports/import-file.svg") center no-repeat;
 }

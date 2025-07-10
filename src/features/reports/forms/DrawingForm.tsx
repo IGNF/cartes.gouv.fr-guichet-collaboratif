@@ -6,8 +6,9 @@ import Button from "@codegouvfr/react-dsfr/Button";
 import { Feature } from "ol";
 import Layer from "ol/layer/Layer";
 import VectorSource, { VectorSourceEvent } from "ol/source/Vector";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import SketchList from "./SketchList";
+import ImportSketchFile from "./ImportSketchFile";
 
 interface Props {
     clickedTool: ClickedTool;
@@ -17,6 +18,8 @@ interface Props {
 const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick }) => {
     const { map } = useMapStore();
     const { selectedReport, selectedFeatures, setSelectedFeatures } = useReportStore();
+
+    const importFileRef = useRef<HTMLInputElement>(null);
 
     const reportLayer = map?.getAllLayers().find((layer) => layer.get("title") === "Signalements");
     const reportSource = reportLayer?.getSource() as VectorSource;
@@ -107,17 +110,23 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick }) => {
                             .map((tool) => (
                                 <Button
                                     key={tool.name}
-                                    id={`${tool.type}-sketch-${tool.name}`}
+                                    id={`${tool.name}-report-drawer-${tool.type}`}
                                     onClick={() => {
+                                        if (tool.name === toolNames.import) {
+                                            importFileRef?.current?.click();
+                                            return;
+                                        }
                                         handleToolClick(tool);
                                     }}
                                     priority={getToolPriority(tool)}
                                     title={tool.title}
+                                    className="gpf-btn--tertiary drawing-tool"
                                     disabled={isToolDisabled(tool)}
                                 >
-                                    <img width={20} height={20} src={tool.imgSrc} alt={tool.name} />
+                                    <></>
                                 </Button>
                             ))}
+                        <ImportSketchFile inputRef={importFileRef} />
                     </div>
                 </div>
 
@@ -129,19 +138,21 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick }) => {
                             .map((tool) => (
                                 <Button
                                     key={tool.name}
-                                    id={`${tool.type}-sketch-${tool.name}`}
+                                    id={`${tool.name}-report-drawer-${tool.type}`}
                                     onClick={() => {
                                         handleToolClick(tool);
                                     }}
                                     priority={clickedTool.name === tool.name && clickedTool.clicked ? "secondary" : "tertiary"}
                                     title={tool.title}
+                                    className="gpf-btn--tertiary drawing-tool"
                                 >
-                                    <img width={20} height={20} src={tool.imgSrc} alt={tool.name} />
+                                    <></>
                                 </Button>
                             ))}
                     </div>
                 </div>
             </>
+
             <SketchList />
         </>
     );

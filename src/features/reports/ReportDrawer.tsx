@@ -13,7 +13,7 @@ import { getReportSketchFeatures } from "@/constants/reports/utils";
 const ReportDrawer = () => {
     const [drawerOpened, setDrawerOpened] = useState<boolean>(false);
 
-    const { reports, selectedReport, selectedFeatures, setEditReport, setSelectedReport, setSelectedFeatures } = useReportStore();
+    const { reports, selectedReport, selectedFeatures, editReport, setEditReport, setSelectedReport, setSelectedFeatures } = useReportStore();
     const { map } = useMapStore();
 
     const reportLayer = map?.getAllLayers().find((layer) => layer.get("title") === "Signalements");
@@ -22,12 +22,13 @@ const ReportDrawer = () => {
     const handleSingleClick = useCallback(
         (evt: MapBrowserEvent) => {
             if (selectedFeatures.find((f) => f.get("new"))) return;
+            if (editReport) return;
             const features: { feature: Feature; zIndex: number }[] = [];
 
             map?.forEachFeatureAtPixel(evt.pixel, function (feature) {
                 const currentFeature = feature as Feature;
                 const currentFeatureStyle = currentFeature.getStyle() as Style;
-                const currentZIndex = "getStyle" in currentFeatureStyle ? (currentFeatureStyle?.getZIndex() ?? 1) : 1;
+                const currentZIndex = currentFeatureStyle && "getStyle" in currentFeatureStyle ? (currentFeatureStyle?.getZIndex() ?? 1) : 1;
                 if (currentFeature.get("new") && currentFeature.get("main")) {
                     features.push({
                         feature: currentFeature,
@@ -54,12 +55,12 @@ const ReportDrawer = () => {
                     const selectedReportFeatures = getReportSketchFeatures(report);
                     reportSource?.addFeatures(selectedReportFeatures);
                     setSelectedFeatures(reportSource?.getFeatures().filter((f) => f.get("reportData").id === report.id) || []);
-                    setEditReport(false);
+
                     setSelectedReport(report);
                 }
             }
         },
-        [map, reportSource, selectedReport, selectedFeatures, setSelectedReport, setSelectedFeatures, setEditReport]
+        [map, reportSource, selectedReport, selectedFeatures, editReport, setSelectedReport, setSelectedFeatures]
     );
 
     const handlePointerMove = useCallback(
