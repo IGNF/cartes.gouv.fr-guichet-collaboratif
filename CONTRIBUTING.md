@@ -1,33 +1,51 @@
 # Contribuer
 
-Merci de nous aider sur ce projet ou d'envisager de le faire. Tout type de contribution est bienvenue.
+Merci de nous aider sur ce projet ou d'envisager de le faire. Tout type de contribution est bienvenue. 🙏
 
 ## Contributions autres que du code
 
-N'hésitez pas à signaler une anomalie, demander une évolution ou proposer de la documentation en ouvrant une [nouvelle issue](https://github.com/IGNF/cartes.gouv.fr-guichet-collaboratif/issues/new/choose)
+N'hésitez pas à :
 
-Vous pouvez également parcourir les [issues existantes](https://github.com/IGNF/cartes.gouv.fr-guichet-collaboratif/issues) pour voir si le sujet n'a pas déjà été abordé et apporter des informations complémentaires ou proposer des pistes de solutions.
+- signaler une anomalie 🐛
+- demander une évolution ✨
+- proposer de la documentation 📚
+
+en ouvrant une **[nouvelle issue](https://github.com/IGNF/cartes.gouv.fr-guichet-collaboratif/issues/new/choose)**.
+
+Les différents formulaires sont là pour vous guider dans la rédaction de votre _issue_.
+
+Vous pouvez également parcourir les [issues existantes](https://github.com/IGNF/cartes.gouv.fr-guichet-collaboratif/issues) pour voir si le sujet n'a pas déjà été abordé et apporter des informations complémentaires ou proposer des pistes de solutions dans la conversation.
+
+💡 Conseil : le texte des issues comme des pull requests et de toutes les conversations sur Github est en _markdown_. N'hésitez pas à en faire usage pour structurer vos demandes. [Documentation du Github Flavored Markdown](https://github.github.com/gfm/)
+
+Dans tous les cas faites preuve de bienveillance et de pédagogie dans vos descriptions et dans les conversations.
 
 ## Modifier le code ou la documentation
 
-Si vous voulez corriger une anomalie ou apporter une nouvelle fonctionnalité vous-même, faites ces modifications dans un fork du dépôt et soumettez-nous une [pull-request](https://docs.github.com/fr/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests).
+Si vous voulez corriger une anomalie ou apporter une nouvelle fonctionnalité vous-même, faites ces modifications dans un fork du dépôt et soumettez-nous une [pull request](https://docs.github.com/fr/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests).
 
 N'hésitez pas à consulter le [README](./README.md) et la [documentation](./docs/).
 
 ---
 
-Ci-dessous, un guide pas à pas décrit le processus de contribution via un fork et une pull request. Si vous êtes déjà familier de Git et Github, il ne vous sera pas nécessaire mais peut constituer néanmoins un document auquel vous pouvez vous référer en cas de doute. Il répète quelques éléments présents dans la documentation d'installation.
+Ci-dessous, un guide pas à pas décrit le processus de contribution via un _fork_ et une _pull request_. Si vous êtes déjà familier de Git et Github, il ne vous sera pas nécessaire mais peut constituer néanmoins un document auquel vous pouvez vous référer en cas de doute. Il répète quelques éléments présents dans la documentation d'installation.
 
 ### Première installation
 
 - Créez un compte Github
 - Installez Git sur votre poste de travail
 - Configurez Git avec votre nom et votre email
-- Forkez le dépôt
-- Clonez votre fork (en utilisant SSH ou l'url HTTPS) :
+- Forkez le dépôt depuis l'interface de Github
+- Clonez votre fork (en utilisant SSH ou l'url HTTPS, à votre convenance) :
 
 ```bash
 git clone git@github.com:your_GH_account/cartes.gouv.fr-guichet-collaboratif.git
+```
+
+ou
+
+```bash
+git clone https://github.com/your_GH_account/cartes.gouv.fr-guichet-collaboratif.git
 ```
 
 (en cas de problème, vérifiez votre configuration réseau. Si vous travaillez derrière un proxy, vérifiez par exemple vos variables d'environnement HTTP_PROXY et HTTPS_PROXY)
@@ -119,6 +137,7 @@ git checkout -b feat/nouvelle-feature-XXX
 ```
 
 NB : nommez dans la mesure votre branche avec un préfixe selon qu'il sagit d'une évolution `feat/...`, d'un correctif `fix/...` ou de documentation `docs/...` et mettez le numéro de l'issue associée à la fin de son nom (ici à la place de XXX).
+**Ne proposez qu'une seule évolution par branche. Ne mélangez pas plusieurs corrections ou changements dans une même branche et une même pull request, sauf si elles sont fortement liées**
 
 ### Apporter des changements
 
@@ -134,7 +153,7 @@ code .
 
 ```bash
 git add file1
-git add file2
+git add path/to/file2
 ```
 
 - Commitez le changement :
@@ -153,24 +172,36 @@ NB : dans l'exemple, le commit porte le message "ajout fonctionnalité". Utilise
 git push origin feat/nouvelle-feature-XXX
 ```
 
+NB : n'hésitez pas à pousser régulièrement vos changements, même s'ils sont encore à l'état de brouillon pour sauvegarder votre travail.
+
 ### Créer une pull-request
 
-Au moment de votre push, GitHub va vous répondre directement en vous donnant l'URL à laquelle vous pouvez créer votre pull request. Vous pouvez suivre cette URL ou vous rendre à tout moment sur votre fork sur Github, afficher la branche "feat/nouvelle-feature-XXX" et Github vous montrera un bandeau avec un bouton pour créer une nouvelle pull request.
+Au moment de votre push, GitHub va vous répondre directement en vous donnant l'URL à laquelle vous pouvez créer votre pull request. Vous pouvez suivre cette URL ou bien vous rendre à tout moment sur votre fork sur Github, afficher la branche "feat/nouvelle-feature-XXX" et Github vous montrera un bandeau avec un bouton pour créer une nouvelle pull request.
 
-Donnez un titre et une description claire des changements que vous proposez.
-N'hésitez pas à ajouter des copies d'écran illustrant les changements d'interface.
-Référencez l'issue associée dans la description de la pull request.
-Mentionnez la présence de changement cassants ou de manière d'installer ou builder le projet.
+💡 Rappel : N'hésitez pas à consulter la[documentation de Github concernant les pull-request](https://docs.github.com/fr/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests).
+
+Dans le formulaire de création d'une nouvelle pull request :
+
+- **Donnez un titre concis et clair**. Il peut être proche de celui de l'issue associée,
+- **Décrivez clairement les changements** que vous proposez. Décrire les changements permet de comprendre à quoi ils correspondent avant de se plonger dans le code,
+- Si vos changements concernent l'interface graphique, **insérez des copies d'écran** dans la description (limitées aux seules parties utiles et éventuellement annotées)
+- S'il existe une issue associée, **mentionnez l'issue concernée** avec la syntaxe `#18`. Si nécessaire, mentionnez plusieurs issues et d'autres pull request
+- Décrivez de quelle manière on peut tester vos changements,
+- Mentionnez la présence de changement cassants ou de manière d'installer ou builder le projet.
 
 ### Après avoir créé une pull request
 
-Les mainteneurs du dépôt vont maintenant examiner votre pull request.
-Si besoin, ils travailleront avec vous pour améliorer vos changements.
+Les mainteneurs du dépôt vont maintenant examiner votre pull request. Ils feront une _revue de code_ aussi bien la description de vos changements que le code lui-même.
+Si besoin, ils travailleront avec vous pour améliorer vos changements en formulant des commentaires ou en intervenant directement sur votre code.
 
-Une fois que les changements dans votre pull request seront prêts à être intégrés, les mainteneurs décideront de la façon la plus appropriée de les intégrer dans la branche main du dépôt principal :
+Si vous êtes amenés à faire des changements suite à cette revue de code, modifiez également la description de la pull request et mettez à jour les captures d'écran.
+
+Une fois que les changements dans votre pull request seront prêts à être intégrés, les mainteneurs décideront de la façon la plus appropriée de les intégrer dans la branche `main` du dépôt principal :
 
 - en mergeant la branche avec tous ces commits + un merge commit,
 - en combinant tous les commits en un seul (squash)
 - ou en rebasant tous vos commits sur la branche main, à la suite des commits déjà présents.
 
-Dans tous les cas faites preuve de bienveillance et de pédagogie dans vos commentaires.
+### Déploiement de vos changements 🚀
+
+Une fois vos changements intégrés dans la branche `develop` du projet, les mainteneurs décideront du moment opportun pour les intégrer à une release et les déployer.
