@@ -15,7 +15,7 @@ import { useMapStore, useReportStore } from "@/store";
 
 function useGetReportsLayer(communityId: number) {
     const { addAlertMessage } = useCommunityStore();
-    const { reports, selectedFeatures, setReports } = useReportStore();
+    const { reports, setReports } = useReportStore();
     const { map } = useMapStore();
     const queryClient = useQueryClient();
 
@@ -53,7 +53,7 @@ function useGetReportsLayer(communityId: number) {
             reportLayer
                 ?.getSource()
                 ?.getFeatures()
-                .filter((f) => f.get("main") && !selectedFeatures.includes(f)) || []
+                .filter((f) => f.get("main")) || []
         );
         reports.forEach((report: CommunityReport) => {
             const mainFeatData = {
@@ -62,7 +62,7 @@ function useGetReportsLayer(communityId: number) {
             };
             reportLayer?.getSource()?.addFeature(getFeaturePoint(report, mainFeatData, true));
         });
-    }, [map, reports, selectedFeatures, reportLayer]);
+    }, [map, reports, reportLayer]);
 
     return reportLayer;
 }

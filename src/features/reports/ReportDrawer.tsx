@@ -9,6 +9,7 @@ import Layer from "ol/layer/Layer";
 import VectorSource from "ol/source/Vector";
 import ShowReport from "./ShowReport";
 import { getReportSketchFeatures } from "@/constants/reports/utils";
+import { getClickedReport, showClusterFeatures } from "@/constants/reports/utils/cluster";
 
 const ReportDrawer = () => {
     const [drawerOpened, setDrawerOpened] = useState<boolean>(false);
@@ -19,32 +20,66 @@ const ReportDrawer = () => {
     const clusterLayer = map?.getAllLayers().find((layer) => layer.get("title") === "Signalements");
     const clusterSource = clusterLayer?.getSource() as VectorSource;
 
+    const handleCloseDrawer = useCallback(() => {
+        if (!selectedReport) {
+            const drawingLayer = map?.getAllLayers().find((layer: Layer & { gpResultLayerId?: string }) => layer.gpResultLayerId === "drawing");
+            const drawingSource = drawingLayer?.getSource() as VectorSource;
+            if (drawingSource) {
+                const newFeatures = drawingSource?.getFeatures()?.filter((f) => f.get("new")) || [];
+                drawingSource.removeFeatures(newFeatures);
+            }
+        } else {
+            const reportLayer = map?.getAllLayers().find((layer) => layer.get("title") === "Signalements");
+            const reportSource = reportLayer?.getSource() as VectorSource;
+            const clusterFeatures = reportSource
+                ?.getFeatures()
+                .map((f) => f.get("features") || f)
+                .flat();
+
+            const reportFeatures = clusterFeatures.filter((fc) => fc && !fc.get("main") && fc.get("reportData")?.id === selectedReport.id);
+            reportSource?.removeFeatures(reportFeatures);
+        }
+        setDrawerOpened(false);
+        setEditReport(false);
+        setSelectedReport(null);
+        setSelectedFeatures([]);
+    }, [map, selectedReport, setEditReport, setSelectedFeatures, setSelectedReport]);
+
     const handleSingleClick = useCallback(
         (evt: MapBrowserEvent) => {
-            if (selectedFeatures.find((f) => f.get("new"))) return;
+            if (selectedFeatures?.find((f) => f?.get("new"))) return;
             if (editReport) return;
             const features: { feature: Feature; zIndex: number }[] = [];
 
             map?.forEachFeatureAtPixel(evt.pixel, function (feature) {
-                let currentFeature = feature as Feature;
+                let clickedFeature;
+                const currentFeature = feature as Feature;
                 const currentFeatures = currentFeature.get("features");
                 if (currentFeatures?.length === 1) {
-                    currentFeature = currentFeatures[0];
+                    clickedFeature = currentFeatures[0];
                 } else {
+                    if (Array.isArray(currentFeature.getStyle())) {
+                        clickedFeature = getClickedReport(currentFeature, evt.pixel, map);
+                    }
+                }
+
+                if (!clickedFeature) {
+                    showClusterFeatures(currentFeature, map.getView().getResolution(), clusterSource);
+                    handleCloseDrawer();
                     return;
                 }
-                const currentFeatureStyle = currentFeature.getStyle() as Style;
+                const currentFeatureStyle = clickedFeature.getStyle() as Style;
                 const currentZIndex = currentFeatureStyle && "getStyle" in currentFeatureStyle ? (currentFeatureStyle?.getZIndex() ?? 1) : 1;
-                if (currentFeature.get("new") && currentFeature.get("main")) {
+                if (clickedFeature.get("new") && clickedFeature.get("main")) {
                     features.push({
-                        feature: currentFeature,
+                        feature: clickedFeature,
                         zIndex: currentZIndex,
                     });
                     return;
                 }
-                if (currentFeature.get("reportData") && currentFeature.get("main")) {
+                if (clickedFeature.get("reportData") && clickedFeature.get("main")) {
                     features.push({
-                        feature: currentFeature,
+                        feature: clickedFeature,
                         zIndex: currentZIndex,
                     });
                     return;
@@ -53,20 +88,20 @@ const ReportDrawer = () => {
             const topFeature = features[0];
             if (topFeature) {
                 if (selectedReport) {
-                    const reportFeatures = clusterSource.getFeatures().filter((f) => f.get("reportData").id === selectedReport.id);
+                    const reportFeatures = clusterSource.getFeatures().filter((f) => f.get("reportData")?.id === selectedReport.id);
                     clusterSource.removeFeatures(reportFeatures?.filter((f) => !f.get("main")));
                 }
                 const report = topFeature.feature.get("reportData");
                 if (report) {
                     const selectedReportFeatures = getReportSketchFeatures(report);
                     clusterSource?.addFeatures(selectedReportFeatures);
-                    setSelectedFeatures(clusterSource?.getFeatures().filter((f) => f.get("reportData").id === report.id) || []);
+                    setSelectedFeatures(selectedReportFeatures);
 
                     setSelectedReport(report);
                 }
             }
         },
-        [map, clusterSource, selectedReport, selectedFeatures, editReport, setSelectedReport, setSelectedFeatures]
+        [map, clusterSource, selectedReport, selectedFeatures, editReport, setSelectedReport, setSelectedFeatures, handleCloseDrawer]
     );
 
     const handlePointerMove = useCallback(
@@ -75,30 +110,35 @@ const ReportDrawer = () => {
 
             const feature = features?.find((f) => {
                 const fCluster = f.get("features");
-                if (fCluster?.length > 1) return null;
+                if (fCluster?.length > 1) return fCluster[0];
                 return fCluster?.find((fc: Feature) => fc.get("reportData") || fc.get("new"));
             }) as Feature;
 
             const targetElement = map?.getTargetElement();
-            if (targetElement && feature) {
-                if (selectedFeatures.length && !selectedFeatures.includes(feature) && selectedFeatures.find((f) => f.get("new"))) {
+            if (targetElement) {
+                if (feature) {
+                    if (selectedFeatures.length && !selectedFeatures.includes(feature) && selectedFeatures.find((f) => f.get("new"))) {
+                        targetElement.style.cursor = "";
+                        return;
+                    }
+                    if (feature) {
+                        const geomType = feature.getGeometry()?.getType();
+                        if (geomType === "Point") {
+                            targetElement.style.cursor = "pointer";
+                        } else if (geomType === "LineString") {
+                            targetElement.style.cursor = "crosshair";
+                        } else if (geomType === "Polygon") {
+                            targetElement.style.cursor = "grab";
+                        }
+
+                        return;
+                    }
+                    targetElement.style.cursor = "";
+                    return;
+                } else {
                     targetElement.style.cursor = "";
                     return;
                 }
-                if (feature) {
-                    const geomType = feature.getGeometry()?.getType();
-                    if (geomType === "Point") {
-                        targetElement.style.cursor = "pointer";
-                    } else if (geomType === "LineString") {
-                        targetElement.style.cursor = "crosshair";
-                    } else if (geomType === "Polygon") {
-                        targetElement.style.cursor = "grab";
-                    }
-
-                    return;
-                }
-                targetElement.style.cursor = "";
-                return;
             }
         },
         [map, selectedFeatures]
@@ -106,8 +146,6 @@ const ReportDrawer = () => {
 
     const handleClusterChange = useCallback(() => {
         if (!selectedReport || !drawerOpened) return;
-        console.log("hello");
-        console.log(clusterSource, selectedFeatures);
         const clusterFeatures = clusterSource?.getFeatures();
         if (clusterFeatures) {
             const allFeatures = clusterFeatures.map((fc) => fc.get("features") || fc).flat();
@@ -170,31 +208,6 @@ const ReportDrawer = () => {
             document.removeEventListener("create-report-event", handleDrawingAdd);
         };
     }, [drawerOpened, selectedReport, handleDrawingAdd]);
-
-    const handleCloseDrawer = () => {
-        if (!selectedReport) {
-            const drawingLayer = map?.getAllLayers().find((layer: Layer & { gpResultLayerId?: string }) => layer.gpResultLayerId === "drawing");
-            const drawingSource = drawingLayer?.getSource() as VectorSource;
-            if (drawingSource) {
-                const newFeatures = drawingSource?.getFeatures()?.filter((f) => f.get("new")) || [];
-                drawingSource.removeFeatures(newFeatures);
-            }
-        } else {
-            const reportLayer = map?.getAllLayers().find((layer) => layer.get("title") === "Signalements");
-            const reportSource = reportLayer?.getSource() as VectorSource;
-            const clusterFeatures = reportSource
-                ?.getFeatures()
-                .map((f) => f.get("features") || f)
-                .flat();
-
-            const reportFeatures = clusterFeatures.filter((fc) => fc && !fc.get("main") && fc.get("reportData")?.id === selectedReport.id);
-            reportSource?.removeFeatures(reportFeatures);
-        }
-        setDrawerOpened(false);
-        setEditReport(false);
-        setSelectedReport(null);
-        setSelectedFeatures([]);
-    };
 
     return (
         <DrawerComponent anchor="left" isOpen={drawerOpened} create={!selectedReport} onClose={handleCloseDrawer}>
