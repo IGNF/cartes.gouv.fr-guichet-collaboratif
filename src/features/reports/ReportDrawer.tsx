@@ -1,6 +1,6 @@
 import DrawerComponent from "@/components/DrawerComponent";
 import { ParamsReport, toolNames } from "@/constants/reports/types";
-import { useMapStore, useReportStore } from "@/store";
+import { useCommunityStore, useMapStore, useReportStore } from "@/store";
 import { Feature, MapBrowserEvent } from "ol";
 import { Style } from "ol/style";
 import { useCallback, useEffect, useState } from "react";
@@ -9,13 +9,15 @@ import Layer from "ol/layer/Layer";
 import VectorSource from "ol/source/Vector";
 import ShowReport from "./ShowReport";
 import { getReportSketchFeatures } from "@/constants/reports/utils";
-import { getClickedReport, showClusterFeatures } from "@/constants/reports/utils/cluster";
+import { clearClusterStyles, getClickedReport, showClusterFeatures } from "@/constants/reports/utils/cluster";
+import { getCenterFeatureMessage, showCenterFeatureButtons } from "@/constants/utils";
 
 const ReportDrawer = () => {
     const [drawerOpened, setDrawerOpened] = useState<boolean>(false);
 
     const { reports, selectedReport, editReport, selectedFeatures, setEditReport, setSelectedReport, setSelectedFeatures } = useReportStore();
     const { map } = useMapStore();
+    const { alertMessages, removeAlertMessage } = useCommunityStore();
 
     const clusterLayer = map?.getAllLayers().find((layer) => layer.get("title") === "Signalements");
     const clusterSource = clusterLayer?.getSource() as VectorSource;
@@ -39,11 +41,19 @@ const ReportDrawer = () => {
             const reportFeatures = clusterFeatures.filter((fc) => fc && !fc.get("main") && fc.get("reportData")?.id === selectedReport.id);
             reportSource?.removeFeatures(reportFeatures);
         }
+
+        const isNotified = getCenterFeatureMessage(alertMessages);
+        if (isNotified) {
+            removeAlertMessage(isNotified.id);
+        }
+
+        showCenterFeatureButtons(false);
+
         setDrawerOpened(false);
         setEditReport(false);
         setSelectedReport(null);
         setSelectedFeatures([]);
-    }, [map, selectedReport, setEditReport, setSelectedFeatures, setSelectedReport]);
+    }, [map, selectedReport, alertMessages, removeAlertMessage, setEditReport, setSelectedFeatures, setSelectedReport]);
 
     const handleSingleClick = useCallback(
         (evt: MapBrowserEvent) => {
@@ -62,7 +72,6 @@ const ReportDrawer = () => {
                         clickedFeature = getClickedReport(currentFeature, evt.pixel, map);
                     }
                 }
-
                 if (!clickedFeature) {
                     showClusterFeatures(currentFeature, map.getView().getResolution(), clusterSource);
                     handleCloseDrawer();
@@ -95,8 +104,7 @@ const ReportDrawer = () => {
                 if (report) {
                     const selectedReportFeatures = getReportSketchFeatures(report);
                     clusterSource?.addFeatures(selectedReportFeatures);
-                    setSelectedFeatures(selectedReportFeatures);
-
+                    setSelectedFeatures([topFeature.feature, ...selectedReportFeatures]);
                     setSelectedReport(report);
                 }
             }
@@ -175,6 +183,7 @@ const ReportDrawer = () => {
 
     const handleDrawingAdd = useCallback(
         (e: Event) => {
+            clearClusterStyles(clusterSource);
             const customEvent = e as CustomEvent<ParamsReport>;
             customEvent.detail.feature.set("new", true);
             if (customEvent.detail.geomType === "Point" && !drawerOpened) {
@@ -191,7 +200,7 @@ const ReportDrawer = () => {
                 setDrawerOpened(true);
             }
         },
-        [drawerOpened, setDrawerOpened]
+        [drawerOpened, clusterSource, setDrawerOpened]
     );
 
     useEffect(() => {

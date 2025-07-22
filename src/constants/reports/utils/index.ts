@@ -172,15 +172,11 @@ const setFeatureStyleKML = (feature: Feature) => {
 
 export const createSketchKML = (content: string, drawingSource: VectorSource) => {
     try {
-        const features = new KML().readFeatures(content, { dataProjection: "EPSG:3857", featureProjection: "EPSG:3857" });
-        console.log(features);
+        const features = new KML().readFeatures(content, { dataProjection: "EPSG:4326", featureProjection: "EPSG:3857" });
         features.forEach((feature) => {
-            const drawingFeature = drawingSource.getFeatures().find((f) => f.getGeometry() === feature.getGeometry());
-            if (!drawingFeature) {
-                setFeatureStyleKML(feature);
-                drawingSource.addFeature(feature);
-            }
+            setFeatureStyleKML(feature);
         });
+        drawingSource.addFeatures(features);
     } catch (e) {
         console.error(e);
         throw Error();
@@ -189,13 +185,8 @@ export const createSketchKML = (content: string, drawingSource: VectorSource) =>
 
 export const createSketchGPX = (content: string, drawingSource: VectorSource) => {
     try {
-        const features = new GPX().readFeatures(content);
-        features.forEach((feature) => {
-            const drawingFeature = drawingSource.getFeatures().find((f) => f.getGeometry() === feature.getGeometry());
-            if (!drawingFeature) {
-                drawingSource.addFeature(feature);
-            }
-        });
+        const features = new GPX().readFeatures(content, { dataProjection: "EPSG:4326", featureProjection: "EPSG:3857" });
+        drawingSource.addFeatures(features);
     } catch (e) {
         console.error(e);
         throw Error();
@@ -203,13 +194,8 @@ export const createSketchGPX = (content: string, drawingSource: VectorSource) =>
 };
 export const createSketchGEOJSON = (content: string, drawingSource: VectorSource) => {
     try {
-        const features = new GeoJSON().readFeatures(content);
-        features.forEach((feature) => {
-            const drawingFeature = drawingSource.getFeatures().find((f) => f.getGeometry() === feature.getGeometry());
-            if (!drawingFeature) {
-                drawingSource.addFeature(feature);
-            }
-        });
+        const features = new GeoJSON().readFeatures(content, { dataProjection: "EPSG:4326", featureProjection: "EPSG:3857" });
+        drawingSource.addFeatures(features);
     } catch (e) {
         console.error(e);
         throw Error();

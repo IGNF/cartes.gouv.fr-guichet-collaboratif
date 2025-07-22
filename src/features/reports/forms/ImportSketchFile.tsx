@@ -20,7 +20,8 @@ const ImportSketchFile: React.FC<Props> = ({ inputRef }) => {
     const handleFileUpload = (e: ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files || [];
         Array.from(files).forEach((file) => {
-            const fileType = file.type || file.name.split(".")[1];
+            const splitedFileName = file.name.split(".");
+            const fileType = file.type || file.name.split(".")[splitedFileName.length - 1];
             if (!inputAccept.includes(fileType)) {
                 addAlertMessage(StatusMessage.error, `Le fichier "${file.name}" n'est pas supporté`);
                 return;

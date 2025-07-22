@@ -27,7 +27,7 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick }) => {
     const drawingLayer = map?.getAllLayers().find((layer: Layer & { gpResultLayerId?: string }) => layer.gpResultLayerId === "drawing");
     const drawingSource = drawingLayer?.getSource() as VectorSource;
 
-    const handleDrawingChange = useCallback(
+    const handleDrawingAdd = useCallback(
         (e: VectorSourceEvent) => {
             if (e.feature) {
                 if (e.type === "addfeature") {
@@ -39,25 +39,25 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick }) => {
                             e.feature.set("main", true);
                         }
                     }
-                    setSelectedFeatures([...selectedFeatures, e.feature]);
-                } else if (e.type === "removefeature") {
-                    const newFatures = selectedFeatures.filter((feat) => feat !== e.feature);
-                    setSelectedFeatures(newFatures);
                 }
             }
         },
-        [selectedFeatures, selectedReport, setSelectedFeatures]
+        [selectedFeatures, selectedReport]
     );
 
+    const handleDrawingChange = useCallback(() => {
+        setSelectedFeatures(drawingSource.getFeatures());
+    }, [drawingSource, setSelectedFeatures]);
+
     useEffect(() => {
-        drawingSource?.on("addfeature", handleDrawingChange);
-        drawingSource?.on("removefeature", handleDrawingChange);
+        drawingSource?.on("addfeature", handleDrawingAdd);
+        drawingSource?.on("change", handleDrawingChange);
 
         return () => {
-            drawingSource?.un("addfeature", handleDrawingChange);
-            drawingSource?.un("removefeature", handleDrawingChange);
+            drawingSource?.un("addfeature", handleDrawingAdd);
+            drawingSource?.un("change", handleDrawingChange);
         };
-    }, [drawingSource, handleDrawingChange]);
+    }, [drawingSource, handleDrawingAdd, handleDrawingChange]);
 
     useEffect(() => {
         let selectedReportFeatures: Feature[] = [];
@@ -79,7 +79,8 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick }) => {
             reportMainFeature = clusterFeatures.find((f) => f.get("reportData").id === selectedReport?.id && f.get("main"));
             if (reportMainFeature) reportSource?.removeFeature(reportMainFeature);
         }
-        if (drawingSource) setSelectedFeatures(drawingSource?.getFeatures());
+
+        if (drawingSource) setSelectedFeatures(drawingSource.getFeatures());
         return () => {
             if (selectedReport) {
                 drawingSource?.removeFeatures(selectedReportFeatures);

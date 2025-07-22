@@ -15,6 +15,12 @@ const circleStyleCommon = new CircleStyle({
     stroke: new Stroke({ color: "rgb(74, 208, 218)", width: 1 }),
 });
 
+const reportStyleCommon = new Icon({
+    src: reportImgStatus["submit"].img,
+    scale: 1,
+    anchor: [0.5, 1],
+});
+
 export const clusterStyle = (feature: FeatureLike): Style => {
     const features = feature.get("features");
     const size = features.length;
@@ -40,6 +46,7 @@ export const clusterStyle = (feature: FeatureLike): Style => {
                     color: "white",
                 }),
             }),
+            zIndex: 2,
         });
     }
 };
@@ -66,8 +73,6 @@ export const getClickedReport = (feature: Feature, clickedPixel: Pixel, map: Map
         const geometry = style.getGeometry() as GeometryFeatueParams;
         const isClickedGeometry = geometry && isPointGeometryAtPixel(geometry, clickedPixel, map);
         if (!isClickedGeometry) {
-            style.setImage(circleStyleCommon);
-            style.setZIndex(5);
             return;
         }
         clickedStyle = style;
@@ -75,27 +80,30 @@ export const getClickedReport = (feature: Feature, clickedPixel: Pixel, map: Map
     });
 
     if (clickedStyle) {
+        const clonedGeometry = (clickedStyle.getGeometry() as Geometry).clone();
+        clonedGeometry.set("clicked", true);
         const reportStyle = new Style({
-            geometry: clickedStyle.getGeometry() || undefined,
-            image: new Icon({
-                src: reportImgStatus["submit"].img,
-                scale: 1,
-                anchor: [0.5, 1],
-            }),
-            zIndex: 1,
+            geometry: clonedGeometry || undefined,
+            image: reportStyleCommon,
+            zIndex: 3,
         });
-        feature.setStyle([...fStyles, reportStyle]);
+        feature.setStyle([fStyles[0], ...fStyles.slice(1).filter((s) => !(s.getGeometry() as Geometry)?.get("clicked")), reportStyle]);
     }
     return clickedFeature;
 };
 
-export const showClusterFeatures = (feature: Feature, resolution: number = 0, clusterSource: VectorSource) => {
+export const clearClusterStyles = (clusterSource: VectorSource, feature: Feature | null = null) => {
     clusterSource?.getFeatures()?.forEach((clusterFeature) => {
         if (clusterFeature === feature) return;
         if (clusterFeature.get("features")?.length > 1) {
             clusterFeature.setStyle(clusterStyle(clusterFeature));
         }
     });
+};
+
+export const showClusterFeatures = (feature: Feature, resolution: number = 0, clusterSource: VectorSource) => {
+    clearClusterStyles(clusterSource, feature);
+
     if (Array.isArray(feature.getStyle())) {
         feature.setStyle(clusterStyle(feature));
         return;
@@ -108,15 +116,20 @@ export const showClusterFeatures = (feature: Feature, resolution: number = 0, cl
     const center = (feature.getGeometry() as GeometryFeatueParams)?.getCoordinates() as Coordinate;
     const styles = [clusterStyle(feature)];
 
-    const separation = 20;
+    const separation = Math.max(features.length + 5, 20);
     const resolutionFactor = resolution;
     const baseRadius = 30;
 
     for (let i = 0; i < total; i++) {
         const currentFeature = features[i];
 
-        const radius = total <= 10 ? baseRadius + total * 2 : separation * Math.sqrt(i + 3);
-        const angle = ((2 * Math.PI) / (total <= 10 ? total : 10)) * i;
+        let radius = separation * Math.sqrt(i + 3);
+        let angle = radius / (total / 2);
+
+        if (total <= 10) {
+            angle = ((2 * Math.PI) / total) * i;
+            radius = baseRadius + total * 2;
+        }
 
         const offsetX = radius * Math.cos(angle);
         const offsetY = radius * Math.sin(angle);

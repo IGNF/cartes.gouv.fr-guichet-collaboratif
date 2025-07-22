@@ -53,13 +53,18 @@ function useGetReportsLayer(communityId: number) {
             reportLayer
                 ?.getSource()
                 ?.getFeatures()
-                .filter((f) => f.get("main")) || []
+                .filter((f) => f.get("main") && !Array.isArray(f.getStyle())) || []
         );
         reports.forEach((report: CommunityReport) => {
             const mainFeatData = {
                 type: SketchFeatureType.Point,
                 geometry: report.geometry,
             };
+            const featureExist = reportLayer
+                ?.getSource()
+                ?.getFeatures()
+                .find((f) => f.get("main") && f.get("reportData").id === report.id);
+            if (featureExist) return;
             reportLayer?.getSource()?.addFeature(getFeaturePoint(report, mainFeatData, true));
         });
     }, [map, reports, reportLayer]);

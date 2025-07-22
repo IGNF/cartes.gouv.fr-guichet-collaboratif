@@ -1,9 +1,10 @@
 import { StatusMessage } from "@/constants/communities/types";
 import { GeometryFeatueParams } from "@/constants/reports/types";
+import { getCenterFeatureMessage, showCenterFeatureButtons } from "@/constants/utils";
 import useDebounce from "@/hooks/useDebounce";
 import { useCommunityStore, useMapStore, useReportStore } from "@/store";
 import { getCenter, intersects } from "ol/extent";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 const CenterMessage: React.FC<{ onClick: () => void }> = ({ onClick }) => {
     return (
@@ -15,6 +16,7 @@ const CenterMessage: React.FC<{ onClick: () => void }> = ({ onClick }) => {
         </p>
     );
 };
+
 const CenterFeature = () => {
     const { alertMessages, addAlertMessage, removeAlertMessage } = useCommunityStore();
     const { map } = useMapStore();
@@ -23,7 +25,7 @@ const CenterFeature = () => {
     const [center, setCenter] = useState<number[]>([]);
     const debounced = useDebounce(center, 50);
 
-    const mainPointFeature = useMemo(() => selectedFeatures?.find((f) => f.get("main")), [selectedFeatures]);
+    const mainPointFeature = selectedFeatures?.find((f) => f.get("main"));
 
     const handleCenterToFeature = useCallback(() => {
         const geometry: GeometryFeatueParams = mainPointFeature?.getGeometry() as GeometryFeatueParams;
@@ -53,19 +55,10 @@ const CenterFeature = () => {
         const geometry: GeometryFeatueParams = mainPointFeature.getGeometry() as GeometryFeatueParams;
 
         const isFeatureVisible = intersects(viewExtent, geometry?.getExtent() || []);
-        const buttons = document.getElementsByClassName("center-feature");
-        const isNotified = alertMessages.find(
-            (message) =>
-                typeof message.text === "object" &&
-                React.isValidElement(message.text) &&
-                typeof message.text.type === "function" &&
-                message.text.type.name === "CenterMessage"
-        );
+        const isNotified = getCenterFeatureMessage(alertMessages);
         if (!isFeatureVisible) {
             if (mainPointFeature) {
-                Array.from(buttons).forEach((button) => {
-                    (button as HTMLButtonElement).style.display = "block";
-                });
+                showCenterFeatureButtons(true);
             }
 
             if (!isNotified) {
@@ -76,9 +69,7 @@ const CenterFeature = () => {
                 removeAlertMessage(isNotified.id);
             }
 
-            Array.from(buttons).forEach((button) => {
-                (button as HTMLButtonElement).style.display = "none";
-            });
+            showCenterFeatureButtons(false);
         }
         setCenter([]);
     }, [map, mainPointFeature, alertMessages, addAlertMessage, removeAlertMessage, handleFeatureToCenter]);
@@ -87,7 +78,7 @@ const CenterFeature = () => {
         if (debounced.length) {
             onCenterChange();
         }
-    }, [debounced, selectedFeatures, onCenterChange]);
+    }, [debounced, selectedFeatures, mainPointFeature, onCenterChange]);
 
     useEffect(() => {
         const mapView = map?.getView();
