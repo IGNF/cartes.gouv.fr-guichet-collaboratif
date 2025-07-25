@@ -14,8 +14,25 @@ Les fonctionnalités présentes sont définies par la configuration du guichet s
 
 ## Installation
 
-:construction: à venir
+- Clonez le dépôt
+
+```bash
+git clone https://github.com/IGNF/cartes.gouv.fr-guichet-collaboratif.git
+cd cartes.gouv.fr-guichet-collaboratif
+```
+
+- Installez les dépendances
+
+```bash
+npm install
+```
+
+- Lancez le projet
+
+```bash
+npm run dev
+```
 
 ## Documentation développeurs
 
-:construction: à venir
+Consultez [CONTRIBUTING.md](./CONTRIBUTING.md)
