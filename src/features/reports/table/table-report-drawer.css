@@ -1,0 +1,34 @@
+.table-report-drawer {
+    padding: 0px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.filter-report {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.filter-report .filter {
+    display: flex;
+    justify-content: space-around;
+    gap: 20px;
+}
+
+.filter-report button {
+    display: flex;
+    justify-content: center;
+}
+
+.filter-report .sumbit {
+    display: flex;
+    justify-content: end;
+}
+
+.filter-report-select {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0px !important;
+}

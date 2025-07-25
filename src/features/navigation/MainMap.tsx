@@ -21,6 +21,7 @@ import ReportDrawer from "../reports/ReportDrawer";
 import { Cluster } from "ol/source";
 import VectorLayer from "ol/layer/Vector";
 import { clusterStyle } from "@/constants/styles";
+import TableReportDrawer from "../reports/table/TableReportDrawer";
 
 export default function MainMap() {
     const mapTargetRef = useRef<HTMLDivElement>(null);
@@ -133,6 +134,7 @@ export default function MainMap() {
             <GetAllLayers />
 
             <ReportDrawer />
+            <TableReportDrawer />
         </div>
     );
 }

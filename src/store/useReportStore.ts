@@ -7,11 +7,13 @@ interface ReportStore {
     selectedReport: CommunityReport | null;
     selectedFeatures: Feature[];
     editReport: boolean;
+    tableDrawerOpened: boolean;
     setReports: (reports: CommunityReport[], shouldReset?: boolean) => void;
     setEditReport: (edit: boolean) => void;
     setSelectedReport: (report: CommunityReport | null) => void;
     setSelectedFeatures: (features: Feature[]) => void;
     isShowReport: () => boolean;
+    setTableDrawerOpened: (open: boolean) => void;
 }
 
 export const useReportStore = create<ReportStore>((set, get) => ({
@@ -19,6 +21,7 @@ export const useReportStore = create<ReportStore>((set, get) => ({
     selectedReport: null,
     selectedFeatures: [],
     editReport: false,
+    tableDrawerOpened: false,
     setReports: (reports, shouldReset = false) => {
         if (shouldReset) {
             set(() => {
@@ -49,4 +52,5 @@ export const useReportStore = create<ReportStore>((set, get) => ({
     isShowReport: () => {
         return !!get().selectedReport && !get().editReport;
     },
+    setTableDrawerOpened: (open) => set({ tableDrawerOpened: open }),
 }));
