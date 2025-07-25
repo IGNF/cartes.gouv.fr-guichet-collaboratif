@@ -1,55 +1,11 @@
-import type { FeatureLike } from "ol/Feature";
-import { Fill, Stroke, Style, Text, Circle, Icon } from "ol/style";
+import { Style } from "ol/style";
 import { Pixel } from "ol/pixel";
-import CircleStyle from "ol/style/Circle";
-import { Geometry, LineString, Point } from "ol/geom";
+import { Geometry } from "ol/geom";
 import { GeometryFeatueParams } from "../types";
 import { Feature, Map } from "ol";
 import { Coordinate } from "ol/coordinate";
-import { reportImgStatus } from "@/constants/utils";
 import VectorSource from "ol/source/Vector";
-
-const circleStyleCommon = new CircleStyle({
-    radius: 8,
-    fill: new Fill({ color: "rgb(74, 208, 218, 0.6)" }),
-    stroke: new Stroke({ color: "rgb(74, 208, 218)", width: 1 }),
-});
-
-const reportStyleCommon = new Icon({
-    src: reportImgStatus["submit"].img,
-    scale: 1,
-    anchor: [0.5, 1],
-});
-
-export const clusterStyle = (feature: FeatureLike): Style => {
-    const features = feature.get("features");
-    const size = features.length;
-
-    if (size === 1) {
-        return features[0].getStyle();
-    } else {
-        return new Style({
-            image: new Circle({
-                radius: Math.max(size * 1.5, 15),
-                fill: new Fill({
-                    color: "#1e90ff",
-                }),
-                stroke: new Stroke({ color: "white", width: 2 }),
-            }),
-            text: new Text({
-                text: size.toString(),
-                scale: 1.5,
-                font: "bold 12px Times New Roman, serif",
-                textAlign: "center",
-                textBaseline: "middle",
-                fill: new Fill({
-                    color: "white",
-                }),
-            }),
-            zIndex: 2,
-        });
-    }
-};
+import { clusterReportCircleStyle, clusterReportPinStyle, clusterStyle, strokeStyleCommun } from "@/constants/styles";
 
 export const isPointGeometryAtPixel = (pointGeom: GeometryFeatueParams, pixel: Pixel, map: Map, radiusPx = 9) => {
     if (!pointGeom) return false;
@@ -82,11 +38,7 @@ export const getClickedReport = (feature: Feature, clickedPixel: Pixel, map: Map
     if (clickedStyle) {
         const clonedGeometry = (clickedStyle.getGeometry() as Geometry).clone();
         clonedGeometry.set("clicked", true);
-        const reportStyle = new Style({
-            geometry: clonedGeometry || undefined,
-            image: reportStyleCommon,
-            zIndex: 3,
-        });
+        const reportStyle = clusterReportPinStyle(clonedGeometry);
         feature.setStyle([fStyles[0], ...fStyles.slice(1).filter((s) => !(s.getGeometry() as Geometry)?.get("clicked")), reportStyle]);
     }
     return clickedFeature;
@@ -136,22 +88,9 @@ export const showClusterFeatures = (feature: Feature, resolution: number = 0, cl
 
         const spiralCoord = [center[0] + offsetX * resolutionFactor, center[1] + offsetY * resolutionFactor];
 
-        styles.push(
-            new Style({
-                geometry: new LineString([center, spiralCoord]),
-                stroke: new Stroke({
-                    color: "white",
-                    width: 1,
-                }),
-                zIndex: 1,
-            })
-        );
+        styles.push(strokeStyleCommun(center, spiralCoord));
 
-        const circleStyle = new Style({
-            geometry: new Point(spiralCoord),
-            image: circleStyleCommon,
-            zIndex: 5,
-        });
+        const circleStyle = clusterReportCircleStyle(spiralCoord);
 
         (circleStyle.getGeometry() as Geometry)?.set("reportData", currentFeature.get("reportData"));
 

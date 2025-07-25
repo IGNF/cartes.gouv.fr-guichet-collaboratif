@@ -10,7 +10,7 @@ import VectorSource from "ol/source/Vector";
 import ShowReport from "./ShowReport";
 import { getReportSketchFeatures } from "@/constants/reports/utils";
 import { clearClusterStyles, getClickedReport, showClusterFeatures } from "@/constants/reports/utils/cluster";
-import { getCenterFeatureMessage, showCenterFeatureButtons } from "@/constants/utils";
+import { getCenterReportMessage, showCenterReportButtons } from "@/constants/utils";
 
 const ReportDrawer = () => {
     const [drawerOpened, setDrawerOpened] = useState<boolean>(false);
@@ -42,12 +42,12 @@ const ReportDrawer = () => {
             reportSource?.removeFeatures(reportFeatures);
         }
 
-        const isNotified = getCenterFeatureMessage(alertMessages);
+        const isNotified = getCenterReportMessage(alertMessages);
         if (isNotified) {
             removeAlertMessage(isNotified.id);
         }
 
-        showCenterFeatureButtons(false);
+        showCenterReportButtons(false);
 
         setDrawerOpened(false);
         setEditReport(false);

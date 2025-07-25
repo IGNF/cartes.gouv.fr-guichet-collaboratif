@@ -20,7 +20,7 @@ import getMapControls from "./controls";
 import ReportDrawer from "../reports/ReportDrawer";
 import { Cluster } from "ol/source";
 import VectorLayer from "ol/layer/Vector";
-import { clusterStyle } from "@/constants/reports/utils/cluster";
+import { clusterStyle } from "@/constants/styles";
 
 export default function MainMap() {
     const mapTargetRef = useRef<HTMLDivElement>(null);
@@ -34,31 +34,45 @@ export default function MainMap() {
 
     const mapControls = getMapControls();
 
-    const addLayer = useCallback((layer: MapLayerSource): void => {
-        let newLayer: MapLayerSource | Cluster = layer;
+    const addReportLayer = useCallback((layer: VectorLayer) => {
+        const reportCluster = new Cluster({
+            distance: 60,
+            source: layer.getSource() || undefined,
+        });
 
-        if (layer.get("title") === "Signalements") {
-            const reportCluster = new Cluster({
-                distance: 60,
-                source: (layer as VectorLayer).getSource() || undefined,
-            });
+        const reportLayer = new VectorLayer({
+            source: reportCluster,
+            style: clusterStyle,
+        });
 
-            newLayer = new VectorLayer({
-                source: reportCluster,
-                style: clusterStyle,
-            });
+        reportLayer.set("title", layer.get("title"));
+        reportLayer.set("description", layer.get("description"));
+        reportLayer.set("type", layer.get("type"));
 
-            newLayer.set("title", layer.get("title"));
-            newLayer.set("description", layer.get("description"));
-            newLayer.set("type", layer.get("type"));
-        }
-        mapRef.current?.addLayer(newLayer);
-        switcherRef.current?.addLayer(newLayer, {
+        mapRef.current?.addLayer(reportLayer);
+        switcherRef.current?.addLayer(reportLayer, {
             title: layer.get("title"),
             description: layer.get("description"),
             type: layer.get("type"),
         });
     }, []);
+
+    const addLayer = useCallback(
+        (layer: MapLayerSource): void => {
+            if (layer.get("title") === "Signalements") {
+                addReportLayer(layer as VectorLayer);
+                return;
+            }
+
+            mapRef.current?.addLayer(layer);
+            switcherRef.current?.addLayer(layer, {
+                title: layer.get("title"),
+                description: layer.get("description"),
+                type: layer.get("type"),
+            });
+        },
+        [addReportLayer]
+    );
 
     const { data: cfg } = useGpConfig();
     useEffect(() => {

@@ -270,14 +270,14 @@ export const handleCenterToFeature = (map: Map | null, feature: Feature) => {
     view?.setCenter(featureCenter);
 };
 
-export const showCenterFeatureButtons = (show: boolean = true) => {
+export const showCenterReportButtons = (show: boolean = true) => {
     const buttons = document.getElementsByClassName("center-feature");
     Array.from(buttons).forEach((button) => {
         (button as HTMLButtonElement).style.display = show ? "block" : "none";
     });
 };
 
-export const getCenterFeatureMessage = (message: AlertMessageType[]) => {
+export const getCenterReportMessage = (message: AlertMessageType[]) => {
     return message.find(
         (message) =>
             typeof message.text === "object" &&

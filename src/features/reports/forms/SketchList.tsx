@@ -1,17 +1,16 @@
-import { GeometryFeatueParams, SketchFeatureType, toolNames } from "@/constants/reports/types";
+import { SketchFeatureType, toolNames } from "@/constants/reports/types";
 import { reportTools } from "@/constants/reports/utils";
+import { selectionCircleStyle } from "@/constants/styles";
 import { getFeatureDiam, handleCenterToFeature, mainMarker, markersStyles, otherMarkers } from "@/constants/utils";
 import { useMapStore, useReportStore } from "@/store";
 import Button from "@codegouvfr/react-dsfr/Button";
 import Drawing from "geopf-extensions-openlayers/src/packages/Controls/Drawing/Drawing";
 import { Feature } from "ol";
 import { Control } from "ol/control";
-import { Coordinate } from "ol/coordinate";
-import { Circle } from "ol/geom";
 import Layer from "ol/layer/Layer";
 import { Size } from "ol/size";
 import VectorSource from "ol/source/Vector";
-import { Fill, Style } from "ol/style";
+import { Style } from "ol/style";
 import ImageStyle from "ol/style/Image";
 import { useCallback, useEffect, useMemo } from "react";
 
@@ -37,6 +36,7 @@ const SketchList = () => {
     }, [mainFeature, clusterSource]);
 
     useEffect(() => {
+        if (!map) return;
         const drawingControl: typeof Drawing = map
             ?.getControls()
             .getArray()
@@ -49,18 +49,7 @@ const SketchList = () => {
         const mainFeatureStyle = mainFeature?.getStyle() as Style;
 
         if (!isMainFeatureClustered()) {
-            mainFeature?.setStyle([
-                new Style({
-                    geometry: (f) => {
-                        const center = (f.getGeometry() as GeometryFeatueParams)?.getCoordinates() as Coordinate;
-                        const mapResolution = map?.getView().getResolution() || 1;
-                        return new Circle(center, 50 * mapResolution);
-                    },
-                    fill: new Fill({ color: "rgba(0,0,145,0.2)" }),
-                    zIndex: 2,
-                }),
-                mainFeatureStyle,
-            ]);
+            mainFeature?.setStyle([selectionCircleStyle(map), mainFeatureStyle]);
             mainFeature?.changed();
         }
         return () => {
