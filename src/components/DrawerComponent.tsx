@@ -9,7 +9,7 @@ interface Props {
     anchor: AnchorType;
     isOpen: boolean;
     children: JSX.Element;
-    create: boolean;
+    create?: boolean;
     onClose: () => void;
 }
 
