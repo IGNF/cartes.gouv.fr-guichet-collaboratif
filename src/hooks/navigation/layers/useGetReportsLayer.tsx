@@ -15,7 +15,7 @@ import { useMapStore, useReportStore } from "@/store";
 
 function useGetReportsLayer(communityId: number) {
     const { addAlertMessage } = useCommunityStore();
-    const { reports, selectedFeatures, setReports } = useReportStore();
+    const { reports, setReports } = useReportStore();
     const { map } = useMapStore();
     const queryClient = useQueryClient();
 
@@ -53,16 +53,21 @@ function useGetReportsLayer(communityId: number) {
             reportLayer
                 ?.getSource()
                 ?.getFeatures()
-                .filter((f) => f.get("main") && !selectedFeatures.includes(f)) || []
+                .filter((f) => f.get("main") && !Array.isArray(f.getStyle())) || []
         );
         reports.forEach((report: CommunityReport) => {
             const mainFeatData = {
                 type: SketchFeatureType.Point,
                 geometry: report.geometry,
             };
+            const featureExist = reportLayer
+                ?.getSource()
+                ?.getFeatures()
+                .find((f) => f.get("main") && f.get("reportData").id === report.id);
+            if (featureExist) return;
             reportLayer?.getSource()?.addFeature(getFeaturePoint(report, mainFeatData, true));
         });
-    }, [map, reports, selectedFeatures, reportLayer]);
+    }, [map, reports, reportLayer]);
 
     return reportLayer;
 }

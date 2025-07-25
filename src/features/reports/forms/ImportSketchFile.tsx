@@ -20,16 +20,23 @@ const ImportSketchFile: React.FC<Props> = ({ inputRef }) => {
     const handleFileUpload = (e: ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files || [];
         Array.from(files).forEach((file) => {
-            const fileType = file.type || file.name.split(".")[1];
+            const splitedFileName = file.name.split(".");
+            const fileType = file.type || file.name.split(".")[splitedFileName.length - 1];
             if (!inputAccept.includes(fileType)) {
-                addAlertMessage(StatusMessage.error, `Le fichier "${file.name}" n'est pas supporté`);
+                addAlertMessage(
+                    StatusMessage.error,
+                    `Le fichier "${file.name}" ne peut pas être importé. Seuls les formats kml, gpx et geojson sont supportés`
+                );
                 return;
             }
 
             try {
                 readImportedFile(file, drawingSource);
             } catch (error) {
-                addAlertMessage(StatusMessage.error, `Le fichier "${file.name}" n'est pas supporté`);
+                addAlertMessage(
+                    StatusMessage.error,
+                    `Le fichier "${file.name}" ne peut pas être importé. Seuls les formats kml, gpx et geojson sont supportés`
+                );
                 console.error(error);
             }
         });

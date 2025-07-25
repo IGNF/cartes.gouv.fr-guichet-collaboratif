@@ -1,19 +1,18 @@
-import { GeometryFeatueParams, SketchFeatureType, toolNames } from "@/constants/reports/types";
+import { SketchFeatureType, toolNames } from "@/constants/reports/types";
 import { reportTools } from "@/constants/reports/utils";
+import { selectionCircleStyle } from "@/constants/styles";
 import { getFeatureDiam, handleCenterToFeature, mainMarker, markersStyles, otherMarkers } from "@/constants/utils";
 import { useMapStore, useReportStore } from "@/store";
 import Button from "@codegouvfr/react-dsfr/Button";
 import Drawing from "geopf-extensions-openlayers/src/packages/Controls/Drawing/Drawing";
 import { Feature } from "ol";
 import { Control } from "ol/control";
-import { Coordinate } from "ol/coordinate";
-import { Circle } from "ol/geom";
 import Layer from "ol/layer/Layer";
 import { Size } from "ol/size";
 import VectorSource from "ol/source/Vector";
-import { Fill, Style } from "ol/style";
+import { Style } from "ol/style";
 import ImageStyle from "ol/style/Image";
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 
 const hoveredFeatureStyle: { strockWidth: number; imageScale: number | Size } = { strockWidth: 1, imageScale: 1 };
 
@@ -21,8 +20,8 @@ const SketchList = () => {
     const { map } = useMapStore();
     const { selectedFeatures, isShowReport, setSelectedFeatures } = useReportStore();
 
-    const reportLayer = map?.getAllLayers().find((layer) => layer.get("title") === "Signalements");
-    const reportSource = reportLayer?.getSource() as VectorSource;
+    const clusterLayer = map?.getAllLayers().find((layer) => layer.get("title") === "Signalements");
+    const clusterSource = clusterLayer?.getSource() as VectorSource;
 
     const drawingLayer = map?.getAllLayers().find((layer: Layer & { gpResultLayerId?: string }) => layer.gpResultLayerId === "drawing");
     const drawingSource = drawingLayer?.getSource() as VectorSource;
@@ -30,7 +29,14 @@ const SketchList = () => {
     const mainFeature = useMemo(() => selectedFeatures.find((f) => f.get("main")), [selectedFeatures]);
     const sketchFeatures = useMemo(() => selectedFeatures.filter((f) => !f.get("main")), [selectedFeatures]);
 
+    const isMainFeatureClustered = useCallback(() => {
+        if (!clusterSource) return false;
+        const clusterFeatures = clusterSource.getFeatures()?.find((f) => f.get("features")?.find((cf: Feature) => cf === mainFeature));
+        return clusterFeatures?.get("features")?.length > 1;
+    }, [mainFeature, clusterSource]);
+
     useEffect(() => {
+        if (!map) return;
         const drawingControl: typeof Drawing = map
             ?.getControls()
             .getArray()
@@ -41,30 +47,24 @@ const SketchList = () => {
         }
 
         const mainFeatureStyle = mainFeature?.getStyle() as Style;
-        mainFeature?.setStyle([
-            new Style({
-                geometry: (f) => {
-                    const center = (f.getGeometry() as GeometryFeatueParams)?.getCoordinates() as Coordinate;
-                    const mapResolution = map?.getView().getResolution() || 1;
-                    return new Circle(center, 50 * mapResolution);
-                },
-                fill: new Fill({ color: "rgba(0,0,145,0.2)" }),
-                zIndex: 2,
-            }),
-            mainFeatureStyle,
-        ]);
-        mainFeature?.changed();
-        return () => {
-            mainFeature?.setStyle(mainFeatureStyle);
+
+        if (!isMainFeatureClustered()) {
+            mainFeature?.setStyle([selectionCircleStyle(map), mainFeatureStyle]);
             mainFeature?.changed();
+        }
+        return () => {
+            if (!isMainFeatureClustered()) {
+                mainFeature?.setStyle(mainFeatureStyle);
+                mainFeature?.changed();
+            }
             if (drawingControl) {
                 drawingControl.options.markersList = [mainMarker, ...otherMarkers];
             }
         };
-    }, [mainFeature, drawingLayer, map]);
+    }, [mainFeature, drawingLayer, map, isMainFeatureClustered]);
 
     const handleRemoveFeature = (feature: Feature) => {
-        reportSource?.removeFeature(feature);
+        clusterSource?.removeFeature(feature);
         drawingSource?.removeFeature(feature);
         hoveredFeatureStyle.strockWidth = 1;
         hoveredFeatureStyle.imageScale = 1;

@@ -1,16 +1,15 @@
-import { CommunityReport, GeometryFeatueParams, ReportTool, SketchFeatureType, SketchObject, SketchReport, toolNames } from "./types";
+import { CommunityReport, GeometryFeatueParams, ReportTool, SketchFeatureType, SketchObject, SketchReport, toolNames } from "../types";
 import CreateLabelImg from "geopf-extensions-openlayers/src/packages/CSS/Controls/Drawing/img/dsfr/create-label.svg";
 import CreateLineImg from "geopf-extensions-openlayers/src/packages/CSS/Controls/Drawing/img/dsfr/create-line.svg";
 import CreatePointImg from "geopf-extensions-openlayers/src/packages/CSS/Controls/Drawing/img/dsfr/create-point.svg";
 import CreatePolygonImg from "geopf-extensions-openlayers/src/packages/CSS/Controls/Drawing/img/dsfr/create-polygon.svg";
-import ImportFileImg from "../../img/reports/import-file.svg";
+import ImportFileImg from "../../../img/reports/import-file.svg";
 import DeleteImg from "geopf-extensions-openlayers/src/packages/CSS/Controls/Drawing/img/dsfr/delete.svg";
 import EditGeomImg from "geopf-extensions-openlayers/src/packages/CSS/Controls/Drawing/img/dsfr/edit-geom.svg";
 import EditStyleImg from "geopf-extensions-openlayers/src/packages/CSS/Controls/Drawing/img/dsfr/edit-style.svg";
 import EditTextImg from "geopf-extensions-openlayers/src/packages/CSS/Controls/Drawing/img/dsfr/edit-text.svg";
 import { Feature, Map } from "ol";
 import { Coordinate } from "ol/coordinate";
-import { Style } from "ol/style";
 import {
     getFeatureDiam,
     getFeatureGeometryWKT,
@@ -20,12 +19,13 @@ import {
     getFeaturePolygon,
     getSketchFeatureType,
     markersStyles,
-} from "../utils";
+} from "../../utils";
 import ImageStyle from "ol/style/Image";
 import KML from "ol/format/KML";
 import GPX from "ol/format/GPX";
 import GeoJSON from "ol/format/GeoJSON";
 import VectorSource from "ol/source/Vector";
+import { Style } from "ol/style";
 
 export const reportTools: ReportTool[] = [
     { type: "create", name: toolNames.point, imgSrc: CreatePointImg, order: 0, title: "Créer un marqueur", featureType: ["Point"] },
@@ -172,14 +172,11 @@ const setFeatureStyleKML = (feature: Feature) => {
 
 export const createSketchKML = (content: string, drawingSource: VectorSource) => {
     try {
-        const features = new KML().readFeatures(content);
+        const features = new KML().readFeatures(content, { dataProjection: "EPSG:4326", featureProjection: "EPSG:3857" });
         features.forEach((feature) => {
-            const drawingFeature = drawingSource.getFeatures().find((f) => f.getGeometry() === feature.getGeometry());
-            if (!drawingFeature) {
-                setFeatureStyleKML(feature);
-                drawingSource.addFeature(feature);
-            }
+            setFeatureStyleKML(feature);
         });
+        drawingSource.addFeatures(features);
     } catch (e) {
         console.error(e);
         throw Error();
@@ -188,13 +185,8 @@ export const createSketchKML = (content: string, drawingSource: VectorSource) =>
 
 export const createSketchGPX = (content: string, drawingSource: VectorSource) => {
     try {
-        const features = new GPX().readFeatures(content);
-        features.forEach((feature) => {
-            const drawingFeature = drawingSource.getFeatures().find((f) => f.getGeometry() === feature.getGeometry());
-            if (!drawingFeature) {
-                drawingSource.addFeature(feature);
-            }
-        });
+        const features = new GPX().readFeatures(content, { dataProjection: "EPSG:4326", featureProjection: "EPSG:3857" });
+        drawingSource.addFeatures(features);
     } catch (e) {
         console.error(e);
         throw Error();
@@ -202,13 +194,8 @@ export const createSketchGPX = (content: string, drawingSource: VectorSource) =>
 };
 export const createSketchGEOJSON = (content: string, drawingSource: VectorSource) => {
     try {
-        const features = new GeoJSON().readFeatures(content);
-        features.forEach((feature) => {
-            const drawingFeature = drawingSource.getFeatures().find((f) => f.getGeometry() === feature.getGeometry());
-            if (!drawingFeature) {
-                drawingSource.addFeature(feature);
-            }
-        });
+        const features = new GeoJSON().readFeatures(content, { dataProjection: "EPSG:4326", featureProjection: "EPSG:3857" });
+        drawingSource.addFeatures(features);
     } catch (e) {
         console.error(e);
         throw Error();

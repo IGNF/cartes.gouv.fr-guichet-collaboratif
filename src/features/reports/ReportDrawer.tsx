@@ -1,6 +1,6 @@
 import DrawerComponent from "@/components/DrawerComponent";
 import { ParamsReport, toolNames } from "@/constants/reports/types";
-import { useMapStore, useReportStore } from "@/store";
+import { useCommunityStore, useMapStore, useReportStore } from "@/store";
 import { Feature, MapBrowserEvent } from "ol";
 import { Style } from "ol/style";
 import { useCallback, useEffect, useState } from "react";
@@ -9,36 +9,86 @@ import Layer from "ol/layer/Layer";
 import VectorSource from "ol/source/Vector";
 import ShowReport from "./ShowReport";
 import { getReportSketchFeatures } from "@/constants/reports/utils";
+import { clearClusterStyles, getClickedReport, showClusterFeatures } from "@/constants/reports/utils/cluster";
+import { getCenterReportMessage, showCenterReportButtons } from "@/constants/utils";
 
 const ReportDrawer = () => {
     const [drawerOpened, setDrawerOpened] = useState<boolean>(false);
 
-    const { reports, selectedReport, selectedFeatures, editReport, setEditReport, setSelectedReport, setSelectedFeatures } = useReportStore();
+    const { reports, selectedReport, editReport, selectedFeatures, setEditReport, setSelectedReport, setSelectedFeatures } = useReportStore();
     const { map } = useMapStore();
+    const { alertMessages, removeAlertMessage } = useCommunityStore();
 
-    const reportLayer = map?.getAllLayers().find((layer) => layer.get("title") === "Signalements");
-    const reportSource = reportLayer?.getSource() as VectorSource;
+    const clusterLayer = map?.getAllLayers().find((layer) => layer.get("title") === "Signalements");
+    const clusterSource = clusterLayer?.getSource() as VectorSource;
+
+    const handleCloseDrawer = useCallback(() => {
+        if (!selectedReport) {
+            const drawingLayer = map?.getAllLayers().find((layer: Layer & { gpResultLayerId?: string }) => layer.gpResultLayerId === "drawing");
+            const drawingSource = drawingLayer?.getSource() as VectorSource;
+            if (drawingSource) {
+                const newFeatures = drawingSource?.getFeatures()?.filter((f) => f.get("new")) || [];
+                drawingSource.removeFeatures(newFeatures);
+            }
+        } else {
+            const reportLayer = map?.getAllLayers().find((layer) => layer.get("title") === "Signalements");
+            const reportSource = reportLayer?.getSource() as VectorSource;
+            const clusterFeatures = reportSource
+                ?.getFeatures()
+                .map((f) => f.get("features") || f)
+                .flat();
+
+            const reportFeatures = clusterFeatures.filter((fc) => fc && !fc.get("main") && fc.get("reportData")?.id === selectedReport.id);
+            reportSource?.removeFeatures(reportFeatures);
+        }
+
+        const isNotified = getCenterReportMessage(alertMessages);
+        if (isNotified) {
+            removeAlertMessage(isNotified.id);
+        }
+
+        showCenterReportButtons(false);
+
+        setDrawerOpened(false);
+        setEditReport(false);
+        setSelectedReport(null);
+        setSelectedFeatures([]);
+    }, [map, selectedReport, alertMessages, removeAlertMessage, setEditReport, setSelectedFeatures, setSelectedReport]);
 
     const handleSingleClick = useCallback(
         (evt: MapBrowserEvent) => {
-            if (selectedFeatures.find((f) => f.get("new"))) return;
+            if (selectedFeatures?.find((f) => f?.get("new"))) return;
             if (editReport) return;
             const features: { feature: Feature; zIndex: number }[] = [];
 
             map?.forEachFeatureAtPixel(evt.pixel, function (feature) {
+                let clickedFeature;
                 const currentFeature = feature as Feature;
-                const currentFeatureStyle = currentFeature.getStyle() as Style;
+                const currentFeatures = currentFeature.get("features");
+                if (currentFeatures?.length === 1) {
+                    clickedFeature = currentFeatures[0];
+                } else {
+                    if (Array.isArray(currentFeature.getStyle())) {
+                        clickedFeature = getClickedReport(currentFeature, evt.pixel, map);
+                    }
+                }
+                if (!clickedFeature) {
+                    showClusterFeatures(currentFeature, map.getView().getResolution(), clusterSource);
+                    handleCloseDrawer();
+                    return;
+                }
+                const currentFeatureStyle = clickedFeature.getStyle() as Style;
                 const currentZIndex = currentFeatureStyle && "getStyle" in currentFeatureStyle ? (currentFeatureStyle?.getZIndex() ?? 1) : 1;
-                if (currentFeature.get("new") && currentFeature.get("main")) {
+                if (clickedFeature.get("new") && clickedFeature.get("main")) {
                     features.push({
-                        feature: currentFeature,
+                        feature: clickedFeature,
                         zIndex: currentZIndex,
                     });
                     return;
                 }
-                if (currentFeature.get("reportData") && currentFeature.get("main")) {
+                if (clickedFeature.get("reportData") && clickedFeature.get("main")) {
                     features.push({
-                        feature: currentFeature,
+                        feature: clickedFeature,
                         zIndex: currentZIndex,
                     });
                     return;
@@ -47,66 +97,93 @@ const ReportDrawer = () => {
             const topFeature = features[0];
             if (topFeature) {
                 if (selectedReport) {
-                    const reportFeatures = reportSource.getFeatures().filter((f) => f.get("reportData").id === selectedReport.id);
-                    reportSource.removeFeatures(reportFeatures?.filter((f) => !f.get("main")));
+                    const reportFeatures = clusterSource.getFeatures().filter((f) => f.get("reportData")?.id === selectedReport.id);
+                    clusterSource.removeFeatures(reportFeatures?.filter((f) => !f.get("main")));
                 }
                 const report = topFeature.feature.get("reportData");
                 if (report) {
                     const selectedReportFeatures = getReportSketchFeatures(report);
-                    reportSource?.addFeatures(selectedReportFeatures);
-                    setSelectedFeatures(reportSource?.getFeatures().filter((f) => f.get("reportData").id === report.id) || []);
-
+                    clusterSource?.addFeatures(selectedReportFeatures);
+                    setSelectedFeatures([topFeature.feature, ...selectedReportFeatures]);
                     setSelectedReport(report);
                 }
             }
         },
-        [map, reportSource, selectedReport, selectedFeatures, editReport, setSelectedReport, setSelectedFeatures]
+        [map, clusterSource, selectedReport, selectedFeatures, editReport, setSelectedReport, setSelectedFeatures, handleCloseDrawer]
     );
 
     const handlePointerMove = useCallback(
         (evt: MapBrowserEvent) => {
             const features = map?.getFeaturesAtPixel(evt.pixel);
-            const feature = features?.find((f) => f.get("reportData") || f.get("new")) as Feature;
+
+            const feature = features?.find((f) => {
+                const fCluster = f.get("features");
+                if (fCluster?.length > 1) return fCluster[0];
+                return fCluster?.find((fc: Feature) => fc.get("reportData") || fc.get("new"));
+            }) as Feature;
 
             const targetElement = map?.getTargetElement();
             if (targetElement) {
-                if (selectedFeatures.length && !selectedFeatures.includes(feature) && selectedFeatures.find((f) => f.get("new"))) {
+                if (feature) {
+                    if (selectedFeatures.length && !selectedFeatures.includes(feature) && selectedFeatures.find((f) => f.get("new"))) {
+                        targetElement.style.cursor = "";
+                        return;
+                    }
+                    if (feature) {
+                        const geomType = feature.getGeometry()?.getType();
+                        if (geomType === "Point") {
+                            targetElement.style.cursor = "pointer";
+                        } else if (geomType === "LineString") {
+                            targetElement.style.cursor = "crosshair";
+                        } else if (geomType === "Polygon") {
+                            targetElement.style.cursor = "grab";
+                        }
+
+                        return;
+                    }
+                    targetElement.style.cursor = "";
+                    return;
+                } else {
                     targetElement.style.cursor = "";
                     return;
                 }
-                if (feature) {
-                    const geomType = feature.getGeometry()?.getType();
-                    if (geomType === "Point") {
-                        targetElement.style.cursor = "pointer";
-                    } else if (geomType === "LineString") {
-                        targetElement.style.cursor = "crosshair";
-                    } else if (geomType === "Polygon") {
-                        targetElement.style.cursor = "grab";
-                    }
-
-                    return;
-                }
-                targetElement.style.cursor = "";
-                return;
             }
         },
         [map, selectedFeatures]
     );
 
+    const handleClusterChange = useCallback(() => {
+        if (!selectedReport || !drawerOpened) return;
+        const clusterFeatures = clusterSource?.getFeatures();
+        if (clusterFeatures) {
+            const allFeatures = clusterFeatures.map((fc) => fc.get("features") || fc).flat();
+            if (selectedFeatures.length > 1) {
+                const sketchExist = allFeatures.find((fc) => fc.get("reportData")?.id === selectedReport?.id && !fc.get("main"));
+                if (!sketchExist) {
+                    clusterSource.addFeatures(selectedFeatures.filter((f) => !f.get("main")));
+                }
+            }
+        }
+    }, [clusterSource, selectedReport, selectedFeatures, drawerOpened]);
+
     useEffect(() => {
-        map?.on("singleclick", handleSingleClick);
-        map?.on("pointermove", handlePointerMove);
+        if (!map) return;
+        map.on("singleclick", handleSingleClick);
+        map.on("pointermove", handlePointerMove);
+        map.getView()?.on("change:resolution", handleClusterChange);
         if (selectedReport) {
             setSelectedReport(reports.find((r) => r.id === selectedReport.id) ?? null);
         }
         return () => {
-            map?.un("singleclick", handleSingleClick);
-            map?.un("pointermove", handlePointerMove);
+            map.un("singleclick", handleSingleClick);
+            map.un("pointermove", handlePointerMove);
+            map.getView().un("change:resolution", handleClusterChange);
         };
-    }, [map, reports, selectedReport, drawerOpened, handleSingleClick, handlePointerMove, setSelectedReport]);
+    }, [map, reports, selectedReport, drawerOpened, handleSingleClick, handlePointerMove, setSelectedReport, handleClusterChange]);
 
     const handleDrawingAdd = useCallback(
         (e: Event) => {
+            clearClusterStyles(clusterSource);
             const customEvent = e as CustomEvent<ParamsReport>;
             customEvent.detail.feature.set("new", true);
             if (customEvent.detail.geomType === "Point" && !drawerOpened) {
@@ -123,7 +200,7 @@ const ReportDrawer = () => {
                 setDrawerOpened(true);
             }
         },
-        [drawerOpened, setDrawerOpened]
+        [drawerOpened, clusterSource, setDrawerOpened]
     );
 
     useEffect(() => {
@@ -140,26 +217,6 @@ const ReportDrawer = () => {
             document.removeEventListener("create-report-event", handleDrawingAdd);
         };
     }, [drawerOpened, selectedReport, handleDrawingAdd]);
-
-    const handleCloseDrawer = () => {
-        if (!selectedReport) {
-            const drawingLayer = map?.getAllLayers().find((layer: Layer & { gpResultLayerId?: string }) => layer.gpResultLayerId === "drawing");
-            const drawingSource = drawingLayer?.getSource() as VectorSource;
-            if (drawingSource) {
-                const newFeatures = drawingSource?.getFeatures()?.filter((f) => f.get("new")) || [];
-                drawingSource.removeFeatures(newFeatures);
-            }
-        } else {
-            const reportLayer = map?.getAllLayers().find((layer) => layer.get("title") === "Signalements");
-            const reportSource = reportLayer?.getSource() as VectorSource;
-            const reportFeatures = reportSource.getFeatures().filter((f) => f.get("reportData").id === selectedReport.id);
-            reportSource.removeFeatures(reportFeatures?.filter((f) => !f.get("main")));
-        }
-        setSelectedReport(null);
-        setDrawerOpened(false);
-        setEditReport(false);
-        setSelectedFeatures([]);
-    };
 
     return (
         <DrawerComponent anchor="left" isOpen={drawerOpened} create={!selectedReport} onClose={handleCloseDrawer}>

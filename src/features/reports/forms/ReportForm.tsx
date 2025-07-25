@@ -12,7 +12,7 @@ import ThemeForm from "./ThemeForm";
 import { getThemeAttributes } from "@/constants/utils";
 import DrawingForm from "./DrawingForm";
 import { Feature } from "ol";
-import CenterFeature from "../CenterFeature";
+import CenterReport from "../CenterReport";
 import { reportTools } from "@/constants/reports/utils";
 import { createModal } from "@codegouvfr/react-dsfr/Modal";
 import ConfirmCancelModal from "./ConfirmCancelModal";
@@ -349,7 +349,7 @@ const ReportForm: React.FC<Props> = ({ handleSubmit, handleDelete, handleClose }
                     </div>
                 )}
             </div>
-            <CenterFeature />
+            <CenterReport />
             <ConfirmCancelModal modal={confirmModal} onClose={onClose} />
         </>
     );

@@ -6,7 +6,7 @@ import { axiosApi } from ".";
 
 async function getUserProfile(): Promise<User> {
     const res = await axiosApi.get(USER_PROFILE_API_URL);
-    if (res.data.code === 401) {
+    if (res.status > 206) {
         return null;
     }
     return {
@@ -20,10 +20,7 @@ export const useGetUserProfileAPI = () => {
     return useQuery({
         queryKey: ["USER_DATA"],
         queryFn: () => getUserProfile(),
-        retry: (failureCount, error) => {
-            console.log(failureCount);
-            return error instanceof TypeError;
-        },
+        retry: 1,
         enabled: !user,
     });
 };

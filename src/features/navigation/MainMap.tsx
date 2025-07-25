@@ -18,6 +18,9 @@ import { getLonLatFromPoint } from "@/constants/utils";
 import SaveButtonHandler from "./SaveButtonHandler";
 import getMapControls from "./controls";
 import ReportDrawer from "../reports/ReportDrawer";
+import { Cluster } from "ol/source";
+import VectorLayer from "ol/layer/Vector";
+import { clusterStyle } from "@/constants/styles";
 
 export default function MainMap() {
     const mapTargetRef = useRef<HTMLDivElement>(null);
@@ -31,14 +34,45 @@ export default function MainMap() {
 
     const mapControls = getMapControls();
 
-    const addLayer = useCallback((layer: MapLayerSource): void => {
-        mapRef.current?.addLayer(layer);
-        switcherRef.current?.addLayer(layer, {
+    const addReportLayer = useCallback((layer: VectorLayer) => {
+        const reportCluster = new Cluster({
+            distance: 60,
+            source: layer.getSource() || undefined,
+        });
+
+        const reportLayer = new VectorLayer({
+            source: reportCluster,
+            style: clusterStyle,
+        });
+
+        reportLayer.set("title", layer.get("title"));
+        reportLayer.set("description", layer.get("description"));
+        reportLayer.set("type", layer.get("type"));
+
+        mapRef.current?.addLayer(reportLayer);
+        switcherRef.current?.addLayer(reportLayer, {
             title: layer.get("title"),
             description: layer.get("description"),
             type: layer.get("type"),
         });
     }, []);
+
+    const addLayer = useCallback(
+        (layer: MapLayerSource): void => {
+            if (layer.get("title") === "Signalements") {
+                addReportLayer(layer as VectorLayer);
+                return;
+            }
+
+            mapRef.current?.addLayer(layer);
+            switcherRef.current?.addLayer(layer, {
+                title: layer.get("title"),
+                description: layer.get("description"),
+                type: layer.get("type"),
+            });
+        },
+        [addReportLayer]
+    );
 
     const { data: cfg } = useGpConfig();
     useEffect(() => {

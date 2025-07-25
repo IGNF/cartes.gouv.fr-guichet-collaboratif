@@ -4,7 +4,7 @@ import imgValid from "../img/reports/punaise_valid.png";
 import imgReject from "../img/reports/punaise_reject.png";
 import imgTest from "../img/reports/punaise_test.png";
 import { fromLonLat } from "ol/proj";
-import { CommunityTheme } from "./communities/types";
+import { AlertMessageType, CommunityTheme } from "./communities/types";
 import Feature from "ol/Feature";
 import { Map } from "ol";
 import { CommunityReport, GeometryFeatueParams, PostThemeReport, SketchFeatureType, SketchObject } from "./reports/types";
@@ -22,6 +22,7 @@ import createXImg from "../img/reports/marketlist/x.png";
 import createTriangleImg from "../img/reports/marketlist/triangle.png";
 import createPointImg from "../img/reports/create_point.png";
 import { getCenter } from "ol/extent";
+import React from "react";
 
 const wktFormat = new WKT();
 
@@ -267,4 +268,21 @@ export const handleCenterToFeature = (map: Map | null, feature: Feature) => {
     }
     const featureCenter = getCenter(featureExtent);
     view?.setCenter(featureCenter);
+};
+
+export const showCenterReportButtons = (show: boolean = true) => {
+    const buttons = document.getElementsByClassName("center-feature");
+    Array.from(buttons).forEach((button) => {
+        (button as HTMLButtonElement).style.display = show ? "block" : "none";
+    });
+};
+
+export const getCenterReportMessage = (message: AlertMessageType[]) => {
+    return message.find(
+        (message) =>
+            typeof message.text === "object" &&
+            React.isValidElement(message.text) &&
+            typeof message.text.type === "function" &&
+            message.text.type.name === "CenterMessage"
+    );
 };

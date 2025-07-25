@@ -57,7 +57,9 @@ const Carte: React.FC = () => {
 
     if (!isLoadingUser && !user) {
         return <NotConnected />;
-    } else if (isLoadingCommunity || isLoadingUser) {
+    } else if (isLoadingUser) {
+        return <div className="container">Connexion...</div>;
+    } else if (isLoadingCommunity) {
         return <div className="container">Chargement...</div>;
     } else if (!isDigital(communityId) || communityNotFound) {
         return <NotFound />;
