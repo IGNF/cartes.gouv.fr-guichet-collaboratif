@@ -1,7 +1,7 @@
 import { Table } from "@codegouvfr/react-dsfr/Table";
 import { Pagination } from "@codegouvfr/react-dsfr/Pagination";
 
-import "./TableReport.scss";
+import "./TableReport.css";
 
 const TableReport = () => {
     return (
