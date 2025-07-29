@@ -12,6 +12,7 @@ import { bbox } from "ol/loadingstrategy";
 import { useQueryClient } from "@tanstack/react-query";
 import { transformExtent } from "ol/proj";
 import { useMapStore, useReportStore } from "@/store";
+import { isEmpty } from "ol/extent";
 
 function useGetReportsLayer(communityId: number) {
     const { addAlertMessage } = useCommunityStore();
@@ -23,10 +24,13 @@ function useGetReportsLayer(communityId: number) {
         const reportSource = new VectorSource<Feature<Geometry>>({
             loader: async function (extent) {
                 try {
-                    const queryKey = `GET_REPORTS_communities=${communityId}` + `_limit=20` + `_box=${transformExtent(extent, "EPSG:3857", "EPSG:4326")}`;
+                    const boxExtent = transformExtent(extent, "EPSG:3857", "EPSG:4326");
+                    if (!isFinite(boxExtent[0]) || isEmpty(boxExtent)) return;
+                    const queryKey = `GET_REPORTS_communities=${communityId}` + `_limit=20` + `_box=${boxExtent}`;
                     const reports = await queryClient.fetchQuery({
                         queryKey: [queryKey],
                         queryFn: () => getCommunityReports(communityId, extent),
+                        retry: !isFinite(boxExtent[0]) || isEmpty(boxExtent) ? 0 : 1,
                     });
 
                     if (!reports) {
