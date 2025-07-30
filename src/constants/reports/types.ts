@@ -22,6 +22,28 @@ export type ParamsReport = {
     closeFunc: () => void;
 };
 
+type CommuneData = {
+    name: string;
+    title: string;
+    type: { name: string; title: string };
+    deleted?: boolean;
+    extent?: number[];
+};
+
+type AuthorData = {
+    id: number;
+    username: string;
+};
+
+export type GetReportData = {
+    id: number;
+    opening_date?: string;
+    commune?: CommuneData;
+    author?: AuthorData;
+    attributes: CommunityTheme[];
+    status: StatusKey;
+};
+
 export type GeometryFeatueParams =
     | (Geometry & { getCoordinates: () => Coordinate | Coordinate[] | Coordinate[][] | Coordinate[][][]; setCoordinates: (center: number[]) => void })
     | undefined;
