@@ -7,6 +7,11 @@ import { ChangeEvent, RefObject } from "react";
 
 const inputAccept = ".gpx,.kml,.geojson";
 
+const isFileAccepted = (type: string) => {
+    const fileType = type.toLocaleLowerCase();
+    return fileType.includes("kml") || fileType.includes("gpx") || fileType.includes("geojson");
+};
+
 interface Props {
     inputRef: RefObject<HTMLInputElement | null>;
 }
@@ -21,8 +26,8 @@ const ImportSketchFile: React.FC<Props> = ({ inputRef }) => {
         const files = e.target.files || [];
         Array.from(files).forEach((file) => {
             const splitedFileName = file.name.split(".");
-            const fileType = file.type || file.name.split(".")[splitedFileName.length - 1];
-            if (!inputAccept.includes(fileType)) {
+            const fileType = file.type || splitedFileName[splitedFileName.length - 1];
+            if (!isFileAccepted(fileType)) {
                 addAlertMessage(
                     StatusMessage.error,
                     `Le fichier "${file.name}" ne peut pas être importé. Seuls les formats kml, gpx et geojson sont supportés`
