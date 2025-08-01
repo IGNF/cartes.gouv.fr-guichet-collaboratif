@@ -50,7 +50,7 @@ export const clusterTextStyle = (text: string = "") =>
         }),
     });
 
-export const strokeStyleCommun = (start: Coordinate, end: number[]) =>
+export const strokeStyleCommon = (start: Coordinate, end: number[]) =>
     new Style({
         geometry: new LineString([start, end]),
         stroke: new Stroke({

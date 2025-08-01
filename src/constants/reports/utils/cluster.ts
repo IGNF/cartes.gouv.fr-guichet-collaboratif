@@ -5,7 +5,7 @@ import { GeometryFeatueParams } from "../types";
 import { Feature, Map } from "ol";
 import { Coordinate } from "ol/coordinate";
 import VectorSource from "ol/source/Vector";
-import { clusterReportCircleStyle, clusterReportPinStyle, clusterStyle, strokeStyleCommun } from "@/constants/styles";
+import { clusterReportCircleStyle, clusterReportPinStyle, clusterStyle, strokeStyleCommon } from "@/constants/styles";
 
 export const isPointGeometryAtPixel = (pointGeom: GeometryFeatueParams, pixel: Pixel, map: Map, radiusPx = 9) => {
     if (!pointGeom) return false;
@@ -88,7 +88,7 @@ export const showClusterFeatures = (feature: Feature, resolution: number = 0, cl
 
         const spiralCoord = [center[0] + offsetX * resolutionFactor, center[1] + offsetY * resolutionFactor];
 
-        styles.push(strokeStyleCommun(center, spiralCoord));
+        styles.push(strokeStyleCommon(center, spiralCoord));
 
         const circleStyle = clusterReportCircleStyle(spiralCoord);
 

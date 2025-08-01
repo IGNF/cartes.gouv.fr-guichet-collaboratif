@@ -8,10 +8,14 @@ import logoMinistereTransformation from "@/img/partners-logos/logo-ministere-tra
 import logoMinistereEcologie from "@/img/partners-logos/logo-ministere-ecologie.jpg";
 import logoCnig from "@/img/partners-logos/logo-rf-cnig.jpg";
 import { useCommunityStore, useUserStore } from "@/store";
+import { declareComponentKeys } from "i18nifty";
+import { useTranslation } from "@/i18n";
 
 const AppFooter: React.FC = () => {
     const { user } = useUserStore();
     const { community } = useCommunityStore();
+
+    const { t } = useTranslation({ AppFooter });
 
     if (community && user) return null;
 
@@ -30,15 +34,13 @@ const AppFooter: React.FC = () => {
                         Française
                     </>
                 }
-                contentDescription="
-                Cartes.gouv.fr est développé par l’Institut national de l’information géographique et forestière (IGN) et ses partenaires. Le site s’appuie sur la Géoplateforme, la nouvelle infrastructure publique, ouverte et collaborative des données géographiques.
-            "
+                contentDescription={t("content_description")}
                 bottomItems={[
                     {
                         linkProps: {
                             href: "/conditions-generales-d-utilisation",
                         },
-                        text: "Conditions générales d’utilisation",
+                        text: t("conditions_generales"),
                     },
                     <FooterPersonalDataPolicyItem key="footer-personal-data-policy-item" />,
                     <FooterConsentManagementItem key="footer-consent-management-item" />,
@@ -47,27 +49,27 @@ const AppFooter: React.FC = () => {
                 ]}
                 homeLinkProps={{
                     href: "/",
-                    title: "Accueil - cartes.gouv.fr-guichet-collaboratif",
+                    title: t("home_link"),
                 }}
                 partnersLogos={{
                     sub: [
                         {
-                            alt: "IGN",
+                            alt: t("partner_1"),
                             href: "https://www.ign.fr",
                             imgUrl: logoIgn,
                         },
                         {
-                            alt: "MINISTÈRE DE LA TRANSFORMATION ET DE LA FONCTION PUBLIQUES",
+                            alt: t("partner_2"),
                             href: "https://www.transformation.gouv.fr/",
                             imgUrl: logoMinistereTransformation,
                         },
                         {
-                            alt: "MINISTÈRE DE LA TRANSITION ÉCOLOGIQUE ET DE LA COHÉSION DES TERRITOIRES",
+                            alt: t("partner_3"),
                             href: "https://www.ecologie.gouv.fr/",
                             imgUrl: logoMinistereEcologie,
                         },
                         {
-                            alt: "Conseil National de l’Information Géolocalisée",
+                            alt: t("partner_4"),
                             href: "https://cnig.gouv.fr/",
                             imgUrl: logoCnig,
                         },
@@ -77,5 +79,10 @@ const AppFooter: React.FC = () => {
         </>
     );
 };
+
+const { i18n } = declareComponentKeys<"content_description" | "conditions_generales" | "home_link" | "partner_1" | "partner_2" | "partner_3" | "partner_4">()(
+    "AppFooter"
+);
+export type I18n = typeof i18n;
 
 export default AppFooter;
