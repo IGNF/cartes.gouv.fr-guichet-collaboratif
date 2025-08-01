@@ -17,16 +17,6 @@ const transformReportsToTableData = (reports: GetReportData[]) => {
     ]);
 };
 
-const transformReportsToTableData = (reports: GetReportData[]) => {
-    return reports.map((report) => [
-        report.status || "-",
-        report.author?.username || "-",
-        report.opening_date ? new Date(report.opening_date).toLocaleDateString() : "-",
-        report.commune ? `${report.commune.title} ` : "-",
-        report.attributes && report.attributes.length > 0 ? report.attributes.map((attr) => attr.theme || "").join(", ") : "-",
-    ]);
-};
-
 const TableReport = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const { community } = useCommunityStore();
