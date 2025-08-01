@@ -34,11 +34,14 @@ type AuthorData = {
     id: number;
     username: string;
 };
-
+type DepartementData = {
+    name: string;
+};
 export type GetReportData = {
     id: number;
     opening_date?: string;
     commune?: CommuneData;
+    departement?: DepartementData;
     author?: AuthorData;
     attributes: CommunityTheme[];
     status: StatusKey;

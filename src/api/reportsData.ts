@@ -28,7 +28,7 @@ export const getCommunityReportSketch = (report: reportData) => {
         : null;
 };
 
-export async function getReports(communityId: number, limit: number = 5): Promise<GetReportData[]> {
+export async function getReports(communityId: number, limit: number = 100): Promise<GetReportData[]> {
     const url = `${REPORTS_API_URL}?communities=${communityId}&limit=${limit}`;
     const res = await axiosApi.get(url);
     if (!res.data) return [];
