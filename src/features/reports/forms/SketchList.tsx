@@ -1,8 +1,10 @@
+import { useCallback, useEffect, useMemo } from "react";
+import { StatusMessage } from "@/constants/communities/types";
 import { SketchFeatureType, toolNames } from "@/constants/reports/types";
 import { reportTools } from "@/constants/reports/utils";
 import { selectionCircleStyle } from "@/constants/styles";
 import { getFeatureDiam, handleCenterToFeature, mainMarker, markersStyles, otherMarkers } from "@/constants/utils";
-import { useMapStore, useReportStore } from "@/store";
+import { useCommunityStore, useMapStore, useReportStore } from "@/store";
 import Button from "@codegouvfr/react-dsfr/Button";
 import Drawing from "geopf-extensions-openlayers/src/packages/Controls/Drawing/Drawing";
 import { Feature } from "ol";
@@ -12,12 +14,12 @@ import { Size } from "ol/size";
 import VectorSource from "ol/source/Vector";
 import { Style } from "ol/style";
 import ImageStyle from "ol/style/Image";
-import { useCallback, useEffect, useMemo } from "react";
 
 const hoveredFeatureStyle: { strockWidth: number; imageScale: number | Size } = { strockWidth: 1, imageScale: 1 };
 
 const SketchList = () => {
     const { map } = useMapStore();
+    const { addAlertMessage } = useCommunityStore();
     const { selectedFeatures, isShowReport, setSelectedFeatures } = useReportStore();
 
     const clusterLayer = map?.getAllLayers().find((layer) => layer.get("title") === "Signalements");
@@ -99,6 +101,18 @@ const SketchList = () => {
         feature.changed();
     };
 
+    const handleClickFeature = useCallback(
+        (feature: Feature) => {
+            try {
+                handleCenterToFeature(map, feature);
+            } catch (error) {
+                addAlertMessage(StatusMessage.error, "Impossible d'afficher ce croquis : sa géométrie est vide ou non définie.");
+                console.error(error);
+            }
+        },
+        [map, addAlertMessage]
+    );
+
     return (
         <div className="report-features">
             {isShowReport() && !sketchFeatures.length && <p>Aucun croquis associé</p>}
@@ -130,7 +144,7 @@ const SketchList = () => {
                         onMouseEnter={() => handleHoverFeature(feature, true)}
                         onMouseLeave={() => handleHoverFeature(feature, false)}
                     >
-                        <div className="sketch" onClick={() => handleCenterToFeature(map, feature)}>
+                        <div className="sketch" onClick={() => handleClickFeature(feature)}>
                             <img width={20} height={20} src={icon} alt={text} />
                             <span>{text}</span>
                         </div>

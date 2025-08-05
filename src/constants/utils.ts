@@ -21,7 +21,7 @@ import createCrossImg from "../img/reports/marketlist/cross.png";
 import createXImg from "../img/reports/marketlist/x.png";
 import createTriangleImg from "../img/reports/marketlist/triangle.png";
 import createPointImg from "../img/reports/create_point.png";
-import { getCenter } from "ol/extent";
+import { getCenter, isEmpty } from "ol/extent";
 import React from "react";
 
 const wktFormat = new WKT();
@@ -256,6 +256,11 @@ export const handleCenterToFeature = (map: Map | null, feature: Feature) => {
     const geometry: GeometryFeatueParams = feature?.getGeometry() as GeometryFeatueParams;
 
     const featureExtent = geometry?.getExtent() || [];
+    if (!isFinite(featureExtent[0]) || isEmpty(featureExtent)) {
+        throw Error();
+    }
+    const featureCenter = getCenter(featureExtent);
+
     const view = map?.getView();
 
     const size = map?.getSize();
@@ -266,7 +271,7 @@ export const handleCenterToFeature = (map: Map | null, feature: Feature) => {
     if (featureZoom) {
         view?.setZoom(featureZoom);
     }
-    const featureCenter = getCenter(featureExtent);
+
     view?.setCenter(featureCenter);
 };
 
