@@ -1,7 +1,7 @@
 import { useCommunityStore } from "@/store/useCommunityStore";
 import { useQuery } from "@tanstack/react-query";
 import { useUserStore } from "@/store/useUserStore";
-import { CommunityReport, PostReport, reportData, SketchReport, StatusKey } from "@/constants/reports/types";
+import { CommunityReport, PostReport, reportData, SketchReport, StatusKey, GetReportData } from "@/constants/reports/types";
 import { REPORTS_API_URL } from "@/constants/urls";
 import { transformExtent } from "ol/proj";
 import { Extent, isEmpty } from "ol/extent";
@@ -27,6 +27,13 @@ export const getCommunityReportSketch = (report: reportData) => {
           }
         : null;
 };
+
+export async function getReports(communityId: number, limit: number = 100): Promise<GetReportData[]> {
+    const url = `${REPORTS_API_URL}?communities=${communityId}&limit=${limit}`;
+    const res = await axiosApi.get(url);
+    if (!res.data) return [];
+    return res.data;
+}
 
 export async function getCommunityReports(communityId: number, extent: Extent): Promise<CommunityReport[] | null> {
     const boxExtent = transformExtent(extent, "EPSG:3857", "EPSG:4326");
