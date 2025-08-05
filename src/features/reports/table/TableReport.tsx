@@ -6,6 +6,7 @@ import { useCommunityStore } from "@/store/useCommunityStore";
 import { REPORTS_API_URL } from "@/constants/urls";
 import type { GetReportData } from "@/constants/reports/types";
 import PaginationReport from "./PaginationReport";
+import usePagination from "@/hooks/usePagination";
 
 const transformReportsToTableData = (reports: GetReportData[]) => {
     return reports.map((report) => [
@@ -31,12 +32,7 @@ const TableReport = () => {
         enabled: !!community,
     });
     const tableData = reports ? transformReportsToTableData(reports) : [];
-    const totalPage = Math.ceil(tableData.length / 10);
-    const paginationArray = <T,>(data: T[], page: number, limit: number): T[] => {
-        const startFrom = (page - 1) * limit;
-        const end = page * limit;
-        return data.slice(startFrom, end);
-    };
+    const { totalPage, paginatedData } = usePagination(tableData, Number(searchParams.get("page")) || 1, 10);
 
     if (isLoading) return <div>Chargement des signalements...</div>;
     if (error) return <div>Erreur lors du chargement des signalements.</div>;
@@ -44,13 +40,7 @@ const TableReport = () => {
 
     return (
         <>
-            <Table
-                bordered
-                noCaption
-                headers={["statut", "pseudo", "date de création", "commune (département)", "thème"]}
-                data={paginationArray(tableData, Number(searchParams.get("page")), 10)}
-                fixed
-            />
+            <Table bordered noCaption headers={["statut", "pseudo", "date de création", "commune (département)", "thème"]} data={paginatedData} fixed />
 
             <div className="center-pagination">
                 <PaginationReport totalPage={totalPage} searchParams={searchParams} setSearchParams={setSearchParams} />
