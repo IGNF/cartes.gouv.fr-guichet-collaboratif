@@ -75,15 +75,19 @@
 
 .map-toolbar-bottom {
     background-color: #f5f8ff;
-    padding: 20px 0;
+    padding: 20px;
+    display: flex;
+    justify-content: space-around;
 }
 
 .map-toolbar-bottom-inner {
     display: flex;
-    justify-content: center;
     align-items: center;
     gap: 1rem;
-    font-weight: bold;
+    justify-content: space-around;
+    background-color: #f5f8ff;
+    padding: 20px;
+    width: 100%;
 }
 
 .map-toolbar-label {
@@ -119,4 +123,19 @@
 
 .map-toolbar-layer-label {
     font-weight: bold;
+}
+
+.map-toolbar-bottom-select {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.map-toolbar-bottom-select label {
+    width: 100%;
+    font-weight: bold;
+}
+
+.map-toolbar-bottom-select select {
+    margin-top: 0px !important;
 }

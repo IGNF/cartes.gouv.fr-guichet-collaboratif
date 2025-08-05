@@ -1,8 +1,8 @@
 import { Button } from "@codegouvfr/react-dsfr/Button";
 import { Select } from "@codegouvfr/react-dsfr/Select";
 import { fr } from "@codegouvfr/react-dsfr";
-import { useState, useEffect, useRef } from "react";
-import { useCommunityStore } from "@/store";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { useCommunityStore, useReportStore } from "@/store";
 
 import "./MapToolbar.css";
 
@@ -11,13 +11,19 @@ const MapToolbar: React.FC = () => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [dropdownWidth, setDropdownWidth] = useState<number>(0);
     const buttonGroupRef = useRef<HTMLDivElement>(null);
+
     const { community } = useCommunityStore();
+    const { tableDrawerOpened, setTableDrawerOpened } = useReportStore();
 
     useEffect(() => {
         if (isDropdownOpen && buttonGroupRef.current) {
             setDropdownWidth(buttonGroupRef.current.offsetWidth);
         }
     }, [isDropdownOpen]);
+
+    const toggleTableReportsDrawer = useCallback(() => {
+        setTableDrawerOpened(!tableDrawerOpened);
+    }, [tableDrawerOpened, setTableDrawerOpened]);
 
     if (!community) return null;
 
@@ -93,22 +99,23 @@ const MapToolbar: React.FC = () => {
                 </div>
             </div>
 
-            <div className="map-toolbar-bottom">
-                <div className={`${fr.cx("fr-container")} map-toolbar-bottom-inner`}>
-                    <div className="map-toolbar-layer-label">Couche de travail :</div>
-                    <Select
-                        label=""
-                        nativeSelectProps={{
-                            value: selectedLayer,
-                            onChange: (e) => setSelectedLayer(e.target.value),
-                        }}
-                    >
-                        <option>Zones de sismicité</option>
-                        <option>Option 2</option>
-                        <option>Option 3</option>
-                        <option>Option 4</option>
-                    </Select>
-                </div>
+            <div className={`map-toolbar-bottom-inner`}>
+                <Button iconId="ri-table-view" onClick={toggleTableReportsDrawer}>
+                    Tous les signalements
+                </Button>
+                <Select
+                    label="Couche de travail :"
+                    nativeSelectProps={{
+                        value: selectedLayer,
+                        onChange: (e) => setSelectedLayer(e.target.value),
+                    }}
+                    className="map-toolbar-bottom-select"
+                >
+                    <option>Zones de sismicité</option>
+                    <option>Option 2</option>
+                    <option>Option 3</option>
+                    <option>Option 4</option>
+                </Select>
             </div>
         </div>
     );
