@@ -4,7 +4,7 @@ import { useUserStore } from "@/store/useUserStore";
 import { CommunityReport, PostReport, reportData, SketchReport, StatusKey, GetReportData } from "@/constants/reports/types";
 import { REPORTS_API_URL } from "@/constants/urls";
 import { transformExtent } from "ol/proj";
-import { Extent } from "ol/extent";
+import { Extent, isEmpty } from "ol/extent";
 import { axiosApi } from ".";
 
 export const isDigital = (value: string): boolean => {
@@ -36,11 +36,11 @@ export async function getReports(communityId: number, limit: number = 100): Prom
 }
 
 export async function getCommunityReports(communityId: number, extent: Extent): Promise<CommunityReport[] | null> {
+    const boxExtent = transformExtent(extent, "EPSG:3857", "EPSG:4326");
+    if (!isFinite(boxExtent[0]) || isEmpty(boxExtent)) return null;
     const limit = 100;
     const data = [];
-    const res = await axiosApi.get(
-        `${REPORTS_API_URL}?communities=${communityId}` + `&limit=${limit}` + `&box=${transformExtent(extent, "EPSG:3857", "EPSG:4326")}`
-    );
+    const res = await axiosApi.get(`${REPORTS_API_URL}?communities=${communityId}` + `&limit=${limit}` + `&box=${boxExtent}`);
     if (!res.data || (res.status !== 200 && res.status !== 206)) return null;
 
     data.push(...res.data);
