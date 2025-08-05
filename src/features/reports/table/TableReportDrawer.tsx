@@ -2,7 +2,7 @@ import DrawerComponent from "@/components/DrawerComponent";
 import { useReportStore } from "@/store";
 import "./table-report-drawer.css";
 import SearchReport from "./SearchReport";
-import FilterAndSortReport from "./FilterAndSortReport";
+import FilterAndSortReport from "@/components/FilterAndSortReport";
 import TableReport from "./TableReport";
 
 const TableReportDrawer = () => {

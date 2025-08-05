@@ -1,8 +1,11 @@
+import { getReports } from "@/api/reportsData";
+import { GetReportData } from "@/constants/reports/types";
 import { REPORTS_API_URL } from "@/constants/urls";
-import { useCommunityStore } from "@/store";
+import { useCommunityStore, useReportStore } from "@/store";
 import Button from "@codegouvfr/react-dsfr/Button";
 import Input from "@codegouvfr/react-dsfr/Input";
 import Select from "@codegouvfr/react-dsfr/Select";
+import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { Fragment } from "react/jsx-runtime";
 
@@ -11,10 +14,10 @@ interface SelectProps {
     options: string[];
     name: string;
 }
+type SortableKeys = "opening_date" | "updating_date";
 
 const SelectComponent: React.FC<SelectProps> = ({ label, options, name }) => {
     const [selected, setSelected] = useState(-1);
-
     return (
         <Select
             label={label}
@@ -40,12 +43,44 @@ const SelectComponent: React.FC<SelectProps> = ({ label, options, name }) => {
     );
 };
 
+// Convert reports obj into arrays of displayable strings for each table row..
+const transformReportsToTableData = (reports: GetReportData[]) => {
+    return reports.map((report) => [
+        report.status || "-",
+        report.author?.username || "-",
+        report.opening_date ? new Date(report.opening_date).toLocaleDateString() : "-",
+        report.commune ? `${report.commune.title} (${report.departement?.name})` : "-",
+        report.attributes && report.attributes.length > 0 ? report.attributes.map((attr) => attr.theme || "").join(", ") : "-",
+    ]);
+};
+
 const FilterAndSortReport = () => {
     const { community } = useCommunityStore();
+    const { setFilteredReports } = useReportStore();
+    const queryKey = `${REPORTS_API_URL}?communities=${community?.id}`;
+    const {
+        data: reports = [],
+        isLoading,
+        error,
+    } = useQuery<GetReportData[]>({
+        queryKey: [queryKey],
+        queryFn: () => (community ? getReports(community.id) : Promise.resolve([])),
+        enabled: !!community,
+    });
+    const tableData = reports ? transformReportsToTableData(reports) : [];
 
-    const statusOptions = useMemo(() => ["submit", "pending0", "pending", "pending1", "pending2", "valid", "valid0", "reject", "reject0", "test", "dump"], []);
-    const themeOptions = useMemo(() => ["Thème 1", "Thème 2"], []);
-    const sortOptions = useMemo(() => ["opening_date", "updating_date"], []);
+    const statusList = tableData.map((list) => list[0]);
+    const themeList = tableData.map((list) => list[4]);
+    const statusOptions = useMemo(() => [...new Set(statusList)], [statusList]);
+    const themeOptions = useMemo(() => [...new Set(themeList)], [themeList]);
+    const sortOptions: SortableKeys[] = useMemo(() => {
+        if (reports.length > 0) {
+            const keys = Object.keys(reports[0]);
+            const filteredKeys = keys.filter((key) => key === "opening_date" || key === "updating_date");
+            return filteredKeys;
+        }
+        return [];
+    }, [reports]);
 
     const handleSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
@@ -55,10 +90,10 @@ const FilterAndSortReport = () => {
         const filterBy = {
             status: statusOptions[parseInt((formData.get("status") as string) || "")],
             theme: themeOptions[parseInt((formData.get("theme") as string) || "")],
-            author: formData.get("author"),
+            author: Number(formData.get("author")),
             department: formData.get("department"),
         };
-        const sortBy = sortOptions[parseInt((formData.get("sort") as string) || "")];
+        const sortBy = sortOptions[parseInt((formData.get("sort") as SortableKeys) || "")];
 
         const url =
             `${REPORTS_API_URL}` +
@@ -69,6 +104,27 @@ const FilterAndSortReport = () => {
             (filterBy.theme ? `&attributes=${filterBy.theme}` : "") +
             (sortBy ? `&sort=${sortBy}:asc` : "");
 
+        const filtered = reports.filter(
+            (report) =>
+                (!filterBy.status || report.status === filterBy.status) &&
+                (!filterBy.theme || report.attributes.some((attr) => attr.theme === filterBy.theme)) &&
+                (!filterBy.author || report.author?.id === filterBy.author) &&
+                (!filterBy.department || report.departement?.name === filterBy.department)
+        );
+
+        if (sortBy) {
+            //DESC
+            filtered.sort((a, b) => {
+                const aValue = a[sortBy] ?? "";
+                const bValue = b[sortBy] ?? "";
+                return new Date(bValue).getTime() - new Date(aValue).getTime();
+            });
+        }
+        setFilteredReports(filtered, true);
+
+        if (isLoading) return <div>Chargement des signalements...</div>;
+        if (error) return <div>Erreur lors du chargement des signalements.</div>;
+        if (filtered.length === 0) return <div>Aucun signalement trouvé.</div>;
         console.log(filterBy, sortBy, url);
     };
 

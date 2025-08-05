@@ -15,7 +15,7 @@ const PaginationReport = ({ totalPage, searchParams, setSearchParams }: Paginati
             <div className="center-pagination">
                 <Pagination
                     count={totalPage}
-                    defaultPage={Number(searchParams.get("page"))}
+                    defaultPage={Number(searchParams.get("page")) || 1}
                     getPageLinkProps={(pageNumber: number) => ({
                         href: `?page=${pageNumber}`,
                         "aria-label": `Aller à la page ${pageNumber}`,
