@@ -40,6 +40,7 @@ type DepartementData = {
 export type GetReportData = {
     id: number;
     opening_date?: string;
+    updating_date?: string;
     commune?: CommuneData;
     departement?: DepartementData;
     author?: AuthorData;
