@@ -1,7 +1,7 @@
 import { SetURLSearchParams } from "react-router-dom";
 import { Pagination } from "@codegouvfr/react-dsfr/Pagination";
 
-import "./PaginationReport.scss";
+import "./PaginationReport.css";
 
 type PaginationReportProps = {
     totalPage: number;
