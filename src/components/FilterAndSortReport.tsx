@@ -12,7 +12,7 @@ import { Fragment } from "react/jsx-runtime";
 
 interface SelectProps {
     label: string;
-    options: string[];
+    options: string[] | number[];
     name: string;
 }
 type SortableKeys = "opening_date" | "updating_date";
@@ -58,6 +58,8 @@ const transformReportsToTableData = (reports: GetReportData[]) => {
 const FilterAndSortReport = () => {
     const { community } = useCommunityStore();
     const { setFilteredReports } = useReportStore();
+    const [, setSearchParams] = useSearchParams();
+
     const queryKey = `${REPORTS_API_URL}?communities=${community?.id}`;
     const {
         data: reports = [],
@@ -82,8 +84,8 @@ const FilterAndSortReport = () => {
         }
         return [];
     }, [reports]);
+    const limitOptions = [2, 5, 10, 15, 20, 30];
 
-    const [, setSearchParams] = useSearchParams();
     const handleSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         const form = (e.target as HTMLButtonElement).form;
@@ -96,21 +98,19 @@ const FilterAndSortReport = () => {
             department: formData.get("department"),
         };
         const sortBy = sortOptions[parseInt((formData.get("sort") as SortableKeys) || "")];
+        const limitBy = limitOptions[parseInt(formData.get("limit") as string)];
 
         const params = new URLSearchParams();
-        const url =
-            `${REPORTS_API_URL}` +
-            params.set("communities", community?.id.toString() || "") +
-            params.set("fields", "id,status,author,commune,departement,opening_date,updating_date,attributes") +
-            (filterBy.department ? params.set("departements", filterBy.department.toString()) : "") +
-            (filterBy.status ? params.set("status", filterBy.status) : "") +
-            (filterBy.author ? params.set("author", filterBy.author.toString()) : "") +
-            (filterBy.theme ? params.set("attributes", filterBy.theme) : "") +
-            (sortBy ? params.set("sort", sortBy + "asc") : "");
+        params.set("communities", community?.id?.toString() || "");
+        if (limitBy) params.set("limit", limitBy?.toString() || "");
+        if (filterBy.department) params.set("departements", filterBy.department.toString());
+        if (filterBy.status) params.set("status", filterBy.status);
+        if (filterBy.author) params.set("author", filterBy.author.toString());
+        if (filterBy.theme) params.set("attributes", filterBy.theme);
+        if (sortBy) params.set("sort", sortBy);
 
         params.set("page", "1"); // go to initial page (page 1) when totalPage changes
         setSearchParams(params);
-        console.log(filterBy, sortBy, url);
 
         const filtered = reports.filter(
             (report) =>
@@ -121,11 +121,11 @@ const FilterAndSortReport = () => {
         );
 
         if (sortBy) {
-            //DESC
+            //ASC
             filtered.sort((a, b) => {
                 const aValue = a[sortBy] ?? "";
                 const bValue = b[sortBy] ?? "";
-                return new Date(bValue).getTime() - new Date(aValue).getTime();
+                return new Date(aValue).getTime() - new Date(bValue).getTime();
             });
         }
         setFilteredReports(filtered, true);
@@ -157,8 +157,13 @@ const FilterAndSortReport = () => {
 
             <div>
                 <h3>Triage : </h3>
-                <div className="filter">
-                    <SelectComponent name="sort" label="Date" options={sortOptions} />
+                <div className="filter-report__wrapper">
+                    <div className="filter">
+                        <SelectComponent name="sort" label="Date" options={sortOptions} />
+                    </div>
+                    <div className="filter">
+                        <SelectComponent name="limit" label="Limit" options={limitOptions} />
+                    </div>
                 </div>
             </div>
 
