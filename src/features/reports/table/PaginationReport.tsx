@@ -16,15 +16,21 @@ const PaginationReport = ({ totalPage, searchParams, setSearchParams }: Paginati
                 <Pagination
                     count={totalPage}
                     defaultPage={Number(searchParams.get("page")) || 1}
-                    getPageLinkProps={(pageNumber: number) => ({
-                        href: `?page=${pageNumber}`,
-                        "aria-label": `Aller à la page ${pageNumber}`,
+                    getPageLinkProps={(pageNumber: number) => {
+                        // Clone current params
+                        const params = new URLSearchParams(searchParams.toString());
+                        // Change only page param
+                        params.set("page", pageNumber.toString());
+                        return {
+                            href: `?page=${pageNumber}+?${params.toString()}`,
+                            "aria-label": `Aller à la page ${pageNumber}`,
 
-                        onClick: (e) => {
-                            e.preventDefault();
-                            setSearchParams({ page: pageNumber.toString() });
-                        },
-                    })}
+                            onClick: (e) => {
+                                e.preventDefault();
+                                setSearchParams(params);
+                            },
+                        };
+                    }}
                     showFirstLast
                 />
             </div>
