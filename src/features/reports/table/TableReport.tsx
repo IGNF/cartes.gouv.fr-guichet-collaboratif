@@ -7,7 +7,6 @@ import { useCommunityStore } from "@/store/useCommunityStore";
 import { REPORTS_API_URL } from "@/constants/urls";
 import type { GetReportData } from "@/constants/reports/types";
 import PaginationReport from "./PaginationReport";
-import { useEffect } from "react";
 
 const transformReportsToTableData = (reports: GetReportData[]) => {
     return reports.map((report) => [
@@ -41,12 +40,6 @@ const TableReport = () => {
         const end = page * limit;
         return data.slice(startFrom, end);
     };
-
-    // go to initial page (page 1) when totalPage changes
-    useEffect(() => {
-        setSearchParams((prev) => ({ ...prev, page: "1" }));
-        return () => {};
-    }, [totalPage]);
 
     if (isLoading) return <div>Chargement des signalements...</div>;
     if (error) return <div>Erreur lors du chargement des signalements.</div>;

@@ -7,6 +7,7 @@ import Input from "@codegouvfr/react-dsfr/Input";
 import Select from "@codegouvfr/react-dsfr/Select";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Fragment } from "react/jsx-runtime";
 
 interface SelectProps {
@@ -82,6 +83,7 @@ const FilterAndSortReport = () => {
         return [];
     }, [reports]);
 
+    const [, setSearchParams] = useSearchParams();
     const handleSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         const form = (e.target as HTMLButtonElement).form;
@@ -95,14 +97,20 @@ const FilterAndSortReport = () => {
         };
         const sortBy = sortOptions[parseInt((formData.get("sort") as SortableKeys) || "")];
 
+        const params = new URLSearchParams();
         const url =
             `${REPORTS_API_URL}` +
-            `?communities=${community?.id}` +
-            (filterBy.department ? `&departements=${filterBy.department}` : "") +
-            (filterBy.status ? `&status=${filterBy.status}` : "") +
-            (filterBy.author ? `&author=${filterBy.author}` : "") +
-            (filterBy.theme ? `&attributes=${filterBy.theme}` : "") +
-            (sortBy ? `&sort=${sortBy}:asc` : "");
+            params.set("communities", community?.id.toString() || "") +
+            params.set("fields", "id,status,author,commune,departement,opening_date,updating_date,attributes") +
+            (filterBy.department ? params.set("departements", filterBy.department.toString()) : "") +
+            (filterBy.status ? params.set("status", filterBy.status) : "") +
+            (filterBy.author ? params.set("author", filterBy.author.toString()) : "") +
+            (filterBy.theme ? params.set("attributes", filterBy.theme) : "") +
+            (sortBy ? params.set("sort", sortBy + "asc") : "");
+
+        params.set("page", "1"); // go to initial page (page 1) when totalPage changes
+        setSearchParams(params);
+        console.log(filterBy, sortBy, url);
 
         const filtered = reports.filter(
             (report) =>
@@ -125,7 +133,6 @@ const FilterAndSortReport = () => {
         if (isLoading) return <div>Chargement des signalements...</div>;
         if (error) return <div>Erreur lors du chargement des signalements.</div>;
         if (filtered.length === 0) return <div>Aucun signalement trouvé.</div>;
-        console.log(filterBy, sortBy, url);
     };
 
     return (
