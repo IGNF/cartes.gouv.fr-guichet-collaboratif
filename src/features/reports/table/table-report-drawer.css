@@ -11,10 +11,9 @@
     gap: 20px;
 }
 
-.filter-report .filter {
+.filter-report__wrapper {
     display: flex;
-    justify-content: space-around;
-    gap: 20px;
+    justify-content: space-between;
 }
 
 .filter-report button {
@@ -27,8 +26,13 @@
     justify-content: end;
 }
 
-.filter-report-select {
+.filter-report__select {
     display: flex;
     flex-direction: column;
     margin-bottom: 0px !important;
+}
+
+.sort-report__wrapper {
+    display: flex;
+    gap: 10px;
 }

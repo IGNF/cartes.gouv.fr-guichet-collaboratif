@@ -1,13 +1,13 @@
 import { useSearchParams } from "react-router-dom";
-import { useReportStore } from "@/store";
 import { useQuery } from "@tanstack/react-query";
-import { Table } from "@codegouvfr/react-dsfr/Table";
-import { getReports } from "@/api/reportsData";
+import { useReportStore } from "@/store";
 import { useCommunityStore } from "@/store/useCommunityStore";
+import { getReports } from "@/api/reportsData";
+import usePagination from "@/hooks/usePagination";
 import { REPORTS_API_URL } from "@/constants/urls";
 import type { GetReportData } from "@/constants/reports/types";
+import { Table } from "@codegouvfr/react-dsfr/Table";
 import PaginationReport from "./PaginationReport";
-import usePagination from "@/hooks/usePagination";
 
 const transformReportsToTableData = (reports: GetReportData[]) => {
     return reports.map((report) => [
@@ -45,11 +45,8 @@ const TableReport = () => {
 
     return (
         <>
-            <Table bordered noCaption headers={["statut", "pseudo", "date de création", "commune (département)", "thème"]} data={paginatedData} fixed />
-
-            <div className="center-pagination">
-                <PaginationReport totalPage={totalPage} searchParams={searchParams} setSearchParams={setSearchParams} />
-            </div>
+            <Table bordered noCaption headers={["Statut", "Pseudo", "Date de création", "Commune (département)", "Thème"]} data={paginatedData} fixed />
+            <PaginationReport totalPage={totalPage} searchParams={searchParams} setSearchParams={setSearchParams} />
         </>
     );
 };
