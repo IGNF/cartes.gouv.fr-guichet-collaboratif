@@ -1,23 +1,24 @@
+import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { Fragment } from "react/jsx-runtime";
+import { useCommunityStore, useReportStore } from "@/store";
 import { getReports } from "@/api/reportsData";
 import { GetReportData } from "@/constants/reports/types";
 import { REPORTS_API_URL } from "@/constants/urls";
-import { useCommunityStore, useReportStore } from "@/store";
 import Button from "@codegouvfr/react-dsfr/Button";
 import Input from "@codegouvfr/react-dsfr/Input";
 import Select from "@codegouvfr/react-dsfr/Select";
-import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
-import { Fragment } from "react/jsx-runtime";
 
 interface SelectProps {
     label: string;
+    defaultOption: string;
     options: string[] | number[];
     name: string;
 }
 type SortableKeys = "opening_date" | "updating_date";
 
-const SelectComponent: React.FC<SelectProps> = ({ label, options, name }) => {
+const SelectComponent: React.FC<SelectProps> = ({ label, defaultOption, options, name }) => {
     const [selected, setSelected] = useState(-1);
     return (
         <Select
@@ -33,7 +34,7 @@ const SelectComponent: React.FC<SelectProps> = ({ label, options, name }) => {
             className="filter-report-select"
         >
             <Fragment key=".0">
-                <option value={-1}>Selectionnez {label}</option>
+                <option value={-1}>Selectionnez {defaultOption}</option>
                 {options.map((option, index) => (
                     <option key={`${label}_${index}`} value={index} selected={selected == index}>
                         {option}
@@ -109,7 +110,7 @@ const FilterAndSortReport = () => {
         if (filterBy.theme) params.set("attributes", filterBy.theme);
         if (sortBy) params.set("sort", sortBy);
 
-        params.set("page", "1"); // go to initial page (page 1) when totalPage changes
+        params.set("page", "1"); // go to initial page (page 1)
         setSearchParams(params);
 
         const filtered = reports.filter(
@@ -136,43 +137,44 @@ const FilterAndSortReport = () => {
     };
 
     return (
-        <form className="filter-report">
-            <div>
-                <h3>Filtrage par :</h3>
-                <div className="filter">
-                    <SelectComponent name="status" label="Status" options={statusOptions} />
-                    <SelectComponent name="theme" label="Thème" options={themeOptions} />
-                    <Input
-                        className="filter-report-select"
-                        label="Auteur"
-                        nativeInputProps={{ name: "author", type: "number", inputMode: "numeric", pattern: "[0-9]*" }}
-                    />
-                    <Input
-                        className="filter-report-select"
-                        label="Département"
-                        nativeInputProps={{ name: "department", type: "number", max: 2, multiple: true }}
-                    />
-                </div>
-            </div>
+        <>
+            <h1 className="visuallyhidden">Tous les signalements</h1>
 
-            <div>
-                <h3>Triage : </h3>
-                <div className="filter-report__wrapper">
-                    <div className="filter">
-                        <SelectComponent name="sort" label="Date" options={sortOptions} />
-                    </div>
-                    <div className="filter">
-                        <SelectComponent name="limit" label="Limit" options={limitOptions} />
+            <form className="filter-report">
+                <div>
+                    <h2 className="t-h3">Filtrer par :</h2>
+                    <div className="filter-report__wrapper">
+                        <SelectComponent name="status" label="Status" defaultOption="un status" options={statusOptions} />
+                        <SelectComponent name="theme" label="Thème" defaultOption="un thème" options={themeOptions} />
+                        <Input
+                            className="filter-report__select"
+                            label="Auteur"
+                            nativeInputProps={{ name: "author", type: "number", inputMode: "numeric", pattern: "[0-9]*" }}
+                        />
+                        <Input
+                            className="filter-report__select"
+                            label="Département"
+                            nativeInputProps={{ name: "department", type: "number", max: 2, multiple: true }}
+                        />
                     </div>
                 </div>
-            </div>
 
-            <div className="sumbit">
-                <Button iconId="ri-filter-fill" size="large" type="submit" onClick={handleSubmit}>
-                    Valider
-                </Button>
-            </div>
-        </form>
+                <div>
+                    <h2 className="t-h3">Trier par : </h2>
+                    <div className="sort-report__wrapper">
+                        <SelectComponent name="sort" label="Date" defaultOption="une date" options={sortOptions} />
+
+                        <SelectComponent name="limit" label="Nombre d’éléments par page" defaultOption="une valeur" options={limitOptions} />
+                    </div>
+                </div>
+
+                <div className="sumbit">
+                    <Button iconId="ri-filter-fill" size="large" type="submit" onClick={handleSubmit}>
+                        Valider
+                    </Button>
+                </div>
+            </form>
+        </>
     );
 };
 
