@@ -37,16 +37,6 @@ type AuthorData = {
 type DepartementData = {
     name: string;
 };
-export type GetReportData = {
-    id: number;
-    opening_date?: string;
-    updating_date?: string;
-    commune?: CommuneData;
-    departement?: DepartementData;
-    author?: AuthorData;
-    attributes: CommunityTheme[];
-    status: StatusKey;
-};
 
 export type GeometryFeatueParams =
     | (Geometry & { getCoordinates: () => Coordinate | Coordinate[] | Coordinate[][] | Coordinate[][][]; setCoordinates: (center: number[]) => void })
@@ -67,7 +57,13 @@ export interface CommunityReport {
     themes: CommunityTheme[];
     status: StatusKey;
     attachments: ReportAttachment[];
-    sketch: SketchReport | null;
+    sketch?: SketchReport | null;
+    opening_date?: string;
+    updating_date?: string;
+    commune?: CommuneData;
+    departement?: DepartementData;
+    author?: AuthorData;
+    attributes?: CommunityTheme[];
 }
 
 export type PostThemeReport = { [key: string]: string };

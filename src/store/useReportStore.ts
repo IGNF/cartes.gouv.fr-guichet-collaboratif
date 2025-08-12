@@ -1,4 +1,4 @@
-import { CommunityReport, GetReportData } from "@/constants/reports/types";
+import { CommunityReport } from "@/constants/reports/types";
 import { Feature } from "ol";
 import { create } from "zustand";
 
@@ -14,9 +14,9 @@ interface ReportStore {
     setSelectedFeatures: (features: Feature[]) => void;
     isShowReport: () => boolean;
     setTableDrawerOpened: (open: boolean) => void;
-    filteredReports: GetReportData[];
+    filteredReports: CommunityReport[];
     isFiltered: boolean;
-    setFilteredReports: (reports: GetReportData[], isFiltered: boolean) => void;
+    setFilteredReports: (reports: CommunityReport[], isFiltered: boolean) => void;
 }
 
 export const useReportStore = create<ReportStore>((set, get) => ({
