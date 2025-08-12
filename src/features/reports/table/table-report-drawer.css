@@ -36,3 +36,7 @@
     display: flex;
     gap: 10px;
 }
+.table-report__table table th,
+.table-report__table table td {
+    text-align: center;
+}

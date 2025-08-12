@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Fragment } from "react/jsx-runtime";
 import { useCommunityStore, useReportStore } from "@/store";
 import { getReports } from "@/api/reportsData";
-import { GetReportData } from "@/constants/reports/types";
+import { CommunityReport } from "@/constants/reports/types";
 import { REPORTS_API_URL } from "@/constants/urls";
 import Button from "@codegouvfr/react-dsfr/Button";
 import Input from "@codegouvfr/react-dsfr/Input";
@@ -46,7 +46,7 @@ const SelectComponent: React.FC<SelectProps> = ({ label, defaultOption, options,
 };
 
 // Convert reports obj into arrays of displayable strings for each table row..
-const transformReportsToTableData = (reports: GetReportData[]) => {
+const transformReportsToTableData = (reports: CommunityReport[]) => {
     return reports.map((report) => [
         report.status || "-",
         report.author?.username || "-",
@@ -66,7 +66,7 @@ const FilterAndSortReport = () => {
         data: reports = [],
         isLoading,
         error,
-    } = useQuery<GetReportData[]>({
+    } = useQuery<CommunityReport[]>({
         queryKey: [queryKey],
         queryFn: () => (community ? getReports(community.id) : Promise.resolve([])),
         enabled: !!community,
