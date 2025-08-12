@@ -98,7 +98,6 @@ const TableReport = () => {
         addAlertMessage(StatusMessage.error, "Aucun résultat ne correspond à vos filtres.");
         return null;
     }
-
     return (
         <>
             <Button onClick={() => handleDelete()}> delete </Button>
