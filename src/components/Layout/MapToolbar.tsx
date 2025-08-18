@@ -5,6 +5,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useCommunityStore, useReportStore } from "@/store";
 
 import "./MapToolbar.css";
+import { useTranslation } from "@/i18n";
 
 const MapToolbar: React.FC = () => {
     const [selectedLayer, setSelectedLayer] = useState("Zones de sismicité");
@@ -14,6 +15,8 @@ const MapToolbar: React.FC = () => {
 
     const { community } = useCommunityStore();
     const { tableDrawerOpened, setTableDrawerOpened } = useReportStore();
+
+    const { t } = useTranslation({ MapToolbar });
 
     useEffect(() => {
         if (isDropdownOpen && buttonGroupRef.current) {
@@ -41,7 +44,7 @@ const MapToolbar: React.FC = () => {
                                 alt="Icône Guichet"
                                 className="map-toolbar-avatar"
                             />
-                            <span className="map-toolbar-label">Guichet - {community.name || "Aucun titre"}</span>
+                            <span className="map-toolbar-label">{t("community_title", { communityName: community.name })}</span>
                         </div>
                     </div>
 
@@ -50,42 +53,34 @@ const MapToolbar: React.FC = () => {
                             <Button
                                 iconId="fr-icon-save-fill"
                                 priority="primary"
-                                title="Enregistrer vos contributions"
+                                title={t("save_contributions", { contributionCount: null })}
                                 onClick={() => {
                                     const event = new CustomEvent("save-view-button");
                                     document.dispatchEvent(event);
                                 }}
                                 className="map-toolbar-button-primary"
                             >
-                                Enregistrer vos contributions (1)
+                                {t("save_contributions", { contributionCount: 2 })}
                             </Button>
 
                             <Button
                                 iconId={isDropdownOpen ? `fr-icon-arrow-up-s-line` : `fr-icon-arrow-down-s-line`}
                                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                                title="Afficher plus"
+                                title={t("show_more")}
                                 className="map-toolbar-button-toggle"
                             ></Button>
 
                             {isDropdownOpen && (
                                 <div className="map-toolbar-dropdown" style={{ width: dropdownWidth }}>
-                                    <div className="map-toolbar-line">
-                                        Objets créés : <span className="map-toolbar-line-count">1</span>
-                                    </div>
-                                    <div className="map-toolbar-line">
-                                        Objets supprimés : <span className="map-toolbar-line-count">0</span>
-                                    </div>
-                                    <div className="map-toolbar-line">
-                                        Objets modifiés : <span className="map-toolbar-line-count">0</span>
-                                    </div>
+                                    <div className="map-toolbar-line">{t("object_created", { count: 1 })}</div>
+                                    <div className="map-toolbar-line">{t("object_modified", { count: 2 })}</div>
+                                    <div className="map-toolbar-line">{t("object_deleted", { count: 0 })}</div>
                                     <div className="map-toolbar-review">
-                                        <Button className="fr-btn fr-btn--tertiary map-toolbar-review-link">
-                                            Revoir vos objets créés et modifiés avant de les enregistrer
-                                        </Button>
+                                        <Button className="fr-btn fr-btn--tertiary map-toolbar-review-link">{t("review")}</Button>
                                     </div>
                                     <div className="map-toolbar-reset">
                                         <Button iconId="ri-refresh-line" priority="secondary" onClick={() => console.log("Réinitialisation")}>
-                                            Réinitialiser
+                                            {t("reset")}
                                         </Button>
                                     </div>
                                 </div>
@@ -93,7 +88,7 @@ const MapToolbar: React.FC = () => {
                         </div>
 
                         <Button iconId="fr-icon-settings-5-fill" priority="primary" linkProps={{ href: "#" }}>
-                            Gérer le guichet
+                            {t("manage")}
                         </Button>
                     </div>
                 </div>
@@ -104,14 +99,14 @@ const MapToolbar: React.FC = () => {
                     Tous les signalements
                 </Button>
                 <Select
-                    label="Couche de travail :"
+                    label={t("working_layer")}
                     nativeSelectProps={{
                         value: selectedLayer,
                         onChange: (e) => setSelectedLayer(e.target.value),
                     }}
                     className="map-toolbar-bottom-select"
                 >
-                    <option>Zones de sismicité</option>
+                    <option>{t("seismicity_zone")}</option>
                     <option>Option 2</option>
                     <option>Option 3</option>
                     <option>Option 4</option>

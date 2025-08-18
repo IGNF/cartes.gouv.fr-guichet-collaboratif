@@ -11,6 +11,9 @@ export const languagesDisplayNames: Record<Language, string> = {
 
 export type Language = (typeof languages)[number];
 
-export type ComponentKey = import("../components/Layout/AppFooter").I18n;
+export type ComponentKey =
+    | import("../components/Layout/locale/AppFooter.locale").I18n
+    | import("../components/Layout/locale/AppHeader.locale").I18n
+    | import("../components/Layout/locale/MapToolbar.locale").I18n;
 
 export type Translations<L extends Language> = GenericTranslations<ComponentKey, Language, typeof fallbackLanguage, L>;

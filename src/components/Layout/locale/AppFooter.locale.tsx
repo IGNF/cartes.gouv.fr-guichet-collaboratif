@@ -1,3 +1,4 @@
+import { declareComponentKeys } from "i18nifty";
 import type { Translations } from "../../../i18n/types";
 
 export const AppFooterFrTranslations: Translations<"fr">["AppFooter"] = {
@@ -21,3 +22,8 @@ export const AppFooterEnTranslations: Translations<"en">["AppFooter"] = {
     partner_3: "MINISTRY OF ECOLOGICAL TRANSITION AND TERRITORIAL COHESION",
     partner_4: "National Council for Geolocated Information",
 };
+
+const { i18n } = declareComponentKeys<"content_description" | "conditions_generales" | "home_link" | "partner_1" | "partner_2" | "partner_3" | "partner_4">()(
+    "AppFooter"
+);
+export type I18n = typeof i18n;

@@ -6,7 +6,6 @@ export { declareComponentKeys };
 
 export type LocalizedString = Parameters<typeof resolveLocalizedString>[0];
 
-/** initialisation de l'instance de i18n */
 export const {
     useTranslation,
     resolveLocalizedString,

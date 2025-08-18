@@ -8,7 +8,6 @@ import logoMinistereTransformation from "@/img/partners-logos/logo-ministere-tra
 import logoMinistereEcologie from "@/img/partners-logos/logo-ministere-ecologie.jpg";
 import logoCnig from "@/img/partners-logos/logo-rf-cnig.jpg";
 import { useCommunityStore, useUserStore } from "@/store";
-import { declareComponentKeys } from "i18nifty";
 import { useTranslation } from "@/i18n";
 
 const AppFooter: React.FC = () => {
@@ -20,69 +19,62 @@ const AppFooter: React.FC = () => {
     if (community && user) return null;
 
     return (
-        <>
-            <Footer
-                className={community ? "app-footer" : ""}
-                accessibility="partially compliant"
-                accessibilityLinkProps={{
-                    href: "/accessibilite",
-                }}
-                brandTop={
-                    <>
-                        République
-                        <br />
-                        Française
-                    </>
-                }
-                contentDescription={t("content_description")}
-                bottomItems={[
-                    {
-                        linkProps: {
-                            href: "/conditions-generales-d-utilisation",
-                        },
-                        text: t("conditions_generales"),
+        <Footer
+            className={community ? "app-footer" : ""}
+            accessibility="partially compliant"
+            accessibilityLinkProps={{
+                href: "/accessibilite",
+            }}
+            brandTop={
+                <>
+                    République
+                    <br />
+                    Française
+                </>
+            }
+            contentDescription={t("content_description")}
+            bottomItems={[
+                {
+                    linkProps: {
+                        href: "/conditions-generales-d-utilisation",
                     },
-                    <FooterPersonalDataPolicyItem key="footer-personal-data-policy-item" />,
-                    <FooterConsentManagementItem key="footer-consent-management-item" />,
+                    text: t("conditions_generales"),
+                },
+                <FooterPersonalDataPolicyItem key="footer-personal-data-policy-item" />,
+                <FooterConsentManagementItem key="footer-consent-management-item" />,
 
-                    headerFooterDisplayItem,
-                ]}
-                homeLinkProps={{
-                    href: "/",
-                    title: t("home_link"),
-                }}
-                partnersLogos={{
-                    sub: [
-                        {
-                            alt: t("partner_1"),
-                            href: "https://www.ign.fr",
-                            imgUrl: logoIgn,
-                        },
-                        {
-                            alt: t("partner_2"),
-                            href: "https://www.transformation.gouv.fr/",
-                            imgUrl: logoMinistereTransformation,
-                        },
-                        {
-                            alt: t("partner_3"),
-                            href: "https://www.ecologie.gouv.fr/",
-                            imgUrl: logoMinistereEcologie,
-                        },
-                        {
-                            alt: t("partner_4"),
-                            href: "https://cnig.gouv.fr/",
-                            imgUrl: logoCnig,
-                        },
-                    ],
-                }}
-            />
-        </>
+                headerFooterDisplayItem,
+            ]}
+            homeLinkProps={{
+                href: "/",
+                title: t("home_link"),
+            }}
+            partnersLogos={{
+                sub: [
+                    {
+                        alt: t("partner_1"),
+                        href: "https://www.ign.fr",
+                        imgUrl: logoIgn,
+                    },
+                    {
+                        alt: t("partner_2"),
+                        href: "https://www.transformation.gouv.fr/",
+                        imgUrl: logoMinistereTransformation,
+                    },
+                    {
+                        alt: t("partner_3"),
+                        href: "https://www.ecologie.gouv.fr/",
+                        imgUrl: logoMinistereEcologie,
+                    },
+                    {
+                        alt: t("partner_4"),
+                        href: "https://cnig.gouv.fr/",
+                        imgUrl: logoCnig,
+                    },
+                ],
+            }}
+        />
     );
 };
-
-const { i18n } = declareComponentKeys<"content_description" | "conditions_generales" | "home_link" | "partner_1" | "partner_2" | "partner_3" | "partner_4">()(
-    "AppFooter"
-);
-export type I18n = typeof i18n;
 
 export default AppFooter;
