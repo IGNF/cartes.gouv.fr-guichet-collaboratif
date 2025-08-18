@@ -1,7 +1,7 @@
 import DrawerComponent from "@/components/DrawerComponent";
 import { useReportStore } from "@/store";
 import "./table-report-drawer.css";
-import SearchReport from "./SearchReport";
+import SearchReport from "@/components/SearchReport";
 import FilterAndSortReport from "@/components/FilterAndSortReport";
 import TableReport from "./TableReport";
 

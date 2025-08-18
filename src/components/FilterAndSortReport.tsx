@@ -58,8 +58,8 @@ const transformReportsToTableData = (reports: CommunityReport[]) => {
 
 const FilterAndSortReport = () => {
     const { community } = useCommunityStore();
-    const { setFilteredReports } = useReportStore();
-    const [, setSearchParams] = useSearchParams();
+    const { setFilteredReports, setIsChecked } = useReportStore();
+    const [searchParams, setSearchParams] = useSearchParams();
 
     const queryKey = `${REPORTS_API_URL}?communities=${community?.id}`;
     const {
@@ -102,6 +102,7 @@ const FilterAndSortReport = () => {
         const limitBy = limitOptions[parseInt(formData.get("limit") as string)];
 
         const params = new URLSearchParams();
+        const search = searchParams.get("search") || "";
         params.set("communities", community?.id?.toString() || "");
         if (limitBy) params.set("limit", limitBy?.toString() || "");
         if (filterBy.department) params.set("departements", filterBy.department.toString());
@@ -110,13 +111,14 @@ const FilterAndSortReport = () => {
         if (filterBy.theme) params.set("attributes", filterBy.theme);
         if (sortBy) params.set("sort", sortBy);
 
+        params.set("search", search); // set search param when click
         params.set("page", "1"); // go to initial page (page 1)
         setSearchParams(params);
 
         const filtered = reports.filter(
             (report) =>
                 (!filterBy.status || report.status === filterBy.status) &&
-                (!filterBy.theme || report.attributes.some((attr) => attr.theme === filterBy.theme)) &&
+                (!filterBy.theme || report.attributes?.some((attr) => attr.theme === filterBy.theme)) &&
                 (!filterBy.author || report.author?.id === filterBy.author) &&
                 (!filterBy.department || report.departement?.name === filterBy.department)
         );
@@ -134,6 +136,8 @@ const FilterAndSortReport = () => {
         if (isLoading) return <div>Chargement des signalements...</div>;
         if (error) return <div>Erreur lors du chargement des signalements.</div>;
         if (filtered.length === 0) return <div>Aucun signalement trouvé.</div>;
+
+        setIsChecked({});
     };
 
     return (

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getReports, deleteCommunityReportAPI } from "@/api/reportsData";
@@ -10,13 +9,14 @@ import { REPORTS_API_URL } from "@/constants/urls";
 import type { CommunityReport } from "@/constants/reports/types";
 import usePagination from "@/hooks/usePagination";
 import PaginationReport from "./PaginationReport";
+// import { useState } from "react";
 
 const TableReport = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const queryClient = useQueryClient();
     const { community } = useCommunityStore();
-    const { filteredReports, isFiltered } = useReportStore();
-    const [isChecked, setIsChecked] = useState<Record<string, boolean>>({});
+    const { filteredReports, isFiltered, searchReport, isChecked, setIsChecked } = useReportStore();
+    // const [isChecked, setIsChecked] = useState<Record<string, boolean>>({});
     const queryKey = `${REPORTS_API_URL}?communities=${community?.id}`;
     const {
         data: reports,
@@ -28,10 +28,14 @@ const TableReport = () => {
         enabled: !!community,
     });
 
-    const { mutate: deleteReport } = useMutation({
+    const {
+        isPending: isDeleting, // should we use this ?
+        isError,
+        mutate: deleteReport,
+    } = useMutation({
         mutationFn: (report: CommunityReport) => deleteCommunityReportAPI(report),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: [queryKey] });
+            queryClient.invalidateQueries({ queryKey: [queryKey] }); // Warning!! data stored for this list is no longer valid, fetch it again...
         },
         onError: (error) => {
             console.error("Erreur suppression :", error);
@@ -44,7 +48,8 @@ const TableReport = () => {
             id: report.id,
             original: report,
             row: [
-                report.id,
+                // report.id,
+                report.author?.id,
                 report.status || "-",
                 report.author?.username || "-",
                 report.opening_date ? new Date(report.opening_date).toLocaleDateString() : "-",
@@ -54,7 +59,10 @@ const TableReport = () => {
                     type="checkbox"
                     checked={!!isChecked[report.id]}
                     onChange={(e) => {
-                        setIsChecked((prev) => ({ ...prev, [report.id]: e.target.checked }));
+                        setIsChecked({
+                            ...isChecked,
+                            [report.id]: e.target.checked,
+                        });
                     }}
                 />,
             ],
@@ -63,7 +71,9 @@ const TableReport = () => {
 
     const reportsToUse = filteredReports.length > 0 ? filteredReports : (reports ?? []);
     const tableData = transformReportsToTableData(reportsToUse);
-    const { totalPage, paginatedData } = usePagination(tableData, Number(searchParams.get("page")) || 1, limit);
+    const matchingItems = tableData.filter((item) => item.row.some((col) => col?.toString().toLowerCase().includes(searchReport.toLowerCase())));
+
+    const { totalPage, paginatedData } = usePagination(searchReport ? matchingItems : tableData, Number(searchParams.get("page")) || 1, limit);
 
     const handleDelete = () => {
         paginatedData
@@ -75,11 +85,17 @@ const TableReport = () => {
 
     if (isLoading) return <div>Chargement des signalements...</div>;
     if (error) return <div>Erreur lors du chargement des signalements.</div>;
+
+    if (isDeleting) return <div style={{ textAlign: "center" }}>Suppression en cours...</div>; // should we use this ?
+    if (isError) return <div style={{ color: "red" }}>Erreur de suppression</div>;
+
     if (filteredReports.length === 0 && isFiltered) {
         return <div>Aucun résultat ne correspond à vos filtres.</div>;
     }
+
     return (
         <>
+            <Button onClick={() => handleDelete()}> delete </Button>
             <Table
                 className="table-report__table"
                 bordered
@@ -111,7 +127,6 @@ const TableReport = () => {
                 data={paginatedData.map((res) => res.row)}
                 fixed
             />
-            <Button onClick={() => handleDelete()}> delete </Button>
             <PaginationReport totalPage={totalPage} searchParams={searchParams} setSearchParams={setSearchParams} />
         </>
     );
