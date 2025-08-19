@@ -2,6 +2,13 @@ import { CommunityReport, FilterState } from "@/constants/reports/types";
 import { Feature } from "ol";
 import { create } from "zustand";
 
+interface FilterState {
+    status: string;
+    theme: string;
+    author: number | null;
+    department: string;
+}
+
 interface ReportStore {
     reports: CommunityReport[];
     selectedReport: CommunityReport | null;
