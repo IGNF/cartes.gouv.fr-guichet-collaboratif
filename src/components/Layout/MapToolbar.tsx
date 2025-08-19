@@ -96,7 +96,7 @@ const MapToolbar: React.FC = () => {
 
             <div className={`map-toolbar-bottom-inner`}>
                 <Button iconId="ri-table-view" onClick={toggleTableReportsDrawer}>
-                    Tous les signalements
+                    {t("all_reports")}
                 </Button>
                 <Select
                     label={t("working_layer")}

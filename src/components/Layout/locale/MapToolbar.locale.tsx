@@ -27,6 +27,7 @@ export const MapToolbarFrTranslations: Translations<"fr">["MapToolbar"] = {
     manage: "Gérer le guichet",
     working_layer: "Couche de travail :",
     seismicity_zone: "Zones de sismicité",
+    all_reports: "Tous les signalements",
 };
 
 export const MapToolbarEnTranslations: Translations<"en">["MapToolbar"] = {
@@ -54,6 +55,7 @@ export const MapToolbarEnTranslations: Translations<"en">["MapToolbar"] = {
     manage: "Manage community",
     working_layer: "Working layer:",
     seismicity_zone: "Seismicity zones",
+    all_reports: "All reports",
 };
 
 const { i18n } = declareComponentKeys<
@@ -68,5 +70,6 @@ const { i18n } = declareComponentKeys<
     | "manage"
     | "working_layer"
     | "seismicity_zone"
+    | "all_reports"
 >()("MapToolbar");
 export type I18n = typeof i18n;

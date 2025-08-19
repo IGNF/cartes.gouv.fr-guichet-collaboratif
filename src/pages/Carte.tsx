@@ -55,14 +55,14 @@ const Carte: React.FC = () => {
         return () => setCommunity(null);
     }, [communityData, communityError, communityIsLoading, setCommunity, setCommunityLayers, setIsLoadingCommunity, initLocalStorage, addAlertMessage]);
 
-    if (!isLoadingUser && !user) {
+    if (!isDigital(communityId) || communityNotFound) {
+        return <NotFound />;
+    } else if (!isLoadingUser && !user) {
         return <NotConnected />;
     } else if (isLoadingUser) {
         return <div className="container">Connexion...</div>;
     } else if (isLoadingCommunity) {
         return <div className="container">Chargement...</div>;
-    } else if (!isDigital(communityId) || communityNotFound) {
-        return <NotFound />;
     }
 
     return (
