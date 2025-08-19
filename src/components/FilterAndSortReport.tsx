@@ -123,6 +123,8 @@ const FilterAndSortReport = () => {
         setFilteredReports(filtered, true);
         setIsChecked({});
     };
+    if (isLoading) return <div>Chargement des signalements...</div>;
+    if (error) return <div>Erreur lors du chargement des signalements.</div>;
 
     if (isLoading) return <LoaderComponent />;
     if (isErrorReport) {
