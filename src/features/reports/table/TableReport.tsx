@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getReports, deleteCommunityReportAPI } from "@/api/reportsData";
@@ -7,16 +8,15 @@ import { useReportStore } from "@/store";
 import { useCommunityStore } from "@/store/useCommunityStore";
 import { REPORTS_API_URL } from "@/constants/urls";
 import type { CommunityReport } from "@/constants/reports/types";
+import { applyFiltersToReports } from "@/constants/reports/utils/reportFilters";
 import usePagination from "@/hooks/usePagination";
 import PaginationReport from "./PaginationReport";
-// import { useState } from "react";
 
 const TableReport = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const queryClient = useQueryClient();
     const { community } = useCommunityStore();
-    const { filteredReports, isFiltered, searchReport, isChecked, setIsChecked } = useReportStore();
-    // const [isChecked, setIsChecked] = useState<Record<string, boolean>>({});
+    const { filteredReports, isFiltered, searchReport, isChecked, setIsChecked, setFilteredReports, currentFilters } = useReportStore();
     const queryKey = `${REPORTS_API_URL}?communities=${community?.id}`;
     const {
         data: reports,
@@ -35,12 +35,20 @@ const TableReport = () => {
     } = useMutation({
         mutationFn: (report: CommunityReport) => deleteCommunityReportAPI(report),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: [queryKey] }); // Warning!! data stored for this list is no longer valid, fetch it again...
+            queryClient.invalidateQueries({ queryKey: [queryKey] });
+            setIsChecked({});
         },
         onError: (error) => {
             console.error("Erreur suppression :", error);
         },
     });
+    useEffect(() => {
+        if (reports) {
+            const filtered = applyFiltersToReports(reports, currentFilters, searchReport);
+            setFilteredReports(filtered, filtered.length > 0);
+            setIsChecked({});
+        }
+    }, [reports, currentFilters, searchReport, setFilteredReports, setIsChecked]);
 
     const limit = Number(searchParams.get("limit")) || 10;
     const transformReportsToTableData = (reports: CommunityReport[]) => {
@@ -48,7 +56,7 @@ const TableReport = () => {
             id: report.id,
             original: report,
             row: [
-                // report.id,
+                report.id,
                 report.author?.id,
                 report.status || "-",
                 report.author?.username || "-",
@@ -89,7 +97,7 @@ const TableReport = () => {
     if (isDeleting) return <div style={{ textAlign: "center" }}>Suppression en cours...</div>; // should we use this ?
     if (isError) return <div style={{ color: "red" }}>Erreur de suppression</div>;
 
-    if (filteredReports.length === 0 && isFiltered) {
+    if (filteredReports.length === 0 && !isFiltered) {
         return <div>Aucun résultat ne correspond à vos filtres.</div>;
     }
 
@@ -102,6 +110,7 @@ const TableReport = () => {
                 noCaption
                 headers={[
                     "id",
+                    "id autheur",
                     "Statut",
                     "Pseudo",
                     "Date de création",
@@ -123,7 +132,6 @@ const TableReport = () => {
                         }}
                     />,
                 ]}
-                // start from the second col and skip col with the id
                 data={paginatedData.map((res) => res.row)}
                 fixed
             />

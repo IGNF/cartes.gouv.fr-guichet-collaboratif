@@ -5,6 +5,7 @@ import { Fragment } from "react/jsx-runtime";
 import { useCommunityStore, useReportStore } from "@/store";
 import { getReports } from "@/api/reportsData";
 import { CommunityReport } from "@/constants/reports/types";
+import { applyFiltersToReports } from "@/constants/reports/utils/reportFilters";
 import { REPORTS_API_URL } from "@/constants/urls";
 import Button from "@codegouvfr/react-dsfr/Button";
 import Input from "@codegouvfr/react-dsfr/Input";
@@ -58,7 +59,7 @@ const transformReportsToTableData = (reports: CommunityReport[]) => {
 
 const FilterAndSortReport = () => {
     const { community } = useCommunityStore();
-    const { setFilteredReports, setIsChecked } = useReportStore();
+    const { setFilteredReports, setIsChecked, setCurrentFilters, searchReport } = useReportStore();
     const [searchParams, setSearchParams] = useSearchParams();
 
     const queryKey = `${REPORTS_API_URL}?communities=${community?.id}`;
@@ -85,6 +86,7 @@ const FilterAndSortReport = () => {
         }
         return [];
     }, [reports]);
+
     const limitOptions = [2, 5, 10, 15, 20, 30];
 
     const handleSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -92,37 +94,32 @@ const FilterAndSortReport = () => {
         const form = (e.target as HTMLButtonElement).form;
         if (!form) return;
         const formData = new FormData(form);
-        const filterBy = {
-            status: statusOptions[parseInt((formData.get("status") as string) || "")],
-            theme: themeOptions[parseInt((formData.get("theme") as string) || "")],
-            author: Number(formData.get("author")),
-            department: formData.get("department"),
+        const newFilters = {
+            status: statusOptions[parseInt((formData.get("status") as string) || "")] || "",
+            theme: themeOptions[parseInt((formData.get("theme") as string) || "")] || "",
+            author: Number(formData.get("author")) || null,
+            department: (formData.get("department") as string) || "",
         };
+        setCurrentFilters(newFilters);
         const sortBy = sortOptions[parseInt((formData.get("sort") as SortableKeys) || "")];
-        const limitBy = limitOptions[parseInt(formData.get("limit") as string)];
 
+        const limitBy = limitOptions[parseInt(formData.get("limit") as string)];
         const params = new URLSearchParams();
         const search = searchParams.get("search") || "";
         params.set("communities", community?.id?.toString() || "");
         if (limitBy) params.set("limit", limitBy?.toString() || "");
-        if (filterBy.department) params.set("departements", filterBy.department.toString());
-        if (filterBy.status) params.set("status", filterBy.status);
-        if (filterBy.author) params.set("author", filterBy.author.toString());
-        if (filterBy.theme) params.set("attributes", filterBy.theme);
+        if (newFilters.department) params.set("departements", newFilters.department.toString());
+        if (newFilters.status) params.set("status", newFilters.status);
+        if (newFilters.author) params.set("author", newFilters.author.toString());
+        if (newFilters.theme) params.set("attributes", newFilters.theme);
         if (sortBy) params.set("sort", sortBy);
 
         params.set("search", search); // set search param when click
         params.set("page", "1"); // go to initial page (page 1)
         setSearchParams(params);
+        const searchText = searchReport || "";
 
-        const filtered = reports.filter(
-            (report) =>
-                (!filterBy.status || report.status === filterBy.status) &&
-                (!filterBy.theme || report.attributes?.some((attr) => attr.theme === filterBy.theme)) &&
-                (!filterBy.author || report.author?.id === filterBy.author) &&
-                (!filterBy.department || report.departement?.name === filterBy.department)
-        );
-
+        const filtered = applyFiltersToReports(reports, newFilters, searchText);
         if (sortBy) {
             //ASC
             filtered.sort((a, b) => {
@@ -132,13 +129,10 @@ const FilterAndSortReport = () => {
             });
         }
         setFilteredReports(filtered, true);
-
-        if (isLoading) return <div>Chargement des signalements...</div>;
-        if (error) return <div>Erreur lors du chargement des signalements.</div>;
-        if (filtered.length === 0) return <div>Aucun signalement trouvé.</div>;
-
-        setIsChecked({});
+        setIsChecked({}); // uncheck all rows
     };
+    if (isLoading) return <div>Chargement des signalements...</div>;
+    if (error) return <div>Erreur lors du chargement des signalements.</div>;
 
     return (
         <>
