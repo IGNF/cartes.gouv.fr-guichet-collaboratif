@@ -2,6 +2,13 @@ import { CommunityReport } from "@/constants/reports/types";
 import { Feature } from "ol";
 import { create } from "zustand";
 
+interface FilterState {
+    status: string;
+    theme: string;
+    author: number | null;
+    department: string;
+}
+
 interface ReportStore {
     reports: CommunityReport[];
     selectedReport: CommunityReport | null;
@@ -21,8 +28,9 @@ interface ReportStore {
     setSearchReport: (searchReport: string) => void;
     isChecked: Record<string, boolean>;
     setIsChecked: (updater: Record<string, boolean> | ((prev: Record<string, boolean>) => Record<string, boolean>)) => void;
+    currentFilters: FilterState;
+    setCurrentFilters: (filters: FilterState) => void;
 }
-
 export const useReportStore = create<ReportStore>((set, get) => ({
     reports: [],
     selectedReport: null,
@@ -70,4 +78,6 @@ export const useReportStore = create<ReportStore>((set, get) => ({
         set((state) => ({
             isChecked: typeof updater === "function" ? updater(state.isChecked) : updater,
         })),
+    currentFilters: { status: "", theme: "", author: null, department: "" },
+    setCurrentFilters: (filters: FilterState) => set({ currentFilters: filters }),
 }));
