@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo } from "react";
 import { StatusMessage } from "@/constants/communities/types";
 import { SketchFeatureType, toolNames } from "@/constants/reports/types";
-import { reportTools } from "@/constants/reports/utils";
+import { REPORTS_LAYER_TYPE, reportTools } from "@/constants/reports/utils";
 import { selectionCircleStyle } from "@/constants/styles";
 import { getFeatureDiam, handleCenterToFeature, mainMarker, markersStyles, otherMarkers } from "@/constants/utils";
 import { useCommunityStore, useMapStore, useReportStore } from "@/store";
@@ -22,7 +22,7 @@ const SketchList = () => {
     const { addAlertMessage } = useCommunityStore();
     const { selectedFeatures, isShowReport, setSelectedFeatures } = useReportStore();
 
-    const clusterLayer = map?.getAllLayers().find((layer) => layer.get("title") === "Signalements");
+    const clusterLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE);
     const clusterSource = clusterLayer?.getSource() as VectorSource;
 
     const drawingLayer = map?.getAllLayers().find((layer: Layer & { gpResultLayerId?: string }) => layer.gpResultLayerId === "drawing");

@@ -23,6 +23,7 @@ import createTriangleImg from "../img/reports/markerslist/triangle.png";
 import createPointImg from "../img/reports/create_point.png";
 import { getCenter, isEmpty } from "ol/extent";
 import React from "react";
+import { REPORTS_LAYER_TYPE } from "./reports/utils";
 
 const wktFormat = new WKT();
 
@@ -78,7 +79,7 @@ export const getLonLatFromPoint = (point: string | undefined) => {
 export const refreshReportLayer = (map: Map | null) => {
     if (!map) return;
     const mapCurrentLayers = map?.getAllLayers();
-    const reportLayer = mapCurrentLayers?.find((l) => l.get("title") === "Signalements");
+    const reportLayer = mapCurrentLayers?.find((l) => l.get("type") === REPORTS_LAYER_TYPE);
     if (reportLayer) {
         reportLayer.getSource()?.refresh();
     }

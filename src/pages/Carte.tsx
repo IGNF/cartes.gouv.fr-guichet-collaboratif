@@ -8,6 +8,7 @@ import { useGetUserProfileAPI } from "@/api/userData";
 import MainMap from "@/features/navigation/MainMap";
 import AlertComponent from "@/components/AlertComponent";
 import { StatusMessage } from "@/constants/communities/types";
+import { useTranslation } from "@/i18n";
 
 const Carte: React.FC = () => {
     const params = useParams();
@@ -22,6 +23,8 @@ const Carte: React.FC = () => {
     const { data: userData, error: userError, isLoading: userIsLoading } = useGetUserProfileAPI();
 
     const { data: communityData, error: communityError, isLoading: communityIsLoading } = useGetCommunityByIdAPI(communityId);
+
+    const { t } = useTranslation({ Carte });
 
     useEffect(() => {
         if (userData) {
@@ -60,9 +63,9 @@ const Carte: React.FC = () => {
     } else if (!isLoadingUser && !user) {
         return <NotConnected />;
     } else if (isLoadingUser) {
-        return <div className="container">Connexion...</div>;
+        return <div className="container">{t("loading_user")}</div>;
     } else if (isLoadingCommunity) {
-        return <div className="container">Chargement...</div>;
+        return <div className="container">{t("loading_community")}</div>;
     }
 
     return (

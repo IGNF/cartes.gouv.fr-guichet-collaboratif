@@ -17,6 +17,7 @@ import { reportTools } from "@/constants/reports/utils";
 import { createModal } from "@codegouvfr/react-dsfr/Modal";
 import ConfirmCancelModal from "./ConfirmCancelModal";
 import AttachmentList from "./AttachmentList";
+import { useTranslation } from "@/i18n";
 
 const confirmModal = createModal({
     id: "confirm-modal",
@@ -55,6 +56,8 @@ const ReportForm: React.FC<Props> = ({ handleSubmit, handleDelete, handleClose }
     const { community } = useCommunityStore();
     const { editReport, selectedReport, selectedFeatures, setSelectedFeatures } = useReportStore();
 
+    const { t } = useTranslation({ ReportForm });
+
     const handleToolClick = useCallback((tool: ReportTool | undefined) => {
         if (!tool) return;
         const toolButton = document.querySelector(`button[id*="${tool.name}"]`) as HTMLButtonElement | null;
@@ -71,7 +74,7 @@ const ReportForm: React.FC<Props> = ({ handleSubmit, handleDelete, handleClose }
             const communityTheme = community?.themes.find((t) => t.theme === selectedTheme?.theme);
             const errors: string[] = [];
             if (communityTheme?.attributes.length && !Object.keys(attributes).length) {
-                errors.push("tous les champs");
+                errors.push(t("all_fields_error"));
             }
             Object.keys(attributes).forEach((key) => {
                 const item = communityTheme?.attributes.find((attr) => attr.name === key);
@@ -81,7 +84,7 @@ const ReportForm: React.FC<Props> = ({ handleSubmit, handleDelete, handleClose }
                 }
             });
             if (errors.length) {
-                setErrorTheme(() => "Merci de remplir tous les champs obligatoire");
+                setErrorTheme(() => t("all_fields_error_message"));
                 themeRef?.current?.scrollIntoView({
                     behavior: "smooth",
                     block: "start",
@@ -91,12 +94,12 @@ const ReportForm: React.FC<Props> = ({ handleSubmit, handleDelete, handleClose }
             }
             return !errors.length;
         },
-        [community, selectedTheme]
+        [community, selectedTheme, t]
     );
 
     const validateTheme = useCallback(() => {
         if (!selectedTheme) {
-            setErrorTheme(() => "Vous devez obligatoirement choisir un thème et ses attributs pour envoyer un signalement");
+            setErrorTheme(() => t("select_theme_error_message"));
             themeRef?.current?.scrollIntoView({
                 behavior: "smooth",
                 block: "start",
@@ -105,36 +108,39 @@ const ReportForm: React.FC<Props> = ({ handleSubmit, handleDelete, handleClose }
         } else {
             return validateThemeAttributes(themeAttributes);
         }
-    }, [selectedTheme, themeAttributes, validateThemeAttributes]);
+    }, [selectedTheme, themeAttributes, validateThemeAttributes, t]);
 
-    const validateFiles = useCallback((files: File[]) => {
-        const errors = [];
-        if (files.length) {
-            files.forEach((file: File) => {
-                if (!allowedTypes.includes(file.type)) {
-                    setErrorFiles((errorFiles) => [...errorFiles, { file, message: `Formats supportés : JPG, PNG, PDF` }]);
-                    errors.push(file.name);
-                    return;
-                }
+    const validateFiles = useCallback(
+        (files: File[]) => {
+            const errors = [];
+            if (files.length) {
+                files.forEach((file: File) => {
+                    if (!allowedTypes.includes(file.type)) {
+                        setErrorFiles((errorFiles) => [...errorFiles, { file, message: t("import_file_error_message_type") }]);
+                        errors.push(file.name);
+                        return;
+                    }
 
-                if (file.size > maxSizeBytes) {
-                    setErrorFiles((errorFiles) => [...errorFiles, { file, message: `Taille maximale : ${maxSizeMB} Mo.` }]);
-                    errors.push(file.name);
-                    return;
-                }
-            });
-        }
+                    if (file.size > maxSizeBytes) {
+                        setErrorFiles((errorFiles) => [...errorFiles, { file, message: t("import_file_error_message_size", { maxSizeMB }) }]);
+                        errors.push(file.name);
+                        return;
+                    }
+                });
+            }
 
-        if (!errors.length) {
-            setErrorFiles([]);
-        } else {
-            filesRef?.current?.scrollIntoView({
-                behavior: "smooth",
-                block: "start",
-            });
-        }
-        return !errors.length;
-    }, []);
+            if (!errors.length) {
+                setErrorFiles([]);
+            } else {
+                filesRef?.current?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                });
+            }
+            return !errors.length;
+        },
+        [t]
+    );
 
     useEffect(() => {
         if (selectedReport) {
@@ -226,17 +232,18 @@ const ReportForm: React.FC<Props> = ({ handleSubmit, handleDelete, handleClose }
         <>
             <div className="report-drawer">
                 {loading && <LoaderComponent />}
-                <h1 className="fr-mt-4v fr-mb-1v fr-text--md">{selectedReport ? `Signalement ${selectedReport.id}` : "Soumettre un signalement"}</h1>
+                <h1 className="fr-mt-4v fr-mb-1v fr-text--md">
+                    {selectedReport ? t("edit_report_title", { reportId: selectedReport.id }) : t("create_report_title")}
+                </h1>
                 {!selectedReport && (
                     <p className={`fr-text--sm fr-mb-1v ${selectedFeatures && !selectedFeatures.length ? "fr-message--error" : ""}`}>
-                        Si vous ne l’avez pas encore fait, localisez sur la carte l’endroit où effectuer un signalement, ou dessinez un croquis explicatif à cet
-                        endroit.
+                        {t("localize_report_alert")}
                     </p>
                 )}
 
                 <RadioButtons
                     ref={themeRef}
-                    legend="Choisir un thème *:"
+                    legend={t("select_theme")}
                     options={community.themes.map((theme) => {
                         return {
                             label: theme.theme,
@@ -262,7 +269,7 @@ const ReportForm: React.FC<Props> = ({ handleSubmit, handleDelete, handleClose }
                 {selectedTheme && <ThemeForm theme={selectedTheme} themeAttributes={themeAttributes} onChangeThemeAttributes={onChangeThemeAttributes} />}
 
                 <Accordion
-                    label="Dessiner un croquis"
+                    label={t("draw_sketch")}
                     onExpandedChange={() => {
                         setExpendedDrawing(!expendedDrawing);
                     }}
@@ -271,14 +278,14 @@ const ReportForm: React.FC<Props> = ({ handleSubmit, handleDelete, handleClose }
                     <DrawingForm clickedTool={clickedTool} handleToolClick={handleToolClick} />
                 </Accordion>
                 <Accordion
-                    label="Décrire le signalement"
+                    label={t("describe_report")}
                     onExpandedChange={() => {
                         setExpendedDescription(!expendedDescription);
                     }}
                     expanded={expendedDescription}
                 >
                     <Input
-                        label="Explicitez votre signalement de façon la plus détaillée possible :"
+                        label={t("describe_report_label")}
                         textArea
                         nativeTextAreaProps={{
                             value: description,
@@ -291,7 +298,7 @@ const ReportForm: React.FC<Props> = ({ handleSubmit, handleDelete, handleClose }
                 </Accordion>
 
                 <Accordion
-                    label="Joindre des documents"
+                    label={t("import_attachments")}
                     onExpandedChange={() => {
                         setExpendedDocument(!expendedDocument);
                     }}
@@ -304,8 +311,8 @@ const ReportForm: React.FC<Props> = ({ handleSubmit, handleDelete, handleClose }
                     >
                         <Upload
                             ref={filesRef}
-                            label="Aidez nous à comprendre votre signalement. Ajouter par exemple des photos ou autres documents pour préciser votre message."
-                            hint={`Taille maximale : ${maxSizeMB} Mo. Formats supportés : JPG, PNG, PDF`}
+                            label={t("import_attachments_label")}
+                            hint={t("import_attachments_hint", { maxSizeMB })}
                             state={errorFiles.length ? "error" : filesUploaded.length ? "success" : "default"}
                             stateRelatedMessage=""
                             multiple
@@ -319,33 +326,26 @@ const ReportForm: React.FC<Props> = ({ handleSubmit, handleDelete, handleClose }
                         <AttachmentList newFiles={filesUploaded} errorFiles={errorFiles} removeFile={removeFile} />
                     </div>
                 </Accordion>
-                {!selectedReport && (
-                    <div className="note">
-                        <p>Si votre signalement ne concerne pas les thèmes ou données de ce guichet :</p>
-                        <a href="http://" target="_blank" rel="noopener noreferrer">
-                            Signalement hors guichet
-                        </a>
-                    </div>
-                )}
+                {!selectedReport && t("report_note")}
 
                 {!selectedReport ? (
                     <div className="submit">
                         <Button size="large" onClick={onSubmit}>
-                            Envoyer le signalement
+                            {t("submit_report")}
                         </Button>
                         <Button nativeButtonProps={confirmModal.buttonProps} priority="tertiary" title="Annuler">
-                            Annuler
+                            {t("cancel_report")}
                         </Button>
                     </div>
                 ) : (
                     <div className="buttons">
                         <Button priority="secondary" onClick={onDelete}>
-                            Supprimer
+                            {t("delete_report")}
                         </Button>
                         <Button priority="secondary" onClick={onClose}>
-                            Annuler
+                            {t("cancel_report")}
                         </Button>
-                        <Button onClick={onSubmit}>Enregistrer</Button>
+                        <Button onClick={onSubmit}>{t("save_report")}</Button>
                     </div>
                 )}
             </div>

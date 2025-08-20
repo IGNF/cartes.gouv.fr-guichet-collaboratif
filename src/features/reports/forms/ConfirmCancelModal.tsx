@@ -1,3 +1,4 @@
+import { useTranslation } from "@/i18n";
 import { createModal } from "@codegouvfr/react-dsfr/Modal";
 
 interface Props {
@@ -6,23 +7,25 @@ interface Props {
 }
 
 const ConfirmCancelModal: React.FC<Props> = ({ modal, onClose }) => {
+    const { t } = useTranslation({ ConfirmCancelModal });
+
     return (
         <modal.Component
-            title=" Confirmation"
+            title={` ${t("cancel_title")}`}
             iconId="fr-icon-info-fill"
             buttons={[
                 {
                     iconId: "ri-close-line",
-                    children: "Non, continuer la saisie",
+                    children: t("cancel_no"),
                 },
                 {
                     iconId: "ri-check-line",
                     onClick: onClose,
-                    children: "Oui, annuler",
+                    children: t("cancel_yes"),
                 },
             ]}
         >
-            <p>En annulant la création de ce signalement vous supprimerez les éventuels documents et croquis associés. Voulez-vous continuer ?</p>
+            <p>{t("cancel_message")}</p>
         </modal.Component>
     );
 };

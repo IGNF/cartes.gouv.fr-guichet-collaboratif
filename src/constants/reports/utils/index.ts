@@ -27,6 +27,8 @@ import GeoJSON from "ol/format/GeoJSON";
 import VectorSource from "ol/source/Vector";
 import { Style } from "ol/style";
 
+export const REPORTS_LAYER_TYPE = "reports";
+
 export const reportTools: ReportTool[] = [
     { type: "create", name: toolNames.point, imgSrc: CreatePointImg, order: 0, title: "Créer un marqueur", featureType: ["Point"] },
     { type: "create", name: toolNames.line, imgSrc: CreateLineImg, order: 1, title: "Dessiner des lignes", featureType: ["LineString", "MultiLineString"] },

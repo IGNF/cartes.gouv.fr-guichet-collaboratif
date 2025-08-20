@@ -31,7 +31,7 @@ export const clusterReportPinStyle = (geometry: Geometry | undefined = undefined
 
 export const clusterCircleStyle = (size: number = 0) =>
     new CircleStyle({
-        radius: size > 100 ? 30 : Math.max(size, 15),
+        radius: size > 30 ? 30 : Math.max(size, 15),
         fill: new Fill({
             color: CLUSTER_CIRCLE_COLOR,
         }),

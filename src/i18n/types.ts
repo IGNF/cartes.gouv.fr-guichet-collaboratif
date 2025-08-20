@@ -16,6 +16,15 @@ export type ComponentKey =
     | import("../components/Layout/locale/AppHeader.locale").I18n
     | import("../components/Layout/locale/MapToolbar.locale").I18n
     | import("../pages/locale/NotConnected.locale").I18n
-    | import("../pages/locale/NotFound.locale").I18n;
+    | import("../pages/locale/NotFound.locale").I18n
+    | import("../pages/locale/Carte.locale").I18n
+    | import("../features/navigation/layers/locale/GetReportsLayer.locale").I18n
+    | import("../features/reports/forms/locale/AttachmentList.locale").I18n
+    | import("../features/reports/forms/locale/ConfirmCancelModal.locale").I18n
+    | import("../features/reports/forms/locale/DrawingForm.locale").I18n
+    | import("../features/reports/forms/locale/ImportSketchFile.locale").I18n
+    | import("../features/reports/forms/locale/ReportForm.locale").I18n
+    | import("../features/reports/forms/locale/ThemeForm.locale").I18n
+    | import("../features/reports/locale/CenterMessage.locale").I18n;
 
 export type Translations<L extends Language> = GenericTranslations<ComponentKey, Language, typeof fallbackLanguage, L>;

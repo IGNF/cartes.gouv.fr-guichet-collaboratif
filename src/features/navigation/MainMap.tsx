@@ -22,6 +22,7 @@ import { Cluster } from "ol/source";
 import VectorLayer from "ol/layer/Vector";
 import { clusterStyle } from "@/constants/styles";
 import TableReportDrawer from "../reports/table/TableReportDrawer";
+import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 
 export default function MainMap() {
     const mapTargetRef = useRef<HTMLDivElement>(null);
@@ -60,7 +61,7 @@ export default function MainMap() {
 
     const addLayer = useCallback(
         (layer: MapLayerSource): void => {
-            if (layer.get("title") === "Signalements") {
+            if (layer.get("type") === REPORTS_LAYER_TYPE) {
                 addReportLayer(layer as VectorLayer);
                 return;
             }

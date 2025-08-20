@@ -1,5 +1,5 @@
 import { ClickedTool, ReportTool, toolNames } from "@/constants/reports/types";
-import { getReportAllFeatures, reportTools } from "@/constants/reports/utils";
+import { getReportAllFeatures, REPORTS_LAYER_TYPE, reportTools } from "@/constants/reports/utils";
 import { useMapStore, useReportStore } from "@/store";
 import Button from "@codegouvfr/react-dsfr/Button";
 
@@ -9,6 +9,7 @@ import VectorSource, { VectorSourceEvent } from "ol/source/Vector";
 import { useCallback, useEffect, useRef } from "react";
 import SketchList from "./SketchList";
 import ImportSketchFile from "./ImportSketchFile";
+import { useTranslation } from "@/i18n";
 
 interface Props {
     clickedTool: ClickedTool;
@@ -21,7 +22,9 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick }) => {
 
     const importFileRef = useRef<HTMLInputElement>(null);
 
-    const reportLayer = map?.getAllLayers().find((layer) => layer.get("title") === "Signalements");
+    const { t } = useTranslation({ DrawingForm });
+
+    const reportLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE);
     const reportSource = reportLayer?.getSource() as VectorSource;
 
     const drawingLayer = map?.getAllLayers().find((layer: Layer & { gpResultLayerId?: string }) => layer.gpResultLayerId === "drawing");
@@ -116,9 +119,9 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick }) => {
     return (
         <>
             <>
-                <p className="fr-text--sm fr-mb-1v ">Vous pouvez ici réaliser/importer un croquis explicatif sur la carte:</p>
+                <p className="fr-text--sm fr-mb-1v ">{t("drawing_message")}</p>
                 <div className="report-tools">
-                    <p className="fr-mt-4v fr-mb-2v fr-text--sm">Outils de création</p>
+                    <p className="fr-mt-4v fr-mb-2v fr-text--sm">{t("creation_tools")}</p>
                     <div>
                         {reportTools
                             .filter((tool) => tool.type === "create")
@@ -146,7 +149,7 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick }) => {
                 </div>
 
                 <div className="report-tools">
-                    <p className="fr-mt-4v fr-mb-2v fr-text--sm">Outils de modification</p>
+                    <p className="fr-mt-4v fr-mb-2v fr-text--sm">{t("edit_tools")}</p>
                     <div>
                         {reportTools
                             .filter((tool) => tool.type === "edit")

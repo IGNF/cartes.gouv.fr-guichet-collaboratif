@@ -6,6 +6,7 @@ import { useCommunityStore, useReportStore } from "@/store";
 import { StatusMessage } from "@/constants/communities/types";
 import { Fragment, useMemo, useState } from "react";
 import LoaderComponent from "@/components/LoaderComponent";
+import { useTranslation } from "@/i18n";
 
 interface Props {
     newFiles?: File[] | null;
@@ -21,18 +22,20 @@ const AttachmentList: React.FC<Props> = ({ newFiles, errorFiles, removeFile }) =
 
     const report = useMemo(() => reports.find((r) => r.id === selectedReport?.id), [reports, selectedReport]);
 
+    const { t } = useTranslation({ AttachmentList });
+
     if (!report && !newFiles) return null;
     const deleteAttachment = async (attachment: ReportAttachment) => {
         if (!report) return;
         setLoading(true);
         const attachmentDeleted = await deleteCommunityReportAttachment(report?.id, attachment.id);
         if (!attachmentDeleted) {
-            addAlertMessage(StatusMessage.error, `Erreur dans la suppression du document ${attachment.name}`);
+            addAlertMessage(StatusMessage.error, t("attchment_deleted_error", { fileName: attachment.name }));
             setLoading(false);
             return;
         }
         report.attachments = report.attachments.filter((doc) => doc.id !== attachment.id);
-        addAlertMessage(StatusMessage.success, `Suppression du document ${attachment.name} avec succès`);
+        addAlertMessage(StatusMessage.success, t("attchment_deleted_success", { fileName: attachment.name }));
         setReports([...reports.filter((r) => r.id !== report.id), report], true);
         setLoading(false);
     };
@@ -40,18 +43,18 @@ const AttachmentList: React.FC<Props> = ({ newFiles, errorFiles, removeFile }) =
     return (
         <div className="report-attachments">
             {loading && <LoaderComponent />}
-            {isShowReport() && !report?.attachments.length && <p>Aucun document associé</p>}
+            {isShowReport() && !report?.attachments.length && <p>{t("no_attachments")}</p>}
             {report &&
                 report.attachments.map((attachment) => (
                     <div key={`attachment_${attachment.id}`}>
-                        <img src={fileUploadIcon} alt="Icone du fichier chargé" />
+                        <img src={fileUploadIcon} alt={t("alt_img_uploaded_file")} />
                         <a href={attachment.url} target="_blank">
                             {attachment.name}
                         </a>
                         {!isShowReport() && (
                             <Button
                                 iconId="ri-delete-bin-2-fill"
-                                title={`Supprimer ${attachment.name}`}
+                                title={t("delete_file", { fileName: attachment.name })}
                                 priority="tertiary"
                                 onClick={() => deleteAttachment(attachment)}
                             ></Button>
@@ -64,14 +67,14 @@ const AttachmentList: React.FC<Props> = ({ newFiles, errorFiles, removeFile }) =
                     return (
                         <Fragment key={`file_${index}`}>
                             <div>
-                                <img src={fileUploadIcon} alt="Icone du fichier chargé" />
+                                <img src={fileUploadIcon} alt={t("alt_img_uploaded_file")} />
                                 <a href={URL.createObjectURL(file)} target="_blank">
                                     {file.name}
                                 </a>
                                 {removeFile && (
                                     <Button
                                         iconId="ri-delete-bin-2-fill"
-                                        title={`Supprimer ${file.name}`}
+                                        title={t("delete_file", { fileName: file.name })}
                                         priority="tertiary"
                                         onClick={() => removeFile(file)}
                                     />

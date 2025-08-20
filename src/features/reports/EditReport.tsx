@@ -6,7 +6,7 @@ import { deleteCommunityReportAllAttachments, postCommunityReportAttachments } f
 import { clearDrawingLayer, getFeatureGeometryWKT } from "@/constants/utils";
 import { Feature } from "ol";
 import VectorSource from "ol/source/Vector";
-import { getReportSketch } from "@/constants/reports/utils";
+import { getReportSketch, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import ReportForm from "./forms/ReportForm";
 
 interface Props {
@@ -35,7 +35,7 @@ const EditReport: React.FC<Props> = ({ handleCloseDrawer }) => {
                 return;
             }
             addAlertMessage(StatusMessage.success, `Le signalement ${selectedReport.id} est supprimé avec succès.`);
-            const reportLayer = map?.getAllLayers().find((layer) => layer.get("title") === "Signalements");
+            const reportLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE);
             const reportSource = reportLayer?.getSource() as VectorSource;
             reportSource.removeFeatures(reportSource.getFeatures().filter((f) => f.get("reportData").id === selectedReport.id));
             setReports([...reports.filter((report) => report.id !== selectedReport.id)], true);
