@@ -7,6 +7,7 @@ import { useCommunityStore, useReportStore } from "@/store";
 import { getThemeAttributes } from "@/constants/utils";
 import SketchList from "./forms/SketchList";
 import EditReport from "./EditReport";
+import { useTranslation } from "@/i18n";
 
 interface Props {
     handleCloseDrawer: () => void;
@@ -15,6 +16,8 @@ interface Props {
 const ShowReport: React.FC<Props> = ({ handleCloseDrawer }) => {
     const { selectedReport, editReport, setEditReport } = useReportStore();
     const { community } = useCommunityStore();
+
+    const { t } = useTranslation({ ShowReport });
 
     if (!community || !selectedReport) return;
     if (editReport) return <EditReport handleCloseDrawer={handleCloseDrawer} />;
@@ -26,10 +29,10 @@ const ShowReport: React.FC<Props> = ({ handleCloseDrawer }) => {
 
     return (
         <div className="report-drawer">
-            <h1 className="fr-mt-4v fr-mb-1v fr-text--md">Signalement {selectedReport.id}</h1>
+            <h1 className="fr-mt-4v fr-mb-1v fr-text--md">{t("report_title", { reportId: selectedReport.id })}</h1>
 
             <RadioButtons
-                legend="Thème :"
+                legend={t("report_theme")}
                 options={[
                     {
                         label: reportTheme?.theme,
@@ -48,16 +51,16 @@ const ShowReport: React.FC<Props> = ({ handleCloseDrawer }) => {
 
             {selectedTheme && <ThemeForm theme={selectedTheme} themeAttributes={themeAttributes} />}
 
-            <Accordion label="Liste des croquis :" defaultExpanded={true}>
+            <Accordion label={t("report_sketch_list")} defaultExpanded={true}>
                 <SketchList />
             </Accordion>
             {description && (
-                <Accordion label="Description :" defaultExpanded={true}>
+                <Accordion label={t("report_description")} defaultExpanded={true}>
                     <p>{description}</p>
                 </Accordion>
             )}
 
-            <Accordion label="Liste des documents :" defaultExpanded={true}>
+            <Accordion label={t("report_document_list")} defaultExpanded={true}>
                 <div
                     style={{
                         width: "100%",
@@ -68,7 +71,7 @@ const ShowReport: React.FC<Props> = ({ handleCloseDrawer }) => {
             </Accordion>
 
             <div className="buttons">
-                <Button onClick={() => setEditReport(true)}>Modifier</Button>
+                <Button onClick={() => setEditReport(true)}>{t("report_document_modify")}</Button>
             </div>
         </div>
     );

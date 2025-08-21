@@ -10,12 +10,15 @@ import { bbox as bboxStrategy } from "ol/loadingstrategy";
 import { CommunityGeoservice, StatusMessage } from "@/constants/communities/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMapStore } from "@/store";
+import { declareComponentKeys, useTranslation } from "@/i18n";
 
 function useGetWFSLayer(geoservice: CommunityGeoservice) {
     const { addAlertMessage } = useCommunityStore();
     const { map } = useMapStore();
 
     const queryClient = useQueryClient();
+
+    const { t } = useTranslation({ useGetWFSLayer });
 
     const wfsLayer = useMemo(() => {
         const wfsSource = new VectorSource<Feature<Geometry>>({
@@ -43,7 +46,7 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
                     wfsSource.addFeatures(features);
                 } catch (error) {
                     console.error(error);
-                    addAlertMessage(StatusMessage.error, `Erreur dans le chargement de la couche ${geoservice.title}`);
+                    addAlertMessage(StatusMessage.error, t("loading_layer_error", { layerTitle: geoservice.title }));
                 }
             },
             strategy: bboxStrategy,
@@ -68,9 +71,14 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
         const extent = geoservice.extent.split(",")?.map((extent) => parseFloat(extent));
         wfsLayer.setExtent(transformExtent(extent, "EPSG:4326", "EPSG:3857"));
         return wfsLayer;
-    }, [geoservice, queryClient, map, addAlertMessage]);
+    }, [geoservice, queryClient, map, addAlertMessage, t]);
 
     return wfsLayer;
 }
+
+const { i18n } = declareComponentKeys<"loading_report_layer_error" | { K: "loading_layer_error"; P: { layerTitle: string }; R: string }>()(
+    "useGetReportsLayer"
+);
+export type I18n = typeof i18n;
 
 export default useGetWFSLayer;

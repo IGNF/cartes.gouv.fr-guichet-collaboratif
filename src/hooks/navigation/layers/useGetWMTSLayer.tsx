@@ -7,17 +7,21 @@ import { useCommunityStore } from "@/store/useCommunityStore";
 import { transformExtent } from "ol/proj";
 import { CommunityGeoservice, StatusMessage } from "@/constants/communities/types";
 import { useMapStore } from "@/store";
+import { useTranslation } from "@/i18n";
 
 function useGetWMTSLayer(geoservice: CommunityGeoservice) {
     const { data: capabilities, error } = useGetCapabilitiesWMTS(geoservice);
 
     const { addAlertMessage } = useCommunityStore();
     const { map } = useMapStore();
+
+    const { t } = useTranslation({ useGetWMTSLayer });
+
     useEffect(() => {
         if (error) {
-            addAlertMessage(StatusMessage.error, `Erreur dans le chargement de la couche ${geoservice.title}`);
+            addAlertMessage(StatusMessage.error, t("loading_layer_error", { layerTitle: geoservice.title }));
         }
-    }, [error, geoservice, addAlertMessage]);
+    }, [error, geoservice, addAlertMessage, t]);
 
     const wmtsLayer = useMemo(() => {
         if (!capabilities) return;

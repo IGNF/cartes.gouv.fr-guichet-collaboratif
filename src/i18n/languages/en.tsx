@@ -13,11 +13,20 @@ import { ImportSketchFileEnTranslations } from "@/features/reports/forms/locale/
 import { ReportFormEnTranslations } from "@/features/reports/forms/locale/ReportForm.locale";
 import { ThemeFormEnTranslations } from "@/features/reports/forms/locale/ThemeForm.locale";
 import { CenterMessageEnTranslations } from "@/features/reports/locale/CenterMessage.locale";
+import { CreateReportEnTranslations } from "@/features/reports/locale/CreateReport.locale";
+import { EditReportEnTranslations } from "@/features/reports/locale/EditReport.locale";
+import { ShowReportEnTranslations } from "@/features/reports/locale/ShowReport.locale";
+import { useGetReportsLayerEnTranslations } from "@/hooks/navigation/layers/locale/useGetReportsLayer.locale";
+import { useGetWFSLayerEnTranslations } from "@/hooks/navigation/layers/locale/useGetWFSLayer.locale";
+import { useGetWMSLayerEnTranslations } from "@/hooks/navigation/layers/locale/useGetWMSLayer.locale";
+import { useGetWMTSLayerEnTranslations } from "@/hooks/navigation/layers/locale/useGetWMTSLayer.locale";
+import { DrawerComponentEnTranslations } from "@/components/locale/DrawerComponent.locale";
 
 export const translations: Translations<"en"> = {
     AppFooter: AppFooterEnTranslations,
     AppHeader: AppHeaderEnTranslations,
     MapToolbar: MapToolbarEnTranslations,
+    DrawerComponent: DrawerComponentEnTranslations,
     NotConnected: NotConnectedEnTranslations,
     NotFound: NotFoundEnTranslations,
     Carte: CarteEnTranslations,
@@ -29,4 +38,11 @@ export const translations: Translations<"en"> = {
     ReportForm: ReportFormEnTranslations,
     ThemeForm: ThemeFormEnTranslations,
     CenterMessage: CenterMessageEnTranslations,
+    CreateReport: CreateReportEnTranslations,
+    EditReport: EditReportEnTranslations,
+    ShowReport: ShowReportEnTranslations,
+    useGetReportsLayer: useGetReportsLayerEnTranslations,
+    useGetWFSLayer: useGetWFSLayerEnTranslations,
+    useGetWMSLayer: useGetWMSLayerEnTranslations,
+    useGetWMTSLayer: useGetWMTSLayerEnTranslations,
 };

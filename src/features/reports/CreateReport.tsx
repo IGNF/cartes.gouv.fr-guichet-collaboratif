@@ -10,6 +10,7 @@ import { postCommunityReportAttachments } from "@/api/attachmentData";
 import { Feature } from "ol";
 import { getReportSketch } from "@/constants/reports/utils";
 import { useState } from "react";
+import { useTranslation } from "@/i18n";
 
 interface Props {
     handleCloseDrawer: () => void;
@@ -21,6 +22,8 @@ const CreateReport: React.FC<Props> = ({ handleCloseDrawer }) => {
     const { map } = useMapStore();
 
     const [currentReport, setCurrentReport] = useState<CommunityReport | null>(null);
+
+    const { t } = useTranslation({ CreateReport });
 
     if (!community || !map) return;
 
@@ -45,7 +48,7 @@ const CreateReport: React.FC<Props> = ({ handleCloseDrawer }) => {
         }
         const reportCreated: CommunityReport | null = currentReport ?? (await postCommunityReport(newReport));
         if (!reportCreated) {
-            addAlertMessage(StatusMessage.error, "Erreur dans la création du signalement");
+            addAlertMessage(StatusMessage.error, t("report_created_error"));
             throw Error;
         } else {
             setCurrentReport(reportCreated);
@@ -55,16 +58,16 @@ const CreateReport: React.FC<Props> = ({ handleCloseDrawer }) => {
             const attachmentsUploaded = await postCommunityReportAttachments({ ...reportCreated, id: reportCreated.id }, filesUpload);
 
             if (!attachmentsUploaded) {
-                addAlertMessage(StatusMessage.error, "Erreur dans le chargement de document");
+                addAlertMessage(StatusMessage.error, t("report_document_uploaded_error"));
                 throw Error;
             } else {
                 reportCreated.attachments = attachmentsUploaded;
-                addAlertMessage(StatusMessage.success, "Chargement du document avec succès.");
+                addAlertMessage(StatusMessage.success, t("report_document_uploaded_success"));
                 setCurrentReport(null);
             }
         }
 
-        addAlertMessage(StatusMessage.success, "Votre signalement a été envoyé avec succès.");
+        addAlertMessage(StatusMessage.success, t("report_created_success"));
 
         setReports([...reports, reportCreated]);
         clearDrawingLayer(map);

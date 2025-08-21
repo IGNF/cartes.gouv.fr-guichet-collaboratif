@@ -6,6 +6,7 @@ import useGetCapabilitiesWMS from "../capabilities/useGetCapabilitiesWMS";
 import { transformExtent } from "ol/proj";
 import { CommunityGeoservice, StatusMessage } from "@/constants/communities/types";
 import { useMapStore } from "@/store";
+import { useTranslation } from "@/i18n";
 
 type CapabilityLayer = {
     Name: string;
@@ -17,11 +18,13 @@ function useGetWMSLayer(geoservice: CommunityGeoservice) {
     const { addAlertMessage } = useCommunityStore();
     const { map } = useMapStore();
 
+    const { t } = useTranslation({ useGetWMSLayer });
+
     useEffect(() => {
         if (error) {
-            addAlertMessage(StatusMessage.error, `Erreur dans le chargement de la couche ${geoservice.title}`);
+            addAlertMessage(StatusMessage.error, t("loading_layer_error", { layerTitle: geoservice.title }));
         }
-    }, [error, geoservice, addAlertMessage]);
+    }, [error, geoservice, addAlertMessage, t]);
 
     const wmsLayer = useMemo(() => {
         if (!capabilities) return;

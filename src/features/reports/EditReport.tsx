@@ -8,6 +8,7 @@ import { Feature } from "ol";
 import VectorSource from "ol/source/Vector";
 import { getReportSketch, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import ReportForm from "./forms/ReportForm";
+import { useTranslation } from "@/i18n";
 
 interface Props {
     handleCloseDrawer: () => void;
@@ -19,22 +20,24 @@ const EditReport: React.FC<Props> = ({ handleCloseDrawer }) => {
 
     const { map } = useMapStore();
 
+    const { t } = useTranslation({ EditReport });
+
     if (!community || !map || !selectedReport) return null;
 
     const handleDeleteReport = async () => {
         try {
             const attachmentsDeleted = await deleteCommunityReportAllAttachments(selectedReport);
             if (!attachmentsDeleted) {
-                addAlertMessage(StatusMessage.error, `Erreur dans la suppression des documents du signalement !`);
+                addAlertMessage(StatusMessage.error, t("report_document_deleted_error"));
                 return;
             }
 
             const reportDeleted = await deleteCommunityReportAPI(selectedReport);
             if (!reportDeleted) {
-                addAlertMessage(StatusMessage.error, "Erreur dans la suppression du signalement !");
+                addAlertMessage(StatusMessage.error, t("report_deleted_error"));
                 return;
             }
-            addAlertMessage(StatusMessage.success, `Le signalement ${selectedReport.id} est supprimé avec succès.`);
+            addAlertMessage(StatusMessage.success, t("report_deleted_success", { reportId: selectedReport.id }));
             const reportLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE);
             const reportSource = reportLayer?.getSource() as VectorSource;
             reportSource.removeFeatures(reportSource.getFeatures().filter((f) => f.get("reportData").id === selectedReport.id));
@@ -42,7 +45,7 @@ const EditReport: React.FC<Props> = ({ handleCloseDrawer }) => {
             handleCloseDrawer();
             clearDrawingLayer(map);
         } catch {
-            addAlertMessage(StatusMessage.error, `Erreur dans la suppression des documents du signalement !`);
+            addAlertMessage(StatusMessage.error, t("report_document_deleted_error"));
             throw new Error();
         }
     };
@@ -71,7 +74,7 @@ const EditReport: React.FC<Props> = ({ handleCloseDrawer }) => {
             const reportUpdated = await updateCommunityReport(newReport, selectedReport.id);
 
             if (!reportUpdated) {
-                addAlertMessage(StatusMessage.error, "Erreur dans la mise à jour du signalement");
+                addAlertMessage(StatusMessage.error, t("report_updated_error"));
                 return;
             }
 
@@ -79,18 +82,18 @@ const EditReport: React.FC<Props> = ({ handleCloseDrawer }) => {
                 const attachmentsUploaded = await postCommunityReportAttachments({ ...reportUpdated, id: selectedReport.id }, filesUploaded);
 
                 if (!attachmentsUploaded || !attachmentsUploaded.length) {
-                    addAlertMessage(StatusMessage.error, "Erreur dans le chargement de document");
+                    addAlertMessage(StatusMessage.error, t("report_document_uploaded_error"));
                 } else {
                     reportUpdated.attachments = attachmentsUploaded;
-                    addAlertMessage(StatusMessage.success, "Chargement du document avec succès.");
+                    addAlertMessage(StatusMessage.success, t("report_document_uploaded_success"));
                 }
             }
-            addAlertMessage(StatusMessage.success, `Le signalement ${selectedReport.id} a été mis à jour avec succès.`);
+            addAlertMessage(StatusMessage.success, t("report_updated_success", { reportId: selectedReport.id }));
 
             setReports([...reports.filter((report) => report.id !== selectedReport.id), reportUpdated], true);
             clearDrawingLayer(map);
         } catch {
-            addAlertMessage(StatusMessage.error, "Erreur dans la mise à jour du signalement");
+            addAlertMessage(StatusMessage.error, t("report_updated_error"));
             throw new Error();
         }
     };
