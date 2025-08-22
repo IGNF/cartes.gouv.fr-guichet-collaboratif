@@ -1,19 +1,6 @@
 import { CommunityReport, FilterState } from "@/constants/reports/types";
 import { Feature } from "ol";
 import { create } from "zustand";
-<<<<<<< HEAD
-||||||| parent of e5c2fb3 (feat: handle checkbox when delete+clean logique between search & filter)
-
-=======
-
-interface FilterState {
-    status: string;
-    theme: string;
-    author: number | null;
-    department: string;
-}
-
->>>>>>> e5c2fb3 (feat: handle checkbox when delete+clean logique between search & filter)
 interface ReportStore {
     reports: CommunityReport[];
     selectedReport: CommunityReport | null;
