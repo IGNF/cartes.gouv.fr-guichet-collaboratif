@@ -19,12 +19,7 @@ export function applyFiltersToReports(reports: CommunityReport[], filters: Filte
 
         const lowerSearch = searchText.toLowerCase();
 
-        const matchesSearch =
-            !searchText ||
-            report.id.toString().includes(lowerSearch) ||
-            (report.author?.username?.toLowerCase().includes(lowerSearch) ?? false) ||
-            (report.commune?.title?.toLowerCase().includes(lowerSearch) ?? false) ||
-            (report.status?.toLowerCase().includes(lowerSearch) ?? false);
+        const matchesSearch = !searchText || (report.comment?.toLowerCase().includes(lowerSearch) ?? false);
 
         return matchesStatus && matchesTheme && matchesAuthor && matchesDepartment && matchesSearch;
     });

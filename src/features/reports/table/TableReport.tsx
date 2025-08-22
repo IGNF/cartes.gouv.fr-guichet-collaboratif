@@ -16,7 +16,7 @@ const TableReport = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const queryClient = useQueryClient();
     const { community } = useCommunityStore();
-    const { filteredReports, isFiltered, searchReport, isChecked, setIsChecked, setFilteredReports, currentFilters } = useReportStore();
+    const { filteredReports, searchReport, isChecked, setIsChecked, setFilteredReports, currentFilters } = useReportStore();
     const queryKey = `${REPORTS_API_URL}?communities=${community?.id}`;
     const {
         data: reports,
@@ -45,7 +45,16 @@ const TableReport = () => {
     useEffect(() => {
         if (reports) {
             const filtered = applyFiltersToReports(reports, currentFilters, searchReport);
-            setFilteredReports(filtered, filtered.length > 0);
+            // No filter/search =>> everything should be displayed..
+            // Active filters/search + empty list => specific error msg (see below)
+            setFilteredReports(
+                filtered,
+                currentFilters.status !== "" ||
+                    currentFilters.theme !== "" ||
+                    currentFilters.author !== null ||
+                    currentFilters.department !== "" ||
+                    !!searchReport
+            );
             setIsChecked({});
         }
     }, [reports, currentFilters, searchReport, setFilteredReports, setIsChecked]);
@@ -63,6 +72,7 @@ const TableReport = () => {
                 report.opening_date ? new Date(report.opening_date).toLocaleDateString() : "-",
                 report.commune ? `${report.commune.title} (${report.departement?.name})` : "-",
                 report.attributes && report.attributes.length > 0 ? report.attributes.map((attr) => attr.theme || "").join(", ") : "-",
+                report.comment || "-",
                 <input
                     type="checkbox"
                     checked={!!isChecked[report.id]}
@@ -77,9 +87,9 @@ const TableReport = () => {
         }));
     };
 
-    const reportsToUse = filteredReports.length > 0 ? filteredReports : (reports ?? []);
-    const tableData = transformReportsToTableData(reportsToUse);
-    const matchingItems = tableData.filter((item) => item.row.some((col) => col?.toString().toLowerCase().includes(searchReport.toLowerCase())));
+    const tableData = transformReportsToTableData(filteredReports);
+    // search in comment
+    const matchingItems = tableData.filter((item) => item.row[7]?.toString().toLowerCase().trim().includes(searchReport.toLowerCase().trim()));
 
     const { totalPage, paginatedData } = usePagination(searchReport ? matchingItems : tableData, Number(searchParams.get("page")) || 1, limit);
 
@@ -97,10 +107,7 @@ const TableReport = () => {
     if (isDeleting) return <div style={{ textAlign: "center" }}>Suppression en cours...</div>; // should we use this ?
     if (isError) return <div style={{ color: "red" }}>Erreur de suppression</div>;
 
-    if (filteredReports.length === 0 && !isFiltered) {
-        return <div>Aucun résultat ne correspond à vos filtres.</div>;
-    }
-
+    if (filteredReports.length === 0) return <div>Aucun résultat ne correspond à vos filtres...</div>;
     return (
         <>
             <Button onClick={() => handleDelete()}> delete </Button>
@@ -116,6 +123,7 @@ const TableReport = () => {
                     "Date de création",
                     "Commune (département)",
                     "Thème",
+                    "Comment",
                     <input
                         type="checkbox"
                         checked={paginatedData.every((row) => !!isChecked[row.id])}
