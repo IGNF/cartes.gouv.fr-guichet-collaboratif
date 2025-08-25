@@ -1,6 +1,6 @@
 import type { CommunityReport } from "@/constants/reports/types";
 
-interface FilterState {
+export interface FilterState {
     status: string;
     theme: string;
     author: number | null;

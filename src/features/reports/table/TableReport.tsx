@@ -1,9 +1,10 @@
 import { useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getReports, deleteCommunityReportAPI } from "@/api/reportsData";
+import { CSVLink } from "react-csv";
 import { Table } from "@codegouvfr/react-dsfr/Table";
 import { Button } from "@codegouvfr/react-dsfr/Button";
+import { getReports, deleteCommunityReportAPI } from "@/api/reportsData";
 import { useReportStore } from "@/store";
 import { useCommunityStore } from "@/store/useCommunityStore";
 import { REPORTS_API_URL } from "@/constants/urls";
@@ -11,6 +12,7 @@ import type { CommunityReport } from "@/constants/reports/types";
 import { applyFiltersToReports } from "@/constants/reports/utils/reportFilters";
 import usePagination from "@/hooks/usePagination";
 import PaginationReport from "./PaginationReport";
+type FilterHeaderKey = "status" | "author" | "opening_date" | "department" | "theme";
 
 const TableReport = () => {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -64,15 +66,13 @@ const TableReport = () => {
         return reports.map((report) => ({
             id: report.id,
             original: report,
+            comment: report.comment || "-",
             row: [
-                report.id,
-                report.author?.id,
                 report.status || "-",
                 report.author?.username || "-",
                 report.opening_date ? new Date(report.opening_date).toLocaleDateString() : "-",
                 report.commune ? `${report.commune.title} (${report.departement?.name})` : "-",
                 report.attributes && report.attributes.length > 0 ? report.attributes.map((attr) => attr.theme || "").join(", ") : "-",
-                report.comment || "-",
                 <input
                     type="checkbox"
                     checked={!!isChecked[report.id]}
@@ -89,7 +89,7 @@ const TableReport = () => {
 
     const tableData = transformReportsToTableData(filteredReports);
     // search in comment
-    const matchingItems = tableData.filter((item) => item.row[7]?.toString().toLowerCase().trim().includes(searchReport.toLowerCase().trim()));
+    const matchingItems = tableData.filter((item) => item.comment?.toString().toLowerCase().trim().includes(searchReport.toLowerCase().trim()));
 
     const { totalPage, paginatedData } = usePagination(searchReport ? matchingItems : tableData, Number(searchParams.get("page")) || 1, limit);
 
@@ -100,6 +100,23 @@ const TableReport = () => {
                 deleteReport(res.original);
             });
     };
+    const downloadedTable = matchingItems.map((row) => row.row.slice(0, -1));
+
+    const headerKeys = ["status", "author", "opening_date", "department", "theme"];
+    const csvData = downloadedTable.map((row) => Object.fromEntries(row.map((value, index) => [headerKeys[index], value])));
+
+    const tableHeaderToLabel: Record<FilterHeaderKey, string> = {
+        status: "Statut",
+        author: "Auteur",
+        opening_date: "Date de création",
+        department: "Département",
+        theme: "Thème",
+    };
+
+    const tableHeader = (Object.entries(tableHeaderToLabel) as [FilterHeaderKey, string][]).map(([key, label]) => ({
+        key: key,
+        label,
+    }));
 
     if (isLoading) return <div>Chargement des signalements...</div>;
     if (error) return <div>Erreur lors du chargement des signalements.</div>;
@@ -108,22 +125,22 @@ const TableReport = () => {
     if (isError) return <div style={{ color: "red" }}>Erreur de suppression</div>;
 
     if (filteredReports.length === 0) return <div>Aucun résultat ne correspond à vos filtres...</div>;
+
     return (
         <>
-            <Button onClick={() => handleDelete()}> delete </Button>
+            <CSVLink className="fr-btn report-download__btn" headers={tableHeader} data={csvData} filename="export-filtre.csv">
+                Télécharger
+            </CSVLink>
+            <Button onClick={() => handleDelete()}> supprimer </Button>
             <Table
-                className="table-report__table"
                 bordered
                 noCaption
                 headers={[
-                    "id",
-                    "id autheur",
                     "Statut",
                     "Pseudo",
                     "Date de création",
                     "Commune (département)",
                     "Thème",
-                    "Comment",
                     <input
                         type="checkbox"
                         checked={paginatedData.every((row) => !!isChecked[row.id])}
