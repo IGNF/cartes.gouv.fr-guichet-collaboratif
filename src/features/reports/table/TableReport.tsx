@@ -1,9 +1,10 @@
 import { useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getReports, deleteCommunityReportAPI } from "@/api/reportsData";
+import { CSVLink } from "react-csv";
 import { Table } from "@codegouvfr/react-dsfr/Table";
 import { Button } from "@codegouvfr/react-dsfr/Button";
+import { getReports, deleteCommunityReportAPI } from "@/api/reportsData";
 import { useReportStore } from "@/store";
 import { useCommunityStore } from "@/store/useCommunityStore";
 import { REPORTS_API_URL } from "@/constants/urls";
@@ -78,6 +79,23 @@ const TableReport = () => {
                 deleteReport(res.original);
             });
     };
+    const downloadedTable = matchingItems.map((row) => row.row.slice(0, -1));
+
+    const headerKeys = ["status", "author", "opening_date", "department", "theme"];
+    const csvData = downloadedTable.map((row) => Object.fromEntries(row.map((value, index) => [headerKeys[index], value])));
+
+    const tableHeaderToLabel: Record<FilterHeaderKey, string> = {
+        status: "Statut",
+        author: "Auteur",
+        opening_date: "Date de création",
+        department: "Département",
+        theme: "Thème",
+    };
+
+    const tableHeader = (Object.entries(tableHeaderToLabel) as [FilterHeaderKey, string][]).map(([key, label]) => ({
+        key: key,
+        label,
+    }));
 
     if (isLoading) return <LoaderComponent />;
     if (isErrorReport) {
@@ -101,9 +119,11 @@ const TableReport = () => {
 
     return (
         <>
-            <Button onClick={() => handleDelete()}> delete </Button>
+            <CSVLink className="fr-btn report-download__btn" headers={tableHeader} data={csvData} filename="export-filtre.csv">
+                Télécharger
+            </CSVLink>
+            <Button onClick={() => handleDelete()}> supprimer </Button>
             <Table
-                className="table-report__table"
                 bordered
                 noCaption
                 headers={[
