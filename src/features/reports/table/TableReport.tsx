@@ -16,6 +16,9 @@ import Checkbox from "@codegouvfr/react-dsfr/Checkbox";
 import LoaderComponent from "@/components/LoaderComponent";
 import { StatusMessage } from "@/constants/communities/types";
 import TransformReportsToTableData from "@/components/TransformReportsToTableData";
+import { REPORT_TABLE_HEADER_KEYS } from "@/constants/utils";
+
+type FilterHeaderKey = "status" | "author" | "opening_date" | "department" | "theme";
 
 const TableReport = () => {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -81,8 +84,7 @@ const TableReport = () => {
     };
     const downloadedTable = matchingItems.map((row) => row.row.slice(0, -1));
 
-    const headerKeys = ["status", "author", "opening_date", "department", "theme"];
-    const csvData = downloadedTable.map((row) => Object.fromEntries(row.map((value, index) => [headerKeys[index], value])));
+    const csvData = downloadedTable.map((row) => Object.fromEntries(row.map((value, index) => [REPORT_TABLE_HEADER_KEYS[index], value])));
 
     const tableHeaderToLabel: Record<FilterHeaderKey, string> = {
         status: "Statut",
