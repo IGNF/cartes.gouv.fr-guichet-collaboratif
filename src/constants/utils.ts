@@ -291,3 +291,5 @@ export const getCenterReportMessage = (message: AlertMessageType[]) => {
             message.text.type.name === "CenterMessage"
     );
 };
+
+export const REPORT_TABLE_HEADER_KEYS = ["status", "author", "opening_date", "department", "theme"];

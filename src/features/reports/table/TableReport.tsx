@@ -12,6 +12,7 @@ import type { CommunityReport } from "@/constants/reports/types";
 import { applyFiltersToReports } from "@/constants/reports/utils/reportFilters";
 import usePagination from "@/hooks/usePagination";
 import PaginationReport from "./PaginationReport";
+import { REPORT_TABLE_HEADER_KEYS } from "@/constants/utils";
 type FilterHeaderKey = "status" | "author" | "opening_date" | "department" | "theme";
 
 const TableReport = () => {
@@ -102,8 +103,7 @@ const TableReport = () => {
     };
     const downloadedTable = matchingItems.map((row) => row.row.slice(0, -1));
 
-    const headerKeys = ["status", "author", "opening_date", "department", "theme"];
-    const csvData = downloadedTable.map((row) => Object.fromEntries(row.map((value, index) => [headerKeys[index], value])));
+    const csvData = downloadedTable.map((row) => Object.fromEntries(row.map((value, index) => [REPORT_TABLE_HEADER_KEYS[index], value])));
 
     const tableHeaderToLabel: Record<FilterHeaderKey, string> = {
         status: "Statut",
