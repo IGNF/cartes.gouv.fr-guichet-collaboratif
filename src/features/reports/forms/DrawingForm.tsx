@@ -1,5 +1,5 @@
 import { ClickedTool, ReportTool, toolNames } from "@/constants/reports/types";
-import { getReportAllFeatures, REPORTS_LAYER_TYPE, reportTools } from "@/constants/reports/utils";
+import { getReportAllFeatures, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import { useMapStore, useReportStore } from "@/store";
 import Button from "@codegouvfr/react-dsfr/Button";
 
@@ -10,6 +10,7 @@ import { useCallback, useEffect, useRef } from "react";
 import SketchList from "./SketchList";
 import ImportSketchFile from "./ImportSketchFile";
 import { useTranslation } from "@/i18n";
+import useReportTools from "@/hooks/reports/useReportTools";
 
 interface Props {
     clickedTool: ClickedTool;
@@ -23,6 +24,8 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick }) => {
     const importFileRef = useRef<HTMLInputElement>(null);
 
     const { t } = useTranslation({ DrawingForm });
+
+    const reportTools = useReportTools();
 
     const reportLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE);
     const reportSource = reportLayer?.getSource() as VectorSource;
@@ -101,7 +104,7 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick }) => {
                 setSelectedFeatures([]);
             }
         };
-    }, [selectedReport, drawingSource, reportSource, handleToolClick, setSelectedFeatures]);
+    }, [selectedReport, drawingSource, reportSource, reportTools, handleToolClick, setSelectedFeatures]);
 
     const getToolPriority = (tool: ReportTool) => {
         if (isToolDisabled(tool)) return "primary";

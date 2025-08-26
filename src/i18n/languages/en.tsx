@@ -21,6 +21,11 @@ import { useGetWFSLayerEnTranslations } from "@/hooks/navigation/layers/locale/u
 import { useGetWMSLayerEnTranslations } from "@/hooks/navigation/layers/locale/useGetWMSLayer.locale";
 import { useGetWMTSLayerEnTranslations } from "@/hooks/navigation/layers/locale/useGetWMTSLayer.locale";
 import { DrawerComponentEnTranslations } from "@/components/locale/DrawerComponent.locale";
+import { DrawingControlEnTranslations } from "@/features/navigation/controls/locale/DrawingControl.locale";
+import { CatalogControlEnTranslations } from "@/features/navigation/controls/locale/CatalogControl.locale";
+import { useCenterViewToReportControlEnTranslations } from "@/features/navigation/controls/locale/useCenterViewToReportControl.locale";
+import { useGetMapControlsEnTranslations } from "@/features/navigation/controls/locale/useGetMapControls.locale";
+import { useReportToolsEnTranslations } from "@/hooks/reports/locale/useReportTools.locale";
 
 export const translations: Translations<"en"> = {
     AppFooter: AppFooterEnTranslations,
@@ -45,4 +50,9 @@ export const translations: Translations<"en"> = {
     useGetWFSLayer: useGetWFSLayerEnTranslations,
     useGetWMSLayer: useGetWMSLayerEnTranslations,
     useGetWMTSLayer: useGetWMTSLayerEnTranslations,
+    DrawingControl: DrawingControlEnTranslations,
+    CatalogControl: CatalogControlEnTranslations,
+    useCenterViewToReportControl: useCenterViewToReportControlEnTranslations,
+    useGetMapControls: useGetMapControlsEnTranslations,
+    useReportTools: useReportToolsEnTranslations,
 };

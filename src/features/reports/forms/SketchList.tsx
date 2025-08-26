@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo } from "react";
 import { StatusMessage } from "@/constants/communities/types";
 import { SketchFeatureType, toolNames } from "@/constants/reports/types";
-import { REPORTS_LAYER_TYPE, reportTools } from "@/constants/reports/utils";
+import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import { selectionCircleStyle } from "@/constants/styles";
 import { getFeatureDiam, handleCenterToFeature, mainMarker, markersStyles, otherMarkers } from "@/constants/utils";
 import { useCommunityStore, useMapStore, useReportStore } from "@/store";
@@ -14,6 +14,7 @@ import { Size } from "ol/size";
 import VectorSource from "ol/source/Vector";
 import { Style } from "ol/style";
 import ImageStyle from "ol/style/Image";
+import useReportTools from "@/hooks/reports/useReportTools";
 
 const hoveredFeatureStyle: { strockWidth: number; imageScale: number | Size } = { strockWidth: 1, imageScale: 1 };
 
@@ -30,6 +31,8 @@ const SketchList = () => {
 
     const mainFeature = useMemo(() => selectedFeatures.find((f) => f.get("main")), [selectedFeatures]);
     const sketchFeatures = useMemo(() => selectedFeatures.filter((f) => !f.get("main")), [selectedFeatures]);
+
+    const reportTools = useReportTools();
 
     const isMainFeatureClustered = useCallback(() => {
         if (!clusterSource) return false;

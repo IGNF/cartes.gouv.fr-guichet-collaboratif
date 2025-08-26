@@ -20,6 +20,10 @@ export type ComponentKey =
     | import("../pages/locale/NotFound.locale").I18n
     | import("../pages/locale/Carte.locale").I18n
     | import("../features/navigation/layers/locale/GetReportsLayer.locale").I18n
+    | import("../features/navigation/controls/locale/DrawingControl.locale").I18n
+    | import("../features/navigation/controls/locale/CatalogControl.locale").I18n
+    | import("../features/navigation/controls/locale/useCenterViewToReportControl.locale").I18n
+    | import("../features/navigation/controls/locale/useGetMapControls.locale").I18n
     | import("../features/reports/forms/locale/AttachmentList.locale").I18n
     | import("../features/reports/forms/locale/ConfirmCancelModal.locale").I18n
     | import("../features/reports/forms/locale/DrawingForm.locale").I18n
@@ -33,6 +37,7 @@ export type ComponentKey =
     | import("../hooks/navigation/layers/locale/useGetReportsLayer.locale").I18n
     | import("../hooks/navigation/layers/locale/useGetWFSLayer.locale").I18n
     | import("../hooks/navigation/layers/locale/useGetWMSLayer.locale").I18n
-    | import("../hooks/navigation/layers/locale/useGetWMTSLayer.locale").I18n;
+    | import("../hooks/navigation/layers/locale/useGetWMTSLayer.locale").I18n
+    | import("../hooks/reports/locale/useReportTools.locale").I18n;
 
 export type Translations<L extends Language> = GenericTranslations<ComponentKey, Language, typeof fallbackLanguage, L>;

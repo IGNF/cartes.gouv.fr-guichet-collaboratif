@@ -2,26 +2,33 @@ import SearchEngine from "geopf-extensions-openlayers/src/packages/Controls/Sear
 import { Control, ScaleLine } from "ol/control";
 import GeoportalZoom from "geopf-extensions-openlayers/src/packages/Controls/Zoom/GeoportalZoom";
 import GeoportalFullScreen from "geopf-extensions-openlayers/src/packages/Controls/FullScreen/GeoportalFullScreen";
-import { catalogControl } from "./catalogControl";
 import { Collection } from "ol";
-import drawingControl from "./drawingControl";
-import centerViewToReportControl from "./centerViewToReportControl";
+import CatalogControl from "./CatalogControl";
+import useCenterViewToReportControl from "./useCenterViewToReportControl";
+import { useTranslation } from "@/i18n";
+import DrawingControl from "./DrawingControl";
 
-const getMapControls = (): Collection<Control> | Control[] | undefined => {
+const useGetMapControls = (): Collection<Control> | Control[] | undefined => {
+    const drawControl = DrawingControl({});
+    const catalogControl = CatalogControl({});
+    const centerToReportControl = useCenterViewToReportControl();
+
+    const { t } = useTranslation({ useGetMapControls });
     return [
-        drawingControl,
+        drawControl,
         new SearchEngine({
             collapsed: true,
             displayAdvancedSearch: false,
             apiKey: "essentiels",
             zoomTo: "auto",
+            placeholder: t("search_engine_placeholder"),
         }),
         new ScaleLine(),
-        new GeoportalZoom({ position: "top-left" }),
-        new GeoportalFullScreen({ position: "bottom-right" }),
+        new GeoportalZoom({ position: "top-left", zoomInTipLabel: "Zoom In", zoomOutTipLabel: "Zoom Out" }),
+        new GeoportalFullScreen({ position: "bottom-right", tipLabel: t("full_screen_label") }),
         catalogControl,
-        centerViewToReportControl,
+        centerToReportControl,
     ];
 };
 
-export default getMapControls;
+export default useGetMapControls;

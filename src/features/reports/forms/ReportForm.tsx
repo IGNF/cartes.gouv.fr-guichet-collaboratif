@@ -13,11 +13,11 @@ import { getThemeAttributes } from "@/constants/utils";
 import DrawingForm from "./DrawingForm";
 import { Feature } from "ol";
 import CenterReport from "../CenterReport";
-import { reportTools } from "@/constants/reports/utils";
 import { createModal } from "@codegouvfr/react-dsfr/Modal";
 import ConfirmCancelModal from "./ConfirmCancelModal";
 import AttachmentList from "./AttachmentList";
 import { useTranslation } from "@/i18n";
+import useReportTools from "@/hooks/reports/useReportTools";
 
 const confirmModal = createModal({
     id: "confirm-modal",
@@ -55,6 +55,8 @@ const ReportForm: React.FC<Props> = ({ handleSubmit, handleDelete, handleClose }
 
     const { community } = useCommunityStore();
     const { editReport, selectedReport, selectedFeatures, setSelectedFeatures } = useReportStore();
+
+    const reportTools = useReportTools();
 
     const { t } = useTranslation({ ReportForm });
 
