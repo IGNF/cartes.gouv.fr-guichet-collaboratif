@@ -201,3 +201,5 @@ export const createSketchGEOJSON = (content: string, drawingSource: VectorSource
         throw Error();
     }
 };
+
+export const REPORT_TABLE_LIMIT_OPTIONS = [2, 5, 10, 15, 20, 30];

@@ -11,17 +11,23 @@ import type { CommunityReport } from "@/constants/reports/types";
 import { applyFiltersToReports } from "@/constants/reports/utils/reportFilters";
 import usePagination from "@/hooks/usePagination";
 import PaginationReport from "./PaginationReport";
+import Checkbox from "@codegouvfr/react-dsfr/Checkbox";
+import LoaderComponent from "@/components/LoaderComponent";
+import { StatusMessage } from "@/constants/communities/types";
+import TransformReportsToTableData from "@/components/TransformReportsToTableData";
 
 const TableReport = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const queryClient = useQueryClient();
-    const { community } = useCommunityStore();
+    const { community, addAlertMessage } = useCommunityStore();
     const { filteredReports, isFiltered, searchReport, isChecked, setIsChecked, setFilteredReports, currentFilters } = useReportStore();
-    const queryKey = `${REPORTS_API_URL}?communities=${community?.id}`;
+    const page = Number(searchParams.get("page") ?? 1);
+    const limit = Number(searchParams.get("limit")) || 10;
+    const queryKey = `${REPORTS_API_URL}?communities=${community?.id}&page=${page}&limit=${limit}`;
     const {
         data: reports,
         isLoading,
-        error,
+        error: isErrorReport,
     } = useQuery<CommunityReport[]>({
         queryKey: [queryKey],
         queryFn: () => (community ? getReports(community.id) : Promise.resolve([])),
@@ -29,8 +35,8 @@ const TableReport = () => {
     });
 
     const {
-        isPending: isDeleting, // should we use this ?
-        isError,
+        isPending: isDeleting,
+        isError: isErrorDelete,
         mutate: deleteReport,
     } = useMutation({
         mutationFn: (report: CommunityReport) => deleteCommunityReportAPI(report),
@@ -50,35 +56,8 @@ const TableReport = () => {
         }
     }, [reports, currentFilters, searchReport, setFilteredReports, setIsChecked]);
 
-    const limit = Number(searchParams.get("limit")) || 10;
-    const transformReportsToTableData = (reports: CommunityReport[]) => {
-        return reports.map((report) => ({
-            id: report.id,
-            original: report,
-            row: [
-                report.id,
-                report.author?.id,
-                report.status || "-",
-                report.author?.username || "-",
-                report.opening_date ? new Date(report.opening_date).toLocaleDateString() : "-",
-                report.commune ? `${report.commune.title} (${report.departement?.name})` : "-",
-                report.attributes && report.attributes.length > 0 ? report.attributes.map((attr) => attr.theme || "").join(", ") : "-",
-                <input
-                    type="checkbox"
-                    checked={!!isChecked[report.id]}
-                    onChange={(e) => {
-                        setIsChecked({
-                            ...isChecked,
-                            [report.id]: e.target.checked,
-                        });
-                    }}
-                />,
-            ],
-        }));
-    };
-
     const reportsToUse = filteredReports.length > 0 ? filteredReports : (reports ?? []);
-    const tableData = transformReportsToTableData(reportsToUse);
+    const tableData = TransformReportsToTableData(reportsToUse);
     const matchingItems = tableData.filter((item) => item.row.some((col) => col?.toString().toLowerCase().includes(searchReport.toLowerCase())));
 
     const { totalPage, paginatedData } = usePagination(searchReport ? matchingItems : tableData, Number(searchParams.get("page")) || 1, limit);
@@ -91,11 +70,11 @@ const TableReport = () => {
             });
     };
 
-    if (isLoading) return <div>Chargement des signalements...</div>;
-    if (error) return <div>Erreur lors du chargement des signalements.</div>;
+    if (isLoading) return <LoaderComponent />;
+    if (isErrorReport) return addAlertMessage(StatusMessage.error, "Erreur lors du chargement des signalements.");
 
-    if (isDeleting) return <div style={{ textAlign: "center" }}>Suppression en cours...</div>; // should we use this ?
-    if (isError) return <div style={{ color: "red" }}>Erreur de suppression</div>;
+    if (isDeleting) return <div style={{ textAlign: "center" }}>Suppression en cours...</div>;
+    if (isErrorDelete) return addAlertMessage(StatusMessage.error, "Erreur de suppression");
 
     if (filteredReports.length === 0 && !isFiltered) {
         return <div>Aucun résultat ne correspond à vos filtres.</div>;
@@ -109,27 +88,30 @@ const TableReport = () => {
                 bordered
                 noCaption
                 headers={[
-                    "id",
-                    "id autheur",
                     "Statut",
                     "Pseudo",
                     "Date de création",
                     "Commune (département)",
                     "Thème",
-                    <input
-                        type="checkbox"
-                        checked={paginatedData.every((row) => !!isChecked[row.id])}
-                        onChange={(e) => {
-                            const allChecked = e.target.checked;
-                            const updated: Record<string, boolean> = { ...isChecked };
-                            // map on visible rows
-                            paginatedData.forEach((row) => {
-                                const id = row.id;
-                                updated[id] = allChecked;
-                            });
+                    <Checkbox
+                        options={[
+                            {
+                                label: <span className="fr-sr-only">Séléctionner tous les signalements de la page courante.</span>,
+                                nativeInputProps: {
+                                    checked: paginatedData.every((row) => !!isChecked[row.id]),
+                                    onChange: (e) => {
+                                        const allChecked = e.target.checked;
+                                        const updated: Record<string, boolean> = { ...isChecked };
+                                        paginatedData.forEach((row) => {
+                                            updated[row.id] = allChecked;
+                                        });
 
-                            setIsChecked(updated);
-                        }}
+                                        setIsChecked(updated);
+                                    },
+                                },
+                            },
+                        ]}
+                        small
                     />,
                 ]}
                 data={paginatedData.map((res) => res.row)}

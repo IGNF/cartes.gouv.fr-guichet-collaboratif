@@ -1,11 +1,4 @@
-import type { CommunityReport } from "@/constants/reports/types";
-
-interface FilterState {
-    status: string;
-    theme: string;
-    author: number | null;
-    department: string;
-}
+import type { CommunityReport, FilterState } from "@/constants/reports/types";
 
 export function applyFiltersToReports(reports: CommunityReport[], filters: FilterState, searchText: string): CommunityReport[] {
     return reports.filter((report) => {

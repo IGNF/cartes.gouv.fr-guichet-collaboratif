@@ -66,6 +66,13 @@ export interface CommunityReport {
     attributes?: CommunityTheme[];
 }
 
+export interface FilterState {
+    status: string;
+    theme: string;
+    author: number | null;
+    department: string;
+}
+
 export type PostThemeReport = { [key: string]: string };
 
 export interface PostReport {
