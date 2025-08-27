@@ -54,8 +54,10 @@ const FilterAndSortReport = () => {
     const { community, addAlertMessage } = useCommunityStore();
     const { setFilteredReports, setIsChecked, setCurrentFilters, searchReport } = useReportStore();
     const [searchParams, setSearchParams] = useSearchParams();
+    const page = Number(searchParams.get("page") ?? 1);
+    const limit = Number(searchParams.get("limit")) || 10;
+    const queryKey = `${REPORTS_API_URL}?communities=${community?.id}&page=${page}&limit=${limit}`;
 
-    const queryKey = `${REPORTS_API_URL}?communities=${community?.id}`;
     const {
         data: reports = [],
         isLoading,
@@ -123,7 +125,10 @@ const FilterAndSortReport = () => {
     };
 
     if (isLoading) return <LoaderComponent />;
-    if (isErrorReport) return addAlertMessage(StatusMessage.error, "Erreur lors du chargement des signalements.");
+    if (isErrorReport) {
+        addAlertMessage(StatusMessage.error, "Erreur lors du chargement des signalements.");
+        return null;
+    }
 
     return (
         <>

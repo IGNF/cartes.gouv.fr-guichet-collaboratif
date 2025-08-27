@@ -71,13 +71,23 @@ const TableReport = () => {
     };
 
     if (isLoading) return <LoaderComponent />;
-    if (isErrorReport) return addAlertMessage(StatusMessage.error, "Erreur lors du chargement des signalements.");
+    if (isErrorReport) {
+        addAlertMessage(StatusMessage.error, "Erreur lors du chargement des signalements.");
+        return null;
+    }
 
-    if (isDeleting) return <div style={{ textAlign: "center" }}>Suppression en cours...</div>;
-    if (isErrorDelete) return addAlertMessage(StatusMessage.error, "Erreur de suppression");
+    if (isDeleting) {
+        addAlertMessage(StatusMessage.error, "Suppression en cours...");
+        return null;
+    }
+    if (isErrorDelete) {
+        addAlertMessage(StatusMessage.error, "Erreur de suppression");
+        return null;
+    }
 
-    if (filteredReports.length === 0 && !isFiltered) {
-        return <div>Aucun résultat ne correspond à vos filtres.</div>;
+    if (filteredReports.length === 0 && isFiltered) {
+        addAlertMessage(StatusMessage.error, "Aucun résultat ne correspond à vos filtres.");
+        return null;
     }
 
     return (
