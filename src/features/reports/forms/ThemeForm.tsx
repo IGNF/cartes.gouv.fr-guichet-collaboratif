@@ -5,6 +5,7 @@ import { Fragment } from "react/jsx-runtime";
 import { CommunityTheme } from "@/constants/communities/types";
 import { PostThemeReport } from "@/constants/reports/types";
 import { useCommunityStore, useReportStore } from "@/store";
+import { useTranslation } from "@/i18n";
 
 interface ThemeProps {
     theme: CommunityTheme;
@@ -15,6 +16,8 @@ interface ThemeProps {
 const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeThemeAttributes }) => {
     const { community } = useCommunityStore();
     const { isShowReport } = useReportStore();
+
+    const { t } = useTranslation({ ThemeForm });
 
     const handleChange = (key: string, value: string) => {
         if (!onChangeThemeAttributes) return;
@@ -39,7 +42,7 @@ const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeTheme
                                 textArea
                                 label={item.name + (item.mandatory && !isShowReport() ? " *" : "")}
                                 state={item.mandatory && !themeAttributes[item.name] && !isShowReport() ? "error" : "default"}
-                                stateRelatedMessage={item.mandatory && !themeAttributes[item.name] && !isShowReport() ? "Ce champ est obligatoire." : ""}
+                                stateRelatedMessage={item.mandatory && !themeAttributes[item.name] && !isShowReport() ? t("mandatory_field") : ""}
                                 hintText={isShowReport() ? "" : item.help}
                                 disabled={isShowReport()}
                                 nativeTextAreaProps={{
@@ -58,7 +61,7 @@ const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeTheme
                                 key={item.type + index}
                                 label={item.name + (item.mandatory ? " *" : "")}
                                 state={item.mandatory && !themeAttributes[item.name] && !isShowReport() ? "error" : "default"}
-                                stateRelatedMessage={item.mandatory && !themeAttributes[item.name] && !isShowReport() ? "Ce champ est obligatoire." : ""}
+                                stateRelatedMessage={item.mandatory && !themeAttributes[item.name] && !isShowReport() ? t("mandatory_field") : ""}
                                 hintText={isShowReport() ? "" : item.help}
                                 disabled={isShowReport()}
                                 nativeInputProps={{
@@ -129,7 +132,7 @@ const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeTheme
                                 key={item.type + index}
                                 label={item.name + (item.mandatory ? " *" : "")}
                                 state={item.mandatory && !themeAttributes[item.name] && !isShowReport() ? "error" : "default"}
-                                stateRelatedMessage={item.mandatory && !themeAttributes[item.name] && !isShowReport() ? "Ce champ est obligatoire." : ""}
+                                stateRelatedMessage={item.mandatory && !themeAttributes[item.name] && !isShowReport() ? t("mandatory_field") : ""}
                                 hintText={isShowReport() ? "" : item.help}
                                 disabled={isShowReport()}
                                 nativeInputProps={{
@@ -149,7 +152,7 @@ const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeTheme
                                 key={item.type + index}
                                 label={item.name + (item.mandatory ? " *" : "")}
                                 state={item.mandatory && !themeAttributes[item.name] && !isShowReport() ? "error" : "default"}
-                                stateRelatedMessage={item.mandatory && !themeAttributes[item.name] && !isShowReport() ? "Ce champ est obligatoire." : ""}
+                                stateRelatedMessage={item.mandatory && !themeAttributes[item.name] && !isShowReport() ? t("mandatory_field") : ""}
                                 hintText={isShowReport() ? "" : item.help}
                                 disabled={isShowReport()}
                                 nativeInputProps={{

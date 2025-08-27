@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo } from "react";
 import { StatusMessage } from "@/constants/communities/types";
 import { SketchFeatureType, toolNames } from "@/constants/reports/types";
-import { reportTools } from "@/constants/reports/utils";
+import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import { selectionCircleStyle } from "@/constants/styles";
 import { getFeatureDiam, handleCenterToFeature, mainMarker, markersStyles, otherMarkers } from "@/constants/utils";
 import { useCommunityStore, useMapStore, useReportStore } from "@/store";
@@ -14,6 +14,7 @@ import { Size } from "ol/size";
 import VectorSource from "ol/source/Vector";
 import { Style } from "ol/style";
 import ImageStyle from "ol/style/Image";
+import useReportTools from "@/hooks/reports/useReportTools";
 
 const hoveredFeatureStyle: { strockWidth: number; imageScale: number | Size } = { strockWidth: 1, imageScale: 1 };
 
@@ -22,7 +23,7 @@ const SketchList = () => {
     const { addAlertMessage } = useCommunityStore();
     const { selectedFeatures, isShowReport, setSelectedFeatures } = useReportStore();
 
-    const clusterLayer = map?.getAllLayers().find((layer) => layer.get("title") === "Signalements");
+    const clusterLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE);
     const clusterSource = clusterLayer?.getSource() as VectorSource;
 
     const drawingLayer = map?.getAllLayers().find((layer: Layer & { gpResultLayerId?: string }) => layer.gpResultLayerId === "drawing");
@@ -30,6 +31,8 @@ const SketchList = () => {
 
     const mainFeature = useMemo(() => selectedFeatures.find((f) => f.get("main")), [selectedFeatures]);
     const sketchFeatures = useMemo(() => selectedFeatures.filter((f) => !f.get("main")), [selectedFeatures]);
+
+    const reportTools = useReportTools();
 
     const isMainFeatureClustered = useCallback(() => {
         if (!clusterSource) return false;

@@ -8,7 +8,7 @@ import CreateReport from "./CreateReport";
 import Layer from "ol/layer/Layer";
 import VectorSource from "ol/source/Vector";
 import ShowReport from "./ShowReport";
-import { getReportSketchFeatures } from "@/constants/reports/utils";
+import { getReportSketchFeatures, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import { clearClusterStyles, getClickedReport, showClusterFeatures } from "@/constants/reports/utils/cluster";
 import { getCenterReportMessage, showCenterReportButtons } from "@/constants/utils";
 
@@ -19,7 +19,7 @@ const ReportDrawer = () => {
     const { map } = useMapStore();
     const { alertMessages, removeAlertMessage } = useCommunityStore();
 
-    const clusterLayer = map?.getAllLayers().find((layer) => layer.get("title") === "Signalements");
+    const clusterLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE);
     const clusterSource = clusterLayer?.getSource() as VectorSource;
 
     const handleCloseDrawer = useCallback(() => {
@@ -31,7 +31,7 @@ const ReportDrawer = () => {
                 drawingSource.removeFeatures(newFeatures);
             }
         } else {
-            const reportLayer = map?.getAllLayers().find((layer) => layer.get("title") === "Signalements");
+            const reportLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE);
             const reportSource = reportLayer?.getSource() as VectorSource;
             const clusterFeatures = reportSource
                 ?.getFeatures()

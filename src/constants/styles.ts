@@ -31,7 +31,7 @@ export const clusterReportPinStyle = (geometry: Geometry | undefined = undefined
 
 export const clusterCircleStyle = (size: number = 0) =>
     new CircleStyle({
-        radius: Math.min(size * 1.5, 30),
+        radius: size > 30 ? 30 : Math.max(size, 15),
         fill: new Fill({
             color: CLUSTER_CIRCLE_COLOR,
         }),
@@ -50,7 +50,7 @@ export const clusterTextStyle = (text: string = "") =>
         }),
     });
 
-export const strokeStyleCommun = (start: Coordinate, end: number[]) =>
+export const strokeStyleCommon = (start: Coordinate, end: number[]) =>
     new Style({
         geometry: new LineString([start, end]),
         stroke: new Stroke({

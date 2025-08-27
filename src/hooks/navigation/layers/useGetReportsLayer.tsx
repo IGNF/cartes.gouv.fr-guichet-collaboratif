@@ -13,12 +13,15 @@ import { useQueryClient } from "@tanstack/react-query";
 import { transformExtent } from "ol/proj";
 import { useMapStore, useReportStore } from "@/store";
 import { isEmpty } from "ol/extent";
+import { useTranslation } from "@/i18n";
 
 function useGetReportsLayer(communityId: number) {
     const { addAlertMessage } = useCommunityStore();
     const { reports, setReports } = useReportStore();
     const { map } = useMapStore();
     const queryClient = useQueryClient();
+
+    const { t } = useTranslation({ useGetReportsLayer });
 
     const reportLayer = useMemo(() => {
         const reportSource = new VectorSource<Feature<Geometry>>({
@@ -34,12 +37,12 @@ function useGetReportsLayer(communityId: number) {
                     });
 
                     if (!reports) {
-                        addAlertMessage(StatusMessage.error, `Erreur dans le chargement de la couche Signalements`);
+                        addAlertMessage(StatusMessage.error, t("loading_report_layer_error"));
                         return null;
                     }
                     setReports(reports);
                 } catch (error) {
-                    addAlertMessage(StatusMessage.error, `Erreur dans le chargement de la couche Signalements`, 5000);
+                    addAlertMessage(StatusMessage.error, t("loading_report_layer_error"), 5000);
                     console.error(error);
                 }
             },
@@ -50,7 +53,7 @@ function useGetReportsLayer(communityId: number) {
         });
 
         return reportLayer;
-    }, [communityId, queryClient, addAlertMessage, setReports]);
+    }, [communityId, queryClient, addAlertMessage, setReports, t]);
 
     useEffect(() => {
         reportLayer?.getSource()?.removeFeatures(

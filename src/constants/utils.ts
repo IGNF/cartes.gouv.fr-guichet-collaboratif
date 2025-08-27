@@ -14,15 +14,16 @@ import Layer from "ol/layer/Layer";
 import VectorSource from "ol/source/Vector";
 import WKT from "ol/format/WKT";
 import { Coordinate } from "ol/coordinate";
-import createStarImg from "../img/reports/marketlist/star.png";
-import createCircleImg from "../img/reports/marketlist/circle.png";
-import createSquareImg from "../img/reports/marketlist/square.png";
-import createCrossImg from "../img/reports/marketlist/cross.png";
-import createXImg from "../img/reports/marketlist/x.png";
-import createTriangleImg from "../img/reports/marketlist/triangle.png";
+import createStarImg from "../img/reports/markerslist/star.png";
+import createCircleImg from "../img/reports/markerslist/circle.png";
+import createSquareImg from "../img/reports/markerslist/square.png";
+import createCrossImg from "../img/reports/markerslist/cross.png";
+import createXImg from "../img/reports/markerslist/x.png";
+import createTriangleImg from "../img/reports/markerslist/triangle.png";
 import createPointImg from "../img/reports/create_point.png";
 import { getCenter, isEmpty } from "ol/extent";
 import React from "react";
+import { REPORTS_LAYER_TYPE } from "./reports/utils";
 
 const wktFormat = new WKT();
 
@@ -78,7 +79,7 @@ export const getLonLatFromPoint = (point: string | undefined) => {
 export const refreshReportLayer = (map: Map | null) => {
     if (!map) return;
     const mapCurrentLayers = map?.getAllLayers();
-    const reportLayer = mapCurrentLayers?.find((l) => l.get("title") === "Signalements");
+    const reportLayer = mapCurrentLayers?.find((l) => l.get("type") === REPORTS_LAYER_TYPE);
     if (reportLayer) {
         reportLayer.getSource()?.refresh();
     }

@@ -33,6 +33,7 @@
         "eslint-plugin-prettier": "^5.2.3",
         "geopf-extensions-openlayers": "^1.0.0-beta.4",
         "geoportal-access-lib": "^3.4.6",
+        "i18nifty": "^3.2.6",
         "lint-staged": "^15.5.0",
         "lodash.isequal": "^4.5.0",
         "ol": "^10.4.0",
@@ -57,7 +58,8 @@
         "sass-embedded": "^1.89.2",
         "typescript": "~5.7.2",
         "typescript-eslint": "^8.27.0",
-        "vite": "^6.2.0"
+        "vite": "^6.2.0",
+        "vite-tsconfig-paths": "^5.1.4"
     },
     "commitlint": {
         "extends": [

@@ -1,3 +1,4 @@
+import { useTranslation } from "@/i18n";
 import { fr } from "@codegouvfr/react-dsfr";
 import ControlExtended from "geopf-extensions-openlayers/src/packages/Controls/Control";
 
@@ -13,8 +14,7 @@ buttonCenterToReport.onclick = () => {
     const event = new CustomEvent("center-to-feature");
     document.dispatchEvent(event);
 };
-buttonCenterToReport.setAttribute("title", "Centrer la carte sur le signalement");
-buttonCenterToReport.setAttribute("aria-label", "Centrer la carte sur le signalement");
+
 buttonCenterToReport.setAttribute("tabindex", "0");
 buttonCenterToReport.setAttribute("aria-pressed", "false");
 buttonCenterToReport.setAttribute("type", "button");
@@ -29,24 +29,33 @@ buttonReportToCenter.onclick = () => {
     document.dispatchEvent(event);
 };
 
-buttonReportToCenter.setAttribute("title", "Déplacer le signalement au centre de la carte");
-buttonReportToCenter.setAttribute("aria-label", "Déplacer le signalement au centre de la carte");
 buttonReportToCenter.setAttribute("tabindex", "0");
 buttonReportToCenter.setAttribute("aria-pressed", "false");
 buttonReportToCenter.setAttribute("type", "button");
 buttonReportToCenter.style.display = "none";
 
-const centerViewToReportControl = new ControlExtended({
-    id: "center-feature",
-    element: divElement,
-    listable: true,
-    position: "top-right",
-    description: "hello",
-});
+const useCenterViewToReportControl = () => {
+    const { t } = useTranslation({ useCenterViewToReportControl });
+    buttonCenterToReport?.setAttribute("title", t("center_to_report_title"));
+    buttonCenterToReport?.setAttribute("aria-label", t("center_to_report_title"));
 
-centerViewToReportControl.setPosition("top-right");
+    buttonReportToCenter?.setAttribute("title", t("report_to_center_title"));
+    buttonReportToCenter?.setAttribute("aria-label", t("report_to_center_title"));
+
+    const control = new ControlExtended({
+        id: "center-feature",
+        element: divElement,
+        listable: true,
+        position: "top-right",
+        description: "hello",
+    });
+
+    control.setPosition("top-right");
+
+    return control;
+};
 
 divElement.appendChild(buttonCenterToReport);
 divElement.appendChild(buttonReportToCenter);
 
-export default centerViewToReportControl;
+export default useCenterViewToReportControl;

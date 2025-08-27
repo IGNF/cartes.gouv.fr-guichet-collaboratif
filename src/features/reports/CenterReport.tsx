@@ -4,18 +4,8 @@ import { getCenterReportMessage, showCenterReportButtons } from "@/constants/uti
 import useDebounce from "@/hooks/useDebounce";
 import { useCommunityStore, useMapStore, useReportStore } from "@/store";
 import { getCenter, intersects } from "ol/extent";
-import React, { useCallback, useEffect, useState } from "react";
-
-const CenterMessage: React.FC<{ onClick: () => void }> = ({ onClick }) => {
-    return (
-        <p>
-            Attention ! Le signalement est en dehors de la carte visible -{" "}
-            <a href="#" onClick={onClick}>
-                Déplacer le signalement au centre de la carte
-            </a>
-        </p>
-    );
-};
+import { useCallback, useEffect, useState } from "react";
+import CenterMessage from "./CenterMessage";
 
 const CenterReport = () => {
     const { alertMessages, addAlertMessage, removeAlertMessage } = useCommunityStore();
