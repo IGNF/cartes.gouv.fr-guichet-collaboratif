@@ -51,7 +51,16 @@ const TableReport = () => {
     useEffect(() => {
         if (reports) {
             const filtered = applyFiltersToReports(reports, currentFilters, searchReport);
-            setFilteredReports(filtered, filtered.length > 0);
+            // No filter/search =>> everything should be displayed..
+            // Active filters/search + empty list => specific error msg (see below)
+            setFilteredReports(
+                filtered,
+                currentFilters.status !== "" ||
+                    currentFilters.theme !== "" ||
+                    currentFilters.author !== null ||
+                    currentFilters.department !== "" ||
+                    !!searchReport
+            );
             setIsChecked({});
         }
     }, [reports, currentFilters, searchReport, setFilteredReports, setIsChecked]);

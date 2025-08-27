@@ -1,7 +1,6 @@
 import { CommunityReport, FilterState } from "@/constants/reports/types";
 import { Feature } from "ol";
 import { create } from "zustand";
-
 interface ReportStore {
     reports: CommunityReport[];
     selectedReport: CommunityReport | null;
