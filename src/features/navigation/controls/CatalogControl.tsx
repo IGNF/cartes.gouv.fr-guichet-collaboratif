@@ -25,10 +25,7 @@ const CatalogControl: React.FC = () => {
         ],
         configuration: {
             type: "json",
-            urls: [
-                "https://raw.githubusercontent.com/IGNF/cartes.gouv.fr-entree-carto/main/public/data/layers.json",
-                "https://raw.githubusercontent.com/IGNF/cartes.gouv.fr-entree-carto/main/public/data/edito.json",
-            ],
+            urls: [],
         },
         position: "top-left",
     });
