@@ -11,6 +11,7 @@ import { CommunityGeoservice, StatusMessage } from "@/constants/communities/type
 import { useQueryClient } from "@tanstack/react-query";
 import { useMapStore } from "@/store";
 import { declareComponentKeys, useTranslation } from "@/i18n";
+import { getGeoserviceFeatureTypeGeometries } from "@/constants/utils";
 
 function useGetWFSLayer(geoservice: CommunityGeoservice) {
     const { addAlertMessage } = useCommunityStore();
@@ -25,7 +26,7 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
             loader: async function (extent) {
                 const url =
                     `${geoservice.url}${geoservice.url.includes("?") ? "" : "?"}service=WFS` +
-                    `&version=${geoservice.version}` +
+                    (geoservice.version ? `&version=${geoservice.version}` : "") +
                     `&request=GetFeature` +
                     `&typename=${geoservice.layer}` +
                     `&outputFormat=application/json` +
@@ -37,12 +38,18 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
                 try {
                     const data = await queryClient.fetchQuery({
                         queryKey: [queryKey],
-                        queryFn: () => fetch(url).then((response) => response.json()),
+                        queryFn: () => fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } }).then((response) => response.json()),
                     });
-                    const features = new GeoJSON().readFeatures(data, {
-                        dataProjection: "EPSG:3857",
-                        featureProjection: "EPSG:3857",
-                    });
+                    let features: Feature[];
+                    if (Array.isArray(data)) {
+                        features = getGeoserviceFeatureTypeGeometries(data, geoservice);
+                    } else {
+                        features = new GeoJSON().readFeatures(data, {
+                            dataProjection: "EPSG:3857",
+                            featureProjection: "EPSG:3857",
+                        });
+                    }
+
                     wfsSource.addFeatures(features);
                 } catch (error) {
                     console.error(error);
@@ -68,8 +75,11 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
             wfsLayer.setMinResolution(minResolution);
             wfsLayer.setMaxResolution(maxResolution);
         }
-        const extent = geoservice.extent.split(",")?.map((extent) => parseFloat(extent));
-        wfsLayer.setExtent(transformExtent(extent, "EPSG:4326", "EPSG:3857"));
+        if (geoservice.extent) {
+            const extent = geoservice.extent.split(",")?.map((extent) => parseFloat(extent));
+            wfsLayer.setExtent(transformExtent(extent, "EPSG:4326", "EPSG:3857"));
+        }
+
         return wfsLayer;
     }, [geoservice, queryClient, map, addAlertMessage, t]);
 

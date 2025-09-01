@@ -3,6 +3,21 @@ import TileLayer from "ol/layer/Tile";
 import VectorLayer from "ol/layer/Vector";
 import { ReactNode } from "react";
 
+export type FeatureTypeIds = { database: number; table: number };
+export type layerData = {
+    id: number;
+    type: string;
+    geoservice: {
+        id: number;
+    };
+    order: number;
+    opacity: number;
+    visibility: boolean;
+    role: string;
+    database: number;
+    table: number;
+};
+
 export interface LayerGeoservice {
     id: number;
     description: string | null;
@@ -19,6 +34,7 @@ export interface CommunityGeoservice extends LayerGeoservice {
     minZoom: number;
     maxZoom: number;
     boxSrid: string;
+    logo?: string;
 }
 
 export type MapLayerSource = BaseLayer | TileLayer | VectorLayer;

@@ -3,20 +3,10 @@ import { COMMUNITIES_API_URL, LIST_COMMUNITIES_URL } from "@/constants/urls";
 import { useQuery } from "@tanstack/react-query";
 import { useUserStore } from "@/store/useUserStore";
 import { getGeoserviceAll } from "./geoservicesData";
-import { Community, CommunityLayer } from "@/constants/communities/types";
+import { Community, CommunityGeoservice, CommunityLayer, layerData } from "@/constants/communities/types";
 import { axiosApi } from ".";
+import { getFeatureTypesAll } from "./featureTypesData";
 
-type layerData = {
-    id: number;
-    type: string;
-    geoservice: {
-        id: number;
-    };
-    order: number;
-    opacity: number;
-    visibility: boolean;
-    role: string;
-};
 export const isDigital = (value: string): boolean => {
     const regex = /^[1-9]\d*$/;
     return regex.test(value);
@@ -27,14 +17,26 @@ async function getCommunityLayers(communityId: string): Promise<CommunityLayer[]
 
     if (!res.data || res.status !== 200) return [];
     const layers = res.data;
-    const geoservicesIds = layers.map((layer: layerData) => layer.geoservice.id);
+    const layersGeoservice = layers.filter((layer: layerData) => layer.type === "geoservice");
+    const layersFeatureType = layers.filter((layer: layerData) => layer.type === "feature-type");
+    const geoservicesIds = layersGeoservice.map((layer: layerData) => layer?.geoservice?.id);
+    const featureTypesIds = layersFeatureType.map((layer: layerData) => {
+        return { database: layer?.database, table: layer?.table };
+    });
     const geoRes = await getGeoserviceAll(geoservicesIds);
+    const featureTypeRes = await getFeatureTypesAll(featureTypesIds);
 
-    return layers.map((layer: layerData) => {
+    const allLayers = [...layersGeoservice, ...layersFeatureType];
+
+    return allLayers.map((layer: layerData) => {
+        const geoservice =
+            layer.type === "geoservice"
+                ? (geoRes.find((geo) => geo.id === layer.geoservice.id) as CommunityGeoservice)
+                : (featureTypeRes.find((featType) => featType.id === layer.table) as CommunityGeoservice);
         return {
             id: layer.id,
             type: layer.type,
-            geoservice: geoRes.find((geo) => geo.id === layer.geoservice.id),
+            geoservice,
             order: layer.order,
             opacity: layer.opacity,
             visibility: layer.visibility,
@@ -74,10 +76,7 @@ export const useGetCommunityByIdAPI = (communityId: string) => {
     return useQuery({
         queryKey: ["COMMUNITY_DATA_" + communityId],
         queryFn: () => getCommunityById(communityId),
-        retry: (failureCount, error) => {
-            console.log(failureCount);
-            return error instanceof TypeError;
-        },
+        retry: 2,
         enabled: !community && isDigital(communityId) && !!user,
     });
 };

@@ -4,7 +4,7 @@ import imgValid from "../img/reports/punaise_valid.png";
 import imgReject from "../img/reports/punaise_reject.png";
 import imgTest from "../img/reports/punaise_test.png";
 import { fromLonLat } from "ol/proj";
-import { AlertMessageType, CommunityTheme } from "./communities/types";
+import { AlertMessageType, CommunityGeoservice, CommunityTheme } from "./communities/types";
 import Feature from "ol/Feature";
 import { Map } from "ol";
 import { CommunityReport, GeometryFeatueParams, PostThemeReport, SketchFeatureType, SketchObject } from "./reports/types";
@@ -60,6 +60,32 @@ export const reportImgStatus = {
 };
 
 type LonLatCoordinate = Coordinate | Coordinate[] | Coordinate[][] | Coordinate[][][];
+
+export const getGeoserviceFeatureTypeGeometries = (data: { geometrie: string }[], geoservice: CommunityGeoservice) => {
+    const features = data.map((item) => {
+        const geometry = wktFormat.readGeometry(item.geometrie, {
+            dataProjection: "EPSG:3857",
+            featureProjection: "EPSG:3857",
+        }) as GeometryFeatueParams;
+
+        const lonLat = geometry?.getCoordinates() as Coordinate;
+        const feat = new Feature({
+            geometry: new Point(lonLat),
+        });
+
+        feat.setStyle(
+            new Style({
+                image: new Icon({
+                    src: geoservice.logo,
+                    scale: 1,
+                }),
+                zIndex: 2,
+            })
+        );
+        return feat;
+    });
+    return features;
+};
 
 export const getLonLatFormCoordinates = (coordinates: LonLatCoordinate): LonLatCoordinate => {
     if (Array.isArray(coordinates[0])) {
