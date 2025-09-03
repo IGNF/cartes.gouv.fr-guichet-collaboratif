@@ -1,4 +1,4 @@
-import { CommunityGeoservice, FeatureTypeIds } from "@/constants/communities/types";
+import { CommunityGeoservice, FeatureTypeIds, FeatureTypeStyleItemData } from "@/constants/communities/types";
 import { DATABASE_API_URL } from "@/constants/urls";
 import { axiosApi } from ".";
 import ParkingVeloImg from "../img/parking_velo.png";
@@ -12,6 +12,7 @@ export async function getFeatureTypesAll(featureTypesIds: FeatureTypeIds[]): Pro
 
     if (resAll) {
         return resAll.map((res) => {
+            const styles = [res.data.style, ...res.data.styles];
             return {
                 id: res.data.id,
                 description: res.data.description,
@@ -26,6 +27,21 @@ export async function getFeatureTypesAll(featureTypesIds: FeatureTypeIds[]): Pro
                 maxZoom: res.data.max_zoom_level,
                 boxSrid: res.data.box_srid || "",
                 logo: ParkingVeloImg,
+                styles: styles.map((style) => {
+                    return {
+                        name: style.name,
+                        types: style.children.map((type: FeatureTypeStyleItemData) => {
+                            return {
+                                title: type.name,
+                                type: type.graphicName,
+                                pointRadius: type.pointRadius,
+                                fillColor: type.fillColor,
+                                strokeColor: type.strokeColor,
+                                strokeWidth: type.strokeWidth,
+                            };
+                        }),
+                    };
+                }),
             };
         });
     }

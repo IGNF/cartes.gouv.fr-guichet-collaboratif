@@ -24,6 +24,23 @@ export interface LayerGeoservice {
     title: string;
 }
 
+export type FeatureTypeStyleItem = {
+    title: string;
+    type?: string;
+    pointRadius: number;
+    fillColor: string;
+    strokeColor: string;
+    strokeWidth: number;
+};
+export type FeatureTypeStyleItemData = FeatureTypeStyleItem & {
+    graphicName?: string;
+    name?: string;
+};
+export type FeatureTypeStyle = {
+    name?: string;
+    types?: FeatureTypeStyleItem[];
+};
+
 export interface CommunityGeoservice extends LayerGeoservice {
     type: string;
     version: number;
@@ -35,6 +52,7 @@ export interface CommunityGeoservice extends LayerGeoservice {
     maxZoom: number;
     boxSrid: string;
     logo?: string;
+    styles?: FeatureTypeStyle[];
 }
 
 export type MapLayerSource = BaseLayer | TileLayer | VectorLayer;

@@ -21,6 +21,9 @@ const GetWFSLayer: React.FC<Props> = ({ layer }) => {
         wfsLayerSource?.setOpacity(localLayer ? localLayer.opacity : layer.opacity);
         wfsLayerSource?.setVisible(localLayer ? localLayer.visibility : layer.visibility);
         wfsLayerSource?.set("type", layer.type);
+        if (layer.type === "feature-type") {
+            wfsLayerSource?.set("description", `<div id="feature-type-style"></div>`);
+        }
         if (wfsLayerSource) {
             const wfsLayer = { source: wfsLayerSource, title: geoservice.title, order: localLayer ? localLayer.order : layer.order };
             addMapLayer(wfsLayer);
