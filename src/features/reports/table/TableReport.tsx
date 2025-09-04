@@ -1,42 +1,54 @@
-import { useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { CSVLink } from "react-csv";
 import { Table } from "@codegouvfr/react-dsfr/Table";
 import { Button } from "@codegouvfr/react-dsfr/Button";
-import { getReports, deleteCommunityReportAPI } from "@/api/reportsData";
+import { getTableReports, deleteCommunityReportAPI } from "@/api/reportsData";
 import { useReportStore } from "@/store";
 import { useCommunityStore } from "@/store/useCommunityStore";
-import { REPORTS_API_URL } from "@/constants/urls";
 import type { CommunityReport } from "@/constants/reports/types";
-import { applyFiltersToReports } from "@/constants/reports/utils/reportFilters";
-import usePagination from "@/hooks/usePagination";
 import PaginationReport from "./PaginationReport";
 import Checkbox from "@codegouvfr/react-dsfr/Checkbox";
 import LoaderComponent from "@/components/LoaderComponent";
 import { StatusMessage } from "@/constants/communities/types";
 import TransformReportsToTableData from "@/components/TransformReportsToTableData";
 import { REPORT_TABLE_HEADER_KEYS } from "@/constants/utils";
+import { applyFiltersToReports } from "@/constants/reports/utils/reportFilters";
+import { useEffect, useMemo } from "react";
 
 type FilterHeaderKey = "status" | "author" | "opening_date" | "department" | "theme";
 
 const TableReport = () => {
-    const [searchParams, setSearchParams] = useSearchParams();
     const queryClient = useQueryClient();
-    const { community, addAlertMessage } = useCommunityStore();
-    const { filteredReports, isFiltered, searchReport, isChecked, setIsChecked, setFilteredReports, currentFilters } = useReportStore();
-    const page = Number(searchParams.get("page") ?? 1);
-    const limit = Number(searchParams.get("limit")) || 10;
-    const queryKey = `${REPORTS_API_URL}?communities=${community?.id}&page=${page}&limit=${limit}`;
+    const { alertMessages, removeAlertMessage, community, addAlertMessage } = useCommunityStore();
+    const { limitPerPage, filteredReports, setFilteredReports, isFiltered, searchReport, isChecked, setIsChecked, currentPage, currentFilters } =
+        useReportStore();
+
+    const filters = useMemo(
+        () => ({
+            status: currentFilters.status,
+            theme: currentFilters.theme,
+            author: currentFilters.author,
+            department: currentFilters.department,
+        }),
+        [currentFilters]
+    );
     const {
-        data: reports,
+        data,
         isLoading,
         error: isErrorReport,
-    } = useQuery<CommunityReport[]>({
-        queryKey: [queryKey],
-        queryFn: () => (community ? getReports(community.id) : Promise.resolve([])),
+    } = useQuery({
+        queryKey: ["reports", community?.id, limitPerPage, currentPage, searchReport, filters],
+        queryFn: () =>
+            community
+                ? getTableReports(community.id, limitPerPage, currentPage, filters, searchReport)
+                : Promise.resolve({ data: [], total: 0, currentPage: 1 }),
         enabled: !!community,
     });
+
+    const reports = useMemo(() => data?.data ?? [], [data]);
+
+    const total = data?.total ?? 0;
+    const totalPages = Math.ceil(total / limitPerPage);
 
     const {
         isPending: isDeleting,
@@ -45,18 +57,47 @@ const TableReport = () => {
     } = useMutation({
         mutationFn: (report: CommunityReport) => deleteCommunityReportAPI(report),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: [queryKey] });
+            queryClient.invalidateQueries({ queryKey: ["reports", community?.id, limitPerPage, currentPage] });
             setIsChecked({});
         },
         onError: (error) => {
             console.error("Erreur suppression :", error);
         },
     });
+
+    useEffect(() => {
+        if (isErrorReport) {
+            addAlertMessage(StatusMessage.error, "Erreur lors du chargement des signalements.", 3000);
+        }
+    }, [isErrorReport, addAlertMessage]);
+
+    useEffect(() => {
+        if (isDeleting) {
+            addAlertMessage(StatusMessage.error, "Suppression en cours...", 3000);
+        } else {
+            const erroId = alertMessages.map((alert) => alert.id);
+            removeAlertMessage(Number(erroId));
+        }
+        if (isErrorDelete) {
+            addAlertMessage(StatusMessage.error, "Erreur de suppression", 3000);
+        }
+    }, [isDeleting, isErrorDelete, addAlertMessage]);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (!isLoading && isFiltered && filteredReports.length === 0) {
+                addAlertMessage(StatusMessage.error, "Aucun résultat ne correspond à votre recherche.", 3000);
+                console.log("isLoading && isFiltered && filteredReports.length : ", isLoading, isFiltered, filteredReports);
+            }
+        }, 300);
+
+        return () => clearTimeout(timer);
+    }, [isLoading, isFiltered, filteredReports.length, addAlertMessage]);
+
     useEffect(() => {
         if (reports) {
             const filtered = applyFiltersToReports(reports, currentFilters, searchReport);
-            // No filter/search =>> everything should be displayed..
-            // Active filters/search + empty list => specific error msg (see below)
+
             setFilteredReports(
                 filtered,
                 currentFilters.status !== "" ||
@@ -65,18 +106,17 @@ const TableReport = () => {
                     currentFilters.department !== "" ||
                     !!searchReport
             );
-            setIsChecked({});
         }
     }, [reports, currentFilters, searchReport, setFilteredReports, setIsChecked]);
 
     const reportsToUse = filteredReports.length > 0 ? filteredReports : (reports ?? []);
     const tableData = TransformReportsToTableData(reportsToUse);
-    const matchingItems = tableData.filter((item) => item.row.some((col) => col?.toString().toLowerCase().includes(searchReport.toLowerCase())));
-
-    const { totalPage, paginatedData } = usePagination(searchReport ? matchingItems : tableData, Number(searchParams.get("page")) || 1, limit);
+    const matchingItems = searchReport
+        ? tableData.filter((item) => item.row.some((col) => col?.toString().toLowerCase().includes(searchReport.toLowerCase())))
+        : tableData;
 
     const handleDelete = () => {
-        paginatedData
+        tableData
             .filter((res) => !!isChecked[res.id])
             .forEach((res) => {
                 deleteReport(res.original);
@@ -98,67 +138,53 @@ const TableReport = () => {
         key: key,
         label,
     }));
-
-    if (isLoading) return <LoaderComponent />;
-    if (isErrorReport) {
-        addAlertMessage(StatusMessage.error, "Erreur lors du chargement des signalements.");
-        return null;
-    }
-
-    if (isDeleting) {
-        addAlertMessage(StatusMessage.error, "Suppression en cours...");
-        return null;
-    }
-    if (isErrorDelete) {
-        addAlertMessage(StatusMessage.error, "Erreur de suppression");
-        return null;
-    }
-
-    if (filteredReports.length === 0 && isFiltered) {
-        addAlertMessage(StatusMessage.error, "Aucun résultat ne correspond à vos filtres.");
-        return null;
-    }
-
     return (
         <>
-            <CSVLink className="fr-btn report-download__btn" headers={tableHeader} data={csvData} filename="export-filtre.csv">
-                Télécharger
-            </CSVLink>
-            <Button onClick={() => handleDelete()}> supprimer </Button>
-            <Table
-                bordered
-                noCaption
-                headers={[
-                    "Statut",
-                    "Pseudo",
-                    "Date de création",
-                    "Commune (département)",
-                    "Thème",
-                    <Checkbox
-                        options={[
-                            {
-                                label: <span className="fr-sr-only">Séléctionner tous les signalements de la page courante.</span>,
-                                nativeInputProps: {
-                                    checked: paginatedData.every((row) => !!isChecked[row.id]),
-                                    onChange: (e) => {
-                                        const allChecked = e.target.checked;
-                                        const updated: Record<string, boolean> = { ...isChecked };
-                                        paginatedData.forEach((row) => {
-                                            updated[row.id] = allChecked;
-                                        });
+            {isLoading && <LoaderComponent />}
+            {isLoading || filteredReports.length > 0 ? (
+                <>
+                    <CSVLink className="fr-btn report-download__btn" headers={tableHeader} data={csvData} filename="export-filtre.csv">
+                        Télécharger
+                    </CSVLink>
+                    <Button onClick={() => handleDelete()}> supprimer </Button>
+                    <Table
+                        bordered
+                        noCaption
+                        headers={[
+                            "Statut",
+                            "Pseudo",
+                            "Date de création",
+                            "Commune (département)",
+                            "Thème",
+                            <Checkbox
+                                options={[
+                                    {
+                                        label: <span className="fr-sr-only">Séléctionner tous les signalements de la page courante.</span>,
+                                        nativeInputProps: {
+                                            checked: tableData.every((row) => !!isChecked[row.id]),
+                                            onChange: (e) => {
+                                                const allChecked = e.target.checked;
+                                                const updated: Record<string, boolean> = { ...isChecked };
+                                                tableData.forEach((row) => {
+                                                    updated[row.id] = allChecked;
+                                                });
 
-                                        setIsChecked(updated);
+                                                setIsChecked(updated);
+                                            },
+                                        },
                                     },
-                                },
-                            },
+                                ]}
+                                small
+                            />,
                         ]}
-                        small
-                    />,
-                ]}
-                data={paginatedData.map((res) => res.row)}
-                fixed
-            />
-            <PaginationReport totalPage={totalPage} searchParams={searchParams} setSearchParams={setSearchParams} />
+                        data={tableData.map((res) => res.row)}
+                        fixed
+                    />
+                    <PaginationReport totalPages={totalPages} currentPage={currentPage} />
+                </>
+            ) : (
+                <div> Aucun résultat ne correspond à votre recherche.</div>
+            )}
         </>
     );
 };

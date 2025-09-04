@@ -1,7 +1,8 @@
 import { useCommunityStore } from "@/store/useCommunityStore";
 import { useQuery } from "@tanstack/react-query";
 import { useUserStore } from "@/store/useUserStore";
-import { CommunityReport, PostReport, reportData, SketchReport, StatusKey } from "@/constants/reports/types";
+import { useReportStore } from "@/store/useReportStore";
+import { CommunityReport, FilterState, PostReport, reportData, SketchReport, StatusKey } from "@/constants/reports/types";
 import { REPORTS_API_URL } from "@/constants/urls";
 import { transformExtent } from "ol/proj";
 import { Extent, isEmpty } from "ol/extent";
@@ -28,11 +29,85 @@ export const getCommunityReportSketch = (report: reportData) => {
         : null;
 };
 
-export async function getReports(communityId: number, limit: number = 100): Promise<CommunityReport[]> {
-    const url = `${REPORTS_API_URL}?communities=${communityId}&limit=${limit}`;
+export async function getTableReports(
+    communityId: number,
+    limit: number = 100,
+    currentPage: number = 1,
+    filters?: FilterState,
+    contentRange: string = "1-10/100",
+    searchReport: string = "",
+    limitPerPage: number = 10
+): Promise<{
+    data: CommunityReport[];
+    total: number;
+    currentPage: number;
+    contentRange?: string;
+    searchReport?: string;
+    limitPerPage?: number;
+}> {
+    searchReport = useReportStore.getState().searchReport;
+    limitPerPage = useReportStore.getState().limitPerPage;
+
+    let url = `${REPORTS_API_URL}?communities=${communityId}&limit=${limit}&page=${currentPage}`;
+
+    if (filters?.status) {
+        url += `&status=${encodeURIComponent(filters?.status)}`;
+    }
+
+    if (filters?.author !== null && filters?.author !== undefined) {
+        url += `&author=${encodeURIComponent(String(filters?.author))}`;
+    }
+
+    if (filters?.department) {
+        url += `&departements=${encodeURIComponent(filters?.department)}`;
+    }
+
+    if (filters?.theme) {
+        const attributesFilter = [{ community: communityId, theme: filters?.theme }];
+        url += `&attributes=${encodeURIComponent(JSON.stringify(attributesFilter))}`;
+    }
+
+    if (searchReport) url += `&comment=%${encodeURIComponent(searchReport)}%`;
+
     const res = await axiosApi.get(url);
-    if (!res.data) return [];
-    return res.data;
+
+    contentRange = res.headers["content-range"];
+
+    let total = 0;
+    if (contentRange) {
+        const parts = contentRange.split("/");
+        if (parts.length === 2) {
+            total = parseInt(parts[1], 10);
+            const rangeParts = parts[0].split("-");
+            if (rangeParts.length === 2) {
+                const start = parseInt(rangeParts[0], 10);
+                const end = parseInt(rangeParts[1], 10);
+                limitPerPage = end - start + 1;
+                currentPage = Math.floor((start - 1) / limitPerPage) + 1;
+            }
+        }
+    }
+
+    if (!res.data) return { data: [], total, currentPage };
+    return {
+        data: res.data ?? [],
+        total,
+        currentPage,
+        searchReport,
+    };
+}
+
+export async function getCommunityThemes(communityId: number): Promise<string[]> {
+    const url = `${REPORTS_API_URL}?communities=${communityId}&fields=attributes`;
+    const res = await axiosApi.get(url);
+
+    const reports: Array<{ attributes: Array<{ theme: string }> }> = res.data ?? [];
+
+    const themes = reports.flatMap((report) => (Array.isArray(report.attributes) ? report.attributes.map((attr) => attr.theme) : []));
+
+    const uniqueThemes = [...new Set(themes.filter(Boolean))];
+
+    return uniqueThemes;
 }
 
 export async function getCommunityReports(communityId: number, extent: Extent): Promise<CommunityReport[] | null> {

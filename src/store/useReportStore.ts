@@ -22,6 +22,10 @@ interface ReportStore {
     setIsChecked: (updater: Record<string, boolean> | ((prev: Record<string, boolean>) => Record<string, boolean>)) => void;
     currentFilters: FilterState;
     setCurrentFilters: (filters: FilterState) => void;
+    currentPage: number;
+    setCurrentPage: (currentPage: number) => void;
+    limitPerPage: number;
+    setLimitPerPage: (limitPerPage: number) => void;
 }
 export const useReportStore = create<ReportStore>((set, get) => ({
     reports: [],
@@ -71,5 +75,9 @@ export const useReportStore = create<ReportStore>((set, get) => ({
             isChecked: typeof updater === "function" ? updater(state.isChecked) : updater,
         })),
     currentFilters: { status: "", theme: "", author: null, department: "" },
-    setCurrentFilters: (filters: FilterState) => set({ currentFilters: filters }),
+    setCurrentFilters: (filters) => set({ currentFilters: filters, currentPage: 1 }),
+    currentPage: 1,
+    setCurrentPage: (currentPage) => set({ currentPage }),
+    limitPerPage: 10,
+    setLimitPerPage: (limitPerPage: number) => set({ limitPerPage }),
 }));
