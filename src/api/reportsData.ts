@@ -7,6 +7,7 @@ import { REPORTS_API_URL } from "@/constants/urls";
 import { transformExtent } from "ol/proj";
 import { Extent, isEmpty } from "ol/extent";
 import { axiosApi } from ".";
+import { parseContentRange } from "@/constants/utils";
 
 export const isDigital = (value: string): boolean => {
     const regex = /^[1-9]\d*$/;
@@ -35,8 +36,7 @@ export async function getTableReports(
     currentPage: number = 1,
     filters?: FilterState,
     contentRange: string = "1-10/100",
-    searchReport: string = "",
-    limitPerPage: number = 10
+    searchReport: string = ""
 ): Promise<{
     data: CommunityReport[];
     total: number;
@@ -46,7 +46,6 @@ export async function getTableReports(
     limitPerPage?: number;
 }> {
     searchReport = useReportStore.getState().searchReport;
-    limitPerPage = useReportStore.getState().limitPerPage;
 
     let url = `${REPORTS_API_URL}?communities=${communityId}&limit=${limit}&page=${currentPage}`;
 
@@ -70,25 +69,12 @@ export async function getTableReports(
     if (searchReport) url += `&comment=%${encodeURIComponent(searchReport)}%`;
 
     const res = await axiosApi.get(url);
-
     contentRange = res.headers["content-range"];
 
-    let total = 0;
-    if (contentRange) {
-        const parts = contentRange.split("/");
-        if (parts.length === 2) {
-            total = parseInt(parts[1], 10);
-            const rangeParts = parts[0].split("-");
-            if (rangeParts.length === 2) {
-                const start = parseInt(rangeParts[0], 10);
-                const end = parseInt(rangeParts[1], 10);
-                limitPerPage = end - start + 1;
-                currentPage = Math.floor((start - 1) / limitPerPage) + 1;
-            }
-        }
-    }
-
+    const { total, currentPage: parsedCurrentPage } = parseContentRange(contentRange);
+    currentPage = parsedCurrentPage ?? currentPage;
     if (!res.data) return { data: [], total, currentPage };
+
     return {
         data: res.data ?? [],
         total,

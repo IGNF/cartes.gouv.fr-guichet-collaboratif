@@ -294,3 +294,30 @@ export const getCenterReportMessage = (message: AlertMessageType[]) => {
 };
 
 export const REPORT_TABLE_HEADER_KEYS = ["status", "author", "opening_date", "department", "theme"];
+export const REPORT_STATUS_LIST = ["submit", "pending0", "pending", "pending1", "pending2", "valid", "valid0", "reject", "reject0", "test"];
+
+export function parseContentRange(contentRange: string) {
+    let total = 0;
+    let limitPerPage = 0;
+    let currentPage = 1;
+
+    if (contentRange) {
+        const parts = contentRange.split("/");
+        if (parts.length === 2) {
+            const parsedTotal = parseInt(parts[1], 10);
+            if (!isNaN(parsedTotal)) total = parsedTotal;
+
+            const rangeParts = parts[0].split("-");
+            if (rangeParts.length === 2) {
+                const start = parseInt(rangeParts[0], 10);
+                const end = parseInt(rangeParts[1], 10);
+                if (!isNaN(start) && !isNaN(end)) {
+                    limitPerPage = end - start + 1;
+                    currentPage = Math.floor(start / limitPerPage) + 1;
+                }
+            }
+        }
+    }
+
+    return { total, limitPerPage, currentPage };
+}

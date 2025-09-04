@@ -8,6 +8,7 @@ import Input from "@codegouvfr/react-dsfr/Input";
 import Select from "@codegouvfr/react-dsfr/Select";
 import { REPORT_TABLE_LIMIT_OPTIONS } from "@/constants/reports/utils";
 import { StatusMessage } from "@/constants/communities/types";
+import { REPORT_STATUS_LIST } from "@/constants/utils";
 
 interface SelectProps {
     label: string;
@@ -76,8 +77,7 @@ const FilterAndSortReport = () => {
     });
 
     const reports = useMemo(() => data?.data ?? [], [data]);
-
-    const statusList = useMemo(() => ["submit", "pending0", "pending", "pending1", "pending2", "valid", "valid0", "reject", "reject0", "test"], []);
+    const statusList = useMemo(() => REPORT_STATUS_LIST, []);
     const themeList = themes?.map((list) => list);
     const statusOptions = useMemo(() => [...new Set(statusList)], [statusList]);
     const themeOptions = useMemo(() => [...new Set(themeList)], [themeList]);

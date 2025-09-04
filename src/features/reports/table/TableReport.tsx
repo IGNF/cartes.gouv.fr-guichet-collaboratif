@@ -84,14 +84,9 @@ const TableReport = () => {
     }, [isDeleting, isErrorDelete, addAlertMessage]);
 
     useEffect(() => {
-        const timer = setTimeout(() => {
-            if (!isLoading && isFiltered && filteredReports.length === 0) {
-                addAlertMessage(StatusMessage.error, "Aucun résultat ne correspond à votre recherche.", 3000);
-                console.log("isLoading && isFiltered && filteredReports.length : ", isLoading, isFiltered, filteredReports);
-            }
-        }, 300);
-
-        return () => clearTimeout(timer);
+        if (!isLoading && isFiltered && filteredReports.length === 0) {
+            addAlertMessage(StatusMessage.error, "Aucun résultat ne correspond à votre recherche.", 3000);
+        }
     }, [isLoading, isFiltered, filteredReports.length, addAlertMessage]);
 
     useEffect(() => {
