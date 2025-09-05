@@ -1,19 +1,14 @@
-import { useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Fragment } from "react/jsx-runtime";
 import { useCommunityStore, useReportStore } from "@/store";
-import { getReports } from "@/api/reportsData";
-import { CommunityReport } from "@/constants/reports/types";
-import { mapReportsToTableRows } from "@/constants/reports/utils/table";
-import { applyFiltersToReports } from "@/constants/reports/utils/reportFilters";
-import { REPORTS_API_URL } from "@/constants/urls";
+import { getCommunityThemes, getTableReports } from "@/api/reportsData";
 import Button from "@codegouvfr/react-dsfr/Button";
 import Input from "@codegouvfr/react-dsfr/Input";
 import Select from "@codegouvfr/react-dsfr/Select";
 import { REPORT_TABLE_LIMIT_OPTIONS } from "@/constants/reports/utils";
-import LoaderComponent from "./LoaderComponent";
 import { StatusMessage } from "@/constants/communities/types";
+import { REPORT_STATUS_LIST } from "@/constants/utils";
 
 interface SelectProps {
     label: string;
@@ -21,6 +16,7 @@ interface SelectProps {
     options: string[] | number[];
     name: string;
 }
+
 type SortableKeys = "opening_date" | "updating_date";
 
 const SelectComponent: React.FC<SelectProps> = ({ label, defaultOption, options, name }) => {
@@ -52,27 +48,40 @@ const SelectComponent: React.FC<SelectProps> = ({ label, defaultOption, options,
 
 const FilterAndSortReport = () => {
     const { community, addAlertMessage } = useCommunityStore();
-    const { setFilteredReports, setIsChecked, setCurrentFilters, searchReport } = useReportStore();
-    const [searchParams, setSearchParams] = useSearchParams();
-    const page = Number(searchParams.get("page") ?? 1);
-    const limit = Number(searchParams.get("limit")) || 10;
-    const queryKey = `${REPORTS_API_URL}?communities=${community?.id}&page=${page}&limit=${limit}`;
+    const { limitPerPage, setLimitPerPage, currentPage, setFilteredReports, setIsChecked, currentFilters, setCurrentFilters, searchReport } = useReportStore();
+    const filters = useMemo(
+        () => ({
+            status: currentFilters.status,
+            theme: currentFilters.theme,
+            author: currentFilters.author,
+            department: currentFilters.department,
+        }),
+        [currentFilters]
+    );
 
-    const {
-        data: reports = [],
-        isLoading,
-        error: isErrorReport,
-    } = useQuery<CommunityReport[]>({
-        queryKey: [queryKey],
-        queryFn: () => (community ? getReports(community.id) : Promise.resolve([])),
+    const { data: themes } = useQuery<string[]>({
+        queryKey: ["communityThemes", community?.id],
+        queryFn: () => {
+            if (!community?.id) {
+                return Promise.resolve([]);
+            }
+            return getCommunityThemes(community.id);
+        },
+        enabled: !!community?.id,
+    });
+
+    const { data, error: isErrorReport } = useQuery({
+        queryKey: ["reports", community?.id, limitPerPage, currentPage, searchReport, filters],
+        queryFn: () => community && getTableReports(community.id, limitPerPage, currentPage, filters, searchReport),
         enabled: !!community,
     });
-    const tableData = reports ? mapReportsToTableRows(reports) : [];
 
-    const statusList = tableData.map((list) => list[0]);
-    const themeList = tableData.map((list) => list[4]);
+    const reports = useMemo(() => data?.data ?? [], [data]);
+    const statusList = useMemo(() => REPORT_STATUS_LIST, []);
+    const themeList = themes?.map((list) => list);
     const statusOptions = useMemo(() => [...new Set(statusList)], [statusList]);
     const themeOptions = useMemo(() => [...new Set(themeList)], [themeList]);
+
     const sortOptions: SortableKeys[] = useMemo(() => {
         if (reports.length > 0) {
             const keys = Object.keys(reports[0]);
@@ -84,51 +93,40 @@ const FilterAndSortReport = () => {
 
     const handleSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
+
         const form = (e.target as HTMLButtonElement).form;
         if (!form) return;
         const formData = new FormData(form);
+        const limitIndex = parseInt((formData.get("limit") as string) || "-1");
+        if (limitIndex >= 0) {
+            setLimitPerPage(REPORT_TABLE_LIMIT_OPTIONS[limitIndex]);
+        }
         const newFilters = {
             status: statusOptions[parseInt((formData.get("status") as string) || "")] || "",
             theme: themeOptions[parseInt((formData.get("theme") as string) || "")] || "",
             author: Number(formData.get("author")) || null,
             department: (formData.get("department") as string) || "",
         };
-        setCurrentFilters(newFilters);
+        setCurrentFilters({ ...newFilters });
         const sortBy = sortOptions[parseInt((formData.get("sort") as SortableKeys) || "")];
 
-        const limitBy = REPORT_TABLE_LIMIT_OPTIONS[parseInt(formData.get("limit") as string)];
-        const params = new URLSearchParams();
-        const search = searchParams.get("search") || "";
-        params.set("communities", community?.id?.toString() || "");
-        if (limitBy) params.set("limit", limitBy?.toString() || "");
-        if (newFilters.department) params.set("departements", newFilters.department.toString());
-        if (newFilters.status) params.set("status", newFilters.status);
-        if (newFilters.author) params.set("author", newFilters.author.toString());
-        if (newFilters.theme) params.set("attributes", newFilters.theme);
-        if (sortBy) params.set("sort", sortBy);
-
-        params.set("search", search);
-        params.set("page", "1");
-        setSearchParams(params);
-        const searchText = searchReport || "";
-
-        const filtered = applyFiltersToReports(reports, newFilters, searchText);
         if (sortBy) {
-            filtered.sort((a, b) => {
+            reports.sort((a, b) => {
                 const aValue = a[sortBy] ?? "";
                 const bValue = b[sortBy] ?? "";
                 return new Date(aValue).getTime() - new Date(bValue).getTime();
             });
         }
-        setFilteredReports(filtered, true);
+
+        setFilteredReports(reports, true);
         setIsChecked({});
     };
 
-    if (isLoading) return <LoaderComponent />;
-    if (isErrorReport) {
-        addAlertMessage(StatusMessage.error, "Erreur lors du chargement des signalements.");
-        return null;
-    }
+    useEffect(() => {
+        if (isErrorReport) {
+            addAlertMessage(StatusMessage.error, "Erreur lors du chargement des signalements.");
+        }
+    }, [isErrorReport, addAlertMessage]);
 
     return (
         <>

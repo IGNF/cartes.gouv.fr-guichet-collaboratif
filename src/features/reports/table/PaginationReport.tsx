@@ -1,32 +1,28 @@
-import { SetURLSearchParams } from "react-router-dom";
 import { Pagination } from "@codegouvfr/react-dsfr/Pagination";
-
+import { useReportStore } from "@/store";
 import "./PaginationReport.css";
 
 type PaginationReportProps = {
-    totalPage: number;
-    searchParams: URLSearchParams;
-    setSearchParams: SetURLSearchParams;
+    totalPages: number;
+    currentPage: number;
 };
 
-const PaginationReport = ({ totalPage, searchParams, setSearchParams }: PaginationReportProps) => {
+const PaginationReport = ({ totalPages, currentPage }: PaginationReportProps) => {
+    const { setCurrentPage } = useReportStore();
     return (
         <div className="center-pagination">
             <Pagination
-                count={totalPage}
-                defaultPage={Number(searchParams.get("page")) || 1}
+                key={currentPage}
+                count={totalPages}
+                defaultPage={currentPage || 1}
                 getPageLinkProps={(pageNumber: number) => {
-                    // Clone current params
-                    const params = new URLSearchParams(searchParams.toString());
-                    // Change only page param
-                    params.set("page", pageNumber.toString());
                     return {
-                        href: `?page=${pageNumber}+?${params.toString()}`,
+                        href: `?page=${pageNumber}`,
                         "aria-label": `Aller à la page ${pageNumber}`,
 
                         onClick: (e) => {
                             e.preventDefault();
-                            setSearchParams(params);
+                            setCurrentPage(pageNumber);
                         },
                     };
                 }}
