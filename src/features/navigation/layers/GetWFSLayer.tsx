@@ -12,6 +12,7 @@ interface Props {
 const GetWFSLayer: React.FC<Props> = ({ layer }) => {
     const { addMapLayer, mapLayers } = useCommunityStore();
     const { localStorageData } = useLocalStorageStore();
+
     const geoservice = layer.geoservice;
     const localLayer: LocalLayer | undefined = localStorageData?.layers.find((l) => l.name === geoservice.title);
 

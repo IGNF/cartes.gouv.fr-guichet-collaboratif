@@ -4,7 +4,7 @@ import imgValid from "../img/reports/punaise_valid.png";
 import imgReject from "../img/reports/punaise_reject.png";
 import imgTest from "../img/reports/punaise_test.png";
 import { fromLonLat } from "ol/proj";
-import { AlertMessageType, CommunityGeoservice, CommunityTheme } from "./communities/types";
+import { AlertMessageType, CommunityGeoservice, CommunityTheme, FeatureTypeStyle } from "./communities/types";
 import Feature from "ol/Feature";
 import { Map } from "ol";
 import { CommunityReport, GeometryFeatueParams, PostThemeReport, SketchFeatureType, SketchObject } from "./reports/types";
@@ -24,6 +24,8 @@ import createPointImg from "../img/reports/create_point.png";
 import { getCenter, isEmpty } from "ol/extent";
 import React from "react";
 import { REPORTS_LAYER_TYPE } from "./reports/utils";
+import { ComparatorFunc, simpleComparators } from "./mongo_parser";
+import getWellKnownNames from "./wellKnownNames";
 
 const wktFormat = new WKT();
 
@@ -60,8 +62,57 @@ export const reportImgStatus = {
 };
 
 type LonLatCoordinate = Coordinate | Coordinate[] | Coordinate[][] | Coordinate[][][];
+type FeatureTypeData = { geometrie: string; capacite: number | null; type_amenagement: string | null };
 
-export const getGeoserviceFeatureTypeGeometries = (data: { geometrie: string }[], geoservice: CommunityGeoservice) => {
+export const featureExists = (newFeature: Feature, source: VectorSource) => {
+    const newWkt = wktFormat.writeFeature(newFeature);
+    return source.getFeatures().some((f: Feature) => {
+        return wktFormat.writeFeature(f) === newWkt;
+    });
+};
+
+export const changeFeatureTypeStyle = (features: Feature[], newStyle: FeatureTypeStyle) => {
+    const condition = newStyle.types![1]?.condition;
+    const conditions = condition ? condition!["$and"]![0] : {};
+    const conditionKey = conditions ? Object.keys(conditions)[0] : "";
+    const condExpression = conditions[conditionKey];
+    const condExpKey = condExpression ? (Object.keys(condExpression)[0] as string) : "";
+    const comparisonFunc = simpleComparators[condExpKey as keyof typeof simpleComparators] as ComparatorFunc;
+
+    features?.forEach((feat) => {
+        const newDefaultStyle = getWellKnownNames(newStyle.types![0])[0] as Style;
+        if (!conditionKey) {
+            feat.setStyle(newDefaultStyle);
+            feat.changed();
+            return;
+        }
+        const conditionValue = feat.get(conditionKey);
+
+        if (!conditionValue) {
+            feat.setStyle(newDefaultStyle);
+            feat.changed();
+            return;
+        }
+
+        const applyType = newStyle.types?.find((type) => {
+            if (type.condition) {
+                const typeCond = type.condition!["$and"]![0];
+                let typeCondValue = typeCond[conditionKey][condExpKey];
+                if (Array.isArray(typeCondValue)) typeCondValue = typeCondValue[0];
+                return comparisonFunc(conditionValue, typeCondValue);
+            }
+            return false;
+        });
+
+        if (applyType) {
+            feat.setStyle(getWellKnownNames(applyType)[0] as Style);
+            feat.changed();
+            return;
+        }
+    });
+};
+
+export const getGeoserviceFeatureTypeGeometries = (data: FeatureTypeData[], geoservice: CommunityGeoservice) => {
     const features = data.map((item) => {
         const geometry = wktFormat.readGeometry(item.geometrie, {
             dataProjection: "EPSG:3857",
@@ -72,6 +123,9 @@ export const getGeoserviceFeatureTypeGeometries = (data: { geometrie: string }[]
         const feat = new Feature({
             geometry: new Point(lonLat),
         });
+
+        feat.set("capacite", item.capacite);
+        feat.set("type_amenagement", item.type_amenagement);
 
         feat.setStyle(
             new Style({
@@ -84,6 +138,7 @@ export const getGeoserviceFeatureTypeGeometries = (data: { geometrie: string }[]
         );
         return feat;
     });
+
     return features;
 };
 

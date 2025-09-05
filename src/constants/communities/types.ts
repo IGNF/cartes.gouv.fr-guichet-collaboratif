@@ -29,18 +29,23 @@ export type FeatureTypeStyleItem = {
     type?: string;
     pointRadius: number;
     fillColor: string;
+    fillOpacity: number;
     strokeColor: string;
     strokeWidth: number;
+    strokeOpacity: number;
+    condition?: { $and: { [key: string]: { [key: string]: number | string } }[] };
 };
+
 export type FeatureTypeStyleItemData = FeatureTypeStyleItem & {
     graphicName?: string;
     name?: string;
+    condition: string;
 };
 export type FeatureTypeStyle = {
     name?: string;
     types?: FeatureTypeStyleItem[];
 };
-
+export type FeatureTypeSelectedStyle = { layer: string; selectedStyle: FeatureTypeStyle };
 export interface CommunityGeoservice extends LayerGeoservice {
     type: string;
     version: number;

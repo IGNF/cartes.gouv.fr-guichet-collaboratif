@@ -6,16 +6,17 @@ import { Feature } from "ol";
 import { Geometry } from "ol/geom";
 import { transformExtent } from "ol/proj";
 import GeoJSON from "ol/format/GeoJSON";
-import { bbox as bboxStrategy } from "ol/loadingstrategy";
+import { tile as tileStrategy } from "ol/loadingstrategy";
 import { CommunityGeoservice, StatusMessage } from "@/constants/communities/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMapStore } from "@/store";
 import { declareComponentKeys, useTranslation } from "@/i18n";
-import { getGeoserviceFeatureTypeGeometries } from "@/constants/utils";
+import { changeFeatureTypeStyle, featureExists, getGeoserviceFeatureTypeGeometries } from "@/constants/utils";
+import { createXYZ } from "ol/tilegrid";
 
 function useGetWFSLayer(geoservice: CommunityGeoservice) {
     const { addAlertMessage } = useCommunityStore();
-    const { map } = useMapStore();
+    const { map, featureTypeSelectedStyle } = useMapStore();
 
     const queryClient = useQueryClient();
 
@@ -31,6 +32,7 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
                     `&typename=${geoservice.layer}` +
                     `&outputFormat=application/json` +
                     `&srsname=EPSG:3857` +
+                    `&maxFeatures=5000` +
                     `&bbox=${extent.join(",")},EPSG:3857`;
 
                 const queryKey = `GET_WFS_GET_FEATURES_${geoservice.url}_${geoservice.version}_${geoservice.layer}_${extent.join(",")}`;
@@ -50,13 +52,17 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
                         });
                     }
 
-                    wfsSource.addFeatures(features);
+                    features.forEach((feat) => {
+                        if (!featureExists(feat, wfsSource)) wfsSource.addFeature(feat);
+                    });
+                    const layerStyle = featureTypeSelectedStyle.find((type) => type.layer === geoservice.layer);
+                    if (layerStyle) changeFeatureTypeStyle(wfsSource.getFeatures(), layerStyle?.selectedStyle);
                 } catch (error) {
                     console.error(error);
                     addAlertMessage(StatusMessage.error, t("loading_layer_error", { layerTitle: geoservice.title }));
                 }
             },
-            strategy: bboxStrategy,
+            strategy: tileStrategy(createXYZ({ tileSize: 512 })),
         });
 
         const wfsLayer = new VectorLayer<VectorSource<Feature<Geometry>>>({
@@ -81,7 +87,7 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
         }
 
         return wfsLayer;
-    }, [geoservice, queryClient, map, addAlertMessage, t]);
+    }, [geoservice, queryClient, map, featureTypeSelectedStyle, addAlertMessage, t]);
 
     return wfsLayer;
 }

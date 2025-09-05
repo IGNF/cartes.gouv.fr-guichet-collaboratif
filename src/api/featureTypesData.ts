@@ -30,16 +30,31 @@ export async function getFeatureTypesAll(featureTypesIds: FeatureTypeIds[]): Pro
                 styles: styles.map((style) => {
                     return {
                         name: style.name,
-                        types: style.children.map((type: FeatureTypeStyleItemData) => {
-                            return {
-                                title: type.name,
-                                type: type.graphicName,
-                                pointRadius: type.pointRadius,
-                                fillColor: type.fillColor,
-                                strokeColor: type.strokeColor,
-                                strokeWidth: type.strokeWidth,
-                            };
-                        }),
+                        types: [
+                            {
+                                title: "Par défaut",
+                                type: style.graphicName,
+                                pointRadius: style.pointRadius,
+                                fillColor: style.fillColor,
+                                fillOpacity: style.fillOpacity,
+                                strokeColor: style.strokeColor,
+                                strokeWidth: style.strokeWidth,
+                                strokeOpacity: style.strokeOpacity,
+                            },
+                            ...style.children.map((type: FeatureTypeStyleItemData) => {
+                                return {
+                                    title: type.name,
+                                    type: type.graphicName,
+                                    pointRadius: type.pointRadius,
+                                    fillColor: type.fillColor,
+                                    fillOpacity: type.fillOpacity,
+                                    strokeColor: type.strokeColor,
+                                    strokeWidth: type.strokeWidth,
+                                    strokeOpacity: type.strokeOpacity,
+                                    condition: JSON.parse(type.condition),
+                                };
+                            }),
+                        ],
                     };
                 }),
             };

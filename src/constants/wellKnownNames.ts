@@ -3,6 +3,17 @@ import CircleStyle from "ol/style/Circle";
 import ImageStyle from "ol/style/Image";
 import { FeatureTypeStyleItem } from "./communities/types";
 
+export const hexToRgba = (hex: string, opacity = 1) => {
+    hex = hex.replace("#", "");
+
+    const bigint = parseInt(hex, 16);
+    const r = (bigint >> 16) & 255;
+    const g = (bigint >> 8) & 255;
+    const b = bigint & 255;
+
+    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+};
+
 export const getShapeStyle = (shapeProps: FeatureTypeStyleItem) => {
     const type = shapeProps.type;
     if (type === "circle") {
@@ -10,10 +21,10 @@ export const getShapeStyle = (shapeProps: FeatureTypeStyleItem) => {
             image: new CircleStyle({
                 radius: shapeProps.pointRadius,
                 fill: new Fill({
-                    color: shapeProps.fillColor,
+                    color: hexToRgba(shapeProps.fillColor, shapeProps.fillOpacity),
                 }),
                 stroke: new Stroke({
-                    color: shapeProps.strokeColor,
+                    color: hexToRgba(shapeProps.strokeColor, shapeProps.strokeOpacity),
                     width: shapeProps.strokeWidth,
                 }),
             }),
@@ -48,10 +59,10 @@ export const getShapeStyle = (shapeProps: FeatureTypeStyleItem) => {
             radius2,
             angle,
             fill: new Fill({
-                color: shapeProps.fillColor,
+                color: hexToRgba(shapeProps.fillColor, shapeProps.fillOpacity),
             }),
             stroke: new Stroke({
-                color: shapeProps.strokeColor,
+                color: hexToRgba(shapeProps.strokeColor, shapeProps.strokeOpacity),
                 width: shapeProps.strokeWidth,
             }),
         }),
