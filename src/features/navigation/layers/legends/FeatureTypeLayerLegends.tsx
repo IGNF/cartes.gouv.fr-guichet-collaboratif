@@ -1,15 +1,12 @@
-import Button from "@codegouvfr/react-dsfr/Button";
-import Select from "@codegouvfr/react-dsfr/Select";
 import { useMemo, useState } from "react";
 import { Fragment } from "react/jsx-runtime";
-import ParkingVeloImg from "../../../../img/parking_velo.png";
-import "./FeatureTypeLayerLegends.css";
+import VectorLayer from "ol/layer/Vector";
 import { useCommunityStore, useMapStore } from "@/store";
 import getWellKnownNames from "@/constants/wellKnownNames";
-import VectorLayer from "ol/layer/Vector";
+import Button from "@codegouvfr/react-dsfr/Button";
+import Select from "@codegouvfr/react-dsfr/Select";
 import { changeFeatureTypeStyle } from "@/constants/utils";
-
-const defaultStyle = { value: "parking_velo_defaut", name: "parking_velo_defaut", styles: [{ title: "Par défaut", img: ParkingVeloImg }] };
+import "./FeatureTypeLayerLegends.css";
 
 const FeatureTypeLayerLegends = () => {
     const { communityLayers } = useCommunityStore();
@@ -17,7 +14,8 @@ const FeatureTypeLayerLegends = () => {
 
     const divLegendTitle = document.querySelectorAll('div[id^="GPlayerInfoTitle-"]')[0];
     const legendTitle = divLegendTitle?.innerHTML;
-    const currentLayer = communityLayers?.find((layer) => layer.type === "feature-type" && layer.geoservice.layer === legendTitle);
+    const currentLayer = communityLayers?.find((layer) => layer.type === "feature-type" && layer.geoservice.title === legendTitle);
+
     const currentLayerName = currentLayer?.geoservice.layer;
     const currentLayerStyle = featureTypeSelectedStyle.find((style) => style.layer === currentLayerName);
     const styles = currentLayer?.geoservice.styles;
@@ -26,7 +24,7 @@ const FeatureTypeLayerLegends = () => {
 
     const currentStyle = styles?.find((style) => style.name === selectedStyle);
 
-    const layer = useMemo(() => map?.getAllLayers().find((l) => l.get("title") === currentLayerName) as VectorLayer, [map, currentLayerName]);
+    const layer = useMemo(() => map?.getAllLayers().find((l) => l.get("title") === legendTitle) as VectorLayer, [map, legendTitle]);
     const layerFeatures = useMemo(() => layer?.getSource()?.getFeatures() || [], [layer]);
     const handleChange = () => {
         if (currentLayerName && currentStyle && map && currentLayerStyle?.selectedStyle.name !== currentStyle.name) {
@@ -62,28 +60,20 @@ const FeatureTypeLayerLegends = () => {
                 </Fragment>
             </Select>
             <div className="feature-type-list">
-                {selectedStyle === "parking_velo_defaut"
-                    ? defaultStyle?.styles?.map((style, index) => (
-                          <div key={`feature_type_${index}`}>
-                              <img src={style.img} alt={style.title} />
-                              <span>{style.title}</span>
-                          </div>
-                      ))
-                    : currentStyle?.types?.map((type, index) => (
-                          <div key={`feature_type_${index}`}>
-                              <div className="feature-type-image">
-                                  <img
-                                      src={(getWellKnownNames(type)[1] as HTMLImageElement).src}
-                                      alt={type.title}
-                                      width={type.pointRadius * 2}
-                                      height={type.pointRadius * 2}
-                                  />
-                              </div>
-                              <span>{type.title}</span>
-                          </div>
-                      ))}
+                {currentStyle?.types?.map((type, index) => {
+                    const imgSrc = !type.logo ? (getWellKnownNames(type)[1] as HTMLImageElement).src : type.logo;
+                    const imgWidth = !type.logo && type.pointRadius ? type.pointRadius * 2 : 50;
+                    return (
+                        <div key={`feature_type_${index}`}>
+                            <div className="feature-type-image">
+                                <img src={imgSrc || undefined} alt={type.title} width={imgWidth} height={imgWidth} />
+                            </div>
+                            <span>{type.title}</span>
+                        </div>
+                    );
+                })}
             </div>
-            <div className="buttons">
+            <div className="feature-type-buttons">
                 <Button onClick={handleChange}>Ok</Button>
                 <Button priority="secondary" onClick={handleCancel}>
                     Annuler

@@ -24,15 +24,27 @@ export interface LayerGeoservice {
     title: string;
 }
 
+export interface RegularShapeStyleProps {
+    shapeProps: FeatureTypeStyleItem;
+    points: number;
+    radius?: number;
+    radius2?: number | undefined;
+    angle: number | undefined;
+}
+
 export type FeatureTypeStyleItem = {
     title: string;
     type?: string;
+    featureType?: string;
     pointRadius: number;
     fillColor: string;
     fillOpacity: number;
     strokeColor: string;
     strokeWidth: number;
+    strokeDashstyle: string;
+    strokeLinecap: "butt" | "round" | "square";
     strokeOpacity: number;
+    logo?: string;
     condition?: { $and: { [key: string]: { [key: string]: number | string } }[] };
 };
 
@@ -40,6 +52,7 @@ export type FeatureTypeStyleItemData = FeatureTypeStyleItem & {
     graphicName?: string;
     name?: string;
     condition: string;
+    uri?: string;
 };
 export type FeatureTypeStyle = {
     name?: string;
@@ -55,8 +68,11 @@ export interface CommunityGeoservice extends LayerGeoservice {
     extent: string;
     minZoom: number;
     maxZoom: number;
+    tileZoom: number;
     boxSrid: string;
     logo?: string;
+    geometryName?: string;
+    featureType?: string;
     styles?: FeatureTypeStyle[];
 }
 

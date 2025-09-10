@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useCommunityStore } from "@/store/useCommunityStore";
 import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
@@ -22,7 +22,7 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
 
     const { t } = useTranslation({ useGetWFSLayer });
 
-    const wfsLayer = useMemo(() => {
+    const wfsSource = useMemo(() => {
         const wfsSource = new VectorSource<Feature<Geometry>>({
             loader: async function (extent) {
                 const url =
@@ -35,13 +35,16 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
                     `&maxFeatures=5000` +
                     `&bbox=${extent.join(",")},EPSG:3857`;
 
-                const queryKey = `GET_WFS_GET_FEATURES_${geoservice.url}_${geoservice.version}_${geoservice.layer}_${extent.join(",")}`;
+                const queryKey = [`GET_WFS_GET_FEATURES_${geoservice.url}_${geoservice.version}_${geoservice.layer}_${extent.join(",")}`];
 
                 try {
-                    const data = await queryClient.fetchQuery({
-                        queryKey: [queryKey],
-                        queryFn: () => fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } }).then((response) => response.json()),
-                    });
+                    let data = queryClient.getQueryData([queryKey]);
+                    if (!data) {
+                        data = await queryClient.fetchQuery({
+                            queryKey: queryKey,
+                            queryFn: () => fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } }).then((response) => response.json()),
+                        });
+                    }
                     let features: Feature[];
                     if (Array.isArray(data)) {
                         features = getGeoserviceFeatureTypeGeometries(data, geoservice);
@@ -55,20 +58,32 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
                     features.forEach((feat) => {
                         if (!featureExists(feat, wfsSource)) wfsSource.addFeature(feat);
                     });
-                    const layerStyle = featureTypeSelectedStyle.find((type) => type.layer === geoservice.layer);
-                    if (layerStyle) changeFeatureTypeStyle(wfsSource.getFeatures(), layerStyle?.selectedStyle);
                 } catch (error) {
                     console.error(error);
                     addAlertMessage(StatusMessage.error, t("loading_layer_error", { layerTitle: geoservice.title }));
                 }
             },
-            strategy: tileStrategy(createXYZ({ tileSize: 512 })),
+            strategy: tileStrategy(createXYZ({ tileSize: 512, minZoom: geoservice.tileZoom, maxZoom: geoservice.maxZoom })),
         });
 
-        const wfsLayer = new VectorLayer<VectorSource<Feature<Geometry>>>({
-            source: wfsSource,
-        });
+        return wfsSource;
+    }, [geoservice, queryClient, addAlertMessage, t]);
 
+    const wfsLayer = useMemo(
+        () =>
+            new VectorLayer<VectorSource<Feature<Geometry>>>({
+                source: wfsSource,
+            }),
+        [wfsSource]
+    );
+
+    useEffect(() => {
+        const layerStyle = featureTypeSelectedStyle.find((type) => type.layer === geoservice.layer);
+
+        if (layerStyle) changeFeatureTypeStyle(wfsSource.getFeatures(), layerStyle?.selectedStyle);
+    }, [featureTypeSelectedStyle, geoservice, wfsSource]);
+
+    useEffect(() => {
         wfsLayer.set("title", geoservice.title);
 
         wfsLayer.set("description", geoservice.description);
@@ -81,13 +96,12 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
             wfsLayer.setMinResolution(minResolution);
             wfsLayer.setMaxResolution(maxResolution);
         }
-        if (geoservice.extent) {
-            const extent = geoservice.extent.split(",")?.map((extent) => parseFloat(extent));
-            wfsLayer.setExtent(transformExtent(extent, "EPSG:4326", "EPSG:3857"));
-        }
+    }, [map, geoservice, wfsLayer]);
 
-        return wfsLayer;
-    }, [geoservice, queryClient, map, featureTypeSelectedStyle, addAlertMessage, t]);
+    if (geoservice.extent) {
+        const extent = geoservice.extent.split(",")?.map((extent) => parseFloat(extent));
+        wfsLayer.setExtent(transformExtent(extent, "EPSG:4326", "EPSG:3857"));
+    }
 
     return wfsLayer;
 }

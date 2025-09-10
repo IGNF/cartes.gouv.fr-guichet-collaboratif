@@ -1,7 +1,6 @@
 import { CommunityGeoservice, FeatureTypeIds, FeatureTypeStyleItemData } from "@/constants/communities/types";
-import { DATABASE_API_URL } from "@/constants/urls";
+import { API_URL, DATABASE_API_URL } from "@/constants/urls";
 import { axiosApi } from ".";
-import ParkingVeloImg from "../img/parking_velo.png";
 
 export function getFeatureTypeById(featureTypesId: FeatureTypeIds) {
     return axiosApi.get(`${DATABASE_API_URL}/${featureTypesId.database}/tables/${featureTypesId.table}`);
@@ -19,39 +18,56 @@ export async function getFeatureTypesAll(featureTypesIds: FeatureTypeIds[]): Pro
                 title: res.data.title,
                 type: "WFS",
                 version: res.data.version || 0,
-                url: res.data.wfs.replace("https://espacecollaboratif.ign.fr/gcms/api", "http://localhost/cartes.gouv.fr/api/espaceco"),
+                url: res.data.wfs.replace("https://espacecollaboratif.ign.fr/gcms/api", `${API_URL}/espaceco`),
                 layer: res.data.name,
                 format: "JSON",
                 extent: res.data.map_extent || "",
                 minZoom: res.data.min_zoom_level,
                 maxZoom: res.data.max_zoom_level,
+                tileZoom: res.data.tile_zoom_level,
                 boxSrid: res.data.box_srid || "",
-                logo: ParkingVeloImg,
+                geometryName: res.data.geometry_name,
+                featureType: styles[0]?.type || "point",
                 styles: styles.map((style) => {
+                    let logoURI = style.uri ? style.uri?.replace("https://espacecollaboratif.ign.fr/gcms", `${API_URL}/espaceco`) : "";
+                    if (logoURI) {
+                        logoURI = logoURI + `${logoURI?.includes("?") ? "&" : "?"}width=50&height=50`;
+                    }
                     return {
                         name: style.name,
                         types: [
                             {
                                 title: "Par défaut",
                                 type: style.graphicName,
+                                featureType: style.type,
                                 pointRadius: style.pointRadius,
                                 fillColor: style.fillColor,
                                 fillOpacity: style.fillOpacity,
                                 strokeColor: style.strokeColor,
                                 strokeWidth: style.strokeWidth,
+                                strokeDashstyle: style.strokeDashstyle,
+                                strokeLinecap: style.strokeLinecap,
                                 strokeOpacity: style.strokeOpacity,
+                                logo: logoURI,
                             },
                             ...style.children.map((type: FeatureTypeStyleItemData) => {
+                                let logoURItype = type.uri ? type.uri?.replace("https://espacecollaboratif.ign.fr/gcms", `${API_URL}/espaceco`) : "";
+                                if (logoURItype) {
+                                    logoURItype = logoURItype + `${logoURItype?.includes("?") ? "&" : "?"}width=50&height=50`;
+                                }
                                 return {
                                     title: type.name,
                                     type: type.graphicName,
+                                    featureType: style.type,
                                     pointRadius: type.pointRadius,
                                     fillColor: type.fillColor,
                                     fillOpacity: type.fillOpacity,
                                     strokeColor: type.strokeColor,
                                     strokeWidth: type.strokeWidth,
+                                    strokeDashstyle: type.strokeDashstyle,
                                     strokeOpacity: type.strokeOpacity,
                                     condition: JSON.parse(type.condition),
+                                    logo: logoURItype,
                                 };
                             }),
                         ],

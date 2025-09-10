@@ -1,34 +1,16 @@
-import { Fill, RegularShape, Stroke, Style } from "ol/style";
-import CircleStyle from "ol/style/Circle";
+import { Style } from "ol/style";
 import ImageStyle from "ol/style/Image";
 import { FeatureTypeStyleItem } from "./communities/types";
-
-export const hexToRgba = (hex: string, opacity = 1) => {
-    hex = hex.replace("#", "");
-
-    const bigint = parseInt(hex, 16);
-    const r = (bigint >> 16) & 255;
-    const g = (bigint >> 8) & 255;
-    const b = bigint & 255;
-
-    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
-};
+import { getCircleStyle, getLineOrPolygonStyle, getRegularShapeStyle } from "./styles";
 
 export const getShapeStyle = (shapeProps: FeatureTypeStyleItem) => {
     const type = shapeProps.type;
+    const featureType = shapeProps.featureType;
+    if (featureType === "line" || featureType === "polygon") {
+        return getLineOrPolygonStyle(shapeProps);
+    }
     if (type === "circle") {
-        return new Style({
-            image: new CircleStyle({
-                radius: shapeProps.pointRadius,
-                fill: new Fill({
-                    color: hexToRgba(shapeProps.fillColor, shapeProps.fillOpacity),
-                }),
-                stroke: new Stroke({
-                    color: hexToRgba(shapeProps.strokeColor, shapeProps.strokeOpacity),
-                    width: shapeProps.strokeWidth,
-                }),
-            }),
-        });
+        return getCircleStyle(shapeProps);
     }
     let points = 5;
     let radius2: number | undefined = shapeProps.pointRadius / 2;
@@ -52,21 +34,7 @@ export const getShapeStyle = (shapeProps: FeatureTypeStyleItem) => {
             angle = Math.PI / 4;
             break;
     }
-    return new Style({
-        image: new RegularShape({
-            points,
-            radius: shapeProps.pointRadius,
-            radius2,
-            angle,
-            fill: new Fill({
-                color: hexToRgba(shapeProps.fillColor, shapeProps.fillOpacity),
-            }),
-            stroke: new Stroke({
-                color: hexToRgba(shapeProps.strokeColor, shapeProps.strokeOpacity),
-                width: shapeProps.strokeWidth,
-            }),
-        }),
-    });
+    return getRegularShapeStyle({ shapeProps, points, radius2, angle });
 };
 
 export const getShapeImage = (style: Style, shapeProps: FeatureTypeStyleItem, size: number = 32) => {
@@ -77,7 +45,15 @@ export const getShapeImage = (style: Style, shapeProps: FeatureTypeStyleItem, si
 
     ctx?.translate(size / 2, size / 2);
 
-    const imageStyle = style.getImage() as ImageStyle;
+    let shapeStyle = style;
+
+    if (shapeProps.featureType === "polygon") {
+        shapeStyle = getRegularShapeStyle({ shapeProps, points: 4, angle: Math.PI / 4, radius: 10 });
+    } else if (shapeProps.featureType === "line") {
+        shapeStyle = getRegularShapeStyle({ shapeProps, points: 2, angle: Math.PI / 2, radius: 10 });
+    }
+
+    const imageStyle = shapeStyle.getImage() as ImageStyle;
 
     if (imageStyle && "getImage" in imageStyle) {
         const imgEl = imageStyle.getImage(3);
@@ -87,8 +63,8 @@ export const getShapeImage = (style: Style, shapeProps: FeatureTypeStyleItem, si
     }
     const img = document.createElement("img");
     img.src = canvas.toDataURL();
-    img.width = shapeProps.pointRadius;
-    img.height = shapeProps.pointRadius;
+    img.width = shapeProps.pointRadius ?? 50;
+    img.height = shapeProps.pointRadius ?? 50;
     return img;
 };
 

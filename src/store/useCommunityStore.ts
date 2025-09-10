@@ -44,6 +44,8 @@ export const useCommunityStore = create<CommunityStore>((set, get) => ({
         });
     },
     addAlertMessage: (status, message, duration) => {
+        const messageExist = get().alertMessages.find((msg) => msg.text === message);
+        if (messageExist) return;
         set(() => {
             return { alertMessages: [...get().alertMessages, { id: idMessageCounter++, status, text: message, duration: duration ?? null }] };
         });
