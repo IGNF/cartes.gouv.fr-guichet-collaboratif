@@ -9,6 +9,7 @@ const GetAllLayers = () => {
     const { communityLayers } = useCommunityStore();
     const { map } = useMapStore();
     if (!communityLayers || !map) return null;
+
     return (
         <>
             <GetReportsLayer />

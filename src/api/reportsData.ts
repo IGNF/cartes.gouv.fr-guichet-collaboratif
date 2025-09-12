@@ -247,18 +247,3 @@ export const useGetCommunityReportByIdAPI = (reportId: number) => {
         enabled: !!community && !!user,
     });
 };
-
-/* export const useGetCommunityReportsAPI = (communityId: number) => {
-    const { community } = useCommunityStore();
-    const { user } = useUserStore();
-
-    return useQuery({
-        queryKey: ["COMMUNITY_REPORTS_DATA_" + communityId],
-        queryFn: () => getCommunityReports(communityId),
-        retry: (failureCount, error) => {
-            console.log(failureCount);
-            return error instanceof TypeError;
-        },
-        enabled: !!community && !!user,
-    });
-}; */

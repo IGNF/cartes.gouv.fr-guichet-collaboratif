@@ -4,7 +4,7 @@ import imgValid from "../img/reports/punaise_valid.png";
 import imgReject from "../img/reports/punaise_reject.png";
 import imgTest from "../img/reports/punaise_test.png";
 import { fromLonLat } from "ol/proj";
-import { AlertMessageType, CommunityTheme } from "./communities/types";
+import { AlertMessageType, CommunityGeoservice, CommunityTheme, FeatureTypeStyle } from "./communities/types";
 import Feature from "ol/Feature";
 import { Map } from "ol";
 import { CommunityReport, GeometryFeatueParams, PostThemeReport, SketchFeatureType, SketchObject } from "./reports/types";
@@ -24,6 +24,8 @@ import createPointImg from "../img/reports/create_point.png";
 import { getCenter, isEmpty } from "ol/extent";
 import React from "react";
 import { REPORTS_LAYER_TYPE } from "./reports/utils";
+import { ComparatorFunc, simpleComparators } from "./mongo_parser";
+import getWellKnownNames from "./wellKnownNames";
 
 const wktFormat = new WKT();
 
@@ -60,19 +62,177 @@ export const reportImgStatus = {
 };
 
 type LonLatCoordinate = Coordinate | Coordinate[] | Coordinate[][] | Coordinate[][][];
+type FeatureTypeData = { geometrie: string; capacite: number | null; type_amenagement: string | null };
+
+export const featureExists = (newFeature: Feature, source: VectorSource) => {
+    const newWkt = wktFormat.writeFeature(newFeature);
+    return source.getFeatures().some((f: Feature) => {
+        return wktFormat.writeFeature(f) === newWkt;
+    });
+};
+
+const applyStylePoint = (features: Feature[], newStyle: FeatureTypeStyle) => {
+    const condition = newStyle.types![1]?.condition;
+    const conditions = condition ? condition!["$and"]![0] : {};
+    const conditionKey = conditions ? Object.keys(conditions)[0] : "";
+    const condExpression = conditions[conditionKey];
+    const condExpKey = condExpression ? (Object.keys(condExpression)[0] as string) : "";
+    const comparisonFunc = simpleComparators[condExpKey as keyof typeof simpleComparators] as ComparatorFunc;
+
+    features?.forEach((feat) => {
+        const newDefaultStyleType = newStyle.types![0];
+        if (newDefaultStyleType.logo) {
+            feat.setStyle(
+                new Style({
+                    image: new Icon({
+                        src: newDefaultStyleType.logo,
+                        scale: 1,
+                    }),
+                    zIndex: 2,
+                })
+            );
+            feat.changed();
+            return;
+        }
+        const newDefaultStyle = getWellKnownNames(newStyle.types![0])[0] as Style;
+        if (!conditionKey) {
+            feat.setStyle(newDefaultStyle);
+            feat.changed();
+            return;
+        }
+        const conditionValue = feat.get(conditionKey);
+
+        if (!conditionValue) {
+            feat.setStyle(newDefaultStyle);
+            feat.changed();
+            return;
+        }
+
+        const applyType = newStyle.types?.find((type) => {
+            if (type.condition) {
+                const typeCond = type.condition!["$and"]![0];
+                let typeCondValue = typeCond[conditionKey][condExpKey];
+                if (Array.isArray(typeCondValue)) typeCondValue = typeCondValue[0];
+                return comparisonFunc(conditionValue, typeCondValue);
+            }
+            return false;
+        });
+
+        if (applyType) {
+            feat.setStyle(getWellKnownNames(applyType)[0] as Style);
+            feat.changed();
+            return;
+        }
+    });
+};
+
+export const changeFeatureTypeStyle = (features: Feature[], newStyle: FeatureTypeStyle) => {
+    const defaultStyleType = newStyle.types![0];
+    const featureType = defaultStyleType.featureType || "point";
+    if (featureType === "point") {
+        return applyStylePoint(features, newStyle);
+    } else {
+        features.forEach((feat) => {
+            feat.setStyle(getWellKnownNames(defaultStyleType)[0] as Style);
+            feat.changed();
+            return;
+        });
+    }
+};
+
+const getGeometry2D = (geometry: string, type: string = "point") => {
+    if (type === "line") {
+        return (
+            geometry
+                .replace(/,\(/g, ",")
+                .split(",")
+                .map((str) => str.split(" ").slice(0, -1).join(" "))
+                .join(",") + ")"
+        );
+    } else if (type === "polygon") {
+        return (
+            geometry
+                .replace(/,\(/g, ",")
+                .split(",")
+                .map((str) => str.split(" ").slice(0, -1).join(" "))
+                .join(",") + ")))"
+        );
+    }
+    return geometry;
+};
+
+export const getGeoserviceFeatureTypeGeometries = (data: FeatureTypeData[], geoservice: CommunityGeoservice) => {
+    const featureType = geoservice.featureType;
+    const defaultStyle = geoservice.styles![0].types![0];
+    const features = data.map((item) => {
+        let feat: Feature;
+
+        if (featureType === "line") {
+            feat = new Feature({
+                geometry: new LineString(getLonLatFromPoint(item.geometrie, false) as Coordinate),
+            });
+        } else if (featureType === "polygon") {
+            let lonLat = getLonLatFromPoint(item.geometrie, false);
+            lonLat = (item.geometrie.includes("MULTIPOLYGON") ? lonLat![0] : lonLat) as Coordinate[][] | number[];
+
+            feat = new Feature({
+                geometry: new Polygon(lonLat),
+            });
+        } else {
+            feat = new Feature({
+                geometry: new Point(getLonLatFromPoint(item.geometrie, false) as number[]),
+            });
+        }
+
+        if (defaultStyle?.logo) {
+            feat.setStyle(
+                new Style({
+                    image: new Icon({
+                        src: defaultStyle.logo,
+                        scale: 1,
+                    }),
+                    zIndex: 2,
+                })
+            );
+        } else {
+            feat.setStyle(getWellKnownNames(defaultStyle)[0] as Style);
+        }
+        feat.set("featureTypeData", item);
+        return feat;
+    });
+
+    return features;
+};
 
 export const getLonLatFormCoordinates = (coordinates: LonLatCoordinate): LonLatCoordinate => {
     if (Array.isArray(coordinates[0])) {
-        return (coordinates as LonLatCoordinate).map((ring) => getLonLatFormCoordinates(ring as LonLatCoordinate)) as LonLatCoordinate;
+        return (coordinates as LonLatCoordinate[]).map((ring) => getLonLatFormCoordinates(ring)) as LonLatCoordinate;
     } else {
         return fromLonLat(coordinates as Coordinate);
     }
 };
 
-export const getLonLatFromPoint = (point: string | undefined) => {
+export const getLonLatFromPoint = (point: string | undefined, lonLatCoord: boolean = true) => {
     if (!point) return [];
-    const wktGeometry = wktFormat.readGeometry(point) as GeometryFeatueParams;
-    const coordinates = wktGeometry?.getCoordinates() as LonLatCoordinate;
+    let coordinates: LonLatCoordinate = [];
+    let type = "point";
+    if (point.includes("LINE")) type = "line";
+    if (point.includes("POLYGON")) type = "polygon";
+    try {
+        const geometry = wktFormat.readGeometry(point, {
+            dataProjection: "EPSG:3857",
+            featureProjection: "EPSG:3857",
+        }) as GeometryFeatueParams;
+        coordinates = geometry?.getCoordinates() as LonLatCoordinate;
+    } catch {
+        const geom2D = getGeometry2D(point, type);
+        const geometry = wktFormat.readGeometry(geom2D, {
+            dataProjection: "EPSG:3857",
+            featureProjection: "EPSG:3857",
+        }) as GeometryFeatueParams;
+        coordinates = geometry?.getCoordinates() as LonLatCoordinate;
+    }
+    if (!lonLatCoord) return coordinates;
     return getLonLatFormCoordinates(coordinates);
 };
 

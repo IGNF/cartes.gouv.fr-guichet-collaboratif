@@ -38,8 +38,9 @@ function useGetWMTSLayer(geoservice: CommunityGeoservice) {
             });
 
             if (wmtsOptions) {
-                const wmtsSource = new WMTS(wmtsOptions);
+                const wmtsSource = new WMTS({ ...wmtsOptions, crossOrigin: "anonymous" });
                 wmtsSource.setUrl(geoservice.url);
+
                 wmtsLayer.setSource(wmtsSource);
                 wmtsLayer.set("loading", false);
             }

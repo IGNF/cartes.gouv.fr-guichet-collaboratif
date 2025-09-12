@@ -1,22 +1,14 @@
 import { useCommunityStore } from "@/store/useCommunityStore";
 import { COMMUNITIES_API_URL, LIST_COMMUNITIES_URL } from "@/constants/urls";
-import { useQuery } from "@tanstack/react-query";
+import { QueryClient, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useUserStore } from "@/store/useUserStore";
 import { getGeoserviceAll } from "./geoservicesData";
-import { Community, CommunityLayer } from "@/constants/communities/types";
+import { Community, CommunityGeoservice, CommunityLayer, layerData } from "@/constants/communities/types";
 import { axiosApi } from ".";
+import { getFeatureTypesAll } from "./featureTypesData";
 
-type layerData = {
-    id: number;
-    type: string;
-    geoservice: {
-        id: number;
-    };
-    order: number;
-    opacity: number;
-    visibility: boolean;
-    role: string;
-};
+let queryClient: QueryClient;
+
 export const isDigital = (value: string): boolean => {
     const regex = /^[1-9]\d*$/;
     return regex.test(value);
@@ -27,14 +19,46 @@ async function getCommunityLayers(communityId: string): Promise<CommunityLayer[]
 
     if (!res.data || res.status !== 200) return [];
     const layers = res.data;
-    const geoservicesIds = layers.map((layer: layerData) => layer.geoservice.id);
-    const geoRes = await getGeoserviceAll(geoservicesIds);
+    const layersGeoservice = layers.filter((layer: layerData) => layer.type === "geoservice");
+    const layersFeatureType = layers.filter((layer: layerData) => layer.type === "feature-type");
+    const geoservicesIds = layersGeoservice.map((layer: layerData) => layer?.geoservice?.id);
+    const featureTypesIds = layersFeatureType.map((layer: layerData) => {
+        return { database: layer?.database, table: layer?.table };
+    });
+    const communityGeoservicesKey = [`COMMUNITY_GEOSERVICES_DATA_${communityId}`];
+    const communityFeatureTypesKey = [`COMMUNITY_FEATURE_TYPES_DATA_${communityId}`];
+    let geoRes: CommunityGeoservice[];
+    let featureTypeRes: CommunityGeoservice[];
+    const cachedGeoservices = queryClient.getQueryData(communityGeoservicesKey);
+    const cachedFeatureTypes = queryClient.getQueryData(communityFeatureTypesKey);
+    if (cachedGeoservices) {
+        geoRes = cachedGeoservices as CommunityGeoservice[];
+    } else {
+        geoRes = await queryClient.fetchQuery({
+            queryKey: communityGeoservicesKey,
+            queryFn: () => getGeoserviceAll(geoservicesIds),
+        });
+    }
+    if (cachedFeatureTypes) {
+        featureTypeRes = cachedFeatureTypes as CommunityGeoservice[];
+    } else {
+        featureTypeRes = await queryClient.fetchQuery({
+            queryKey: communityFeatureTypesKey,
+            queryFn: () => getFeatureTypesAll(featureTypesIds),
+        });
+    }
 
-    return layers.map((layer: layerData) => {
+    const allLayers = [...layersGeoservice, ...layersFeatureType];
+
+    return allLayers.map((layer: layerData) => {
+        const geoservice =
+            layer.type === "geoservice"
+                ? (geoRes?.find((geo) => geo.id === layer.geoservice.id) as CommunityGeoservice)
+                : (featureTypeRes.find((featType) => featType.id === layer.table) as CommunityGeoservice);
         return {
             id: layer.id,
             type: layer.type,
-            geoservice: geoRes.find((geo) => geo.id === layer.geoservice.id),
+            geoservice,
             order: layer.order,
             opacity: layer.opacity,
             visibility: layer.visibility,
@@ -64,20 +88,28 @@ async function getCommunityById(communityId: string): Promise<[Community, Commun
         position: res.data.position,
         zoom: res.data.zoom,
     };
-    const layers: CommunityLayer[] = await getCommunityLayers(communityId);
+    const communityLayersKey = [`COMMUNITY_LAYERS_DATA_${communityId}`];
+    let layers: CommunityLayer[];
+    const cached = queryClient.getQueryData(communityLayersKey);
+    if (cached) {
+        layers = cached as CommunityLayer[];
+    } else {
+        layers = await queryClient?.fetchQuery({
+            queryKey: communityLayersKey,
+            queryFn: () => getCommunityLayers(communityId),
+        });
+    }
     return [community, layers];
 }
 
 export const useGetCommunityByIdAPI = (communityId: string) => {
     const { community } = useCommunityStore();
     const { user } = useUserStore();
+    queryClient = useQueryClient();
     return useQuery({
         queryKey: ["COMMUNITY_DATA_" + communityId],
         queryFn: () => getCommunityById(communityId),
-        retry: (failureCount, error) => {
-            console.log(failureCount);
-            return error instanceof TypeError;
-        },
+        retry: 2,
         enabled: !community && isDigital(communityId) && !!user,
     });
 };
