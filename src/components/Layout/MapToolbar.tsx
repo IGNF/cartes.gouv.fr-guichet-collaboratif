@@ -1,20 +1,22 @@
 import { Button } from "@codegouvfr/react-dsfr/Button";
 import { Select } from "@codegouvfr/react-dsfr/Select";
 import { fr } from "@codegouvfr/react-dsfr";
-import { useState, useEffect, useRef, useCallback } from "react";
-import { useCommunityStore, useReportStore } from "@/store";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useCommunityStore, useLocalStorageStore, useMapStore, useReportStore } from "@/store";
 
 import "./MapToolbar.css";
 import { useTranslation } from "@/i18n";
+import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 
 const MapToolbar: React.FC = () => {
-    const [selectedLayer, setSelectedLayer] = useState("Zones de sismicité");
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [dropdownWidth, setDropdownWidth] = useState<number>(0);
     const buttonGroupRef = useRef<HTMLDivElement>(null);
 
-    const { community } = useCommunityStore();
+    const { community, mapLayers, communityLayers } = useCommunityStore();
     const { tableDrawerOpened, setTableDrawerOpened } = useReportStore();
+    const { mapWorkingLayer, setMapWorkingLayer } = useMapStore();
+    const { localStorageData, setLocalStorage } = useLocalStorageStore();
 
     const { t } = useTranslation({ MapToolbar });
 
@@ -24,9 +26,51 @@ const MapToolbar: React.FC = () => {
         }
     }, [isDropdownOpen]);
 
+    const reportLayer = useMemo(() => mapLayers.find((layer) => layer.name === REPORTS_LAYER_TYPE), [mapLayers]);
+    const workingLayers = useMemo(() => {
+        const layers = mapLayers
+            ?.filter((l) => l !== reportLayer)
+            .map((layer) => {
+                const communityLayer = communityLayers?.find((lr) => lr.geoservice.layer === layer.name);
+                return {
+                    value: layer.name,
+                    label: `${layer.title} ${communityLayer?.geoservice.readOnly ? "[Lecture]" : ""}`,
+                };
+            })
+            .sort((l1, l2) => l1.label.localeCompare(l2.label));
+        if (reportLayer) layers.push({ value: reportLayer?.name, label: reportLayer?.title });
+        return layers;
+    }, [mapLayers, reportLayer, communityLayers]);
+
+    useEffect(() => {
+        if (!mapWorkingLayer && workingLayers[0]) {
+            let initWorkingLayer = localStorageData?.activeLayer;
+            if (!initWorkingLayer) initWorkingLayer = workingLayers[0].value;
+            setMapWorkingLayer(initWorkingLayer);
+        }
+    }, [mapWorkingLayer, workingLayers, localStorageData, setMapWorkingLayer]);
+
     const toggleTableReportsDrawer = useCallback(() => {
         setTableDrawerOpened(!tableDrawerOpened);
     }, [tableDrawerOpened, setTableDrawerOpened]);
+
+    const handleWorkingLayerChange = useCallback(
+        (value: string) => {
+            if (!community) return;
+            if (community && localStorageData) {
+                const newLocalData = { ...localStorageData, activeLayer: value };
+                setLocalStorage(community?.name, newLocalData);
+            }
+
+            const mapLayer = mapLayers.find((layer) => layer.name === value);
+            if (mapLayer && !mapLayer.source.getVisible()) {
+                mapLayer.source.setVisible(true);
+            }
+
+            setMapWorkingLayer(value);
+        },
+        [community, localStorageData, mapLayers, setLocalStorage, setMapWorkingLayer]
+    );
 
     if (!community) return null;
 
@@ -79,7 +123,7 @@ const MapToolbar: React.FC = () => {
                                         <Button className="fr-btn fr-btn--tertiary map-toolbar-review-link">{t("review")}</Button>
                                     </div>
                                     <div className="map-toolbar-reset">
-                                        <Button iconId="ri-refresh-line" priority="secondary" onClick={() => console.log("Réinitialisation")}>
+                                        <Button iconId="ri-refresh-line" priority="secondary">
                                             {t("reset")}
                                         </Button>
                                     </div>
@@ -101,15 +145,14 @@ const MapToolbar: React.FC = () => {
                 <Select
                     label={t("working_layer")}
                     nativeSelectProps={{
-                        value: selectedLayer,
-                        onChange: (e) => setSelectedLayer(e.target.value),
+                        value: mapWorkingLayer,
+                        onChange: (e) => handleWorkingLayerChange(e.target.value),
                     }}
                     className="map-toolbar-bottom-select"
                 >
-                    <option>{t("seismicity_zone")}</option>
-                    <option>Option 2</option>
-                    <option>Option 3</option>
-                    <option>Option 4</option>
+                    {workingLayers?.map((option) => (
+                        <option value={option.value}>{option.label}</option>
+                    ))}
                 </Select>
             </div>
         </div>

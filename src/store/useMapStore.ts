@@ -7,10 +7,12 @@ interface MapStore {
     featureTypeSelectedStyle: FeatureTypeSelectedStyle[];
     clickedMapFeature: Feature | null;
     workingLayerDrawerOpened: boolean;
+    mapWorkingLayer: string;
     setMap: (map: Map | null) => void;
     setFeatureTypeSelectedStyle: ({ layer, selectedStyle }: FeatureTypeSelectedStyle) => void;
     setClickedMapFeature: (feature: Feature | null) => void;
     setWorkingLayerDrawerOpened: (open: boolean) => void;
+    setMapWorkingLayer: (layerName: string) => void;
 }
 
 export const useMapStore = create<MapStore>((set, get) => ({
@@ -18,6 +20,7 @@ export const useMapStore = create<MapStore>((set, get) => ({
     featureTypeSelectedStyle: [],
     clickedMapFeature: null,
     workingLayerDrawerOpened: false,
+    mapWorkingLayer: "",
     setMap: (map) => {
         set({ map });
     },
@@ -38,5 +41,8 @@ export const useMapStore = create<MapStore>((set, get) => ({
     },
     setWorkingLayerDrawerOpened: (open) => {
         set({ workingLayerDrawerOpened: open });
+    },
+    setMapWorkingLayer: (layerName) => {
+        set({ mapWorkingLayer: layerName });
     },
 }));

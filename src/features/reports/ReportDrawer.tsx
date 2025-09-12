@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Feature, MapBrowserEvent } from "ol";
 import Layer from "ol/layer/Layer";
 import VectorSource from "ol/source/Vector";
@@ -14,7 +14,7 @@ import CreateReport from "./CreateReport";
 
 const ReportDrawer = () => {
     const [drawerOpened, setDrawerOpened] = useState<boolean>(false);
-    const workingLayer = useMemo(() => ["troncon_de_route"], []);
+    const { mapWorkingLayer } = useMapStore();
 
     const { reports, selectedReport, editReport, selectedFeatures, setEditReport, setSelectedReport, setSelectedFeatures } = useReportStore();
     const { map, setClickedMapFeature } = useMapStore();
@@ -64,8 +64,8 @@ const ReportDrawer = () => {
 
             map?.forEachFeatureAtPixel(evt.pixel, function (feature) {
                 const clickedFeature = feature as Feature;
-                if (clickedFeature.get("geoservice")?.layer !== workingLayer[0]) return;
-                if (workingLayer[0] === REPORTS_LAYER_TYPE) {
+                if (clickedFeature.get("geoservice")?.layer !== mapWorkingLayer) return;
+                if (mapWorkingLayer === REPORTS_LAYER_TYPE) {
                     getClickedMapReport({ feature: clickedFeature, map, pixel: evt.pixel, clusterSource, features, handleCloseDrawer });
                 } else {
                     const currentFeatureStyle = clickedFeature.getStyle() as Style;
@@ -79,7 +79,7 @@ const ReportDrawer = () => {
             });
             const topFeature = features[0];
             if (topFeature) {
-                if (workingLayer[0] === REPORTS_LAYER_TYPE) {
+                if (mapWorkingLayer === REPORTS_LAYER_TYPE) {
                     if (selectedReport) {
                         const reportFeatures = clusterSource.getFeatures().filter((f) => f.get("reportData")?.id === selectedReport.id);
                         clusterSource.removeFeatures(reportFeatures?.filter((f) => !f.get("main")));
@@ -102,7 +102,7 @@ const ReportDrawer = () => {
             selectedReport,
             selectedFeatures,
             editReport,
-            workingLayer,
+            mapWorkingLayer,
             setSelectedReport,
             setSelectedFeatures,
             handleCloseDrawer,
@@ -115,11 +115,11 @@ const ReportDrawer = () => {
             const features = map?.getFeaturesAtPixel(evt.pixel);
 
             const feature = features?.find((f) => {
-                if (workingLayer[0] === REPORTS_LAYER_TYPE) {
+                if (mapWorkingLayer === REPORTS_LAYER_TYPE) {
                     const fCluster = f.get("features");
                     if (fCluster?.length > 1) return fCluster[0];
                     return fCluster?.find((fc: Feature) => fc.get("reportData") || fc.get("new"));
-                } else if (f.get("geoservice")?.layer === workingLayer[0]) {
+                } else if (f.get("geoservice")?.layer === mapWorkingLayer) {
                     return f;
                 }
                 return null;
@@ -140,7 +140,7 @@ const ReportDrawer = () => {
                 }
             }
         },
-        [map, selectedFeatures, workingLayer]
+        [map, selectedFeatures, mapWorkingLayer]
     );
 
     const handleClusterChange = useCallback(() => {

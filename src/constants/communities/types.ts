@@ -95,6 +95,7 @@ export interface MapLayer {
     source: MapLayerSource;
     title: string;
     order: number;
+    name: string;
 }
 
 export interface CommunityLayer {

@@ -85,6 +85,7 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
 
     useEffect(() => {
         wfsLayer.set("title", geoservice.title);
+        wfsLayer.set("name", geoservice.layer);
 
         wfsLayer.set("description", geoservice.description);
         wfsLayer.setMinZoom(geoservice.minZoom);

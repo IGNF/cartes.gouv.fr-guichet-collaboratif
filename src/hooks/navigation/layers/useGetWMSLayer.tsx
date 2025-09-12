@@ -57,6 +57,7 @@ function useGetWMSLayer(geoservice: CommunityGeoservice) {
         }
 
         wmsLayer.set("title", geoservice.title);
+        wmsLayer.set("name", geoservice.layer);
         wmsLayer.set("description", geoservice.description);
         wmsLayer.setMinZoom(geoservice.minZoom);
         wmsLayer.setMaxZoom(geoservice.maxZoom);

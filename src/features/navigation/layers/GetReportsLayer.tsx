@@ -24,7 +24,12 @@ const GetReportsLayer: React.FC = () => {
         reportLayerSource?.set("legends", t("reports_legend"));
         reportLayerSource?.set("description", ReportLegendsHTML);
         if (reportLayerSource) {
-            const reportLayer = { source: reportLayerSource, title: t("reports_title"), order: localLayer ? localLayer.order : Infinity };
+            const reportLayer = {
+                source: reportLayerSource,
+                name: REPORTS_LAYER_TYPE,
+                title: t("reports_title"),
+                order: localLayer ? localLayer.order : Infinity,
+            };
             addMapLayer(reportLayer);
         }
     }, [reportLayerSource, localLayer, mapLayers, addMapLayer, t]);

@@ -14,6 +14,7 @@ import { transformExtent } from "ol/proj";
 import { useMapStore, useReportStore } from "@/store";
 import { isEmpty } from "ol/extent";
 import { useTranslation } from "@/i18n";
+import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 
 function useGetReportsLayer(communityId: number) {
     const { addAlertMessage } = useCommunityStore();
@@ -51,7 +52,7 @@ function useGetReportsLayer(communityId: number) {
         const reportLayer = new VectorLayer<VectorSource<Feature<Geometry>>>({
             source: reportSource,
         });
-
+        reportLayer?.set("name", REPORTS_LAYER_TYPE);
         return reportLayer;
     }, [communityId, queryClient, addAlertMessage, setReports, t]);
 
