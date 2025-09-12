@@ -1,7 +1,9 @@
-import { Feature } from "ol";
+import { Feature, Map } from "ol";
 import { CommunityTheme } from "../communities/types";
 import { Geometry } from "ol/geom";
 import { Coordinate } from "ol/coordinate";
+import { Pixel } from "ol/pixel";
+import VectorSource from "ol/source/Vector";
 
 export type StatusKey = "submit" | "pending" | "valid" | "reject" | "test";
 export type SketchType = "Point" | "Ligne" | "MultiPolygone";
@@ -162,3 +164,12 @@ export type ClickedTool = {
     name: string;
     clicked: boolean;
 };
+
+export interface ClickedMapReportProps {
+    feature: Feature;
+    map: Map;
+    pixel: Pixel;
+    clusterSource: VectorSource;
+    features: { feature: Feature; zIndex: number }[];
+    handleCloseDrawer: () => void;
+}

@@ -1,20 +1,26 @@
 import { FeatureTypeSelectedStyle } from "@/constants/communities/types";
-import { Map } from "ol";
+import { Feature, Map } from "ol";
 import { create } from "zustand";
 
 interface MapStore {
     map: Map | null;
-    setMap: (map: Map | null) => void;
     featureTypeSelectedStyle: FeatureTypeSelectedStyle[];
+    clickedMapFeature: Feature | null;
+    workingLayerDrawerOpened: boolean;
+    setMap: (map: Map | null) => void;
     setFeatureTypeSelectedStyle: ({ layer, selectedStyle }: FeatureTypeSelectedStyle) => void;
+    setClickedMapFeature: (feature: Feature | null) => void;
+    setWorkingLayerDrawerOpened: (open: boolean) => void;
 }
 
 export const useMapStore = create<MapStore>((set, get) => ({
     map: null,
+    featureTypeSelectedStyle: [],
+    clickedMapFeature: null,
+    workingLayerDrawerOpened: false,
     setMap: (map) => {
         set({ map });
     },
-    featureTypeSelectedStyle: [],
     setFeatureTypeSelectedStyle: (newStyle) => {
         const currentFeatureTypeStyles = get().featureTypeSelectedStyle;
         const styleExist = currentFeatureTypeStyles.find((style) => style.layer === newStyle.layer);
@@ -24,5 +30,13 @@ export const useMapStore = create<MapStore>((set, get) => ({
         } else {
             set({ featureTypeSelectedStyle: [...currentFeatureTypeStyles, newStyle] });
         }
+    },
+    setClickedMapFeature: (feature) => {
+        set({
+            clickedMapFeature: feature,
+        });
+    },
+    setWorkingLayerDrawerOpened: (open) => {
+        set({ workingLayerDrawerOpened: open });
     },
 }));

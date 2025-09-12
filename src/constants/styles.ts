@@ -173,3 +173,89 @@ export const getRegularShapeStyle = ({ shapeProps, points, radius = 10, radius2,
         }),
     });
 };
+
+export const featureTypeSelectedPointCircleStyle = [
+    getCircleStyle({
+        pointRadius: 8,
+        fillColor: "#fafa00",
+        fillOpacity: 1,
+        strokeColor: "#13a7eb",
+        strokeOpacity: 1,
+        strokeWidth: 2,
+        title: "point",
+        strokeDashstyle: "",
+        strokeLinecap: "butt",
+    }),
+    getCircleStyle({
+        pointRadius: 3,
+        fillColor: "#d6951b",
+        fillOpacity: 1,
+        strokeColor: "#13a7eb",
+        strokeOpacity: 1,
+        strokeWidth: 2,
+        title: "point",
+        strokeDashstyle: "",
+        strokeLinecap: "butt",
+    }),
+];
+
+export const featureTypeSelectedLineStyle = [
+    getLineOrPolygonStyle({
+        pointRadius: 10,
+        fillColor: "",
+        fillOpacity: 1,
+        strokeColor: "#13a7eb",
+        strokeOpacity: 1,
+        strokeWidth: 7,
+        title: "line",
+        strokeDashstyle: "",
+        strokeLinecap: "square",
+    }),
+    getLineOrPolygonStyle({
+        pointRadius: 10,
+        fillColor: "",
+        fillOpacity: 1,
+        strokeColor: "#fafa00",
+        strokeOpacity: 1,
+        strokeWidth: 4,
+        title: "line",
+        strokeDashstyle: "",
+        strokeLinecap: "round",
+    }),
+];
+
+export const featureTypeSelectedPolygonStyle = [
+    getLineOrPolygonStyle({
+        pointRadius: 0,
+        fillColor: "#fafa00",
+        fillOpacity: 1,
+        strokeColor: "#13a7eb",
+        strokeOpacity: 1,
+        strokeWidth: 14,
+        title: "polygon",
+        strokeDashstyle: "",
+        strokeLinecap: "butt",
+    }),
+    getLineOrPolygonStyle({
+        pointRadius: 0,
+        fillColor: "#fafa00",
+        fillOpacity: 1,
+        strokeColor: "#fafa00",
+        strokeOpacity: 1,
+        strokeWidth: 10,
+        title: "polygon",
+        strokeDashstyle: "",
+        strokeLinecap: "butt",
+    }),
+    getLineOrPolygonStyle({
+        pointRadius: 0,
+        fillColor: "#d6951b",
+        fillOpacity: 1,
+        strokeColor: "#13a7eb",
+        strokeOpacity: 1,
+        strokeWidth: 2,
+        title: "polygon",
+        strokeDashstyle: "",
+        strokeLinecap: "butt",
+    }),
+];

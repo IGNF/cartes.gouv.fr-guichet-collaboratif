@@ -23,6 +23,7 @@ import { clusterStyle } from "@/constants/styles";
 import TableReportDrawer from "../reports/table/TableReportDrawer";
 import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import useGetMapControls from "./controls";
+import WorkingLayerDrawer from "../working-layer/WorkingLayerDrawer";
 
 export default function MainMap() {
     const mapTargetRef = useRef<HTMLDivElement>(null);
@@ -136,6 +137,7 @@ export default function MainMap() {
 
             <ReportDrawer />
             <TableReportDrawer />
+            <WorkingLayerDrawer />
         </div>
     );
 }

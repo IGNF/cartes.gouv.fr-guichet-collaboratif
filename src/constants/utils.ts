@@ -197,6 +197,7 @@ export const getGeoserviceFeatureTypeGeometries = (data: FeatureTypeData[], geos
         } else {
             feat.setStyle(getWellKnownNames(defaultStyle)[0] as Style);
         }
+        feat.set("geoservice", geoservice);
         feat.set("featureTypeData", item);
         return feat;
     });

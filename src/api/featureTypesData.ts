@@ -1,4 +1,4 @@
-import { CommunityGeoservice, FeatureTypeIds, FeatureTypeStyleItemData } from "@/constants/communities/types";
+import { CommunityGeoservice, FeatureTypeColumn, FeatureTypeIds, FeatureTypeStyleItemData } from "@/constants/communities/types";
 import { API_URL, DATABASE_API_URL } from "@/constants/urls";
 import { axiosApi } from ".";
 
@@ -28,6 +28,19 @@ export async function getFeatureTypesAll(featureTypesIds: FeatureTypeIds[]): Pro
                 boxSrid: res.data.box_srid || "",
                 geometryName: res.data.geometry_name,
                 featureType: styles[0]?.type || "point",
+                readOnly: res.data.read_only,
+                columns: res.data.columns.map((col: FeatureTypeColumn) => {
+                    return {
+                        name: col.name,
+                        type: col.type,
+                        enum: col.enum,
+                        title: col.title,
+                        nullable: col.nullable,
+                        description: col.description,
+                        crs: col.crs,
+                        default_value: col.default_value,
+                    };
+                }),
                 styles: styles.map((style) => {
                     let logoURI = style.uri ? style.uri?.replace("https://espacecollaboratif.ign.fr/gcms", `${API_URL}/espaceco`) : "";
                     if (logoURI) {

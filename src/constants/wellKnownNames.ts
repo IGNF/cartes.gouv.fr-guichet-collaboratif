@@ -3,6 +3,17 @@ import ImageStyle from "ol/style/Image";
 import { FeatureTypeStyleItem } from "./communities/types";
 import { getCircleStyle, getLineOrPolygonStyle, getRegularShapeStyle } from "./styles";
 
+export const hexToRgba = (hex: string, opacity = 1) => {
+    hex = hex.replace("#", "");
+
+    const bigint = parseInt(hex, 16);
+    const r = (bigint >> 16) & 255;
+    const g = (bigint >> 8) & 255;
+    const b = bigint & 255;
+
+    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+};
+
 export const getShapeStyle = (shapeProps: FeatureTypeStyleItem) => {
     const type = shapeProps.type;
     const featureType = shapeProps.featureType;

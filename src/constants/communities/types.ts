@@ -58,6 +58,17 @@ export type FeatureTypeStyle = {
     name?: string;
     types?: FeatureTypeStyleItem[];
 };
+
+export type FeatureTypeColumn = {
+    name: string;
+    title: string;
+    description: string;
+    type: string;
+    nullable: boolean;
+    enum?: string[];
+    crs: string;
+    default_value: string | number | null;
+};
 export type FeatureTypeSelectedStyle = { layer: string; selectedStyle: FeatureTypeStyle };
 export interface CommunityGeoservice extends LayerGeoservice {
     type: string;
@@ -73,7 +84,9 @@ export interface CommunityGeoservice extends LayerGeoservice {
     logo?: string;
     geometryName?: string;
     featureType?: string;
+    readOnly?: boolean;
     styles?: FeatureTypeStyle[];
+    columns: FeatureTypeColumn[];
 }
 
 export type MapLayerSource = BaseLayer | TileLayer | VectorLayer;
