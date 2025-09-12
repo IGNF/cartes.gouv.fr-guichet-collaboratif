@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useCommunityStore } from "@/store/useCommunityStore";
 import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
@@ -6,56 +6,84 @@ import { Feature } from "ol";
 import { Geometry } from "ol/geom";
 import { transformExtent } from "ol/proj";
 import GeoJSON from "ol/format/GeoJSON";
-import { bbox as bboxStrategy } from "ol/loadingstrategy";
+import { tile as tileStrategy } from "ol/loadingstrategy";
 import { CommunityGeoservice, StatusMessage } from "@/constants/communities/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMapStore } from "@/store";
 import { declareComponentKeys, useTranslation } from "@/i18n";
+import { changeFeatureTypeStyle, featureExists, getGeoserviceFeatureTypeGeometries } from "@/constants/utils";
+import { createXYZ } from "ol/tilegrid";
 
 function useGetWFSLayer(geoservice: CommunityGeoservice) {
     const { addAlertMessage } = useCommunityStore();
-    const { map } = useMapStore();
+    const { map, featureTypeSelectedStyle } = useMapStore();
 
     const queryClient = useQueryClient();
 
     const { t } = useTranslation({ useGetWFSLayer });
 
-    const wfsLayer = useMemo(() => {
+    const wfsSource = useMemo(() => {
         const wfsSource = new VectorSource<Feature<Geometry>>({
             loader: async function (extent) {
                 const url =
                     `${geoservice.url}${geoservice.url.includes("?") ? "" : "?"}service=WFS` +
-                    `&version=${geoservice.version}` +
+                    (geoservice.version ? `&version=${geoservice.version}` : "") +
                     `&request=GetFeature` +
                     `&typename=${geoservice.layer}` +
                     `&outputFormat=application/json` +
                     `&srsname=EPSG:3857` +
+                    `&maxFeatures=5000` +
                     `&bbox=${extent.join(",")},EPSG:3857`;
 
-                const queryKey = `GET_WFS_GET_FEATURES_${geoservice.url}_${geoservice.version}_${geoservice.layer}_${extent.join(",")}`;
+                const queryKey = [`GET_WFS_GET_FEATURES_${geoservice.url}_${geoservice.version}_${geoservice.layer}_${extent.join(",")}`];
 
                 try {
-                    const data = await queryClient.fetchQuery({
-                        queryKey: [queryKey],
-                        queryFn: () => fetch(url).then((response) => response.json()),
+                    let data = queryClient.getQueryData([queryKey]);
+                    if (!data) {
+                        data = await queryClient.fetchQuery({
+                            queryKey: queryKey,
+                            queryFn: () => fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } }).then((response) => response.json()),
+                        });
+                    }
+                    let features: Feature[];
+                    if (Array.isArray(data)) {
+                        features = getGeoserviceFeatureTypeGeometries(data, geoservice);
+                    } else {
+                        features = new GeoJSON().readFeatures(data, {
+                            dataProjection: "EPSG:3857",
+                            featureProjection: "EPSG:3857",
+                        });
+                    }
+
+                    features.forEach((feat) => {
+                        if (!featureExists(feat, wfsSource)) wfsSource.addFeature(feat);
                     });
-                    const features = new GeoJSON().readFeatures(data, {
-                        dataProjection: "EPSG:3857",
-                        featureProjection: "EPSG:3857",
-                    });
-                    wfsSource.addFeatures(features);
                 } catch (error) {
                     console.error(error);
                     addAlertMessage(StatusMessage.error, t("loading_layer_error", { layerTitle: geoservice.title }));
                 }
             },
-            strategy: bboxStrategy,
+            strategy: tileStrategy(createXYZ({ tileSize: 512, minZoom: geoservice.tileZoom, maxZoom: geoservice.maxZoom })),
         });
 
-        const wfsLayer = new VectorLayer<VectorSource<Feature<Geometry>>>({
-            source: wfsSource,
-        });
+        return wfsSource;
+    }, [geoservice, queryClient, addAlertMessage, t]);
 
+    const wfsLayer = useMemo(
+        () =>
+            new VectorLayer<VectorSource<Feature<Geometry>>>({
+                source: wfsSource,
+            }),
+        [wfsSource]
+    );
+
+    useEffect(() => {
+        const layerStyle = featureTypeSelectedStyle.find((type) => type.layer === geoservice.layer);
+
+        if (layerStyle) changeFeatureTypeStyle(wfsSource.getFeatures(), layerStyle?.selectedStyle);
+    }, [featureTypeSelectedStyle, geoservice, wfsSource]);
+
+    useEffect(() => {
         wfsLayer.set("title", geoservice.title);
 
         wfsLayer.set("description", geoservice.description);
@@ -68,10 +96,12 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
             wfsLayer.setMinResolution(minResolution);
             wfsLayer.setMaxResolution(maxResolution);
         }
+    }, [map, geoservice, wfsLayer]);
+
+    if (geoservice.extent) {
         const extent = geoservice.extent.split(",")?.map((extent) => parseFloat(extent));
         wfsLayer.setExtent(transformExtent(extent, "EPSG:4326", "EPSG:3857"));
-        return wfsLayer;
-    }, [geoservice, queryClient, map, addAlertMessage, t]);
+    }
 
     return wfsLayer;
 }

@@ -23,6 +23,7 @@ export async function getGeoserviceAll(geoserviceIds: number[]): Promise<Communi
                 extent: res.data.map_extent,
                 minZoom: res.data.min_zoom,
                 maxZoom: res.data.max_zoom,
+                tileZoom: res.data.min_zoom,
                 boxSrid: res.data.box_srid,
             };
         });

@@ -3,12 +3,62 @@ import TileLayer from "ol/layer/Tile";
 import VectorLayer from "ol/layer/Vector";
 import { ReactNode } from "react";
 
+export type FeatureTypeIds = { database: number; table: number };
+export type layerData = {
+    id: number;
+    type: string;
+    geoservice: {
+        id: number;
+    };
+    order: number;
+    opacity: number;
+    visibility: boolean;
+    role: string;
+    database: number;
+    table: number;
+};
+
 export interface LayerGeoservice {
     id: number;
     description: string | null;
     title: string;
 }
 
+export interface RegularShapeStyleProps {
+    shapeProps: FeatureTypeStyleItem;
+    points: number;
+    radius?: number;
+    radius2?: number | undefined;
+    angle: number | undefined;
+}
+
+export type FeatureTypeStyleItem = {
+    title: string;
+    type?: string;
+    featureType?: string;
+    pointRadius: number;
+    fillColor: string;
+    fillOpacity: number;
+    strokeColor: string;
+    strokeWidth: number;
+    strokeDashstyle: string;
+    strokeLinecap: "butt" | "round" | "square";
+    strokeOpacity: number;
+    logo?: string;
+    condition?: { $and: { [key: string]: { [key: string]: number | string } }[] };
+};
+
+export type FeatureTypeStyleItemData = FeatureTypeStyleItem & {
+    graphicName?: string;
+    name?: string;
+    condition: string;
+    uri?: string;
+};
+export type FeatureTypeStyle = {
+    name?: string;
+    types?: FeatureTypeStyleItem[];
+};
+export type FeatureTypeSelectedStyle = { layer: string; selectedStyle: FeatureTypeStyle };
 export interface CommunityGeoservice extends LayerGeoservice {
     type: string;
     version: number;
@@ -18,7 +68,12 @@ export interface CommunityGeoservice extends LayerGeoservice {
     extent: string;
     minZoom: number;
     maxZoom: number;
+    tileZoom: number;
     boxSrid: string;
+    logo?: string;
+    geometryName?: string;
+    featureType?: string;
+    styles?: FeatureTypeStyle[];
 }
 
 export type MapLayerSource = BaseLayer | TileLayer | VectorLayer;
