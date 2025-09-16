@@ -1,16 +1,16 @@
-import DrawerComponent from "@/components/DrawerComponent";
-import { ParamsReport, toolNames } from "@/constants/reports/types";
-import { useCommunityStore, useMapStore, useReportStore } from "@/store";
-import { Feature, MapBrowserEvent } from "ol";
-import { Style } from "ol/style";
 import { useCallback, useEffect, useState } from "react";
-import CreateReport from "./CreateReport";
+import { Feature, MapBrowserEvent } from "ol";
 import Layer from "ol/layer/Layer";
 import VectorSource from "ol/source/Vector";
-import ShowReport from "./ShowReport";
+import { Style } from "ol/style";
 import { getReportSketchFeatures, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import { clearClusterStyles, getClickedReport, showClusterFeatures } from "@/constants/reports/utils/cluster";
 import { getCenterReportMessage, showCenterReportButtons } from "@/constants/utils";
+import { ParamsReport, toolNames } from "@/constants/reports/types";
+import { useCommunityStore, useMapStore, useReportStore } from "@/store";
+import DrawerComponent from "@/components/DrawerComponent";
+import ShowReport from "./ShowReport";
+import CreateReport from "./CreateReport";
 
 const ReportDrawer = () => {
     const [drawerOpened, setDrawerOpened] = useState<boolean>(false);

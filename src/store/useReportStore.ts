@@ -26,6 +26,12 @@ interface ReportStore {
     setCurrentPage: (currentPage: number) => void;
     limitPerPage: number;
     setLimitPerPage: (limitPerPage: number) => void;
+    reportTableWidth: number;
+    setReportTableWidth: (reportTableWidth: number) => void;
+    selectedLine: number;
+    setSelectedLine: (selectedLine: number) => void;
+    sortBy: string | undefined;
+    setSortBy: (sortBy: string) => void;
 }
 export const useReportStore = create<ReportStore>((set, get) => ({
     reports: [],
@@ -80,4 +86,10 @@ export const useReportStore = create<ReportStore>((set, get) => ({
     setCurrentPage: (currentPage) => set({ currentPage }),
     limitPerPage: 10,
     setLimitPerPage: (limitPerPage: number) => set({ limitPerPage }),
+    reportTableWidth: window.innerWidth * (2 / 3),
+    setReportTableWidth: (reportTableWidth: number) => set({ reportTableWidth }),
+    selectedLine: 0,
+    setSelectedLine: (selectedLine: number) => set({ selectedLine }),
+    sortBy: undefined,
+    setSortBy: (sortBy) => set({ sortBy }),
 }));
