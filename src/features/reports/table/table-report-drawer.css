@@ -4,7 +4,11 @@
     flex-direction: column;
     gap: 20px;
 }
-
+.table-report-searchFilter {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+}
 .filter-report {
     display: flex;
     flex-direction: column;
@@ -14,6 +18,11 @@
 .filter-report__wrapper {
     display: flex;
     justify-content: space-between;
+    gap: 16px;
+}
+
+.filter-report__wrapper > div {
+    width: 100%;
 }
 
 .filter-report button {
@@ -23,7 +32,8 @@
 
 .filter-report .sumbit {
     display: flex;
-    justify-content: end;
+    justify-content: flex-start;
+    gap: 16px;
 }
 
 .filter-report__select {
@@ -36,7 +46,52 @@
     display: flex;
     gap: 10px;
 }
+
 .table-report__table table th,
 .table-report__table table td {
     text-align: center;
+    justify-items: center;
+    color: var(--grey-200-850);
+}
+
+.table-report__table table thead td:first-child,
+.table-report__table table thead th:first-child {
+    width: 100px;
+}
+
+.table-report__sort {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--grey-200-850);
+}
+
+.report-subTitle {
+    margin-bottom: 0.5rem;
+}
+
+.report-subTitle,
+.report-textResult {
+    font-weight: bold;
+}
+
+.report-infos-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.report-btns {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
+
+.report-nbrSelectedLines {
+    color: var(--grey-425-625);
+}
+
+.report-footer {
+    display: flex;
+    justify-content: space-between;
 }

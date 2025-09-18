@@ -35,13 +35,12 @@ export async function getTableReports(
     limit: number = 100,
     currentPage: number = 1,
     filters?: FilterState,
-    contentRange: string = "1-10/100",
-    searchReport: string = ""
+    searchReport: string = "",
+    sortBy: string = ""
 ): Promise<{
     data: CommunityReport[];
     total: number;
     currentPage: number;
-    contentRange?: string;
     searchReport?: string;
     limitPerPage?: number;
 }> {
@@ -68,8 +67,11 @@ export async function getTableReports(
 
     if (searchReport) url += `&comment=%${encodeURIComponent(searchReport)}%`;
 
+    if (sortBy) {
+        url += `&sort=${encodeURIComponent(sortBy)}`;
+    }
     const res = await axiosApi.get(url);
-    contentRange = res.headers["content-range"];
+    const contentRange = res.headers["content-range"];
 
     const { total, currentPage: parsedCurrentPage } = parseContentRange(contentRange);
     currentPage = parsedCurrentPage ?? currentPage;

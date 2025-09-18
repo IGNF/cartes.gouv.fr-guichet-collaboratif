@@ -1,27 +1,45 @@
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { CSVLink } from "react-csv";
-import { Table } from "@codegouvfr/react-dsfr/Table";
-import { Button } from "@codegouvfr/react-dsfr/Button";
 import { getTableReports, deleteCommunityReportAPI } from "@/api/reportsData";
 import { useReportStore } from "@/store";
-import { useCommunityStore } from "@/store/useCommunityStore";
+import { REPORT_TABLE_LIMIT_OPTIONS } from "@/constants/reports/utils";
 import type { CommunityReport } from "@/constants/reports/types";
-import PaginationReport from "./PaginationReport";
-import Checkbox from "@codegouvfr/react-dsfr/Checkbox";
-import LoaderComponent from "@/components/LoaderComponent";
 import { StatusMessage } from "@/constants/communities/types";
-import TransformReportsToTableData from "@/components/TransformReportsToTableData";
-import { REPORT_TABLE_HEADER_KEYS } from "@/constants/utils";
 import { applyFiltersToReports } from "@/constants/reports/utils/reportFilters";
-import { useEffect, useMemo } from "react";
+import { useCommunityStore } from "@/store/useCommunityStore";
+import Checkbox from "@codegouvfr/react-dsfr/Checkbox";
+import { Table } from "@codegouvfr/react-dsfr/Table";
+import { Button } from "@codegouvfr/react-dsfr/Button";
+import { Badge } from "@codegouvfr/react-dsfr/Badge";
+import LoaderComponent from "@/components/LoaderComponent";
+import TransformReportsToTableData from "@/components/TransformReportsToTableData";
+import { SelectComponent } from "@/components/FilterAndSortReport";
+import PaginationReport from "./PaginationReport";
 
 type FilterHeaderKey = "status" | "author" | "opening_date" | "department" | "theme";
 
 const TableReport = () => {
+    const [sortOrder, setSortOrder] = useState<"ASC" | "DESC" | undefined>(undefined);
+
     const queryClient = useQueryClient();
     const { alertMessages, removeAlertMessage, community, addAlertMessage } = useCommunityStore();
-    const { limitPerPage, filteredReports, setFilteredReports, isFiltered, searchReport, isChecked, setIsChecked, currentPage, currentFilters } =
-        useReportStore();
+    const {
+        limitPerPage,
+        filteredReports,
+        setFilteredReports,
+        searchReport,
+        isChecked,
+        setIsChecked,
+        currentPage,
+        currentFilters,
+        setLimitPerPage,
+        selectedLine,
+        setSelectedLine,
+        sortBy,
+        setSortBy,
+        setCurrentPage,
+    } = useReportStore();
 
     const filters = useMemo(
         () => ({
@@ -37,11 +55,12 @@ const TableReport = () => {
         isLoading,
         error: isErrorReport,
     } = useQuery({
-        queryKey: ["reports", community?.id, limitPerPage, currentPage, searchReport, filters],
-        queryFn: () =>
-            community
-                ? getTableReports(community.id, limitPerPage, currentPage, filters, searchReport)
-                : Promise.resolve({ data: [], total: 0, currentPage: 1 }),
+        queryKey: ["reports", community?.id, limitPerPage, currentPage, filters, searchReport, sortBy, sortOrder],
+        queryFn: () => {
+            return community
+                ? getTableReports(community.id, limitPerPage, currentPage, filters, searchReport, sortBy)
+                : Promise.resolve({ data: [], total: 0, currentPage: 1 });
+        },
         enabled: !!community,
     });
 
@@ -84,12 +103,6 @@ const TableReport = () => {
     }, [isDeleting, isErrorDelete, addAlertMessage]);
 
     useEffect(() => {
-        if (!isLoading && isFiltered && filteredReports.length === 0) {
-            addAlertMessage(StatusMessage.error, "Aucun résultat ne correspond à votre recherche.", 3000);
-        }
-    }, [isLoading, isFiltered, filteredReports.length, addAlertMessage]);
-
-    useEffect(() => {
         if (reports) {
             const filtered = applyFiltersToReports(reports, currentFilters, searchReport);
 
@@ -117,40 +130,80 @@ const TableReport = () => {
                 deleteReport(res.original);
             });
     };
-    const downloadedTable = matchingItems.map((row) => row.row.slice(0, -1));
-
-    const csvData = downloadedTable.map((row) => Object.fromEntries(row.map((value, index) => [REPORT_TABLE_HEADER_KEYS[index], value])));
+    const downloadedTable = matchingItems.map((row) => row.exportData);
 
     const tableHeaderToLabel: Record<FilterHeaderKey, string> = {
-        status: "Statut",
         author: "Auteur",
         opening_date: "Date de création",
         department: "Département",
         theme: "Thème",
+        status: "Statut",
     };
 
     const tableHeader = (Object.entries(tableHeaderToLabel) as [FilterHeaderKey, string][]).map(([key, label]) => ({
         key: key,
         label,
     }));
+
+    const sortByStatus = () => {
+        setSortOrder((prev) => {
+            const newOrder = prev === "ASC" ? "DESC" : "ASC";
+            const sortParams = `status:${newOrder}`;
+            setSortBy(sortParams);
+            setCurrentPage(1);
+            return newOrder;
+        });
+    };
+    const sortByDateCreation = () => {
+        setSortOrder((prev) => {
+            const newOrder = prev === "ASC" ? "DESC" : "ASC";
+            const sortParams = `opening_date:${newOrder}`;
+            setSortBy(sortParams);
+            setCurrentPage(1);
+            return newOrder;
+        });
+    };
+
     return (
         <>
             {isLoading && <LoaderComponent />}
             {isLoading || filteredReports.length > 0 ? (
                 <>
-                    <CSVLink className="fr-btn report-download__btn" headers={tableHeader} data={csvData} filename="export-filtre.csv">
-                        Télécharger
-                    </CSVLink>
-                    <Button onClick={() => handleDelete()}> supprimer </Button>
+                    <div className="report-textResult fr-mt-5v">
+                        Résultats{" "}
+                        <Badge severity="info" noIcon>
+                            {total}
+                        </Badge>
+                    </div>
+                    <div className="report-infos-line">
+                        <div className="report-nbrSelectedLines">
+                            Nombre de lignes sélectionnées: <span>{selectedLine}</span>
+                        </div>
+                        <div className="report-btns">
+                            <CSVLink
+                                className="fr-btn fr-btn--secondary report-download__btn fr-icon-download-line fr-icon--sm"
+                                headers={tableHeader}
+                                data={downloadedTable}
+                                filename="export-filtre.csv"
+                            ></CSVLink>
+                            <Button
+                                type="button"
+                                onClick={() => handleDelete()}
+                                iconId="fr-icon-delete-line"
+                                className="fr-icon--sm"
+                                title="Supprimer un signalement"
+                                priority="secondary"
+                            />
+                            <Button type="button" onClick={() => console.log("this is for th' next step")}>
+                                répondre
+                            </Button>
+                        </div>
+                    </div>
                     <Table
+                        className="table-report__table"
                         bordered
                         noCaption
                         headers={[
-                            "Statut",
-                            "Pseudo",
-                            "Date de création",
-                            "Commune (département)",
-                            "Thème",
                             <Checkbox
                                 options={[
                                     {
@@ -164,6 +217,11 @@ const TableReport = () => {
                                                     updated[row.id] = allChecked;
                                                 });
 
+                                                if (allChecked) {
+                                                    setSelectedLine(limitPerPage);
+                                                } else {
+                                                    setSelectedLine(0);
+                                                }
                                                 setIsChecked(updated);
                                             },
                                         },
@@ -171,11 +229,39 @@ const TableReport = () => {
                                 ]}
                                 small
                             />,
+                            "Pseudo",
+                            <Button
+                                type="button"
+                                className="table-report__sort"
+                                onClick={sortByDateCreation}
+                                title="Trier par date de création"
+                                priority="tertiary no outline"
+                            >
+                                Création <span className="fr-icon-arrow-up-down-line fr-icon--sm" aria-hidden="true"></span>
+                            </Button>,
+                            "Commune (département)",
+                            <Button type="button" className="table-report__sort" title="Trier par thème" priority="tertiary no outline">
+                                Thème
+                            </Button>,
+                            <Button type="button" className="table-report__sort" onClick={sortByStatus} title="Trier par statut" priority="tertiary no outline">
+                                Statut <span className="fr-icon-arrow-up-down-line fr-icon--sm fr-ml-1w" aria-hidden="true"></span>
+                            </Button>,
+                            "Actions",
                         ]}
                         data={tableData.map((res) => res.row)}
                         fixed
                     />
-                    <PaginationReport totalPages={totalPages} currentPage={currentPage} />
+                    <div className="report-footer">
+                        <SelectComponent
+                            onChange={(selectedIndex) => {
+                                setLimitPerPage(REPORT_TABLE_LIMIT_OPTIONS[selectedIndex]);
+                            }}
+                            name="limit"
+                            defaultOption="Nombre de ligne par page"
+                            options={REPORT_TABLE_LIMIT_OPTIONS}
+                        />
+                        <PaginationReport totalPages={totalPages} currentPage={currentPage} />
+                    </div>
                 </>
             ) : (
                 <div> Aucun résultat ne correspond à votre recherche.</div>

@@ -1,54 +1,58 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Fragment } from "react/jsx-runtime";
-import { useCommunityStore, useReportStore } from "@/store";
+import { StatusMessage } from "@/constants/communities/types";
+import { REPORT_STATUS_LIST } from "@/constants/utils";
 import { getCommunityThemes, getTableReports } from "@/api/reportsData";
+import { useCommunityStore, useReportStore } from "@/store";
 import Button from "@codegouvfr/react-dsfr/Button";
 import Input from "@codegouvfr/react-dsfr/Input";
 import Select from "@codegouvfr/react-dsfr/Select";
-import { REPORT_TABLE_LIMIT_OPTIONS } from "@/constants/reports/utils";
-import { StatusMessage } from "@/constants/communities/types";
-import { REPORT_STATUS_LIST } from "@/constants/utils";
 
 interface SelectProps {
-    label: string;
-    defaultOption: string;
+    label?: string;
+    value?: number;
+    defaultOption?: string;
     options: string[] | number[];
     name: string;
+    onChange: (selectedIndex: number) => void;
 }
 
-type SortableKeys = "opening_date" | "updating_date";
-
-const SelectComponent: React.FC<SelectProps> = ({ label, defaultOption, options, name }) => {
-    const [selected, setSelected] = useState(-1);
+export const SelectComponent: React.FC<SelectProps> = ({ label, value = -1, defaultOption, options, name, onChange }) => {
     return (
         <Select
             label={label}
             nativeSelectProps={{
-                value: selected,
+                value,
                 name,
                 onChange: (e) => {
-                    const index = parseInt(e.target.value);
-                    setSelected(index);
+                    const index = parseInt(e.target.value, 10);
+                    if (onChange) onChange(index);
                 },
             }}
-            className="filter-report-select"
+            className="filter-report__select"
         >
-            <Fragment key=".0">
-                <option value={-1}>Selectionnez {defaultOption}</option>
-                {options.map((option, index) => (
-                    <option key={`${label}_${index}`} value={index} selected={selected == index}>
-                        {option}
-                    </option>
-                ))}
-            </Fragment>
+            {defaultOption && <option value={-1}>{defaultOption}</option>}
+            {options.map((option, index) => (
+                <option key={`${label}_${index}`} value={index}>
+                    {option}
+                </option>
+            ))}
         </Select>
     );
 };
 
 const FilterAndSortReport = () => {
+    const formRef = useRef<HTMLFormElement>(null);
+
+    const [statusIndex, setStatusIndex] = useState(-1);
+    const [themeIndex, setThemeIndex] = useState(-1);
+
+    const [sortOpeningDateIndex, setSortOpeningDateIndex] = useState(0);
+    const [sortUpdatingDateIndex, setSortUpdatingDateIndex] = useState(0);
+
     const { community, addAlertMessage } = useCommunityStore();
-    const { limitPerPage, setLimitPerPage, currentPage, setFilteredReports, setIsChecked, currentFilters, setCurrentFilters, searchReport } = useReportStore();
+    const { limitPerPage, currentPage, setCurrentPage, setFilteredReports, setIsChecked, currentFilters, setCurrentFilters, searchReport, sortBy, setSortBy } =
+        useReportStore();
     const filters = useMemo(
         () => ({
             status: currentFilters.status,
@@ -71,55 +75,63 @@ const FilterAndSortReport = () => {
     });
 
     const { data, error: isErrorReport } = useQuery({
-        queryKey: ["reports", community?.id, limitPerPage, currentPage, searchReport, filters],
-        queryFn: () => community && getTableReports(community.id, limitPerPage, currentPage, filters, searchReport),
+        queryKey: ["reports", community?.id, limitPerPage, currentPage, filters, searchReport, sortBy],
+        queryFn: () => community && getTableReports(community.id, limitPerPage, currentPage, filters, searchReport, sortBy),
         enabled: !!community,
     });
 
     const reports = useMemo(() => data?.data ?? [], [data]);
-    const statusList = useMemo(() => REPORT_STATUS_LIST, []);
-    const themeList = themes?.map((list) => list);
-    const statusOptions = useMemo(() => [...new Set(statusList)], [statusList]);
-    const themeOptions = useMemo(() => [...new Set(themeList)], [themeList]);
-
-    const sortOptions: SortableKeys[] = useMemo(() => {
-        if (reports.length > 0) {
-            const keys = Object.keys(reports[0]);
-            const filteredKeys = keys.filter((key) => key === "opening_date" || key === "updating_date");
-            return filteredKeys;
-        }
-        return [];
-    }, [reports]);
+    const statusOptions = useMemo(() => [...new Set(REPORT_STATUS_LIST)], []);
+    const themeOptions = useMemo(() => [...new Set(themes)], [themes]);
+    const sortOptions = ["Du plus récent au plus ancien", "Du plus ancien au plus récent"];
 
     const handleSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
 
+        let sortParams = "";
+
+        if (sortOpeningDateIndex >= 0) {
+            sortParams = `opening_date:${sortOpeningDateIndex === 0 ? "DESC" : "ASC"}`;
+        }
+        if (sortUpdatingDateIndex >= 0) {
+            sortParams = `updating_date:${sortUpdatingDateIndex === 0 ? "DESC" : "ASC"}`;
+        }
+
+        setSortBy(sortParams);
+
         const form = (e.target as HTMLButtonElement).form;
         if (!form) return;
         const formData = new FormData(form);
-        const limitIndex = parseInt((formData.get("limit") as string) || "-1");
-        if (limitIndex >= 0) {
-            setLimitPerPage(REPORT_TABLE_LIMIT_OPTIONS[limitIndex]);
-        }
+
         const newFilters = {
-            status: statusOptions[parseInt((formData.get("status") as string) || "")] || "",
-            theme: themeOptions[parseInt((formData.get("theme") as string) || "")] || "",
+            status: statusOptions[statusIndex] || "",
+            theme: themeOptions[themeIndex] || "",
             author: Number(formData.get("author")) || null,
             department: (formData.get("department") as string) || "",
         };
         setCurrentFilters({ ...newFilters });
-        const sortBy = sortOptions[parseInt((formData.get("sort") as SortableKeys) || "")];
-
-        if (sortBy) {
-            reports.sort((a, b) => {
-                const aValue = a[sortBy] ?? "";
-                const bValue = b[sortBy] ?? "";
-                return new Date(aValue).getTime() - new Date(bValue).getTime();
-            });
-        }
 
         setFilteredReports(reports, true);
         setIsChecked({});
+    };
+
+    const resetFiltersAndSort = (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault();
+
+        formRef.current?.reset();
+
+        setSortOpeningDateIndex(0);
+        setSortUpdatingDateIndex(0);
+        setStatusIndex(-1);
+        setThemeIndex(-1);
+        setCurrentFilters({
+            status: "",
+            theme: "",
+            author: null,
+            department: "",
+        });
+        setCurrentPage(1);
+        setFilteredReports([], false);
     };
 
     useEffect(() => {
@@ -132,12 +144,47 @@ const FilterAndSortReport = () => {
         <>
             <h1 className="visuallyhidden">Tous les signalements</h1>
 
-            <form className="filter-report">
+            <form ref={formRef} className="filter-report">
                 <div>
-                    <h2 className="t-h3">Filtrer par :</h2>
+                    <p className="report-subTitle">Trier par : </p>
+                    <div className="sort-report__wrapper">
+                        <SelectComponent
+                            name="sortByDateCreation"
+                            label="Date de création"
+                            value={sortOpeningDateIndex}
+                            options={sortOptions}
+                            onChange={setSortOpeningDateIndex}
+                        />
+                        <SelectComponent
+                            name="sortByDateMAJ"
+                            label="Date de mise à jour"
+                            value={sortUpdatingDateIndex}
+                            options={sortOptions}
+                            onChange={setSortUpdatingDateIndex}
+                        />
+                    </div>
+                </div>
+
+                <div>
+                    <p className="report-subTitle">Filtrer par :</p>
                     <div className="filter-report__wrapper">
-                        <SelectComponent name="status" label="Status" defaultOption="un status" options={statusOptions} />
-                        <SelectComponent name="theme" label="Thème" defaultOption="un thème" options={themeOptions} />
+                        <SelectComponent
+                            name="status"
+                            label="Statut"
+                            value={statusIndex}
+                            defaultOption="Sélectionner une option"
+                            options={statusOptions}
+                            onChange={setStatusIndex}
+                        />
+                        <SelectComponent
+                            name="theme"
+                            label="Thème"
+                            value={themeIndex}
+                            defaultOption="Sélectionner une option"
+                            options={themeOptions}
+                            onChange={setThemeIndex}
+                        />
+
                         <Input
                             className="filter-report__select"
                             label="Auteur"
@@ -146,23 +193,23 @@ const FilterAndSortReport = () => {
                         <Input
                             className="filter-report__select"
                             label="Département"
-                            nativeInputProps={{ name: "department", type: "number", max: 2, multiple: true }}
+                            nativeInputProps={{
+                                placeholder: "Sélectionner une option",
+                                name: "department",
+                                type: "number",
+                                max: 2,
+                                multiple: true,
+                            }}
                         />
                     </div>
                 </div>
 
-                <div>
-                    <h2 className="t-h3">Trier par : </h2>
-                    <div className="sort-report__wrapper">
-                        <SelectComponent name="sort" label="Date" defaultOption="une date" options={sortOptions} />
-
-                        <SelectComponent name="limit" label="Nombre d’éléments par page" defaultOption="une valeur" options={REPORT_TABLE_LIMIT_OPTIONS} />
-                    </div>
-                </div>
-
                 <div className="sumbit">
-                    <Button iconId="ri-filter-fill" size="large" type="submit" onClick={handleSubmit}>
-                        Valider
+                    <Button type="submit" onClick={resetFiltersAndSort} priority="secondary">
+                        Effacer
+                    </Button>
+                    <Button type="submit" onClick={handleSubmit}>
+                        Appliquer
                     </Button>
                 </div>
             </form>
