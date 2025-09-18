@@ -1,6 +1,7 @@
 import { CommunityGeoservice, FeatureTypeColumn, FeatureTypeIds, FeatureTypeStyleItemData } from "@/constants/communities/types";
 import { API_URL, DATABASE_API_URL } from "@/constants/urls";
 import { axiosApi } from ".";
+import { featureDefaultStyle } from "@/constants/styles";
 
 export function getFeatureTypeById(featureTypesId: FeatureTypeIds) {
     return axiosApi.get(`${DATABASE_API_URL}/${featureTypesId.database}/tables/${featureTypesId.table}`);
@@ -11,8 +12,19 @@ export async function getFeatureTypesAll(featureTypesIds: FeatureTypeIds[]): Pro
 
     if (resAll) {
         return resAll.map((res) => {
-            const styles = [res.data.style, ...res.data.styles];
-            return {
+            const styles = res.data.styles || [];
+            if (res.data.style) styles.unshift(res.data.style);
+            const geometryColumn = res.data.columns?.find((c: FeatureTypeColumn) => c.name === res.data.geometry_name);
+            let geomType = geometryColumn.type as string;
+
+            if (geomType.includes("Polygon")) {
+                geomType = "polygon";
+            } else if (geomType.includes("Line")) {
+                geomType = "line";
+            } else {
+                geomType = "point";
+            }
+            const data: CommunityGeoservice = {
                 id: res.data.id,
                 description: res.data.description,
                 title: res.data.title,
@@ -27,7 +39,7 @@ export async function getFeatureTypesAll(featureTypesIds: FeatureTypeIds[]): Pro
                 tileZoom: res.data.tile_zoom_level,
                 boxSrid: res.data.box_srid || "",
                 geometryName: res.data.geometry_name,
-                featureType: styles[0]?.type || "point",
+                featureType: geomType,
                 readOnly: res.data.read_only,
                 columns: res.data.columns.map((col: FeatureTypeColumn) => {
                     return {
@@ -41,8 +53,11 @@ export async function getFeatureTypesAll(featureTypesIds: FeatureTypeIds[]): Pro
                         default_value: col.default_value,
                     };
                 }),
-                styles: styles.map((style) => {
-                    let logoURI = style.uri ? style.uri?.replace("https://espacecollaboratif.ign.fr/gcms", `${API_URL}/espaceco`) : "";
+            };
+
+            if (styles.length) {
+                data.styles = styles.map((style: FeatureTypeStyleItemData) => {
+                    let logoURI = style?.uri ? style.uri?.replace("https://espacecollaboratif.ign.fr/gcms", `${API_URL}/espaceco`) : "";
                     if (logoURI) {
                         logoURI = logoURI + `${logoURI?.includes("?") ? "&" : "?"}width=50&height=50`;
                     }
@@ -63,8 +78,8 @@ export async function getFeatureTypesAll(featureTypesIds: FeatureTypeIds[]): Pro
                                 strokeOpacity: style.strokeOpacity,
                                 logo: logoURI,
                             },
-                            ...style.children.map((type: FeatureTypeStyleItemData) => {
-                                let logoURItype = type.uri ? type.uri?.replace("https://espacecollaboratif.ign.fr/gcms", `${API_URL}/espaceco`) : "";
+                            ...(style?.children?.map((type: FeatureTypeStyleItemData) => {
+                                let logoURItype = type?.uri ? type.uri?.replace("https://espacecollaboratif.ign.fr/gcms", `${API_URL}/espaceco`) : "";
                                 if (logoURItype) {
                                     logoURItype = logoURItype + `${logoURItype?.includes("?") ? "&" : "?"}width=50&height=50`;
                                 }
@@ -82,11 +97,15 @@ export async function getFeatureTypesAll(featureTypesIds: FeatureTypeIds[]): Pro
                                     condition: JSON.parse(type.condition),
                                     logo: logoURItype,
                                 };
-                            }),
+                            }) || []),
                         ],
                     };
-                }),
-            };
+                });
+            } else {
+                data.styles = [featureDefaultStyle(geomType)];
+            }
+
+            return data;
         });
     }
     return [];

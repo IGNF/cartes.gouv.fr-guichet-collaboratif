@@ -4,12 +4,12 @@ import imgValid from "../img/reports/punaise_valid.png";
 import imgReject from "../img/reports/punaise_reject.png";
 import imgTest from "../img/reports/punaise_test.png";
 import { fromLonLat } from "ol/proj";
-import { AlertMessageType, CommunityGeoservice, CommunityTheme, FeatureTypeStyle } from "./communities/types";
+import { AlertMessageType, CommunityGeoservice, CommunityTheme, FeatureTypeSelectedStyle, FeatureTypeStyle } from "./communities/types";
 import Feature from "ol/Feature";
 import { Map } from "ol";
 import { CommunityReport, GeometryFeatueParams, PostThemeReport, SketchFeatureType, SketchObject } from "./reports/types";
 import { Fill, Icon, Stroke, Style, Text } from "ol/style";
-import { Geometry, LineString, MultiLineString, Point, Polygon } from "ol/geom";
+import { Geometry, LineString, MultiLineString, MultiPoint, MultiPolygon, Point, Polygon } from "ol/geom";
 import Layer from "ol/layer/Layer";
 import VectorSource from "ol/source/Vector";
 import WKT from "ol/format/WKT";
@@ -21,13 +21,15 @@ import createCrossImg from "../img/reports/markerslist/cross.png";
 import createXImg from "../img/reports/markerslist/x.png";
 import createTriangleImg from "../img/reports/markerslist/triangle.png";
 import createPointImg from "../img/reports/create_point.png";
-import { getCenter, isEmpty } from "ol/extent";
+import { Extent, getCenter, isEmpty } from "ol/extent";
 import React from "react";
 import { REPORTS_LAYER_TYPE } from "./reports/utils";
 import { ComparatorFunc, simpleComparators } from "./mongo_parser";
 import getWellKnownNames from "./wellKnownNames";
+import addProjectionsToProj4 from "./projectionsToDefine";
 
 const wktFormat = new WKT();
+addProjectionsToProj4();
 
 export const markersStyles = [
     { name: "circle", imgSrc: createCircleImg },
@@ -161,48 +163,72 @@ const getGeometry2D = (geometry: string, type: string = "point") => {
     return geometry;
 };
 
-export const getGeoserviceFeatureTypeGeometries = (data: FeatureTypeData[], geoservice: CommunityGeoservice) => {
+export const getGeoserviceFeatureTypeGeometries = (
+    item: FeatureTypeData,
+    geoservice: CommunityGeoservice,
+    featureTypeSelectedStyle: FeatureTypeSelectedStyle[],
+    mapProjCode: string,
+    geoProjCode: string
+) => {
+    const layerStyle = featureTypeSelectedStyle.find((type) => type.layer === geoservice.layer);
     const featureType = geoservice.featureType;
-    const defaultStyle = geoservice.styles![0].types![0];
-    const features = data.map((item) => {
-        let feat: Feature;
+    const defaultStyle = geoservice.styles![0]?.types![0];
+    const ItemGeometry = item.geometrie as string;
+    let feat: Feature;
 
-        if (featureType === "line") {
+    if (featureType === "line") {
+        if (ItemGeometry.includes("MULTI")) {
             feat = new Feature({
-                geometry: new LineString(getLonLatFromPoint(item.geometrie, false) as Coordinate),
+                geometry: new MultiLineString(getLonLatFromPoint(ItemGeometry, false, mapProjCode, geoProjCode) as Coordinate),
             });
-        } else if (featureType === "polygon") {
-            let lonLat = getLonLatFromPoint(item.geometrie, false);
-            lonLat = (item.geometrie.includes("MULTIPOLYGON") ? lonLat![0] : lonLat) as Coordinate[][] | number[];
+        } else {
+            feat = new Feature({
+                geometry: new LineString(getLonLatFromPoint(ItemGeometry, false, mapProjCode, geoProjCode) as Coordinate),
+            });
+        }
+    } else if (featureType === "polygon") {
+        let lonLat = getLonLatFromPoint(ItemGeometry, false, mapProjCode, geoProjCode);
 
+        if (ItemGeometry.includes("MULTI")) {
+            feat = new Feature({
+                geometry: new MultiPolygon(lonLat as Coordinate[][][]),
+            });
+        } else {
+            lonLat = (ItemGeometry.includes("MULTIPOLYGON") ? lonLat![0] : lonLat) as Coordinate[][] | number[];
             feat = new Feature({
                 geometry: new Polygon(lonLat),
             });
+        }
+    } else {
+        if (ItemGeometry.includes("MULTI")) {
+            feat = new Feature({
+                geometry: new MultiPoint(getLonLatFromPoint(ItemGeometry, false, mapProjCode, geoProjCode) as number[]),
+            });
         } else {
             feat = new Feature({
-                geometry: new Point(getLonLatFromPoint(item.geometrie, false) as number[]),
+                geometry: new Point(getLonLatFromPoint(ItemGeometry, false, mapProjCode, geoProjCode) as number[]),
             });
         }
+    }
 
-        if (defaultStyle?.logo) {
-            feat.setStyle(
-                new Style({
-                    image: new Icon({
-                        src: defaultStyle.logo,
-                        scale: 1,
-                    }),
-                    zIndex: 2,
-                })
-            );
-        } else {
-            feat.setStyle(getWellKnownNames(defaultStyle)[0] as Style);
-        }
-        feat.set("geoservice", geoservice);
-        feat.set("featureTypeData", item);
-        return feat;
-    });
-
-    return features;
+    if (layerStyle) {
+        feat.setStyle(getWellKnownNames(layerStyle.selectedStyle.types![0])[0] as Style);
+    } else if (defaultStyle?.logo) {
+        feat.setStyle(
+            new Style({
+                image: new Icon({
+                    src: defaultStyle.logo,
+                    scale: 1,
+                }),
+                zIndex: 2,
+            })
+        );
+    } else {
+        feat.setStyle(getWellKnownNames(defaultStyle)[0] as Style);
+    }
+    feat.set("geoservice", geoservice);
+    feat.set("featureTypeData", item);
+    return feat;
 };
 
 export const getLonLatFormCoordinates = (coordinates: LonLatCoordinate): LonLatCoordinate => {
@@ -213,7 +239,12 @@ export const getLonLatFormCoordinates = (coordinates: LonLatCoordinate): LonLatC
     }
 };
 
-export const getLonLatFromPoint = (point: string | undefined, lonLatCoord: boolean = true) => {
+export const getLonLatFromPoint = (
+    point: string | undefined,
+    lonLatCoord: boolean = true,
+    mapProjCode: string = "EPSG:3857",
+    geoProjCode: string = "EPSG:3857"
+) => {
     if (!point) return [];
     let coordinates: LonLatCoordinate = [];
     let type = "point";
@@ -221,15 +252,15 @@ export const getLonLatFromPoint = (point: string | undefined, lonLatCoord: boole
     if (point.includes("POLYGON")) type = "polygon";
     try {
         const geometry = wktFormat.readGeometry(point, {
-            dataProjection: "EPSG:3857",
-            featureProjection: "EPSG:3857",
+            dataProjection: geoProjCode,
+            featureProjection: mapProjCode,
         }) as GeometryFeatueParams;
         coordinates = geometry?.getCoordinates() as LonLatCoordinate;
     } catch {
         const geom2D = getGeometry2D(point, type);
         const geometry = wktFormat.readGeometry(geom2D, {
-            dataProjection: "EPSG:3857",
-            featureProjection: "EPSG:3857",
+            dataProjection: geoProjCode,
+            featureProjection: mapProjCode,
         }) as GeometryFeatueParams;
         coordinates = geometry?.getCoordinates() as LonLatCoordinate;
     }
@@ -481,3 +512,20 @@ export function parseContentRange(contentRange: string) {
 
     return { total, limitPerPage, currentPage };
 }
+
+export const addFeaturesInBatches = (source: VectorSource, features: Feature[], batchSize = 500) => {
+    let i = 0;
+    function processBatch() {
+        const slice = features.slice(i, i + batchSize);
+        source.addFeatures(slice);
+        i += batchSize;
+        if (i < features.length) {
+            setTimeout(processBatch, 0);
+        }
+    }
+    processBatch();
+};
+
+export const extentEquals = (e1: Extent, e2: Extent) => {
+    return e1[0] === e2[0] && e1[1] === e2[1] && e1[2] === e2[2] && e1[3] === e2[3];
+};

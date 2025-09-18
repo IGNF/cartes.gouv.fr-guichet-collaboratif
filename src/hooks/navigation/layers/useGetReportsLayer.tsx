@@ -42,9 +42,8 @@ function useGetReportsLayer(communityId: number) {
                         return null;
                     }
                     setReports(reports);
-                } catch (error) {
+                } catch {
                     addAlertMessage(StatusMessage.error, t("loading_report_layer_error"), 5000);
-                    console.error(error);
                 }
             },
             strategy: bbox,

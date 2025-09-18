@@ -15,7 +15,7 @@ export const hexToRgba = (hex: string, opacity = 1) => {
 };
 
 export const getShapeStyle = (shapeProps: FeatureTypeStyleItem) => {
-    const type = shapeProps.type;
+    const type = shapeProps?.type;
     const featureType = shapeProps.featureType;
     if (featureType === "line" || featureType === "polygon") {
         return getLineOrPolygonStyle(shapeProps);

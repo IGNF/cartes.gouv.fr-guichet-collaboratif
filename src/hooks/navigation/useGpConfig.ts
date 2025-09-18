@@ -11,12 +11,8 @@ export default function useGpConfig() {
         queryFn: () => {
             return new Gp.Services.Config({
                 customConfigFile: "https://raw.githubusercontent.com/IGNF/geoportal-configuration/new-url/dist/fullConfig.json",
-                onSuccess: () => {
-                    //console.log("customConfigFile", data);
-                },
-                onFailure: (e: unknown) => {
-                    console.error(e);
-                },
+                onSuccess: () => {},
+                onFailure: () => {},
             });
         },
         staleTime: Infinity,

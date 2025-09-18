@@ -1,14 +1,16 @@
 import { FeatureTypeSelectedStyle } from "@/constants/communities/types";
+import LayerSwitcher from "geopf-extensions-openlayers/src/packages/Controls/LayerSwitcher/LayerSwitcher";
 import { Feature, Map } from "ol";
 import { create } from "zustand";
 
 interface MapStore {
     map: Map | null;
+    mapSwitcher: typeof LayerSwitcher | null;
     featureTypeSelectedStyle: FeatureTypeSelectedStyle[];
     clickedMapFeature: Feature | null;
     workingLayerDrawerOpened: boolean;
     mapWorkingLayer: string;
-    setMap: (map: Map | null) => void;
+    setMap: (map: Map | null, mapSwitcher: typeof LayerSwitcher | null) => void;
     setFeatureTypeSelectedStyle: ({ layer, selectedStyle }: FeatureTypeSelectedStyle) => void;
     setClickedMapFeature: (feature: Feature | null) => void;
     setWorkingLayerDrawerOpened: (open: boolean) => void;
@@ -17,12 +19,13 @@ interface MapStore {
 
 export const useMapStore = create<MapStore>((set, get) => ({
     map: null,
+    mapSwitcher: null,
     featureTypeSelectedStyle: [],
     clickedMapFeature: null,
     workingLayerDrawerOpened: false,
     mapWorkingLayer: "",
-    setMap: (map) => {
-        set({ map });
+    setMap: (map, mapSwitcher) => {
+        set({ map, mapSwitcher });
     },
     setFeatureTypeSelectedStyle: (newStyle) => {
         const currentFeatureTypeStyles = get().featureTypeSelectedStyle;

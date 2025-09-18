@@ -41,9 +41,10 @@ export type FeatureTypeStyleItem = {
     fillOpacity: number;
     strokeColor: string;
     strokeWidth: number;
-    strokeDashstyle: string;
-    strokeLinecap: "butt" | "round" | "square";
+    strokeDashstyle: string | undefined;
+    strokeLinecap: "butt" | "round" | "square" | undefined;
     strokeOpacity: number;
+    zIndex?: number;
     logo?: string;
     condition?: { $and: { [key: string]: { [key: string]: number | string } }[] };
 };
@@ -53,6 +54,7 @@ export type FeatureTypeStyleItemData = FeatureTypeStyleItem & {
     name?: string;
     condition: string;
     uri?: string;
+    children?: FeatureTypeStyleItemData[];
 };
 export type FeatureTypeStyle = {
     name?: string;
@@ -67,7 +69,7 @@ export type FeatureTypeColumn = {
     nullable: boolean;
     enum?: string[];
     crs: string;
-    default_value: string | number | null;
+    default_value: boolean | string | number | null;
 };
 export type FeatureTypeSelectedStyle = { layer: string; selectedStyle: FeatureTypeStyle };
 export interface CommunityGeoservice extends LayerGeoservice {

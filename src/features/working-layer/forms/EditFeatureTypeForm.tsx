@@ -14,9 +14,10 @@ interface PointDataProps {
 }
 
 const getSelectedFeatureTypeStyle = (type: string) => {
-    if (type === "point") return featureTypeSelectedPointCircleStyle;
-    if (type === "line") return featureTypeSelectedLineStyle;
-    if (type === "polygon") return featureTypeSelectedPolygonStyle;
+    if (type === "point") return featureTypeSelectedPointCircleStyle();
+    if (type === "line") return featureTypeSelectedLineStyle();
+    if (type === "polygon") return featureTypeSelectedPolygonStyle();
+    return featureTypeSelectedPointCircleStyle();
 };
 
 const EditFeatureTypeForm = () => {
@@ -55,6 +56,7 @@ const EditFeatureTypeForm = () => {
 
             {columns.map((col, index) => {
                 if (col.crs) return;
+                const colDefaultValue = typeof col.default_value === "boolean" ? (col.default_value ? "true" : "false") : (col.default_value ?? undefined);
                 switch (col.type.toLocaleLowerCase()) {
                     case "string":
                         return (
@@ -65,7 +67,7 @@ const EditFeatureTypeForm = () => {
                                 disabled
                                 nativeInputProps={{
                                     required: !col.nullable,
-                                    defaultValue: col.default_value ?? undefined,
+                                    defaultValue: colDefaultValue,
                                     value: pointData[col.name] ?? undefined,
                                 }}
                             />
@@ -81,7 +83,7 @@ const EditFeatureTypeForm = () => {
                                     disabled
                                     nativeSelectProps={{
                                         required: !col.nullable,
-                                        defaultValue: col.default_value ?? undefined,
+                                        defaultValue: colDefaultValue,
                                         value: pointData[col.name] ?? undefined,
                                     }}
                                 >
@@ -106,7 +108,7 @@ const EditFeatureTypeForm = () => {
                                 disabled
                                 nativeInputProps={{
                                     required: !col.nullable,
-                                    defaultValue: col.default_value ?? undefined,
+                                    defaultValue: colDefaultValue,
                                     value: pointData[col.name] ?? undefined,
                                 }}
                             />
@@ -139,7 +141,7 @@ const EditFeatureTypeForm = () => {
                                 nativeInputProps={{
                                     required: !col.nullable,
                                     type: "date",
-                                    defaultValue: col.default_value ?? undefined,
+                                    defaultValue: colDefaultValue,
                                     value: pointData[col.name] ?? undefined,
                                 }}
                             />
@@ -154,7 +156,7 @@ const EditFeatureTypeForm = () => {
                                 multiple
                                 className="upload-file"
                                 nativeInputProps={{
-                                    defaultValue: col.default_value ?? undefined,
+                                    defaultValue: colDefaultValue,
                                     accept: "*",
                                     value: pointData[col.name] ?? undefined,
                                 }}

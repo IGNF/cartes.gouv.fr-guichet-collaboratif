@@ -108,9 +108,8 @@ const SketchList = () => {
         (feature: Feature) => {
             try {
                 handleCenterToFeature(map, feature);
-            } catch (error) {
+            } catch {
                 addAlertMessage(StatusMessage.error, "Impossible d'afficher ce croquis : sa géométrie est vide ou non définie.");
-                console.error(error);
             }
         },
         [map, addAlertMessage]

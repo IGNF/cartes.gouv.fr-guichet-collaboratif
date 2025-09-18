@@ -29,10 +29,8 @@ export const { ConsentBannerAndConsentManagement, FooterConsentManagementItem, F
         const eulerian = await prEulerianApi;
 
         if (finalityConsent.eulerianAnalytics) {
-            console.log("Enabling eulerian analytics");
             eulerian.enable();
         } else {
-            console.log("Disabling eulerian analytics");
             eulerian.disable();
         }
     },

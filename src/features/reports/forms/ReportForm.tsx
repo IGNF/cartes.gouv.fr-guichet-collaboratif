@@ -169,9 +169,8 @@ const ReportForm: React.FC<Props> = ({ handleSubmit, handleDelete, handleClose }
             setLoading(true);
             await handleSubmit(selectedTheme, themeAttributes, description, filesUploaded, selectedFeatures);
             onClose();
-        } catch (error) {
+        } catch {
             setLoading(false);
-            console.log(error);
         }
     };
 
@@ -181,9 +180,8 @@ const ReportForm: React.FC<Props> = ({ handleSubmit, handleDelete, handleClose }
                 setLoading(true);
                 await handleDelete();
                 onClose();
-            } catch (error) {
+            } catch {
                 setLoading(false);
-                console.log(error);
             }
         }
     };

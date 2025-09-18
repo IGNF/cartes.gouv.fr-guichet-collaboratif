@@ -15,7 +15,7 @@ import useGpConfig from "@/hooks/navigation/useGpConfig";
 import GetAllLayers from "./layers";
 import { MapLayer, MapLayerSource } from "@/constants/communities/types";
 import { getLonLatFromPoint } from "@/constants/utils";
-import SaveButtonHandler from "./SaveButtonHandler";
+import SaveViewHandler from "./SaveViewHandler";
 import ReportDrawer from "../reports/ReportDrawer";
 import { Cluster } from "ol/source";
 import VectorLayer from "ol/layer/Vector";
@@ -33,7 +33,7 @@ export default function MainMap() {
 
     const { community, mapLayers } = useCommunityStore();
     const { localStorageData } = useLocalStorageStore();
-    const { map, setMap } = useMapStore();
+    const { map, mapSwitcher, setMap } = useMapStore();
 
     const mapControls = useGetMapControls();
 
@@ -106,8 +106,8 @@ export default function MainMap() {
         switcherRef.current = switcher;
 
         mapRef.current?.render();
-        if (!map) {
-            setMap(mapRef.current);
+        if (!map && !mapSwitcher) {
+            setMap(mapRef.current, switcherRef.current);
         }
     });
 
@@ -132,7 +132,7 @@ export default function MainMap() {
                 style={{ height: `calc(100vh - ${mapToolbarHeader?.clientHeight || 0}px)` }}
             ></div>
 
-            <SaveButtonHandler map={mapRef.current} mapSwitcher={switcherRef.current} />
+            <SaveViewHandler />
             <GetAllLayers />
 
             <ReportDrawer />

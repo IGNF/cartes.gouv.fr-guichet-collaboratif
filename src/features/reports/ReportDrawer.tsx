@@ -64,8 +64,8 @@ const ReportDrawer = () => {
 
             map?.forEachFeatureAtPixel(evt.pixel, function (feature) {
                 const clickedFeature = feature as Feature;
-                if (clickedFeature.get("geoservice")?.layer !== mapWorkingLayer) return;
-                if (mapWorkingLayer === REPORTS_LAYER_TYPE) {
+                if (clickedFeature.get("geoservice")?.layer !== mapWorkingLayer && mapWorkingLayer !== REPORTS_LAYER_TYPE) return;
+                if (mapWorkingLayer === REPORTS_LAYER_TYPE && clickedFeature.get("features")) {
                     getClickedMapReport({ feature: clickedFeature, map, pixel: evt.pixel, clusterSource, features, handleCloseDrawer });
                 } else {
                     const currentFeatureStyle = clickedFeature.getStyle() as Style;

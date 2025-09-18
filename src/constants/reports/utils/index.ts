@@ -109,8 +109,7 @@ export const verifyFileTypeFromContent = (content: string) => {
     try {
         const json = JSON.parse(content);
         if (json.type && json.features) return "GeoJSON";
-    } catch (e) {
-        console.error(e);
+    } catch {
         throw Error();
     }
     throw Error();
@@ -159,8 +158,7 @@ export const createSketchKML = (content: string, drawingSource: VectorSource) =>
             setFeatureStyleKML(feature);
         });
         drawingSource.addFeatures(features);
-    } catch (e) {
-        console.error(e);
+    } catch {
         throw Error();
     }
 };
@@ -169,8 +167,7 @@ export const createSketchGPX = (content: string, drawingSource: VectorSource) =>
     try {
         const features = new GPX().readFeatures(content, { dataProjection: "EPSG:4326", featureProjection: "EPSG:3857" });
         drawingSource.addFeatures(features);
-    } catch (e) {
-        console.error(e);
+    } catch {
         throw Error();
     }
 };
@@ -178,8 +175,7 @@ export const createSketchGEOJSON = (content: string, drawingSource: VectorSource
     try {
         const features = new GeoJSON().readFeatures(content, { dataProjection: "EPSG:4326", featureProjection: "EPSG:3857" });
         drawingSource.addFeatures(features);
-    } catch (e) {
-        console.error(e);
+    } catch {
         throw Error();
     }
 };

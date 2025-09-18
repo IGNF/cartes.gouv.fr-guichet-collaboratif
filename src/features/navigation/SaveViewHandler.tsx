@@ -8,18 +8,24 @@ import isEqual from "lodash.isequal";
 import { Map } from "ol";
 import { useCallback, useEffect, useState } from "react";
 
-interface Props {
+interface StateProps {
     map: Map | null;
-    mapSwitcher: typeof LayerSwitcher;
+    mapSwitcher: typeof LayerSwitcher | null;
 }
 
-const SaveButtonHandler: React.FC<Props> = ({ map, mapSwitcher }) => {
+const SaveViewHandler: React.FC = () => {
     const { community } = useCommunityStore();
     const { localStorageData, setLocalStorage } = useLocalStorageStore();
-    const [changed, setChanged] = useState({ map, mapSwitcher });
-    const { mapWorkingLayer } = useMapStore();
+    const [changed, setChanged] = useState<StateProps>({ map: null, mapSwitcher: null });
+    const { mapWorkingLayer, map, mapSwitcher } = useMapStore();
 
-    const debounced = useDebounce(changed, 1000);
+    const debounced = useDebounce(changed, 500);
+
+    useEffect(() => {
+        if (map && mapSwitcher && !changed.map && !changed.mapSwitcher) {
+            setChanged({ map, mapSwitcher });
+        }
+    }, [map, mapSwitcher, changed]);
 
     const handleSaveButton = useCallback(async () => {
         if (!community?.name || !map || !mapSwitcher) return;
@@ -85,4 +91,4 @@ const SaveButtonHandler: React.FC<Props> = ({ map, mapSwitcher }) => {
     return null;
 };
 
-export default SaveButtonHandler;
+export default SaveViewHandler;
