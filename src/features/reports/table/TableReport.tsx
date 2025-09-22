@@ -39,6 +39,8 @@ const TableReport = () => {
         sortBy,
         setSortBy,
         setCurrentPage,
+        setResponseDrawerOpened,
+        selectedReport,
     } = useReportStore();
 
     const filters = useMemo(
@@ -192,7 +194,7 @@ const TableReport = () => {
                                 title="Supprimer un signalement"
                                 priority="secondary"
                             />
-                            <Button type="button" onClick={() => console.log("this is for th' next step")}>
+                            <Button type="button" disabled={selectedReport === null ? true : false} onClick={() => setResponseDrawerOpened(true)}>
                                 répondre
                             </Button>
                         </div>

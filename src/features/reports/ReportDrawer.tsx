@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect } from "react";
 import { Feature, MapBrowserEvent } from "ol";
 import Layer from "ol/layer/Layer";
 import VectorSource from "ol/source/Vector";
@@ -11,6 +11,7 @@ import { useCommunityStore, useMapStore, useReportStore } from "@/store";
 import DrawerComponent from "@/components/DrawerComponent";
 import ShowReport from "./ShowReport";
 import CreateReport from "./CreateReport";
+import TableReportDrawer from "./table/TableReportDrawer";
 
 const ReportDrawer = () => {
     const [drawerOpened, setDrawerOpened] = useState<boolean>(false);
@@ -52,6 +53,7 @@ const ReportDrawer = () => {
 
         setDrawerOpened(false);
         setEditReport(false);
+        setTableDrawerOpened(false);
         setSelectedReport(null);
         setSelectedFeatures([]);
     }, [map, selectedReport, alertMessages, removeAlertMessage, setEditReport, setSelectedFeatures, setSelectedReport]);
@@ -209,8 +211,21 @@ const ReportDrawer = () => {
         };
     }, [drawerOpened, selectedReport, handleDrawingAdd]);
 
+    useEffect(() => {
+        if (drawerOpened) {
+            setTableDrawerOpened(false);
+            setResponseDrawerOpened(false);
+        } else if (responseDrawerOpened) {
+            setDrawerOpened(false);
+            setTableDrawerOpened(false);
+        } else if (tableDrawerOpened) {
+            setDrawerOpened(false);
+            setResponseDrawerOpened(false);
+        }
+    }, [drawerOpened, responseDrawerOpened, setDrawerOpened, setResponseDrawerOpened, setTableDrawerOpened, tableDrawerOpened]);
+
     return (
-        <DrawerComponent anchor="left" isOpen={drawerOpened} create={!selectedReport} onClose={handleCloseDrawer}>
+        <DrawerComponent anchor="left" isOpen={drawerOpened || tableDrawerOpened || responseDrawerOpened} create={!selectedReport} onClose={handleCloseDrawer}>
             <>
                 {drawerOpened ? (
                     selectedReport ? (
@@ -218,6 +233,13 @@ const ReportDrawer = () => {
                     ) : (
                         <CreateReport handleCloseDrawer={handleCloseDrawer} />
                     )
+                ) : tableDrawerOpened ? (
+                    <TableReportDrawer handleCloseDrawer={handleCloseDrawer} />
+                ) : responseDrawerOpened ? (
+                    <div className="table-report-drawer" style={{ width: reportTableWidth }}>
+                        <h1>RESPOOOOOOOOOONSE </h1>
+                        <ShowReport handleCloseDrawer={handleCloseDrawer} />
+                    </div>
                 ) : null}
             </>
         </DrawerComponent>

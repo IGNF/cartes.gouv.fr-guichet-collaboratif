@@ -54,7 +54,7 @@ const ReportForm: React.FC<Props> = ({ handleSubmit, handleDelete, handleClose }
     const [loading, setLoading] = useState<boolean>(false);
 
     const { community } = useCommunityStore();
-    const { editReport, selectedReport, selectedFeatures, setSelectedFeatures } = useReportStore();
+    const { editReport, selectedReport, selectedFeatures, setSelectedFeatures, setTableDrawerOpened } = useReportStore();
 
     const reportTools = useReportTools();
 
@@ -199,6 +199,8 @@ const ReportForm: React.FC<Props> = ({ handleSubmit, handleDelete, handleClose }
         setSelectedFeatures([]);
 
         if (handleClose) handleClose();
+
+        setTableDrawerOpened(true);
     };
 
     const removeFile = (file: File) => {

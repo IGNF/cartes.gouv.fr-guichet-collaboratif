@@ -27,7 +27,7 @@ const CatalogControl: React.FC = () => {
             type: "json",
             urls: [],
         },
-        position: "top-left",
+        position: "top-right",
     });
 };
 

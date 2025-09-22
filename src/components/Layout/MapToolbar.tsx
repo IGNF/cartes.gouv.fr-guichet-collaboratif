@@ -139,9 +139,6 @@ const MapToolbar: React.FC = () => {
             </div>
 
             <div className={`map-toolbar-bottom-inner`}>
-                <Button iconId="ri-table-view" onClick={toggleTableReportsDrawer}>
-                    {t("all_reports")}
-                </Button>
                 <Select
                     label={t("working_layer")}
                     nativeSelectProps={{

@@ -32,6 +32,10 @@ interface ReportStore {
     setSelectedLine: (selectedLine: number) => void;
     sortBy: string | undefined;
     setSortBy: (sortBy: string) => void;
+    drawerOpened: boolean;
+    setDrawerOpened: (drawerOpened: boolean) => void;
+    responseDrawerOpened: boolean;
+    setResponseDrawerOpened: (responseDrawerOpened: boolean) => void;
 }
 export const useReportStore = create<ReportStore>((set, get) => ({
     reports: [],
@@ -92,4 +96,8 @@ export const useReportStore = create<ReportStore>((set, get) => ({
     setSelectedLine: (selectedLine: number) => set({ selectedLine }),
     sortBy: undefined,
     setSortBy: (sortBy) => set({ sortBy }),
+    drawerOpened: false,
+    setDrawerOpened: (drawerOpened: boolean) => set({ drawerOpened }),
+    responseDrawerOpened: false,
+    setResponseDrawerOpened: (responseDrawerOpened: boolean) => set({ responseDrawerOpened }),
 }));

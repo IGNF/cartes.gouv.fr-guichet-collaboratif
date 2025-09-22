@@ -10,7 +10,7 @@ const DrawingControl: React.FC = () => {
     const { t } = useTranslation({ DrawingControl });
     const drawingControl = new Drawing({
         collapsed: true,
-        position: "top-left",
+        position: "top-right",
         removable: true,
         layerDescription: {
             title: t("layer_title"),
