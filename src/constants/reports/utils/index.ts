@@ -1,4 +1,4 @@
-import { CommunityReport, GeometryFeatueParams, SketchFeatureType, SketchObject, SketchReport } from "../types";
+import { ClickedMapReportProps, CommunityReport, GeometryFeatueParams, SketchFeatureType, SketchObject, SketchReport } from "../types";
 import { Feature, Map } from "ol";
 import { Coordinate } from "ol/coordinate";
 import {
@@ -17,6 +17,7 @@ import GPX from "ol/format/GPX";
 import GeoJSON from "ol/format/GeoJSON";
 import VectorSource from "ol/source/Vector";
 import { Style } from "ol/style";
+import { getClickedReport, showClusterFeatures } from "./cluster";
 
 export const REPORTS_LAYER_TYPE = "reports";
 
@@ -108,8 +109,7 @@ export const verifyFileTypeFromContent = (content: string) => {
     try {
         const json = JSON.parse(content);
         if (json.type && json.features) return "GeoJSON";
-    } catch (e) {
-        console.error(e);
+    } catch {
         throw Error();
     }
     throw Error();
@@ -158,8 +158,7 @@ export const createSketchKML = (content: string, drawingSource: VectorSource) =>
             setFeatureStyleKML(feature);
         });
         drawingSource.addFeatures(features);
-    } catch (e) {
-        console.error(e);
+    } catch {
         throw Error();
     }
 };
@@ -168,8 +167,7 @@ export const createSketchGPX = (content: string, drawingSource: VectorSource) =>
     try {
         const features = new GPX().readFeatures(content, { dataProjection: "EPSG:4326", featureProjection: "EPSG:3857" });
         drawingSource.addFeatures(features);
-    } catch (e) {
-        console.error(e);
+    } catch {
         throw Error();
     }
 };
@@ -177,10 +175,43 @@ export const createSketchGEOJSON = (content: string, drawingSource: VectorSource
     try {
         const features = new GeoJSON().readFeatures(content, { dataProjection: "EPSG:4326", featureProjection: "EPSG:3857" });
         drawingSource.addFeatures(features);
-    } catch (e) {
-        console.error(e);
+    } catch {
         throw Error();
     }
 };
 
 export const REPORT_TABLE_LIMIT_OPTIONS = [2, 5, 10, 15, 20, 30];
+
+export const getClickedMapReport = ({ feature, map, pixel, clusterSource, features, handleCloseDrawer }: ClickedMapReportProps) => {
+    let clickedFeature;
+    const currentFeature = feature as Feature;
+    const currentFeatures = currentFeature.get("features");
+    if (currentFeatures?.length === 1) {
+        clickedFeature = currentFeatures[0];
+    } else {
+        if (Array.isArray(currentFeature.getStyle())) {
+            clickedFeature = getClickedReport(currentFeature, pixel, map);
+        }
+    }
+    if (!clickedFeature) {
+        showClusterFeatures(currentFeature, map.getView().getResolution(), clusterSource);
+        handleCloseDrawer();
+        return;
+    }
+    const currentFeatureStyle = clickedFeature.getStyle() as Style;
+    const currentZIndex = currentFeatureStyle && "getStyle" in currentFeatureStyle ? (currentFeatureStyle?.getZIndex() ?? 1) : 1;
+    if (clickedFeature.get("new") && clickedFeature.get("main")) {
+        features.push({
+            feature: clickedFeature,
+            zIndex: currentZIndex,
+        });
+        return;
+    }
+    if (clickedFeature.get("reportData") && clickedFeature.get("main")) {
+        features.push({
+            feature: clickedFeature,
+            zIndex: currentZIndex,
+        });
+        return;
+    }
+};

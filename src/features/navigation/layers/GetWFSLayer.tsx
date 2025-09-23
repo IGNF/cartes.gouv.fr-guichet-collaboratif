@@ -26,7 +26,7 @@ const GetWFSLayer: React.FC<Props> = ({ layer }) => {
             wfsLayerSource?.set("description", `<div id="feature-type-style"></div>`);
         }
         if (wfsLayerSource) {
-            const wfsLayer = { source: wfsLayerSource, title: geoservice.title, order: localLayer ? localLayer.order : layer.order };
+            const wfsLayer = { source: wfsLayerSource, name: geoservice.layer, title: geoservice.title, order: localLayer ? localLayer.order : layer.order };
             addMapLayer(wfsLayer);
         }
     }, [wfsLayerSource, geoservice, layer, mapLayers, localLayer, addMapLayer]);

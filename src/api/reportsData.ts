@@ -242,10 +242,7 @@ export const useGetCommunityReportByIdAPI = (reportId: number) => {
     return useQuery({
         queryKey: ["REPORT_DATA_" + reportId],
         queryFn: () => getCommunityReportById(reportId),
-        retry: (failureCount, error) => {
-            console.log(failureCount);
-            return error instanceof TypeError;
-        },
+        retry: 2,
         enabled: !!community && !!user,
     });
 };

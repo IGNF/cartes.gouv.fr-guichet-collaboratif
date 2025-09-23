@@ -41,9 +41,10 @@ export type FeatureTypeStyleItem = {
     fillOpacity: number;
     strokeColor: string;
     strokeWidth: number;
-    strokeDashstyle: string;
-    strokeLinecap: "butt" | "round" | "square";
+    strokeDashstyle: string | undefined;
+    strokeLinecap: "butt" | "round" | "square" | undefined;
     strokeOpacity: number;
+    zIndex?: number;
     logo?: string;
     condition?: { $and: { [key: string]: { [key: string]: number | string } }[] };
 };
@@ -53,10 +54,22 @@ export type FeatureTypeStyleItemData = FeatureTypeStyleItem & {
     name?: string;
     condition: string;
     uri?: string;
+    children?: FeatureTypeStyleItemData[];
 };
 export type FeatureTypeStyle = {
     name?: string;
     types?: FeatureTypeStyleItem[];
+};
+
+export type FeatureTypeColumn = {
+    name: string;
+    title: string;
+    description: string;
+    type: string;
+    nullable: boolean;
+    enum?: string[];
+    crs: string;
+    default_value: boolean | string | number | null;
 };
 export type FeatureTypeSelectedStyle = { layer: string; selectedStyle: FeatureTypeStyle };
 export interface CommunityGeoservice extends LayerGeoservice {
@@ -73,7 +86,9 @@ export interface CommunityGeoservice extends LayerGeoservice {
     logo?: string;
     geometryName?: string;
     featureType?: string;
+    readOnly?: boolean;
     styles?: FeatureTypeStyle[];
+    columns: FeatureTypeColumn[];
 }
 
 export type MapLayerSource = BaseLayer | TileLayer | VectorLayer;
@@ -82,6 +97,7 @@ export interface MapLayer {
     source: MapLayerSource;
     title: string;
     order: number;
+    name: string;
 }
 
 export interface CommunityLayer {

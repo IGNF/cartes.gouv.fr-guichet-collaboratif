@@ -37,9 +37,8 @@ const ImportSketchFile: React.FC<Props> = ({ inputRef }) => {
 
             try {
                 readImportedFile(file, drawingSource);
-            } catch (error) {
+            } catch {
                 addAlertMessage(StatusMessage.error, t("import_file_error", { fileName: file.name }));
-                console.error(error);
             }
         });
     };

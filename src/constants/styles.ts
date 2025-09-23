@@ -6,7 +6,7 @@ import { CLUSTER_CIRCLE_COLOR, CLUSTER_REPORT_CIRCLE_COLOR, CLUSTER_REPORT_CIRCL
 import { GeometryFeatueParams } from "./reports/types";
 import { Map } from "ol";
 import { FeatureLike } from "ol/Feature";
-import { FeatureTypeStyleItem, RegularShapeStyleProps } from "./communities/types";
+import { FeatureTypeStyle, FeatureTypeStyleItem, RegularShapeStyleProps } from "./communities/types";
 
 export const clusterReportCircleStyle = (coord: Coordinate) =>
     new Style({
@@ -87,7 +87,7 @@ export const clusterStyle = (feature: FeatureLike): Style => {
     }
 };
 
-export const strokeLineDash = function ({ strokeWidth, strokeDashstyle }: { strokeWidth: number; strokeDashstyle: string }) {
+export const strokeLineDash = function ({ strokeWidth, strokeDashstyle }: { strokeWidth: number; strokeDashstyle: string | undefined }) {
     const width = Number(strokeWidth) || 2;
     switch (strokeDashstyle) {
         case "dot":
@@ -106,14 +106,22 @@ export const strokeLineDash = function ({ strokeWidth, strokeDashstyle }: { stro
 };
 
 export const hexToRgba = (hex: string, opacity = 1) => {
-    hex = hex.replace("#", "");
+    hex = hex.replace(/^#/, "");
 
-    const bigint = parseInt(hex, 16);
-    const r = (bigint >> 16) & 255;
-    const g = (bigint >> 8) & 255;
-    const b = bigint & 255;
+    if (hex.length === 3) {
+        hex = hex
+            .split("")
+            .map((ch) => ch + ch)
+            .join("");
+    }
 
-    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+    const r = parseInt(hex.slice(0, 2), 16);
+    const g = parseInt(hex.slice(2, 4), 16);
+    const b = parseInt(hex.slice(4, 6), 16);
+
+    const alpha = Math.min(1, Math.max(0, Number(opacity)));
+
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 };
 
 export const getLineOrPolygonStyle = (shapeProps: FeatureTypeStyleItem) => {
@@ -131,7 +139,7 @@ export const getLineOrPolygonStyle = (shapeProps: FeatureTypeStyleItem) => {
                   color: hexToRgba(shapeProps.fillColor, shapeProps.fillOpacity),
               })
             : undefined,
-        zIndex: 1,
+        zIndex: shapeProps.zIndex ?? 1,
     });
 };
 
@@ -147,6 +155,7 @@ export const getCircleStyle = (shapeProps: FeatureTypeStyleItem) => {
                 width: shapeProps.strokeWidth,
             }),
         }),
+        zIndex: shapeProps.zIndex ?? 1,
     });
 };
 
@@ -171,5 +180,135 @@ export const getRegularShapeStyle = ({ shapeProps, points, radius = 10, radius2,
                   })
                 : undefined,
         }),
+        zIndex: shapeProps.zIndex ?? 1,
     });
+};
+
+export const featureTypeSelectedPointCircleStyle = (isDefaultStyle: boolean = false) => {
+    if (isDefaultStyle) {
+        return getCircleStyle({
+            pointRadius: 6,
+            strokeColor: "#fff",
+            strokeOpacity: 1,
+            strokeWidth: 1,
+            title: "point",
+            strokeDashstyle: undefined,
+            strokeLinecap: undefined,
+            fillColor: "#13a7eb",
+            fillOpacity: 1,
+            zIndex: 2,
+        });
+    }
+    return [
+        getCircleStyle({
+            pointRadius: 8,
+            strokeColor: "#13a7eb",
+            strokeOpacity: 1,
+            strokeWidth: 2,
+            title: "point",
+            strokeDashstyle: undefined,
+            strokeLinecap: undefined,
+            fillColor: "#fafa00",
+            fillOpacity: 1,
+            zIndex: 2,
+        }),
+        getCircleStyle({
+            pointRadius: 3,
+            strokeColor: "#13a7eb",
+            strokeOpacity: 1,
+            strokeWidth: 2,
+            title: "point",
+            strokeDashstyle: undefined,
+            strokeLinecap: undefined,
+            fillColor: "#fafa00",
+            fillOpacity: 1,
+            zIndex: 2,
+        }),
+    ];
+};
+
+export const featureTypeSelectedLineStyle = (isDefaultStyle: boolean = false) => {
+    return [
+        getLineOrPolygonStyle({
+            pointRadius: 8,
+            fillColor: "",
+            fillOpacity: 1,
+            strokeColor: isDefaultStyle ? "#fff" : "#13a7eb",
+            strokeOpacity: 1,
+            strokeWidth: 7,
+            title: "line",
+            strokeDashstyle: undefined,
+            strokeLinecap: "round",
+            zIndex: 2,
+        }),
+        getLineOrPolygonStyle({
+            pointRadius: 6,
+            fillColor: "",
+            fillOpacity: 1,
+            strokeColor: isDefaultStyle ? "#13a7eb" : "#fafa00",
+            strokeOpacity: 1,
+            strokeWidth: 4,
+            title: "line",
+            strokeDashstyle: undefined,
+            strokeLinecap: "round",
+            zIndex: 2,
+        }),
+    ];
+};
+
+export const featureTypeSelectedPolygonStyle = (isDefaultStyle: boolean = false) => {
+    return [
+        getLineOrPolygonStyle({
+            pointRadius: 0,
+            fillColor: isDefaultStyle ? "#fff" : "#c89c4a",
+            fillOpacity: isDefaultStyle ? 0.2 : 0.8,
+            strokeColor: isDefaultStyle ? "#fff" : "#13a7eb",
+            strokeOpacity: 1,
+            strokeWidth: 4,
+            title: "polygon",
+            strokeDashstyle: "",
+            strokeLinecap: "butt",
+            zIndex: 2,
+        }),
+        getLineOrPolygonStyle({
+            pointRadius: 0,
+            fillColor: isDefaultStyle ? "#fff" : "#fafa00",
+            fillOpacity: 0.2,
+            strokeColor: isDefaultStyle ? "#13a7eb" : "#fafa00",
+            strokeOpacity: 1,
+            strokeWidth: 2,
+            title: "polygon",
+            strokeDashstyle: "",
+            strokeLinecap: "butt",
+            zIndex: 2,
+        }),
+    ];
+};
+
+export const featureDefaultStyle = (type: string = "point"): FeatureTypeStyle => {
+    return {
+        name: "par_defaut",
+        types: [
+            {
+                title: "Par défaut",
+                type: type === "point" ? "circle" : type,
+                featureType: type,
+                pointRadius: 6,
+                fillColor: "#ee9900",
+                fillOpacity: 0.4,
+                strokeColor: "#ee9900",
+                strokeWidth: 2,
+                strokeDashstyle: undefined,
+                strokeLinecap: undefined,
+                strokeOpacity: 1,
+            },
+        ],
+    };
+};
+
+export const getSelectedFeatureTypeStyle = (type: string, style: FeatureTypeStyle) => {
+    const isDefaultStyle = style.name === featureDefaultStyle().name;
+    if (type === "point") return featureTypeSelectedPointCircleStyle(isDefaultStyle);
+    if (type === "line") return featureTypeSelectedLineStyle(isDefaultStyle);
+    if (type === "polygon") return featureTypeSelectedPolygonStyle(isDefaultStyle);
 };

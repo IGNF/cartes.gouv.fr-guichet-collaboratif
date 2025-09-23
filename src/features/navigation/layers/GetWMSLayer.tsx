@@ -21,7 +21,7 @@ const GetWMSLayer: React.FC<Props> = ({ layer }) => {
         wmsLayerSource?.setVisible(localLayer ? localLayer.visibility : layer.visibility);
         wmsLayerSource?.set("type", layer.type);
         if (wmsLayerSource) {
-            const wmsLayer = { source: wmsLayerSource, title: geoservice.title, order: localLayer ? localLayer.order : layer.order };
+            const wmsLayer = { source: wmsLayerSource, name: geoservice.layer, title: geoservice.title, order: localLayer ? localLayer.order : layer.order };
             addMapLayer(wmsLayer);
         }
     }, [wmsLayerSource, geoservice, layer, mapLayers, localLayer, addMapLayer]);

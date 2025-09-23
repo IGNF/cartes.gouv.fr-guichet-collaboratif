@@ -79,9 +79,7 @@ const TableReport = () => {
             queryClient.invalidateQueries({ queryKey: ["reports", community?.id, limitPerPage, currentPage] });
             setIsChecked({});
         },
-        onError: (error) => {
-            console.error("Erreur suppression :", error);
-        },
+        onError: () => {},
     });
 
     useEffect(() => {

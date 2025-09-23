@@ -3,8 +3,8 @@ import { Feature, MapBrowserEvent } from "ol";
 import Layer from "ol/layer/Layer";
 import VectorSource from "ol/source/Vector";
 import { Style } from "ol/style";
-import { getReportSketchFeatures, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
-import { clearClusterStyles, getClickedReport, showClusterFeatures } from "@/constants/reports/utils/cluster";
+import { getClickedMapReport, getReportSketchFeatures, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
+import { clearClusterStyles } from "@/constants/reports/utils/cluster";
 import { getCenterReportMessage, showCenterReportButtons } from "@/constants/utils";
 import { ParamsReport, toolNames } from "@/constants/reports/types";
 import { useCommunityStore, useMapStore, useReportStore } from "@/store";
@@ -14,9 +14,10 @@ import CreateReport from "./CreateReport";
 
 const ReportDrawer = () => {
     const [drawerOpened, setDrawerOpened] = useState<boolean>(false);
+    const { mapWorkingLayer } = useMapStore();
 
     const { reports, selectedReport, editReport, selectedFeatures, setEditReport, setSelectedReport, setSelectedFeatures } = useReportStore();
-    const { map } = useMapStore();
+    const { map, setClickedMapFeature } = useMapStore();
     const { alertMessages, removeAlertMessage } = useCommunityStore();
 
     const clusterLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE);
@@ -62,54 +63,51 @@ const ReportDrawer = () => {
             const features: { feature: Feature; zIndex: number }[] = [];
 
             map?.forEachFeatureAtPixel(evt.pixel, function (feature) {
-                let clickedFeature;
-                const currentFeature = feature as Feature;
-                const currentFeatures = currentFeature.get("features");
-                if (currentFeatures?.length === 1) {
-                    clickedFeature = currentFeatures[0];
+                const clickedFeature = feature as Feature;
+                if (clickedFeature.get("geoservice")?.layer !== mapWorkingLayer && mapWorkingLayer !== REPORTS_LAYER_TYPE) return;
+                if (mapWorkingLayer === REPORTS_LAYER_TYPE && clickedFeature.get("features")) {
+                    getClickedMapReport({ feature: clickedFeature, map, pixel: evt.pixel, clusterSource, features, handleCloseDrawer });
                 } else {
-                    if (Array.isArray(currentFeature.getStyle())) {
-                        clickedFeature = getClickedReport(currentFeature, evt.pixel, map);
-                    }
-                }
-                if (!clickedFeature) {
-                    showClusterFeatures(currentFeature, map.getView().getResolution(), clusterSource);
-                    handleCloseDrawer();
-                    return;
-                }
-                const currentFeatureStyle = clickedFeature.getStyle() as Style;
-                const currentZIndex = currentFeatureStyle && "getStyle" in currentFeatureStyle ? (currentFeatureStyle?.getZIndex() ?? 1) : 1;
-                if (clickedFeature.get("new") && clickedFeature.get("main")) {
+                    const currentFeatureStyle = clickedFeature.getStyle() as Style;
+                    const currentZIndex = currentFeatureStyle && "getStyle" in currentFeatureStyle ? (currentFeatureStyle?.getZIndex() ?? 1) : 1;
+
                     features.push({
                         feature: clickedFeature,
                         zIndex: currentZIndex,
                     });
-                    return;
-                }
-                if (clickedFeature.get("reportData") && clickedFeature.get("main")) {
-                    features.push({
-                        feature: clickedFeature,
-                        zIndex: currentZIndex,
-                    });
-                    return;
                 }
             });
             const topFeature = features[0];
             if (topFeature) {
-                if (selectedReport) {
-                    const reportFeatures = clusterSource.getFeatures().filter((f) => f.get("reportData")?.id === selectedReport.id);
-                    clusterSource.removeFeatures(reportFeatures?.filter((f) => !f.get("main")));
-                }
-                const report = topFeature.feature.get("reportData");
-                if (report) {
-                    const selectedReportFeatures = getReportSketchFeatures(report);
-                    clusterSource?.addFeatures(selectedReportFeatures);
-                    setSelectedFeatures([topFeature.feature, ...selectedReportFeatures]);
-                    setSelectedReport(report);
+                if (mapWorkingLayer === REPORTS_LAYER_TYPE) {
+                    if (selectedReport) {
+                        const reportFeatures = clusterSource.getFeatures().filter((f) => f.get("reportData")?.id === selectedReport.id);
+                        clusterSource.removeFeatures(reportFeatures?.filter((f) => !f.get("main")));
+                    }
+                    const report = topFeature.feature.get("reportData");
+                    if (report) {
+                        const selectedReportFeatures = getReportSketchFeatures(report);
+                        clusterSource?.addFeatures(selectedReportFeatures);
+                        setSelectedFeatures([topFeature.feature, ...selectedReportFeatures]);
+                        setSelectedReport(report);
+                    }
+                } else {
+                    setClickedMapFeature(topFeature.feature);
                 }
             }
         },
-        [map, clusterSource, selectedReport, selectedFeatures, editReport, setSelectedReport, setSelectedFeatures, handleCloseDrawer]
+        [
+            map,
+            clusterSource,
+            selectedReport,
+            selectedFeatures,
+            editReport,
+            mapWorkingLayer,
+            setSelectedReport,
+            setSelectedFeatures,
+            handleCloseDrawer,
+            setClickedMapFeature,
+        ]
     );
 
     const handlePointerMove = useCallback(
@@ -117,9 +115,14 @@ const ReportDrawer = () => {
             const features = map?.getFeaturesAtPixel(evt.pixel);
 
             const feature = features?.find((f) => {
-                const fCluster = f.get("features");
-                if (fCluster?.length > 1) return fCluster[0];
-                return fCluster?.find((fc: Feature) => fc.get("reportData") || fc.get("new"));
+                if (mapWorkingLayer === REPORTS_LAYER_TYPE) {
+                    const fCluster = f.get("features");
+                    if (fCluster?.length > 1) return fCluster[0];
+                    return fCluster?.find((fc: Feature) => fc.get("reportData") || fc.get("new"));
+                } else if (f.get("geoservice")?.layer === mapWorkingLayer) {
+                    return f;
+                }
+                return null;
             }) as Feature;
 
             const targetElement = map?.getTargetElement();
@@ -129,19 +132,7 @@ const ReportDrawer = () => {
                         targetElement.style.cursor = "";
                         return;
                     }
-                    if (feature) {
-                        const geomType = feature.getGeometry()?.getType();
-                        if (geomType === "Point") {
-                            targetElement.style.cursor = "pointer";
-                        } else if (geomType === "LineString") {
-                            targetElement.style.cursor = "crosshair";
-                        } else if (geomType === "Polygon") {
-                            targetElement.style.cursor = "grab";
-                        }
-
-                        return;
-                    }
-                    targetElement.style.cursor = "";
+                    targetElement.style.cursor = "pointer";
                     return;
                 } else {
                     targetElement.style.cursor = "";
@@ -149,7 +140,7 @@ const ReportDrawer = () => {
                 }
             }
         },
-        [map, selectedFeatures]
+        [map, selectedFeatures, mapWorkingLayer]
     );
 
     const handleClusterChange = useCallback(() => {

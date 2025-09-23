@@ -25,6 +25,7 @@ export async function getGeoserviceAll(geoserviceIds: number[]): Promise<Communi
                 maxZoom: res.data.max_zoom,
                 tileZoom: res.data.min_zoom,
                 boxSrid: res.data.box_srid,
+                columns: res.data.columns || [],
             };
         });
     }

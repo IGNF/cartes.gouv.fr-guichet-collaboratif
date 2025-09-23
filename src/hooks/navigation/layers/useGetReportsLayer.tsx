@@ -14,6 +14,7 @@ import { transformExtent } from "ol/proj";
 import { useMapStore, useReportStore } from "@/store";
 import { isEmpty } from "ol/extent";
 import { useTranslation } from "@/i18n";
+import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 
 function useGetReportsLayer(communityId: number) {
     const { addAlertMessage } = useCommunityStore();
@@ -41,9 +42,8 @@ function useGetReportsLayer(communityId: number) {
                         return null;
                     }
                     setReports(reports);
-                } catch (error) {
+                } catch {
                     addAlertMessage(StatusMessage.error, t("loading_report_layer_error"), 5000);
-                    console.error(error);
                 }
             },
             strategy: bbox,
@@ -51,7 +51,7 @@ function useGetReportsLayer(communityId: number) {
         const reportLayer = new VectorLayer<VectorSource<Feature<Geometry>>>({
             source: reportSource,
         });
-
+        reportLayer?.set("name", REPORTS_LAYER_TYPE);
         return reportLayer;
     }, [communityId, queryClient, addAlertMessage, setReports, t]);
 
