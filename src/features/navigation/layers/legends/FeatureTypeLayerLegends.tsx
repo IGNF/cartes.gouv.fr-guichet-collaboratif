@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Fragment } from "react/jsx-runtime";
 import VectorLayer from "ol/layer/Vector";
 import { useCommunityStore, useMapStore } from "@/store";
@@ -7,14 +7,18 @@ import Button from "@codegouvfr/react-dsfr/Button";
 import Select from "@codegouvfr/react-dsfr/Select";
 import { changeFeatureTypeStyle } from "@/constants/utils";
 import "./FeatureTypeLayerLegends.css";
+import { useTranslation } from "@/i18n";
+import { LAYER_FEATURE_TYPE } from "@/constants";
 
 const FeatureTypeLayerLegends = () => {
     const { communityLayers } = useCommunityStore();
     const { map, featureTypeSelectedStyle, setFeatureTypeSelectedStyle } = useMapStore();
 
+    const { t } = useTranslation({ FeatureTypeLayerLegends });
+
     const divLegendTitle = document.querySelectorAll('div[id^="GPlayerInfoTitle-"]')[0];
     const legendTitle = divLegendTitle?.innerHTML;
-    const currentLayer = communityLayers?.find((layer) => layer.type === "feature-type" && layer.geoservice.title === legendTitle);
+    const currentLayer = communityLayers?.find((layer) => layer.type === LAYER_FEATURE_TYPE && layer.geoservice.title === legendTitle);
 
     const currentLayerName = currentLayer?.geoservice.layer;
     const currentLayerStyle = featureTypeSelectedStyle.find((style) => style.layer === currentLayerName);
@@ -26,6 +30,14 @@ const FeatureTypeLayerLegends = () => {
 
     const layer = useMemo(() => map?.getAllLayers().find((l) => l.get("title") === legendTitle) as VectorLayer, [map, legendTitle]);
     const layerFeatures = useMemo(() => layer?.getSource()?.getFeatures() || [], [layer]);
+
+    useEffect(() => {
+        const closeButton = divLegendTitle?.nextElementSibling;
+        if (closeButton) {
+            closeButton.setAttribute("title", t("close"));
+        }
+    }, [divLegendTitle, t]);
+
     const handleChange = () => {
         if (currentLayerName && currentStyle && map && currentLayerStyle?.selectedStyle.name !== currentStyle.name) {
             setFeatureTypeSelectedStyle({ layer: currentLayer?.geoservice.layer, selectedStyle: currentStyle });
@@ -42,7 +54,7 @@ const FeatureTypeLayerLegends = () => {
     return (
         <div className="feature-type-legends">
             <Select
-                label="Style courant : "
+                label={t("select_label")}
                 nativeSelectProps={{
                     value: selectedStyle,
                     name: "feature_type_style",
@@ -74,9 +86,9 @@ const FeatureTypeLayerLegends = () => {
                 })}
             </div>
             <div className="feature-type-buttons">
-                <Button onClick={handleChange}>Ok</Button>
+                <Button onClick={handleChange}>{t("yes")}</Button>
                 <Button priority="secondary" onClick={handleCancel}>
-                    Annuler
+                    {t("cancel")}
                 </Button>
             </div>
         </div>

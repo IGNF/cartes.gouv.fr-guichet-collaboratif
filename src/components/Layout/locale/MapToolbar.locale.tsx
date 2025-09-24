@@ -28,6 +28,7 @@ export const MapToolbarFrTranslations: Translations<"fr">["MapToolbar"] = {
     working_layer: "Couche de travail :",
     seismicity_zone: "Zones de sismicité",
     all_reports: "Tous les signalements",
+    read_only: "Lecture",
 };
 
 export const MapToolbarEnTranslations: Translations<"en">["MapToolbar"] = {
@@ -56,6 +57,7 @@ export const MapToolbarEnTranslations: Translations<"en">["MapToolbar"] = {
     working_layer: "Working layer:",
     seismicity_zone: "Seismicity zones",
     all_reports: "All reports",
+    read_only: "Read only",
 };
 
 const { i18n } = declareComponentKeys<
@@ -71,5 +73,6 @@ const { i18n } = declareComponentKeys<
     | "working_layer"
     | "seismicity_zone"
     | "all_reports"
+    | "read_only"
 >()("MapToolbar");
 export type I18n = typeof i18n;

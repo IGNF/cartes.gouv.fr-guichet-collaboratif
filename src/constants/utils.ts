@@ -59,7 +59,11 @@ export const otherMarkers = markersStyles.map((style) => {
     };
 });
 
-export const reportImgStatus = {
+type ReportImgStatusType = {
+    [key: string]: { img: string; text: string };
+};
+
+export const reportImgStatus: ReportImgStatusType = {
     submit: { img: imgSubmit, text: "Reçu dans nos services" },
     pending: { img: imgPending, text: "En cours de traitement" },
     pending0: { img: imgPending, text: "En demande de qualification" },
@@ -172,54 +176,9 @@ const getGeometry2D = (geometry: string, type: string = "point") => {
     return geometry;
 };
 
-export const getGeoserviceFeatureTypeGeometries = (
-    item: FeatureTypeData,
-    geoservice: CommunityGeoservice,
-    featureTypeSelectedStyle: FeatureTypeSelectedStyle[],
-    mapProjCode: string,
-    geoProjCode: string
-) => {
+export const setFeatureLayerStyle = (feat: Feature, geoservice: CommunityGeoservice, featureTypeSelectedStyle: FeatureTypeSelectedStyle[]) => {
     const layerStyle = featureTypeSelectedStyle.find((type) => type.layer === geoservice.layer);
-    const featureType = geoservice.featureType;
     const defaultStyle = geoservice.styles![0]?.types![0];
-    const ItemGeometry = item.geometrie as string;
-    let feat: Feature;
-
-    if (featureType === "line") {
-        if (ItemGeometry.includes("MULTI")) {
-            feat = new Feature({
-                geometry: new MultiLineString(getLonLatFromPoint(ItemGeometry, false, mapProjCode, geoProjCode) as Coordinate),
-            });
-        } else {
-            feat = new Feature({
-                geometry: new LineString(getLonLatFromPoint(ItemGeometry, false, mapProjCode, geoProjCode) as Coordinate),
-            });
-        }
-    } else if (featureType === "polygon") {
-        let lonLat = getLonLatFromPoint(ItemGeometry, false, mapProjCode, geoProjCode);
-
-        if (ItemGeometry.includes("MULTI")) {
-            feat = new Feature({
-                geometry: new MultiPolygon(lonLat as Coordinate[][][]),
-            });
-        } else {
-            lonLat = (ItemGeometry.includes("MULTIPOLYGON") ? lonLat![0] : lonLat) as Coordinate[][] | number[];
-            feat = new Feature({
-                geometry: new Polygon(lonLat),
-            });
-        }
-    } else {
-        if (ItemGeometry.includes("MULTI")) {
-            feat = new Feature({
-                geometry: new MultiPoint(getLonLatFromPoint(ItemGeometry, false, mapProjCode, geoProjCode) as number[]),
-            });
-        } else {
-            feat = new Feature({
-                geometry: new Point(getLonLatFromPoint(ItemGeometry, false, mapProjCode, geoProjCode) as number[]),
-            });
-        }
-    }
-
     if (layerStyle) {
         feat.setStyle(getWellKnownNames(layerStyle.selectedStyle.types![0])[0] as Style);
     } else if (defaultStyle?.logo) {
@@ -235,9 +194,64 @@ export const getGeoserviceFeatureTypeGeometries = (
     } else {
         feat.setStyle(getWellKnownNames(defaultStyle)[0] as Style);
     }
-    feat.set("geoservice", geoservice);
-    feat.set("featureTypeData", item);
-    return feat;
+};
+
+export const getGeoserviceFeatureTypeGeometries = (
+    items: FeatureTypeData[],
+    geoservice: CommunityGeoservice,
+    mapProjCode: string,
+    geoProjCode: string,
+    wfsSource: VectorSource
+) => {
+    const features: Feature[] = [];
+    items.forEach((item) => {
+        const featureType = geoservice.featureType;
+
+        const ItemGeometry = item.geometrie as string;
+        let feat: Feature;
+
+        if (featureType === "line") {
+            if (ItemGeometry.includes("MULTI")) {
+                feat = new Feature({
+                    geometry: new MultiLineString(getLonLatFromPoint(ItemGeometry, false, mapProjCode, geoProjCode) as Coordinate),
+                });
+            } else {
+                feat = new Feature({
+                    geometry: new LineString(getLonLatFromPoint(ItemGeometry, false, mapProjCode, geoProjCode) as Coordinate),
+                });
+            }
+        } else if (featureType === "polygon") {
+            let lonLat = getLonLatFromPoint(ItemGeometry, false, mapProjCode, geoProjCode);
+
+            if (ItemGeometry.includes("MULTI")) {
+                feat = new Feature({
+                    geometry: new MultiPolygon(lonLat as Coordinate[][][]),
+                });
+            } else {
+                lonLat = (ItemGeometry.includes("MULTIPOLYGON") ? lonLat![0] : lonLat) as Coordinate[][] | number[];
+                feat = new Feature({
+                    geometry: new Polygon(lonLat),
+                });
+            }
+        } else {
+            if (ItemGeometry.includes("MULTI")) {
+                feat = new Feature({
+                    geometry: new MultiPoint(getLonLatFromPoint(ItemGeometry, false, mapProjCode, geoProjCode) as number[]),
+                });
+            } else {
+                feat = new Feature({
+                    geometry: new Point(getLonLatFromPoint(ItemGeometry, false, mapProjCode, geoProjCode) as number[]),
+                });
+            }
+        }
+
+        feat.set("featureTypeData", item);
+        if (feat && !featureExists(feat, wfsSource)) {
+            features.push(feat);
+        }
+    });
+
+    return features;
 };
 
 export const getLonLatFormCoordinates = (coordinates: LonLatCoordinate): LonLatCoordinate => {
@@ -522,14 +536,14 @@ export function parseContentRange(contentRange: string) {
     return { total, limitPerPage, currentPage };
 }
 
-export const addFeaturesInBatches = (source: VectorSource, features: Feature[], batchSize = 500) => {
+export const addFeaturesInBatches = (source: VectorSource, features: Feature[], batchSize = 500, duration = 0) => {
     let i = 0;
     function processBatch() {
         const slice = features.slice(i, i + batchSize);
         source.addFeatures(slice);
         i += batchSize;
         if (i < features.length) {
-            setTimeout(processBatch, 0);
+            setTimeout(processBatch, duration);
         }
     }
     processBatch();

@@ -19,16 +19,18 @@ export const clusterReportCircleStyle = (coord: Coordinate) =>
         zIndex: 5,
     });
 
-export const clusterReportPinStyle = (geometry: Geometry | undefined = undefined) =>
-    new Style({
+export const clusterReportPinStyle = (geometry: Geometry | undefined = undefined) => {
+    const reportStatus = geometry?.get("reportData")?.status;
+    return new Style({
         geometry,
         image: new Icon({
-            src: reportImgStatus.submit.img,
+            src: reportStatus ? reportImgStatus[reportStatus].img : reportImgStatus.submit.img,
             scale: 1,
             anchor: [0.5, 1],
         }),
         zIndex: 3,
     });
+};
 
 export const clusterCircleStyle = (size: number = 0) =>
     new CircleStyle({

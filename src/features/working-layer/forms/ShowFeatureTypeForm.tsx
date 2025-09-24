@@ -1,11 +1,12 @@
 import { CommunityGeoservice, FeatureTypeColumn } from "@/constants/communities/types";
 import { getSelectedFeatureTypeStyle } from "@/constants/styles";
+import { useTranslation } from "@/i18n";
 import { useMapStore } from "@/store";
 import Button from "@codegouvfr/react-dsfr/Button";
 import Table from "@codegouvfr/react-dsfr/Table";
 import { Tooltip } from "@codegouvfr/react-dsfr/Tooltip";
 import { Style } from "ol/style";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef } from "react";
 
 interface PointDataProps {
     [key: string]: string | number | null;
@@ -14,6 +15,9 @@ interface PointDataProps {
 const ShowFeatureTypeForm = () => {
     const { map, mapSwitcher, clickedMapFeature, setWorkingLayerDrawerOpened, setClickedMapFeature } = useMapStore();
     const lastMapFeatStyle = useRef<Style | null>(null);
+
+    const { t } = useTranslation({ ShowFeatureTypeForm });
+
     const pointData: PointDataProps = useMemo(() => clickedMapFeature?.get("featureTypeData"), [clickedMapFeature]);
     const geoserviceData: CommunityGeoservice = useMemo(() => clickedMapFeature?.get("geoservice"), [clickedMapFeature]);
     const featureLayer = useMemo(() => geoserviceData && map?.getAllLayers()?.find((l) => l.get("name") === geoserviceData.layer), [map, geoserviceData]);
@@ -60,13 +64,13 @@ const ShowFeatureTypeForm = () => {
                 let value = pointData[col.name] || col.default_value;
                 switch (value) {
                     case null:
-                        value = "(vide)";
+                        value = t("value_empty");
                         break;
                     case false:
-                        value = "Non";
+                        value = t("value_no");
                         break;
                     case true:
-                        value = "Oui";
+                        value = t("value_yes");
                         break;
                 }
                 if (col.crs) return [];
@@ -81,7 +85,7 @@ const ShowFeatureTypeForm = () => {
                     <span className={typeof value === "string" && value.includes("vide") ? "feature-type-form-table_null_value" : ""}>{value}</span>,
                 ];
             }),
-        [columns, pointData]
+        [columns, pointData, t]
     );
 
     if (!pointData) return;
@@ -96,11 +100,11 @@ const ShowFeatureTypeForm = () => {
 
             <div className="feature-type-form-buttons">
                 <Button priority="secondary" onClick={handleCancel}>
-                    Annuler
+                    {t("cancel")}
                 </Button>
             </div>
         </>
     );
 };
 
-export default ShowFeatureTypeForm;
+export default memo(ShowFeatureTypeForm);

@@ -131,3 +131,9 @@
     overflow: visible;
     position: static;
 }
+
+.gpf-btn-icon-zoom-out::before {
+    background-color: unset !important;
+    left: unset !important;
+    height: unset !important;
+}
