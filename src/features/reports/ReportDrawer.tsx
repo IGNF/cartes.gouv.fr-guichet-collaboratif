@@ -75,6 +75,9 @@ const ReportDrawer = () => {
         setSelectedFeatures([]);
     }, [map, selectedReport, alertMessages, removeAlertMessage, setEditReport, setSelectedFeatures, setSelectedReport]);
 
+    useEffect(() => {
+        console.log("tableDrawerOpened : ", tableDrawerOpened);
+    }, [tableDrawerOpened]);
     const handleSingleClick = useCallback(
         (evt: MapBrowserEvent) => {
             if (selectedFeatures?.find((f) => f?.get("new"))) return;

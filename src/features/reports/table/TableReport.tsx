@@ -39,8 +39,6 @@ const TableReport = () => {
         sortBy,
         setSortBy,
         setCurrentPage,
-        setResponseDrawerOpened,
-        selectedReport,
     } = useReportStore();
 
     const { replyReportModal } = useModalStore();
