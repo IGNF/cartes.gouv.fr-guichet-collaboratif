@@ -58,8 +58,13 @@ export const otherMarkers = markersStyles.map((style) => {
 export const reportImgStatus = {
     submit: { img: imgSubmit, text: "Reçu dans nos services" },
     pending: { img: imgPending, text: "En cours de traitement" },
+    pending0: { img: imgPending, text: "En demande de qualification" },
+    pending1: { img: imgPending, text: "En attente de saisie" },
+    pending2: { img: imgPending, text: "En attente de validation" },
     valid: { img: imgValid, text: "Pris en compte" },
+    valid0: { img: imgValid, text: "Déjà pris en compte" },
     reject: { img: imgReject, text: "Rejeté (hors spéc.)" },
+    reject0: { img: imgReject, text: "Rejeté (hors de propos)" },
     test: { img: imgTest, text: "En mode test" },
 };
 
@@ -528,4 +533,16 @@ export const addFeaturesInBatches = (source: VectorSource, features: Feature[], 
 
 export const extentEquals = (e1: Extent, e2: Extent) => {
     return e1[0] === e2[0] && e1[1] === e2[1] && e1[2] === e2[2] && e1[3] === e2[3];
+};
+export const statusLabels = {
+    submit: "Reçu dans nos services",
+    pending0: "En demande de qualification",
+    pending: "En cours de traitement",
+    pending1: "En attente de saisie",
+    pending2: "En attente de validation",
+    valid: "Pris en compte",
+    valid0: "Déjà pris en compte",
+    reject: "Rejeté (hors spéc.)",
+    reject0: "Rejeté (hors de propos)",
+    test: "En mode test",
 };

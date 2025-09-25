@@ -2,7 +2,7 @@ import { Button } from "@codegouvfr/react-dsfr/Button";
 import { Select } from "@codegouvfr/react-dsfr/Select";
 import { fr } from "@codegouvfr/react-dsfr";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { useCommunityStore, useLocalStorageStore, useMapStore, useReportStore } from "@/store";
+import { useCommunityStore, useLocalStorageStore, useMapStore } from "@/store";
 
 import "./MapToolbar.css";
 import { useTranslation } from "@/i18n";
@@ -14,7 +14,6 @@ const MapToolbar: React.FC = () => {
     const buttonGroupRef = useRef<HTMLDivElement>(null);
 
     const { community, mapLayers, communityLayers } = useCommunityStore();
-    const { tableDrawerOpened, setTableDrawerOpened } = useReportStore();
     const { mapWorkingLayer, setMapWorkingLayer } = useMapStore();
     const { localStorageData, setLocalStorage } = useLocalStorageStore();
 
@@ -49,10 +48,6 @@ const MapToolbar: React.FC = () => {
             setMapWorkingLayer(initWorkingLayer);
         }
     }, [mapWorkingLayer, workingLayers, localStorageData, setMapWorkingLayer]);
-
-    const toggleTableReportsDrawer = useCallback(() => {
-        setTableDrawerOpened(!tableDrawerOpened);
-    }, [tableDrawerOpened, setTableDrawerOpened]);
 
     const handleWorkingLayerChange = useCallback(
         (value: string) => {

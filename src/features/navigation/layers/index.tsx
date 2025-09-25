@@ -11,7 +11,7 @@ const GetAllLayers = () => {
     const { communityLayers } = useCommunityStore();
     const { tableDrawerOpened, setTableDrawerOpened } = useReportStore();
 
-    const toggleTableReportsDrawer = useCallback(() => {
+    const displayTableReportsDrawer = useCallback(() => {
         setTableDrawerOpened(!tableDrawerOpened);
     }, [setTableDrawerOpened]);
 
@@ -26,7 +26,7 @@ const GetAllLayers = () => {
                 className="btn-show-drawer fr-icon--sm"
                 priority="tertiary"
                 title="Afficher le tableau de signalement"
-                onClick={toggleTableReportsDrawer}
+                onClick={displayTableReportsDrawer}
             />
             {communityLayers.map((layer: CommunityLayer, index: number) => {
                 const geoservice = layer.geoservice;

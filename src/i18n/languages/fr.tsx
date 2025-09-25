@@ -8,6 +8,7 @@ import { CarteFrTranslations } from "@/pages/locale/Carte.locale";
 import { GetReportsLayerFrTranslations } from "@/features/navigation/layers/locale/GetReportsLayer.locale";
 import { AttachmentListFrTranslations } from "@/features/reports/forms/locale/AttachmentList.locale";
 import { ConfirmCancelModalFrTranslations } from "@/features/reports/forms/locale/ConfirmCancelModal.locale";
+import { OpenReplyReportModalFrTranslations } from "@/features/reports/forms/locale/OpenReplyReportModal.locale";
 import { DrawingFormFrTranslations } from "@/features/reports/forms/locale/DrawingForm.locale";
 import { ImportSketchFileFrTranslations } from "@/features/reports/forms/locale/ImportSketchFile.locale";
 import { ReportFormFrTranslations } from "@/features/reports/forms/locale/ReportForm.locale";
@@ -38,6 +39,7 @@ export const translations: Translations<"fr"> = {
     GetReportsLayer: GetReportsLayerFrTranslations,
     AttachmentList: AttachmentListFrTranslations,
     ConfirmCancelModal: ConfirmCancelModalFrTranslations,
+    OpenReplyReportModal: OpenReplyReportModalFrTranslations,
     DrawingForm: DrawingFormFrTranslations,
     ImportSketchFile: ImportSketchFileFrTranslations,
     ReportForm: ReportFormFrTranslations,

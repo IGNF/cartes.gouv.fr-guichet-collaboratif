@@ -16,7 +16,7 @@ interface Props {
 
 const EditReport: React.FC<Props> = ({ handleCloseDrawer }) => {
     const { community, addAlertMessage } = useCommunityStore();
-    const { reports, selectedReport, setReports } = useReportStore();
+    const { reports, selectedReport, setReports, setTableDrawerOpened } = useReportStore();
 
     const { map } = useMapStore();
 
@@ -98,7 +98,11 @@ const EditReport: React.FC<Props> = ({ handleCloseDrawer }) => {
         }
     };
 
-    return <ReportForm handleClose={handleCloseDrawer} handleDelete={handleDeleteReport} handleSubmit={handleUpdateReport} />;
+    const handleCloseEditReportDrawer = () => {
+        handleCloseDrawer();
+        setTableDrawerOpened(true);
+    };
+    return <ReportForm handleClose={handleCloseEditReportDrawer} handleDelete={handleDeleteReport} handleSubmit={handleUpdateReport} />;
 };
 
 export default EditReport;

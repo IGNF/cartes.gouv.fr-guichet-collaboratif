@@ -8,6 +8,7 @@ import { CarteEnTranslations } from "@/pages/locale/Carte.locale";
 import { GetReportsLayerEnTranslations } from "@/features/navigation/layers/locale/GetReportsLayer.locale";
 import { AttachmentListEnTranslations } from "@/features/reports/forms/locale/AttachmentList.locale";
 import { ConfirmCancelModalEnTranslations } from "@/features/reports/forms/locale/ConfirmCancelModal.locale";
+import { OpenReplyReportModalEnTranslations } from "@/features/reports/forms/locale/OpenReplyReportModal.locale";
 import { DrawingFormEnTranslations } from "@/features/reports/forms/locale/DrawingForm.locale";
 import { ImportSketchFileEnTranslations } from "@/features/reports/forms/locale/ImportSketchFile.locale";
 import { ReportFormEnTranslations } from "@/features/reports/forms/locale/ReportForm.locale";
@@ -38,6 +39,7 @@ export const translations: Translations<"en"> = {
     GetReportsLayer: GetReportsLayerEnTranslations,
     AttachmentList: AttachmentListEnTranslations,
     ConfirmCancelModal: ConfirmCancelModalEnTranslations,
+    OpenReplyReportModal: OpenReplyReportModalEnTranslations,
     DrawingForm: DrawingFormEnTranslations,
     ImportSketchFile: ImportSketchFileEnTranslations,
     ReportForm: ReportFormEnTranslations,

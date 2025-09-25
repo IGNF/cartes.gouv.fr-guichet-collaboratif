@@ -135,7 +135,6 @@ export default function MainMap() {
             <GetAllLayers />
 
             <ReportDrawer />
-            <TableReportDrawer />
             <WorkingLayerDrawer />
         </div>
     );
