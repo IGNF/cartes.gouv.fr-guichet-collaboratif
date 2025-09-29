@@ -1,5 +1,7 @@
 import { ComponentKey } from "@/i18n/types";
 import { TranslationFunction } from "i18nifty/typeUtils/TranslationFunction";
+import { ArrayGeoJSONProps, CommunityGeoservice, FeatureTypeSelectedStyle, GeoJSONProps } from "../types";
+import { hexToRgba } from "@/constants/styles";
 
 export const translateLayerSwitcherControl = (t: TranslationFunction<"useGetMapControls", ComponentKey>) => {
     const switcherControl = document.querySelector('div[id^="GPlayerSwitcher-"]');
@@ -50,4 +52,83 @@ export const translateSearchEngineControl = (t: TranslationFunction<"useGetMapCo
     const searchEngineBtn = document.querySelector('button[id^="GPshowSearchEnginePicto-"]');
 
     if (searchEngineBtn) searchEngineBtn.setAttribute("title", t("control_search_engine_btn"));
+};
+
+export const arrayToGeoJSON = (arr: ArrayGeoJSONProps[], geoservice: CommunityGeoservice, featureTypeSelectedStyle: FeatureTypeSelectedStyle[]) => {
+    const layerStyle = featureTypeSelectedStyle.find((type) => type.layer === geoservice.layer);
+    const defaultStyle = geoservice.styles ? geoservice.styles![0]?.types![0] : null;
+    const newStyle = layerStyle ? layerStyle.selectedStyle.types![0] : defaultStyle;
+    const features = {
+        type: "FeatureCollection",
+        features: arr.map((el) => {
+            let type = "Point";
+            let lonLat =
+                el.geometrie
+                    ?.replace(/POINT|\(|\)/g, "")
+                    .split(",")
+                    .map((s1: string) => s1.split(" ").map((w) => Number(w))) || [];
+            const style = {
+                strokeColor: newStyle ? hexToRgba(newStyle.strokeColor, newStyle.strokeOpacity) : "#fff",
+                strokeWidth: newStyle ? newStyle.strokeWidth : 1,
+                fillColor: newStyle ? hexToRgba(newStyle.fillColor, newStyle.fillOpacity) : "#fff",
+            };
+            if (el.geometrie?.includes("MULTIPOLYGON")) {
+                lonLat = el.geometrie
+                    .replace(/MULTIPOLYGON|\(|\)/g, "")
+                    .split(",")
+                    .map((s1: string) => s1.split(" ").map((w) => Number(w)));
+                type = "MultiPolygon";
+            }
+            if (el.geometrie?.includes("MULTILINE")) {
+                lonLat = el.geometrie
+                    .replace(/MULTILINE|\(|\)/g, "")
+                    .split(",")
+                    .map((s1: string) => s1.split(" ").map((w) => Number(w)));
+                type = "LineString";
+            }
+
+            const featureTypeData = { ...el };
+            delete featureTypeData.geometrie;
+
+            return {
+                type: "Feature",
+                id: el.cleabs,
+                geometry: {
+                    type: type,
+                    coordinates: lonLat,
+                },
+                geometry_name: "geometrie",
+                properties: {
+                    featureTypeData,
+                    geoservice: geoservice.featureType ? geoservice : undefined,
+                    ...style,
+                },
+            };
+        }),
+    };
+    return features;
+};
+
+export const getGeoJSONProps = (arr: GeoJSONProps, geoservice: CommunityGeoservice, featureTypeSelectedStyle: FeatureTypeSelectedStyle[]) => {
+    const layerStyle = featureTypeSelectedStyle.find((type) => type.layer === geoservice.layer);
+    const defaultStyle = geoservice.styles ? geoservice.styles![0]?.types![0] : null;
+    const newStyle = layerStyle ? layerStyle.selectedStyle.types![0] : defaultStyle;
+    return {
+        type: arr.type,
+        features: arr.features.map((e) => {
+            const style = {
+                strokeColor: newStyle ? hexToRgba(newStyle.strokeColor, newStyle.strokeOpacity) : "#2b4ae6ff",
+                strokeWidth: newStyle ? newStyle.strokeWidth : 1,
+                fillColor: newStyle ? hexToRgba(newStyle.fillColor, newStyle.fillOpacity) : "#2724c0ff",
+            };
+            return {
+                ...e,
+                properties: {
+                    featureTypeData: e.properties,
+                    geoservice: geoservice.featureType ? geoservice : undefined,
+                    ...style,
+                },
+            };
+        }),
+    };
 };

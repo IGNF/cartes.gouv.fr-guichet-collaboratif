@@ -108,6 +108,7 @@ export const strokeLineDash = function ({ strokeWidth, strokeDashstyle }: { stro
 };
 
 export const hexToRgba = (hex: string, opacity = 1) => {
+    if (!hex) return "#fff";
     hex = hex.replace(/^#/, "");
 
     if (hex.length === 3) {

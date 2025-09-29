@@ -155,7 +155,7 @@ export const changeFeatureTypeStyle = (features: Feature[], newStyle: FeatureTyp
     }
 };
 
-const getGeometry2D = (geometry: string, type: string = "point") => {
+export const getGeometry2D = (geometry: string, type: string = "point") => {
     if (type === "line") {
         return (
             geometry
@@ -356,7 +356,7 @@ export const getFeaturePoint = (report: CommunityReport, featData: SketchObject,
 
     let style = new Style({
         image: new Icon({
-            src: reportImgStatus[report.status].img,
+            src: reportImgStatus[report.status]?.img ?? reportImgStatus.submit.img,
             scale: 1,
         }),
         zIndex: 2,

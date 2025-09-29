@@ -132,8 +132,8 @@
     position: static;
 }
 
-.gpf-btn-icon-zoom-out::before {
-    background-color: unset !important;
-    left: unset !important;
-    height: unset !important;
+.gpf-btn-icon-zoom-out.gpf-btn-icon-zoom-out::before {
+    background-color: unset;
+    left: unset;
+    height: unset;
 }

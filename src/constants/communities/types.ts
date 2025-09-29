@@ -153,3 +153,13 @@ export type AlertMessageType = {
     text: string | NonNullable<ReactNode>;
     duration?: number | null;
 };
+
+export interface GeoJSONProps {
+    type: string;
+    features: { [key: string]: string | number | boolean | object }[];
+}
+
+export interface ArrayGeoJSONProps {
+    geometrie?: string;
+    cleabs: string | number;
+}

@@ -1,11 +1,10 @@
 import { CommunityGeoservice, FeatureTypeColumn } from "@/constants/communities/types";
-import { getSelectedFeatureTypeStyle } from "@/constants/styles";
+import { hexToRgba } from "@/constants/styles";
 import { useTranslation } from "@/i18n";
 import { useMapStore } from "@/store";
 import Button from "@codegouvfr/react-dsfr/Button";
 import Table from "@codegouvfr/react-dsfr/Table";
 import { Tooltip } from "@codegouvfr/react-dsfr/Tooltip";
-import { Style } from "ol/style";
 import { memo, useCallback, useEffect, useMemo, useRef } from "react";
 
 interface PointDataProps {
@@ -14,7 +13,7 @@ interface PointDataProps {
 
 const ShowFeatureTypeForm = () => {
     const { map, mapSwitcher, clickedMapFeature, setWorkingLayerDrawerOpened, setClickedMapFeature } = useMapStore();
-    const lastMapFeatStyle = useRef<Style | null>(null);
+    const lastMapFeatStyle = useRef<{ [key: string]: string | number } | null>(null);
 
     const { t } = useTranslation({ ShowFeatureTypeForm });
 
@@ -35,18 +34,34 @@ const ShowFeatureTypeForm = () => {
 
     useEffect(() => {
         if (clickedMapFeature) {
-            lastMapFeatStyle.current = clickedMapFeature.getStyle() as Style;
-            clickedMapFeature.setStyle(getSelectedFeatureTypeStyle(geoserviceData?.featureType || "point", geoserviceData?.styles![0]));
-            clickedMapFeature.changed();
+            lastMapFeatStyle.current = {
+                strokeColor: clickedMapFeature.get("strokeColor"),
+                strokeWidth: clickedMapFeature.get("strokeWidth"),
+                fillColor: clickedMapFeature.get("fillColor"),
+            };
+            const newStyle = geoserviceData?.styles![0].types![0];
+            clickedMapFeature.set("strokeColor", hexToRgba("#13a7eb", newStyle.strokeOpacity));
+            clickedMapFeature.set("strokeWidth", 2);
+            clickedMapFeature.set("fillColor", hexToRgba("#c89c4a", 0.8));
+            clickedMapFeature.set("strokeColor2", hexToRgba("#fafa00", newStyle.strokeOpacity));
+            clickedMapFeature.set("strokeWidth2", 4);
+            clickedMapFeature.set("fillColor2", hexToRgba("#fafa00", 0.2));
+            featureLayer?.getSource()?.changed();
         }
         return () => {
             if (clickedMapFeature && lastMapFeatStyle.current) {
-                clickedMapFeature.setStyle(lastMapFeatStyle.current);
-                clickedMapFeature.changed();
+                clickedMapFeature.set("strokeColor", lastMapFeatStyle.current.strokeColor);
+                clickedMapFeature.set("strokeWidth", lastMapFeatStyle.current.strokeWidth);
+                clickedMapFeature.set("fillColor", lastMapFeatStyle.current.fillColor);
+                clickedMapFeature.set("strokeColor2", lastMapFeatStyle.current.strokeColor);
+                clickedMapFeature.set("strokeWidth2", lastMapFeatStyle.current.strokeWidth);
+                clickedMapFeature.set("fillColor2", lastMapFeatStyle.current.fillColor);
+
+                featureLayer?.getSource()?.changed();
                 lastMapFeatStyle.current = null;
             }
         };
-    }, [clickedMapFeature, geoserviceData, setWorkingLayerDrawerOpened]);
+    }, [clickedMapFeature, geoserviceData, featureLayer, setWorkingLayerDrawerOpened]);
 
     useEffect(() => {
         mapSwitcher?.on("layerswitcher:change:visibility", handleLayerVisibility);
