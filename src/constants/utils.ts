@@ -494,7 +494,7 @@ export const REPORT_STATUS_LIST = ["submit", "pending0", "pending", "pending1", 
 
 export function parseContentRange(contentRange: string) {
     let total = 0;
-    let limitPerPage = 0;
+    let limitPerPage = 11;
     let currentPage = 1;
 
     if (contentRange) {

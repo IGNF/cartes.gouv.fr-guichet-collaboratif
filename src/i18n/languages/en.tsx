@@ -9,6 +9,7 @@ import { GetReportsLayerEnTranslations } from "@/features/navigation/layers/loca
 import { AttachmentListEnTranslations } from "@/features/reports/forms/locale/AttachmentList.locale";
 import { ConfirmCancelModalEnTranslations } from "@/features/reports/forms/locale/ConfirmCancelModal.locale";
 import { OpenReplyReportModalEnTranslations } from "@/features/reports/forms/locale/OpenReplyReportModal.locale";
+import { ConfirmDeleteReportModalEnTranslations } from "@/features/reports/forms/locale/ConfirmDeleteReportModal.locale";
 import { DrawingFormEnTranslations } from "@/features/reports/forms/locale/DrawingForm.locale";
 import { ImportSketchFileEnTranslations } from "@/features/reports/forms/locale/ImportSketchFile.locale";
 import { ReportFormEnTranslations } from "@/features/reports/forms/locale/ReportForm.locale";
@@ -40,6 +41,7 @@ export const translations: Translations<"en"> = {
     AttachmentList: AttachmentListEnTranslations,
     ConfirmCancelModal: ConfirmCancelModalEnTranslations,
     OpenReplyReportModal: OpenReplyReportModalEnTranslations,
+    ConfirmDeleteReportModal: ConfirmDeleteReportModalEnTranslations,
     DrawingForm: DrawingFormEnTranslations,
     ImportSketchFile: ImportSketchFileEnTranslations,
     ReportForm: ReportFormEnTranslations,
