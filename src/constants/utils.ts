@@ -546,3 +546,15 @@ export const statusLabels = {
     reject0: "Rejeté (hors de propos)",
     test: "En mode test",
 };
+
+export const transformReportsToExportData = (reports: CommunityReport[]) => {
+    return reports.map((report) => {
+        return {
+            author: report.author?.username || "-",
+            opening_date: report.opening_date ? new Date(report.opening_date).toLocaleDateString() : "-",
+            department: report.commune ? `${report.commune.title} (${report.departement?.name})` : "-",
+            theme: report.attributes && report.attributes.length > 0 ? report.attributes.map((attr) => attr.theme || "").join(", ") : "-",
+            status: report.status || "-",
+        };
+    });
+};

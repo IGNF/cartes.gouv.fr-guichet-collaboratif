@@ -16,7 +16,7 @@ import TransformReportsToTableData from "@/components/TransformReportsToTableDat
 import { SelectComponent } from "@/components/FilterAndSortReport";
 import PaginationReport from "./PaginationReport";
 import ConfirmDeleteReportModal from "../forms/ConfirmDeleteReportModal";
-import { CommunityReport } from "@/constants/reports/types";
+import { transformReportsToExportData } from "@/constants/utils";
 
 type FilterHeaderKey = "status" | "author" | "opening_date" | "department" | "theme";
 
@@ -66,18 +66,6 @@ const TableReport = () => {
     });
 
     const reports = useMemo(() => data?.data ?? [], [data]);
-
-    function transformReportsToExportData(reports: CommunityReport[]) {
-        return reports.map((report) => {
-            return {
-                author: report.author?.username || "-",
-                opening_date: report.opening_date ? new Date(report.opening_date).toLocaleDateString() : "-",
-                department: report.commune ? `${report.commune.title} (${report.departement?.name})` : "-",
-                theme: report.attributes && report.attributes.length > 0 ? report.attributes.map((attr) => attr.theme || "").join(", ") : "-",
-                status: report.status || "-",
-            };
-        });
-    }
 
     const total = data?.total ?? 10;
     const totalPages = Math.ceil(total / limitPerPage);
@@ -182,7 +170,6 @@ const TableReport = () => {
                             ></CSVLink>
                             <Button
                                 type="button"
-                                // onClick={() => handleDelete()}
                                 nativeButtonProps={deleteReportModal.buttonProps}
                                 iconId="fr-icon-delete-line"
                                 className="fr-icon--sm"
@@ -268,7 +255,7 @@ const TableReport = () => {
                 <div> Aucun résultat ne correspond à votre recherche.</div>
             )}
 
-            <ConfirmDeleteReportModal modal={deleteReportModal} onClose={() => null} />
+            <ConfirmDeleteReportModal />
         </>
     );
 };

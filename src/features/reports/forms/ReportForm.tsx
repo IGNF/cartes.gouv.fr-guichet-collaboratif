@@ -1,7 +1,7 @@
 import LoaderComponent from "@/components/LoaderComponent";
 import { CommunityTheme } from "@/constants/communities/types";
 import { ClickedTool, ErrorFile, PostThemeReport, ReportTool } from "@/constants/reports/types";
-import { useCommunityStore, useReportStore } from "@/store";
+import { useCommunityStore, useModalStore, useReportStore } from "@/store";
 import Accordion from "@codegouvfr/react-dsfr/Accordion";
 import Button from "@codegouvfr/react-dsfr/Button";
 import Input from "@codegouvfr/react-dsfr/Input";
@@ -13,16 +13,10 @@ import { getThemeAttributes } from "@/constants/utils";
 import DrawingForm from "./DrawingForm";
 import { Feature } from "ol";
 import CenterReport from "../CenterReport";
-import { createModal } from "@codegouvfr/react-dsfr/Modal";
 import ConfirmCancelModal from "./ConfirmCancelModal";
 import AttachmentList from "./AttachmentList";
 import { useTranslation } from "@/i18n";
 import useReportTools from "@/hooks/reports/useReportTools";
-
-const confirmModal = createModal({
-    id: "confirm-modal",
-    isOpenedByDefault: false,
-});
 
 const allowedTypes = ["image/png", "image/jpg", "application/pdf"];
 const maxSizeMB = 3;
@@ -57,6 +51,7 @@ const ReportForm: React.FC<Props> = ({ handleSubmit, handleDelete, handleClose }
     const { editReport, selectedReport, selectedFeatures, setSelectedFeatures, setTableDrawerOpened } = useReportStore();
 
     const reportTools = useReportTools();
+    const { confirmCancelModal } = useModalStore();
 
     const { t } = useTranslation({ ReportForm });
 
@@ -335,7 +330,7 @@ const ReportForm: React.FC<Props> = ({ handleSubmit, handleDelete, handleClose }
                         <Button size="large" onClick={onSubmit}>
                             {t("submit_report")}
                         </Button>
-                        <Button nativeButtonProps={confirmModal.buttonProps} priority="tertiary" title="Annuler">
+                        <Button nativeButtonProps={confirmCancelModal.buttonProps} priority="tertiary" title="Annuler">
                             {t("cancel_report")}
                         </Button>
                     </div>
@@ -352,7 +347,7 @@ const ReportForm: React.FC<Props> = ({ handleSubmit, handleDelete, handleClose }
                 )}
             </div>
             <CenterReport />
-            <ConfirmCancelModal modal={confirmModal} onClose={onClose} />
+            <ConfirmCancelModal onClose={onClose} />
         </>
     );
 };

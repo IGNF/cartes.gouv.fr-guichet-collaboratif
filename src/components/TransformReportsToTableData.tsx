@@ -112,6 +112,7 @@ const TransformReportsToTableData = (reports: CommunityReport[]) => {
                     ]}
                     small
                 />,
+                report.id,
                 author,
                 date,
                 department,

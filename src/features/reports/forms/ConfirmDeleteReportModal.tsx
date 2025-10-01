@@ -1,24 +1,21 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "@/i18n";
-import { useCommunityStore, useReportStore } from "@/store";
+import { useCommunityStore, useModalStore, useReportStore } from "@/store";
 import { deleteCommunityReportAPI } from "@/api/reportsData";
 import { CommunityReport } from "@/constants/reports/types";
 import { StatusMessage } from "@/constants/communities/types";
-import { createModal } from "@codegouvfr/react-dsfr/Modal";
 import TransformReportsToTableData from "@/components/TransformReportsToTableData";
+import ModaleComponent from "@/components/ModaleComponent";
 
-interface Props {
-    modal: ReturnType<typeof createModal>;
-    onClose: () => void;
-}
-
-const ConfirmDeleteReportModal: React.FC<Props> = ({ modal, onClose }) => {
+const ConfirmDeleteReportModal = () => {
     const { t } = useTranslation({ ConfirmDeleteReportModal });
     const queryClient = useQueryClient();
 
     const { community, addAlertMessage } = useCommunityStore();
     const { filteredReports, isChecked, reports, setIsChecked } = useReportStore();
+
+    const { deleteReportModal } = useModalStore();
 
     const reportsToUse = filteredReports.length > 0 ? filteredReports : (reports ?? []);
     const tableData = TransformReportsToTableData(reportsToUse);
@@ -48,31 +45,17 @@ const ConfirmDeleteReportModal: React.FC<Props> = ({ modal, onClose }) => {
             });
     };
 
-    useEffect(() => {
-        console.log("checkedIds : ", checkedIds);
-
-        return () => {};
-    }, [checkedIds]);
     return (
-        <modal.Component
+        <ModaleComponent
+            modal={deleteReportModal}
             title={checkedIds?.length === 1 ? t("deleteReport_title") : t("deleteReports_title")}
-            buttons={[
-                {
-                    iconId: "ri-check-line",
-                    children: t("delete_btn"),
-                    onClick: () => handleDelete(),
-                },
-                {
-                    iconId: "ri-check-line",
-                    onClick: onClose,
-                    children: t("cancel_btn"),
-                },
-            ]}
+            onClose={() => null}
+            onConfirm={() => handleDelete()}
+            cancelText={t("cancel_btn")}
+            confirmText={t("delete_btn")}
         >
             <p>{checkedIds.length === 1 ? t("deleteReport_message") : t("deleteReports_message", { reportIdCount: checkedIds.length })}</p>
-
-            {/* <p>{t("deleteReport_message")} </p> */}
-        </modal.Component>
+        </ModaleComponent>
     );
 };
 
