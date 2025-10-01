@@ -94,13 +94,11 @@ export async function postReportsReply(reportsIds: number[], body: PostReply): P
                     headers: {
                         "Content-Type": "application/json",
                         Accept: "application/json",
-                        "X-Requested-With": "XMLHttpRequest",
                     },
                 });
             })
         );
-    } catch (error) {
-        console.error("Erreur dans postReportsReply :", error);
+    } catch {
         return null;
     }
 }

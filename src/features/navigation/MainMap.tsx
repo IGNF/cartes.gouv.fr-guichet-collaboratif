@@ -124,7 +124,7 @@ export default function MainMap() {
     const mapToolbarHeader = document.getElementById("map-toolbar-header");
 
     return (
-        <div className={fr.cx("fr-grid-row")} style={{ position: "relative" }}>
+        <div className={(fr.cx("fr-grid-row"), "grid-map-container")}>
             <div
                 className={cx(fr.cx("fr-col"), "map-view")}
                 ref={mapTargetRef}

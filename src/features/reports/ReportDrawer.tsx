@@ -75,9 +75,6 @@ const ReportDrawer = () => {
         setSelectedFeatures([]);
     }, [map, selectedReport, alertMessages, removeAlertMessage, setEditReport, setSelectedFeatures, setSelectedReport]);
 
-    useEffect(() => {
-        console.log("tableDrawerOpened : ", tableDrawerOpened);
-    }, [tableDrawerOpened]);
     const handleSingleClick = useCallback(
         (evt: MapBrowserEvent) => {
             if (selectedFeatures?.find((f) => f?.get("new"))) return;
@@ -270,7 +267,6 @@ const ReportDrawer = () => {
                 </>
             </DrawerComponent>
             <OpenReplyReportModal modal={replyReportModal} onClose={() => setResponseDrawerOpened(false)} />
-            {/*   <div className="table-report-drawer" style={{ width: reportTableWidth }}></div>  */}
         </>
     );
 };

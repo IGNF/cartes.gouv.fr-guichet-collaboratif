@@ -3,8 +3,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "@/i18n";
 import { postReportsReply } from "@/api/reportsData";
 import { useReportStore } from "@/store";
-import { PostReply } from "@/constants/reports/types";
-import { statusLabels } from "@/constants/utils";
+import { PostReply, StatusKey } from "@/constants/reports/types";
+import { reportImgStatus } from "@/constants/utils";
 import Input from "@codegouvfr/react-dsfr/Input";
 import { createModal } from "@codegouvfr/react-dsfr/Modal";
 import Select from "@codegouvfr/react-dsfr/Select";
@@ -49,9 +49,6 @@ const OpenReplyReportModal: React.FC<Props> = ({ modal, onClose }) => {
             setStatus("");
             setIsChecked({});
         },
-        onError: (error) => {
-            console.error("Erreur d'ajout :", error);
-        },
     });
 
     useEffect(() => {
@@ -60,9 +57,10 @@ const OpenReplyReportModal: React.FC<Props> = ({ modal, onClose }) => {
         }
     }, [checkedIds, selectedReport]);
 
+    const replay_title = `${selectedReport?.length === 1 ? t("openReplay_title") + selectedReport : t("openReplies_title")}`;
     return (
         <modal.Component
-            title={` ${t("open_title")} ${selectedReport?.length === 1 ? "au " + selectedReport : ["aux signalements sélectionnés"]}`}
+            title={replay_title}
             iconId="fr-icon-info-fill"
             buttons={[
                 {
@@ -80,7 +78,7 @@ const OpenReplyReportModal: React.FC<Props> = ({ modal, onClose }) => {
             ]}
         >
             <Input
-                label={t("open_title")}
+                label={replay_title}
                 textArea
                 nativeTextAreaProps={{
                     onChange: (event) => setContent(event.target.value),
@@ -96,18 +94,20 @@ const OpenReplyReportModal: React.FC<Props> = ({ modal, onClose }) => {
             >
                 <React.Fragment key=".0">
                     {CheckedIdStatus.length === 1 ? (
-                        <option value={-1}>{statusLabels[CheckedIdStatus[0]]}</option>
+                        <option value={-1}>{reportImgStatus[CheckedIdStatus[0]].text || ""}</option>
                     ) : (
                         <option disabled hidden value="">
                             Selectionnez un status
                         </option>
                     )}
-
-                    {Object.entries(statusLabels).map(([key, label]) => (
-                        <option key={key} value={key}>
-                            {label}
-                        </option>
-                    ))}
+                    {Object.keys(reportImgStatus).map((key) => {
+                        const statusKey = key as StatusKey;
+                        return (
+                            <option key={statusKey} value={key}>
+                                {reportImgStatus[statusKey].text}
+                            </option>
+                        );
+                    })}
                 </React.Fragment>
             </Select>
         </modal.Component>
