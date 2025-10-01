@@ -159,7 +159,13 @@ const TableReport = () => {
                     </div>
                     <div className="report-infos-line">
                         <div className="report-nbrSelectedLines">
-                            Nombre de lignes sélectionnées: <span>{selectedLine}</span>
+                            {selectedLine > 0 ? (
+                                <>
+                                    Nombre de lignes sélectionnées: <span>{selectedLine}</span>
+                                </>
+                            ) : (
+                                "Pas de lignes sélectionnées"
+                            )}
                         </div>
                         <div className="report-btns">
                             <CSVLink
@@ -216,7 +222,6 @@ const TableReport = () => {
                                 ]}
                                 small
                             />,
-                            "id",
                             "Pseudo",
                             <Button
                                 type="button"

@@ -34,7 +34,6 @@ const ConfirmDeleteReportModal = () => {
                 3000
             );
         },
-        onError: () => {},
     });
 
     const handleDelete = () => {
