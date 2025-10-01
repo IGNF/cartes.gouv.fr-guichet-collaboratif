@@ -26,6 +26,7 @@ export type ComponentKey =
     | import("../features/navigation/controls/locale/useGetMapControls.locale").I18n
     | import("../features/reports/forms/locale/AttachmentList.locale").I18n
     | import("../features/reports/forms/locale/ConfirmCancelModal.locale").I18n
+    | import("../features/reports/forms/locale/OpenReplyReportModal.locale").I18n
     | import("../features/reports/forms/locale/DrawingForm.locale").I18n
     | import("../features/reports/forms/locale/ImportSketchFile.locale").I18n
     | import("../features/reports/forms/locale/ReportForm.locale").I18n

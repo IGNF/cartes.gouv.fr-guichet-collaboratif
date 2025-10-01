@@ -5,7 +5,7 @@ import { Coordinate } from "ol/coordinate";
 import { Pixel } from "ol/pixel";
 import VectorSource from "ol/source/Vector";
 
-export type StatusKey = "submit" | "pending" | "valid" | "reject" | "test";
+export type StatusKey = "submit" | "pending0" | "pending" | "pending1" | "pending2" | "valid" | "valid0" | "reject" | "reject0" | "test";
 export type SketchType = "Point" | "Ligne" | "MultiPolygone";
 export enum SketchFeatureType {
     Point = "Point",
@@ -83,6 +83,11 @@ export interface PostReport {
     comment: string;
     attributes: { community: number; theme: string; attributes: PostThemeReport };
     sketch?: SketchReport | null;
+}
+export interface PostReply {
+    title?: string;
+    content: string;
+    status: string;
 }
 
 export interface FileUpload {

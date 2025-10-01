@@ -24,7 +24,7 @@ const useGetMapControls = (): Collection<Control> | Control[] | undefined => {
             placeholder: t("search_engine_placeholder"),
         }),
         new ScaleLine(),
-        new GeoportalZoom({ position: "top-left", zoomInTipLabel: "Zoom In", zoomOutTipLabel: "Zoom Out" }),
+        new GeoportalZoom({ position: "bottom-right", zoomInTipLabel: "Zoom In", zoomOutTipLabel: "Zoom Out" }),
         new GeoportalFullScreen({ position: "bottom-right", tipLabel: t("full_screen_label") }),
         catalogControl,
         centerToReportControl,

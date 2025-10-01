@@ -18,7 +18,7 @@ const TransformReportsToTableData = (reports: CommunityReport[]) => {
     const { t } = useTranslation({ GetReportsLayer });
     const { localStorageData } = useLocalStorageStore();
     const { map } = useMapStore();
-    const { isChecked, setIsChecked, reportTableWidth, setSelectedLine } = useReportStore();
+    const { isChecked, setIsChecked, reportTableWidth, setSelectedLine, setSelectedReport } = useReportStore();
 
     const clusterLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE);
     const clusterSource = clusterLayer?.getSource() as VectorSource;
@@ -54,7 +54,7 @@ const TransformReportsToTableData = (reports: CommunityReport[]) => {
         const rasterLayers = map?.getAllLayers();
         const layers = rasterLayers?.filter((layer) => layer.getVisible() === true && layer instanceof TileLayer);
         const higherLayer = layers?.reduce((minLay, lay) => (!minLay || Number(lay.getZIndex()) < Number(minLay?.getZIndex()) ? lay : minLay));
-        const theLayerZoom = higherLayer?.getMaxZoom();
+        const theLayerZoom = higherLayer?.getMaxZoom() - 2;
 
         view.setZoom(theLayerZoom ?? view.getZoom());
 
@@ -124,7 +124,7 @@ const TransformReportsToTableData = (reports: CommunityReport[]) => {
                         iconId="fr-icon-road-map-line"
                         className="fr-icon--sm fr-mr-7v"
                         priority="tertiary no outline"
-                        title="Afficher sur la carte"
+                        title="Afficher le signalement"
                         onClick={() => handleShowOnMap(report)}
                     />
                     <Button
@@ -132,7 +132,7 @@ const TransformReportsToTableData = (reports: CommunityReport[]) => {
                         className="fr-icon--sm"
                         priority="tertiary no outline"
                         title="Afficher sur la carte"
-                        onClick={() => handleShowOnMap(report)}
+                        onClick={() => setSelectedReport(report)}
                     />
                 </div>,
             ],

@@ -1,3 +1,7 @@
+.grid-map-container {
+    position: relative;
+}
+
 .map-view {
     /* position: absolute; */
     width: 100%;
@@ -28,4 +32,11 @@ form[id^="GPcoordinateSearchForm"] {
     [id^="GPautocompleteResults-"] {
         height: 70vh;
     }
+}
+.btn-show-drawer {
+    position: absolute;
+    right: 15px;
+    top: 138px;
+    border-radius: 4px;
+    background-color: white;
 }

@@ -1,13 +1,13 @@
-import { useCommunityStore } from "@/store/useCommunityStore";
 import { useQuery } from "@tanstack/react-query";
-import { useUserStore } from "@/store/useUserStore";
-import { useReportStore } from "@/store/useReportStore";
-import { CommunityReport, FilterState, PostReport, reportData, SketchReport, StatusKey } from "@/constants/reports/types";
-import { REPORTS_API_URL } from "@/constants/urls";
 import { transformExtent } from "ol/proj";
 import { Extent, isEmpty } from "ol/extent";
-import { axiosApi } from ".";
 import { parseContentRange } from "@/constants/utils";
+import { REPORTS_API_URL } from "@/constants/urls";
+import { useCommunityStore } from "@/store/useCommunityStore";
+import { useUserStore } from "@/store/useUserStore";
+import { useReportStore } from "@/store/useReportStore";
+import { CommunityReport, FilterState, PostReport, reportData, SketchReport, StatusKey, PostReply } from "@/constants/reports/types";
+import { axiosApi } from ".";
 
 export const isDigital = (value: string): boolean => {
     const regex = /^[1-9]\d*$/;
@@ -83,6 +83,24 @@ export async function getTableReports(
         currentPage,
         searchReport,
     };
+}
+
+export async function postReportsReply(reportsIds: number[], body: PostReply): Promise<PostReply[] | null> {
+    try {
+        return await Promise.all(
+            reportsIds.map(async (reportId) => {
+                const urlReply = `${REPORTS_API_URL}/${reportId}/replies`;
+                return await axiosApi.post(urlReply, body, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Accept: "application/json",
+                    },
+                });
+            })
+        );
+    } catch {
+        return null;
+    }
 }
 
 export async function getCommunityThemes(communityId: number): Promise<string[]> {

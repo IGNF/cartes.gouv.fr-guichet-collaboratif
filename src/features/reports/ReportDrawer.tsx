@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect } from "react";
 import { Feature, MapBrowserEvent } from "ol";
 import Layer from "ol/layer/Layer";
 import VectorSource from "ol/source/Vector";
@@ -7,17 +7,35 @@ import { getClickedMapReport, getReportSketchFeatures, REPORTS_LAYER_TYPE } from
 import { clearClusterStyles } from "@/constants/reports/utils/cluster";
 import { getCenterReportMessage, showCenterReportButtons } from "@/constants/utils";
 import { ParamsReport, toolNames } from "@/constants/reports/types";
-import { useCommunityStore, useMapStore, useReportStore } from "@/store";
+import { useCommunityStore, useMapStore, useModalStore, useReportStore } from "@/store";
+import Button from "@codegouvfr/react-dsfr/Button";
 import DrawerComponent from "@/components/DrawerComponent";
 import ShowReport from "./ShowReport";
 import CreateReport from "./CreateReport";
+import TableReportDrawer from "./table/TableReportDrawer";
+import OpenReplyReportModal from "./forms/OpenReplyReportModal";
 
 const ReportDrawer = () => {
-    const [drawerOpened, setDrawerOpened] = useState<boolean>(false);
     const { mapWorkingLayer } = useMapStore();
 
-    const { reports, selectedReport, editReport, selectedFeatures, setEditReport, setSelectedReport, setSelectedFeatures } = useReportStore();
+    const {
+        reports,
+        selectedReport,
+        editReport,
+        selectedFeatures,
+        setEditReport,
+        setSelectedReport,
+        setSelectedFeatures,
+        drawerOpened,
+        setDrawerOpened,
+        tableDrawerOpened,
+        responseDrawerOpened,
+        setTableDrawerOpened,
+        setResponseDrawerOpened,
+    } = useReportStore();
     const { map, setClickedMapFeature } = useMapStore();
+
+    const { replyReportModal } = useModalStore();
     const { alertMessages, removeAlertMessage } = useCommunityStore();
 
     const clusterLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE);
@@ -52,6 +70,7 @@ const ReportDrawer = () => {
 
         setDrawerOpened(false);
         setEditReport(false);
+        setTableDrawerOpened(!tableDrawerOpened && true);
         setSelectedReport(null);
         setSelectedFeatures([]);
     }, [map, selectedReport, alertMessages, removeAlertMessage, setEditReport, setSelectedFeatures, setSelectedReport]);
@@ -209,18 +228,46 @@ const ReportDrawer = () => {
         };
     }, [drawerOpened, selectedReport, handleDrawingAdd]);
 
+    useEffect(() => {
+        if (drawerOpened) {
+            setTableDrawerOpened(false);
+            setResponseDrawerOpened(false);
+        } else if (responseDrawerOpened) {
+            setDrawerOpened(false);
+            setTableDrawerOpened(false);
+        } else if (tableDrawerOpened) {
+            setDrawerOpened(false);
+            setResponseDrawerOpened(false);
+        }
+    }, [drawerOpened, responseDrawerOpened, setDrawerOpened, setResponseDrawerOpened, setTableDrawerOpened, tableDrawerOpened]);
+
     return (
-        <DrawerComponent anchor="left" isOpen={drawerOpened} create={!selectedReport} onClose={handleCloseDrawer}>
-            <>
-                {drawerOpened ? (
-                    selectedReport ? (
-                        <ShowReport handleCloseDrawer={handleCloseDrawer} />
-                    ) : (
-                        <CreateReport handleCloseDrawer={handleCloseDrawer} />
-                    )
-                ) : null}
-            </>
-        </DrawerComponent>
+        <>
+            <DrawerComponent anchor="left" isOpen={drawerOpened || tableDrawerOpened} create={!selectedReport} onClose={handleCloseDrawer}>
+                <>
+                    {drawerOpened ? (
+                        <>
+                            <Button
+                                iconId="fr-icon-arrow-left-line"
+                                className="fr-icon--sm fr-mr-7v"
+                                priority="tertiary no outline"
+                                title="Afficher le signalement"
+                                onClick={() => {
+                                    setTableDrawerOpened(true);
+                                    setDrawerOpened(false);
+                                }}
+                            >
+                                Tous les signalements
+                            </Button>
+                            {selectedReport ? <ShowReport handleCloseDrawer={handleCloseDrawer} /> : <CreateReport handleCloseDrawer={handleCloseDrawer} />}
+                        </>
+                    ) : tableDrawerOpened ? (
+                        <TableReportDrawer handleCloseDrawer={handleCloseDrawer} />
+                    ) : null}
+                </>
+            </DrawerComponent>
+            <OpenReplyReportModal modal={replyReportModal} onClose={() => setResponseDrawerOpened(false)} />
+        </>
     );
 };
 

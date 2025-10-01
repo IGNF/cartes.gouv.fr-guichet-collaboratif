@@ -20,7 +20,6 @@ import ReportDrawer from "../reports/ReportDrawer";
 import { Cluster } from "ol/source";
 import VectorLayer from "ol/layer/Vector";
 import { clusterStyle } from "@/constants/styles";
-import TableReportDrawer from "../reports/table/TableReportDrawer";
 import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import useGetMapControls from "./controls";
 import WorkingLayerDrawer from "../working-layer/WorkingLayerDrawer";
@@ -125,7 +124,7 @@ export default function MainMap() {
     const mapToolbarHeader = document.getElementById("map-toolbar-header");
 
     return (
-        <div className={fr.cx("fr-grid-row")}>
+        <div className={(fr.cx("fr-grid-row"), "grid-map-container")}>
             <div
                 className={cx(fr.cx("fr-col"), "map-view")}
                 ref={mapTargetRef}
@@ -136,7 +135,6 @@ export default function MainMap() {
             <GetAllLayers />
 
             <ReportDrawer />
-            <TableReportDrawer />
             <WorkingLayerDrawer />
         </div>
     );

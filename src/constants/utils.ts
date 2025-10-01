@@ -58,8 +58,13 @@ export const otherMarkers = markersStyles.map((style) => {
 export const reportImgStatus = {
     submit: { img: imgSubmit, text: "Reçu dans nos services" },
     pending: { img: imgPending, text: "En cours de traitement" },
+    pending0: { img: imgPending, text: "En demande de qualification" },
+    pending1: { img: imgPending, text: "En attente de saisie" },
+    pending2: { img: imgPending, text: "En attente de validation" },
     valid: { img: imgValid, text: "Pris en compte" },
+    valid0: { img: imgValid, text: "Déjà pris en compte" },
     reject: { img: imgReject, text: "Rejeté (hors spéc.)" },
+    reject0: { img: imgReject, text: "Rejeté (hors de propos)" },
     test: { img: imgTest, text: "En mode test" },
 };
 

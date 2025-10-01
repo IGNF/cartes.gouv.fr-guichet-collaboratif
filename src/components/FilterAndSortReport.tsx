@@ -142,8 +142,6 @@ const FilterAndSortReport = () => {
 
     return (
         <>
-            <h1 className="visuallyhidden">Tous les signalements</h1>
-
             <form ref={formRef} className="filter-report">
                 <div>
                     <p className="report-subTitle">Trier par : </p>

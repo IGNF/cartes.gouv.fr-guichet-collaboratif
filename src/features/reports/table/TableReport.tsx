@@ -2,12 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { CSVLink } from "react-csv";
 import { getTableReports, deleteCommunityReportAPI } from "@/api/reportsData";
-import { useReportStore } from "@/store";
+import { useReportStore, useModalStore } from "@/store";
+import { useCommunityStore } from "@/store/useCommunityStore";
 import { REPORT_TABLE_LIMIT_OPTIONS } from "@/constants/reports/utils";
 import type { CommunityReport } from "@/constants/reports/types";
 import { StatusMessage } from "@/constants/communities/types";
 import { applyFiltersToReports } from "@/constants/reports/utils/reportFilters";
-import { useCommunityStore } from "@/store/useCommunityStore";
 import Checkbox from "@codegouvfr/react-dsfr/Checkbox";
 import { Table } from "@codegouvfr/react-dsfr/Table";
 import { Button } from "@codegouvfr/react-dsfr/Button";
@@ -41,6 +41,7 @@ const TableReport = () => {
         setCurrentPage,
     } = useReportStore();
 
+    const { replyReportModal } = useModalStore();
     const filters = useMemo(
         () => ({
             status: currentFilters.status,
@@ -192,7 +193,11 @@ const TableReport = () => {
                                 title="Supprimer un signalement"
                                 priority="secondary"
                             />
-                            <Button type="button" onClick={() => console.log("this is for th' next step")}>
+                            <Button
+                                nativeButtonProps={replyReportModal.buttonProps}
+                                type="button"
+                                disabled={!isChecked || !Object.values(isChecked).some(Boolean)}
+                            >
                                 répondre
                             </Button>
                         </div>
