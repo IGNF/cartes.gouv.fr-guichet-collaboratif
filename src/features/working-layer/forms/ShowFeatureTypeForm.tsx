@@ -34,12 +34,14 @@ const ShowFeatureTypeForm = () => {
     useEffect(() => {
         if (clickedMapFeature) {
             clickedMapFeature.set("selected", true);
+            clickedMapFeature.set("zIndex", 100000);
 
             clickedMapFeature.changed();
         }
         return () => {
             if (clickedMapFeature) {
                 clickedMapFeature.unset("selected");
+                clickedMapFeature.unset("zIndex");
 
                 clickedMapFeature.changed();
             }
@@ -100,7 +102,7 @@ const ShowFeatureTypeForm = () => {
     return (
         <>
             <h1 className="feature-type-form-title fr-mt-4v fr-mb-1v fr-text--lg">
-                {clickedMapFeature?.get("geoservice")?.title} {pointData.id || pointData.cleabs}
+                {clickedMapFeature?.get("geoservice")?.title} : {pointData.id || pointData.cleabs}
             </h1>
 
             <Table bordered fixed data={dataColumns} className="feature-type-form-table" />

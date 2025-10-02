@@ -78,7 +78,7 @@ export const arrayToGeoJSON = (arr: ArrayGeoJSONProps[], geoservice: CommunityGe
                 type = "LineString";
             }
 
-            const featureTypeData = { ...el };
+            const featureTypeData = { ...el, id: el.id ?? el.cleabs };
             delete featureTypeData.geometrie;
 
             return {
@@ -105,7 +105,7 @@ export const getGeoJSONProps = (arr: GeoJSONProps, geoservice: CommunityGeoservi
     return {
         type: arr.type,
         features: arr.features.map((e) => {
-            const featureTypeData = { ...(typeof e.properties === "object" && e.properties !== null ? e.properties : {}) };
+            const featureTypeData = { ...(typeof e.properties === "object" && e.properties !== null ? e.properties : {}), id: e.id ?? e.cleabs };
             return {
                 ...e,
                 properties: {

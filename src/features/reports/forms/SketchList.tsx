@@ -59,7 +59,12 @@ const SketchList = () => {
         }
         return () => {
             if (!isMainFeatureClustered()) {
-                mainFeature?.setStyle(mainFeatureStyle);
+                if (Array.isArray(mainFeatureStyle)) {
+                    mainFeature?.setStyle(mainFeatureStyle[1]);
+                } else {
+                    mainFeature?.setStyle(mainFeatureStyle);
+                }
+
                 mainFeature?.changed();
             }
             if (drawingControl) {

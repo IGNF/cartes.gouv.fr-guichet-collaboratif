@@ -28,7 +28,17 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
 
     const mapProjCode = useMemo(() => map?.getView()?.getProjection().getCode() ?? "EPSG:3857", [map]);
     const geoProjCode = useMemo(() => geoservice.columns?.find((c) => c.name === geoservice.geometryName)?.crs ?? "EPSG:3857", [geoservice]);
-    const filterDetruit = useMemo(() => geoservice.columns?.find((c) => c.name === "detruit"), [geoservice]);
+    const filterDetruit = useMemo(() => (geoservice.columns?.find((c) => c.name === "detruit") ? '"detruit":false' : ""), [geoservice]);
+    const filterFictif = useMemo(() => (geoservice.columns?.find((c) => c.name === "fictif") ? '"fictif":false' : ""), [geoservice]);
+
+    const urlsFilters = useMemo(() => {
+        const filters = [filterDetruit, filterFictif].filter((f) => !!f);
+
+        if (filters.length) {
+            return `&filter={${filters.join(",")}}`;
+        }
+        return "";
+    }, [filterDetruit, filterFictif]);
 
     const addFeaturesToSource = useCallback(
         (wfsSource: VectorSource, data: GeoJSONProps | ArrayGeoJSONProps[]) => {
@@ -60,7 +70,7 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
                     `&outputFormat=${geoservice.featureType ? "GeoJSON" : "application/json"}` + //
                     `&srsname=${geoProjCode}` +
                     `&maxFeatures=5000` +
-                    (filterDetruit ? `&filter={"detruit":false}` : "") +
+                    urlsFilters +
                     `&bbox=${transformedExtent.join(",")},${geoProjCode}`;
 
                 const queryKey = [`GET_WFS_GET_FEATURES_${geoservice.url}_${geoservice.version}_${geoservice.layer}_${transformedExtent.join(",")}`];
@@ -86,7 +96,7 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
                 addAlertMessage(StatusMessage.error, t("loading_layer_error", { layerTitle: geoservice.title }));
             }
         },
-        [addAlertMessage, addFeaturesToSource, filterDetruit, geoProjCode, geoservice, mapProjCode, queryClient, t]
+        [addAlertMessage, addFeaturesToSource, urlsFilters, geoProjCode, geoservice, mapProjCode, queryClient, t]
     );
 
     const wfsSource = useMemo(() => {

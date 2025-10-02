@@ -356,11 +356,11 @@ export const getStyleWebGLLine: (isDefault: boolean) => FlatStyle[] = (isDefault
 export const getStyleWebGLPoint: (isDefault: boolean) => FlatStyle | FlatStyle[] = (isDefault: boolean = false): FlatStyle | FlatStyle[] => {
     if (isDefault) {
         return {
-            "circle-radius": 8,
+            "circle-radius": 6,
             "circle-stroke-color": hexToRgba("#fff", 1),
             "circle-stroke-width": 2,
             "circle-fill-color": hexToRgba("#13a7eb", 1),
-            "icon-scale": 0.6,
+            "z-index": ["get", "zIndex"],
         };
     }
     return [
@@ -369,12 +369,14 @@ export const getStyleWebGLPoint: (isDefault: boolean) => FlatStyle | FlatStyle[]
             "circle-stroke-color": hexToRgba("#13a7eb", 1),
             "circle-stroke-width": 2,
             "circle-fill-color": hexToRgba("#fafa00", 1),
+            "z-index": ["get", "zIndex"],
         },
         {
-            "circle-radius": 3,
+            "circle-radius": 3.5,
             "circle-stroke-color": hexToRgba("#13a7eb", 1),
             "circle-stroke-width": 2,
-            "circle-fill-color": hexToRgba("#fafa00", 1),
+            "circle-fill-color": hexToRgba("#c89c4a", 1),
+            "z-index": ["get", "zIndex"],
         },
     ];
 };
@@ -401,14 +403,14 @@ export const getStyleWebGLDefault: (newStyle?: FeatureTypeStyleItem | undefined,
         "circle-stroke-width": 2,
         "circle-stroke-color": newStyle ? hexToRgba(newStyle.strokeColor, newStyle.strokeOpacity) : "#fff",
         "circle-fill-color": newStyle ? hexToRgba(newStyle.fillColor, newStyle.fillOpacity) : "#fff",
+        "circle-scale": iconScale,
+        "circle-opacity": 1,
         "icon-src": logo ?? "",
         "icon-size": 34,
         "icon-scale": iconScale,
         "shape-stroke-line-cap": newStyle ? newStyle.strokeLinecap : "round",
         "shape-stroke-line-dash": newStyle && newStyle.strokeDashstyle ? strokeLineDash(newStyle) : undefined,
-        "circle-scale": iconScale,
-        "circle-opacity": 1,
-        "z-index": 10,
+        "z-index": ["get", "zIndex"],
     };
 };
 
@@ -452,23 +454,34 @@ export const getWebGLStyle = (geoservice: CommunityGeoservice, selectedStyle?: F
     const newTypes = newStyle.types;
     const allRadius = newTypes ? newTypes.map((type) => type.pointRadius ?? 6) : [6];
     const filterStyleByCondition = getFilterStyleByCondition(newTypes!, allRadius);
-    return [
-        {
-            filter: ["all", ["==", ["get", "featureType"], "polygon"], ["has", "selected"]],
-            style: getStyleWebGLPolygon(newStyle.name === DEFAULT_STYLE_NAME),
-        },
-        {
-            filter: ["all", ["==", ["get", "featureType"], "line"], ["has", "selected"]],
-            style: getStyleWebGLLine(newStyle.name === DEFAULT_STYLE_NAME),
-        },
+    let filterSelected = [
         {
             filter: ["all", ["==", ["get", "featureType"], "point"], ["has", "selected"]],
             style: getStyleWebGLPoint(newStyle.name === DEFAULT_STYLE_NAME),
         },
+    ];
+    if (geoservice.featureType === "polygon") {
+        filterSelected = [
+            {
+                filter: ["all", ["==", ["get", "featureType"], "polygon"], ["has", "selected"]],
+                style: getStyleWebGLPolygon(newStyle.name === DEFAULT_STYLE_NAME),
+            },
+        ];
+    }
+    if (geoservice.featureType === "line") {
+        filterSelected = [
+            {
+                filter: ["all", ["==", ["get", "featureType"], "line"], ["has", "selected"]],
+                style: getStyleWebGLLine(newStyle.name === DEFAULT_STYLE_NAME),
+            },
+        ];
+    }
+    return [
         ...filterStyleByCondition,
         {
             else: true,
             style: getStyleWebGLDefault(newTypes![0], allRadius, newStyle.name === DEFAULT_STYLE_NAME),
         },
+        ...filterSelected,
     ];
 };

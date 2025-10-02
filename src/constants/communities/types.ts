@@ -161,5 +161,6 @@ export interface GeoJSONProps {
 
 export interface ArrayGeoJSONProps {
     geometrie?: string;
+    id: string | number;
     cleabs: string | number;
 }
