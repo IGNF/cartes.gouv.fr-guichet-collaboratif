@@ -46,3 +46,14 @@ export const simpleComparators = {
         );
     },
 };
+
+export const symbolComparator: { [key: string]: string } = {
+    $eq: "==",
+    $ne: "!=",
+    $gt: ">",
+    $gte: ">=",
+    $lt: "<",
+    $lte: "<=",
+    $in: "==",
+    $nin: "nin",
+};
