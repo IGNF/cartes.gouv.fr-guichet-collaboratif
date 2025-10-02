@@ -1,32 +1,19 @@
+import ModaleComponent from "@/components/ModaleComponent";
 import { useTranslation } from "@/i18n";
-import { createModal } from "@codegouvfr/react-dsfr/Modal";
+import { useModalStore } from "@/store";
 
 interface Props {
-    modal: ReturnType<typeof createModal>;
     onClose: () => void;
 }
 
-const ConfirmCancelModal: React.FC<Props> = ({ modal, onClose }) => {
+const ConfirmCancelModal: React.FC<Props> = ({ onClose }) => {
     const { t } = useTranslation({ ConfirmCancelModal });
+    const { confirmCancelModal } = useModalStore();
 
     return (
-        <modal.Component
-            title={` ${t("cancel_title")}`}
-            iconId="fr-icon-info-fill"
-            buttons={[
-                {
-                    iconId: "ri-close-line",
-                    children: t("cancel_no"),
-                },
-                {
-                    iconId: "ri-check-line",
-                    onClick: onClose,
-                    children: t("cancel_yes"),
-                },
-            ]}
-        >
+        <ModaleComponent modal={confirmCancelModal} title={t("cancel_title")} onClose={onClose} cancelText={t("cancel_yes")} confirmText={t("cancel_no")}>
             <p>{t("cancel_message")}</p>
-        </modal.Component>
+        </ModaleComponent>
     );
 };
 

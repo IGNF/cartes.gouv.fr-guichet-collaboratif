@@ -1,16 +1,13 @@
 import { useEffect } from "react";
 import VectorSource from "ol/source/Vector";
-import { Coordinate } from "ol/coordinate";
-import TileLayer from "ol/layer/Tile";
-import { getFeaturePoint, getLonLatFromPoint, handleCenterToFeature } from "@/constants/utils";
+import { handleShowOnMap } from "@/constants/utils";
 import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
-import { CommunityReport, SketchFeatureType } from "@/constants/reports/types";
+import { CommunityReport } from "@/constants/reports/types";
 import { useLocalStorageStore, useMapStore, useReportStore } from "@/store";
 import Button from "@codegouvfr/react-dsfr/Button";
 import Checkbox from "@codegouvfr/react-dsfr/Checkbox";
 import Badge from "@codegouvfr/react-dsfr/Badge";
 import Tag from "@codegouvfr/react-dsfr/Tag";
-import { LocalLayer } from "@/constants/localStorage/types";
 import GetReportsLayer from "@/features/navigation/layers/GetReportsLayer";
 import { useTranslation } from "@/i18n";
 
@@ -23,57 +20,15 @@ const TransformReportsToTableData = (reports: CommunityReport[]) => {
     const clusterLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE);
     const clusterSource = clusterLayer?.getSource() as VectorSource;
 
-    const handleShowOnMap = (report: CommunityReport) => {
-        if (!map || !clusterSource) return;
-
-        const localLayer: LocalLayer | undefined = localStorageData?.layers.find((l) => l.name === t("reports_title"));
-        if (localLayer) {
-            localLayer.visibility = true;
-        }
-
-        const view = map?.getView();
-        if (!view || !map) return;
-
-        let feature = clusterSource.getFeatures().find((f) => f.get("reportData")?.id === report.id);
-
-        if (feature) {
-            handleCenterToFeature(map, feature);
-        } else {
-            const featData = {
-                type: SketchFeatureType.Point,
-                geometry: report.geometry,
-            };
-            feature = getFeaturePoint(report, featData, true);
-            clusterSource.addFeature(feature);
-            handleCenterToFeature(map, feature);
-        }
-
-        const coords = getLonLatFromPoint(report.geometry) as Coordinate;
-        view.setCenter(coords);
-
-        const rasterLayers = map?.getAllLayers();
-        const layers = rasterLayers?.filter((layer) => layer.getVisible() === true && layer instanceof TileLayer);
-        const higherLayer = layers?.reduce((minLay, lay) => (!minLay || Number(lay.getZIndex()) < Number(minLay?.getZIndex()) ? lay : minLay));
-        const theLayerZoom = higherLayer?.getMaxZoom() - 2;
-
-        view.setZoom(theLayerZoom ?? view.getZoom());
-
-        const pixelOffsetX = -reportTableWidth / 2;
-
-        const applyOffset = () => {
-            const pixel = map.getPixelFromCoordinate(coords);
-            const pixelOffset = [pixel[0] + pixelOffsetX, pixel[1]];
-            const offsetCoord = map.getCoordinateFromPixel(pixelOffset);
-            view.setCenter(offsetCoord);
-            map.un("postrender", applyOffset);
-        };
-
-        map.on("postrender", applyOffset);
-    };
     useEffect(() => {
         const renderSelectedLine = Object.values(isChecked).filter((val) => val === true).length;
         setSelectedLine(renderSelectedLine);
     }, [isChecked, setSelectedLine]);
+
+    const showOnMap = (report: CommunityReport) => {
+        setSelectedReport(report);
+        handleShowOnMap(report, map, clusterSource, localStorageData, t, reportTableWidth);
+    };
 
     return reports.map((report) => {
         const author = report.author?.username || "-";
@@ -125,14 +80,14 @@ const TransformReportsToTableData = (reports: CommunityReport[]) => {
                         className="fr-icon--sm fr-mr-7v"
                         priority="tertiary no outline"
                         title="Afficher le signalement"
-                        onClick={() => handleShowOnMap(report)}
+                        onClick={() => handleShowOnMap(report, map, clusterSource, localStorageData, t, reportTableWidth)}
                     />
                     <Button
                         iconId="fr-icon-arrow-right-line"
                         className="fr-icon--sm"
                         priority="tertiary no outline"
                         title="Afficher sur la carte"
-                        onClick={() => setSelectedReport(report)}
+                        onClick={() => showOnMap(report)}
                     />
                 </div>,
             ],

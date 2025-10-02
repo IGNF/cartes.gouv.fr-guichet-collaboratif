@@ -11,9 +11,13 @@ import { CommunityReport, GeometryFeatueParams, PostThemeReport, SketchFeatureTy
 import { Fill, Icon, Stroke, Style, Text } from "ol/style";
 import { Geometry, LineString, MultiLineString, MultiPoint, MultiPolygon, Point, Polygon } from "ol/geom";
 import Layer from "ol/layer/Layer";
+import TileLayer from "ol/layer/Tile";
 import VectorSource from "ol/source/Vector";
 import WKT from "ol/format/WKT";
 import { Coordinate } from "ol/coordinate";
+import { TranslationFunction } from "i18nifty/typeUtils/TranslationFunction";
+import { LocalLayer, LocalStorageData } from "./localStorage/types";
+import { ComponentKey } from "@/i18n/types";
 import createStarImg from "../img/reports/markerslist/star.png";
 import createCircleImg from "../img/reports/markerslist/circle.png";
 import createSquareImg from "../img/reports/markerslist/square.png";
@@ -494,7 +498,7 @@ export const REPORT_STATUS_LIST = ["submit", "pending0", "pending", "pending1", 
 
 export function parseContentRange(contentRange: string) {
     let total = 0;
-    let limitPerPage = 0;
+    let limitPerPage = 10;
     let currentPage = 1;
 
     if (contentRange) {
@@ -533,4 +537,71 @@ export const addFeaturesInBatches = (source: VectorSource, features: Feature[], 
 
 export const extentEquals = (e1: Extent, e2: Extent) => {
     return e1[0] === e2[0] && e1[1] === e2[1] && e1[2] === e2[2] && e1[3] === e2[3];
+};
+
+export const transformReportsToExportData = (reports: CommunityReport[]) => {
+    return reports.map((report) => {
+        return {
+            author: report.author?.username || "-",
+            opening_date: report.opening_date ? new Date(report.opening_date).toLocaleDateString() : "-",
+            department: report.commune ? `${report.commune.title} (${report.departement?.name})` : "-",
+            theme: report.attributes && report.attributes.length > 0 ? report.attributes.map((attr) => attr.theme || "").join(", ") : "-",
+            status: report.status || "-",
+        };
+    });
+};
+
+export const handleShowOnMap = (
+    report: CommunityReport,
+    map: Map | null,
+    clusterSource: VectorSource<Feature<Geometry>>,
+    localStorageData: LocalStorageData | null,
+    t: TranslationFunction<"GetReportsLayer", ComponentKey>,
+    reportTableWidth: number
+) => {
+    if (!map || !clusterSource) return;
+
+    const localLayer: LocalLayer | undefined = localStorageData?.layers.find((l) => l.name === t("reports_title"));
+    if (localLayer) {
+        localLayer.visibility = true;
+    }
+
+    const view = map?.getView();
+    if (!view || !map) return;
+
+    let feature = clusterSource.getFeatures().find((f) => f.get("reportData")?.id === report.id);
+
+    if (feature) {
+        handleCenterToFeature(map, feature);
+    } else {
+        const featData = {
+            type: SketchFeatureType.Point,
+            geometry: report.geometry,
+        };
+        feature = getFeaturePoint(report, featData, true);
+        clusterSource.addFeature(feature);
+        handleCenterToFeature(map, feature);
+    }
+
+    const coords = getLonLatFromPoint(report.geometry) as Coordinate;
+    view.setCenter(coords);
+
+    const rasterLayers = map?.getAllLayers();
+    const layers = rasterLayers?.filter((layer) => layer.getVisible() === true && layer instanceof TileLayer);
+    const higherLayer = layers?.reduce((minLay, lay) => (!minLay || Number(lay.getZIndex()) < Number(minLay?.getZIndex()) ? lay : minLay));
+    const theLayerZoom = higherLayer?.getMaxZoom() - 2;
+
+    view.setZoom(theLayerZoom ?? view.getZoom());
+
+    const pixelOffsetX = -reportTableWidth / 2;
+
+    const applyOffset = () => {
+        const pixel = map.getPixelFromCoordinate(coords);
+        const pixelOffset = [pixel[0] + pixelOffsetX, pixel[1]];
+        const offsetCoord = map.getCoordinateFromPixel(pixelOffset);
+        view.setCenter(offsetCoord);
+        map.un("postrender", applyOffset);
+    };
+
+    map.on("postrender", applyOffset);
 };

@@ -7,7 +7,7 @@ import { getClickedMapReport, getReportSketchFeatures, REPORTS_LAYER_TYPE } from
 import { clearClusterStyles } from "@/constants/reports/utils/cluster";
 import { getCenterReportMessage, showCenterReportButtons } from "@/constants/utils";
 import { ParamsReport, toolNames } from "@/constants/reports/types";
-import { useCommunityStore, useMapStore, useModalStore, useReportStore } from "@/store";
+import { useCommunityStore, useMapStore, useReportStore } from "@/store";
 import Button from "@codegouvfr/react-dsfr/Button";
 import DrawerComponent from "@/components/DrawerComponent";
 import ShowReport from "./ShowReport";
@@ -35,7 +35,6 @@ const ReportDrawer = () => {
     } = useReportStore();
     const { map, setClickedMapFeature } = useMapStore();
 
-    const { replyReportModal } = useModalStore();
     const { alertMessages, removeAlertMessage } = useCommunityStore();
 
     const clusterLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE);
@@ -266,7 +265,7 @@ const ReportDrawer = () => {
                     ) : null}
                 </>
             </DrawerComponent>
-            <OpenReplyReportModal modal={replyReportModal} onClose={() => setResponseDrawerOpened(false)} />
+            <OpenReplyReportModal onClose={() => setResponseDrawerOpened(false)} />
         </>
     );
 };

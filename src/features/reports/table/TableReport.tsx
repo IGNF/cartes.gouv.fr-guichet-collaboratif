@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { CSVLink } from "react-csv";
-import { getTableReports, deleteCommunityReportAPI } from "@/api/reportsData";
+import { getTableReports } from "@/api/reportsData";
 import { useReportStore, useModalStore } from "@/store";
 import { useCommunityStore } from "@/store/useCommunityStore";
 import { REPORT_TABLE_LIMIT_OPTIONS } from "@/constants/reports/utils";
-import type { CommunityReport } from "@/constants/reports/types";
 import { StatusMessage } from "@/constants/communities/types";
 import { applyFiltersToReports } from "@/constants/reports/utils/reportFilters";
 import Checkbox from "@codegouvfr/react-dsfr/Checkbox";
@@ -16,14 +15,15 @@ import LoaderComponent from "@/components/LoaderComponent";
 import TransformReportsToTableData from "@/components/TransformReportsToTableData";
 import { SelectComponent } from "@/components/FilterAndSortReport";
 import PaginationReport from "./PaginationReport";
+import ConfirmDeleteReportModal from "../forms/ConfirmDeleteReportModal";
+import { transformReportsToExportData } from "@/constants/utils";
 
 type FilterHeaderKey = "status" | "author" | "opening_date" | "department" | "theme";
 
 const TableReport = () => {
     const [sortOrder, setSortOrder] = useState<"ASC" | "DESC" | undefined>(undefined);
 
-    const queryClient = useQueryClient();
-    const { alertMessages, removeAlertMessage, community, addAlertMessage } = useCommunityStore();
+    const { community, addAlertMessage } = useCommunityStore();
     const {
         limitPerPage,
         filteredReports,
@@ -41,7 +41,7 @@ const TableReport = () => {
         setCurrentPage,
     } = useReportStore();
 
-    const { replyReportModal } = useModalStore();
+    const { replyReportModal, deleteReportModal } = useModalStore();
     const filters = useMemo(
         () => ({
             status: currentFilters.status,
@@ -67,20 +67,14 @@ const TableReport = () => {
 
     const reports = useMemo(() => data?.data ?? [], [data]);
 
-    const total = data?.total ?? 0;
+    const total = data?.total ?? 10;
     const totalPages = Math.ceil(total / limitPerPage);
-
-    const {
-        isPending: isDeleting,
-        isError: isErrorDelete,
-        mutate: deleteReport,
-    } = useMutation({
-        mutationFn: (report: CommunityReport) => deleteCommunityReportAPI(report),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["reports", community?.id, limitPerPage, currentPage] });
-            setIsChecked({});
+    const { data: exportedData } = useQuery({
+        queryKey: ["reports-export", community?.id, filters, searchReport, sortBy],
+        queryFn: () => {
+            return community ? getTableReports(community.id, total, 1, filters, searchReport, sortBy) : Promise.resolve({ data: [], total: 0, currentPage: 1 });
         },
-        onError: () => {},
+        enabled: !!community,
     });
 
     useEffect(() => {
@@ -88,18 +82,6 @@ const TableReport = () => {
             addAlertMessage(StatusMessage.error, "Erreur lors du chargement des signalements.", 3000);
         }
     }, [isErrorReport, addAlertMessage]);
-
-    useEffect(() => {
-        if (isDeleting) {
-            addAlertMessage(StatusMessage.error, "Suppression en cours...", 3000);
-        } else {
-            const erroId = alertMessages.map((alert) => alert.id);
-            removeAlertMessage(Number(erroId));
-        }
-        if (isErrorDelete) {
-            addAlertMessage(StatusMessage.error, "Erreur de suppression", 3000);
-        }
-    }, [isDeleting, isErrorDelete, addAlertMessage]);
 
     useEffect(() => {
         if (reports) {
@@ -118,18 +100,19 @@ const TableReport = () => {
 
     const reportsToUse = filteredReports.length > 0 ? filteredReports : (reports ?? []);
     const tableData = TransformReportsToTableData(reportsToUse);
-    const matchingItems = searchReport
-        ? tableData.filter((item) => item.row.some((col) => col?.toString().toLowerCase().includes(searchReport.toLowerCase())))
-        : tableData;
 
-    const handleDelete = () => {
-        tableData
-            .filter((res) => !!isChecked[res.id])
-            .forEach((res) => {
-                deleteReport(res.original);
-            });
-    };
-    const downloadedTable = matchingItems.map((row) => row.exportData);
+    const checkedLines = useMemo(() => {
+        if (!Array.isArray(tableData) || !isChecked) return [];
+        return tableData.filter((res) => !!isChecked[String(res.id)]).map((res) => res.exportData);
+    }, [tableData, isChecked]);
+
+    const downloadedTable = useMemo(() => {
+        if (checkedLines.length > 0) return checkedLines;
+        if (Array.isArray(exportedData?.data)) {
+            return transformReportsToExportData(exportedData.data).map((expData) => expData);
+        }
+        return [];
+    }, [checkedLines, exportedData]);
 
     const tableHeaderToLabel: Record<FilterHeaderKey, string> = {
         author: "Auteur",
@@ -176,7 +159,13 @@ const TableReport = () => {
                     </div>
                     <div className="report-infos-line">
                         <div className="report-nbrSelectedLines">
-                            Nombre de lignes sélectionnées: <span>{selectedLine}</span>
+                            {selectedLine > 0 ? (
+                                <>
+                                    Nombre de lignes sélectionnées: <span>{selectedLine}</span>
+                                </>
+                            ) : (
+                                "Pas de lignes sélectionnées"
+                            )}
                         </div>
                         <div className="report-btns">
                             <CSVLink
@@ -187,11 +176,12 @@ const TableReport = () => {
                             ></CSVLink>
                             <Button
                                 type="button"
-                                onClick={() => handleDelete()}
+                                nativeButtonProps={deleteReportModal.buttonProps}
                                 iconId="fr-icon-delete-line"
                                 className="fr-icon--sm"
                                 title="Supprimer un signalement"
                                 priority="secondary"
+                                disabled={!isChecked || !Object.values(isChecked).some(Boolean)}
                             />
                             <Button
                                 nativeButtonProps={replyReportModal.buttonProps}
@@ -269,6 +259,8 @@ const TableReport = () => {
             ) : (
                 <div> Aucun résultat ne correspond à votre recherche.</div>
             )}
+
+            <ConfirmDeleteReportModal />
         </>
     );
 };
