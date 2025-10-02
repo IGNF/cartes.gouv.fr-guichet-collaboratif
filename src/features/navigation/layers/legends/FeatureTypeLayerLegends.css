@@ -4,7 +4,19 @@
 
 .feature-type-legends div {
     display: flex;
-    gap: 5px;
+    gap: 10px;
+}
+
+.feature-type-legends div:first-child {
+    align-items: center;
+}
+
+.feature-type-legends div:first-child label {
+    flex: 1;
+}
+
+.feature-type-legends div:first-child select {
+    flex: 1;
 }
 
 .feature-type-buttons {

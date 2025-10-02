@@ -28,6 +28,8 @@ import { CatalogControlEnTranslations } from "@/features/navigation/controls/loc
 import { useCenterViewToReportControlEnTranslations } from "@/features/navigation/controls/locale/useCenterViewToReportControl.locale";
 import { useGetMapControlsEnTranslations } from "@/features/navigation/controls/locale/useGetMapControls.locale";
 import { useReportToolsEnTranslations } from "@/hooks/reports/locale/useReportTools.locale";
+import { FeatureTypeLayerLegendsEnTranslations } from "@/features/navigation/layers/legends/locale/FeatureTypeLayerLegends.locale";
+import { ShowFeatureTypeFormEnTranslations } from "@/features/working-layer/forms/locale/ShowFeatureTypeForm.locale";
 
 export const translations: Translations<"en"> = {
     AppFooter: AppFooterEnTranslations,
@@ -59,4 +61,6 @@ export const translations: Translations<"en"> = {
     useCenterViewToReportControl: useCenterViewToReportControlEnTranslations,
     useGetMapControls: useGetMapControlsEnTranslations,
     useReportTools: useReportToolsEnTranslations,
+    FeatureTypeLayerLegends: FeatureTypeLayerLegendsEnTranslations,
+    ShowFeatureTypeForm: ShowFeatureTypeFormEnTranslations,
 };

@@ -20,6 +20,7 @@ export type ComponentKey =
     | import("../pages/locale/NotFound.locale").I18n
     | import("../pages/locale/Carte.locale").I18n
     | import("../features/navigation/layers/locale/GetReportsLayer.locale").I18n
+    | import("../features/navigation/layers/legends/locale/FeatureTypeLayerLegends.locale").I18n
     | import("../features/navigation/controls/locale/DrawingControl.locale").I18n
     | import("../features/navigation/controls/locale/CatalogControl.locale").I18n
     | import("../features/navigation/controls/locale/useCenterViewToReportControl.locale").I18n
@@ -36,6 +37,7 @@ export type ComponentKey =
     | import("../features/reports/locale/CreateReport.locale").I18n
     | import("../features/reports/locale/EditReport.locale").I18n
     | import("../features/reports/locale/ShowReport.locale").I18n
+    | import("../features/working-layer/forms/locale/ShowFeatureTypeForm.locale").I18n
     | import("../hooks/navigation/layers/locale/useGetReportsLayer.locale").I18n
     | import("../hooks/navigation/layers/locale/useGetWFSLayer.locale").I18n
     | import("../hooks/navigation/layers/locale/useGetWMSLayer.locale").I18n

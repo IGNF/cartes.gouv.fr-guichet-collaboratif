@@ -135,8 +135,10 @@
 .map-toolbar-bottom-select label {
     width: 100%;
     font-weight: bold;
+    flex: 1;
 }
 
 .map-toolbar-bottom-select select {
     margin-top: 0px !important;
+    flex: 2;
 }

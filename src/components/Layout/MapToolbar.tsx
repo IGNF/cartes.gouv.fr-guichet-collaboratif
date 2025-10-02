@@ -33,13 +33,13 @@ const MapToolbar: React.FC = () => {
                 const communityLayer = communityLayers?.find((lr) => lr.geoservice.layer === layer.name);
                 return {
                     value: layer.name,
-                    label: `${layer.title} ${communityLayer?.geoservice.readOnly ? "[Lecture]" : ""}`,
+                    label: `${layer.title} ${communityLayer?.geoservice.readOnly ? `[${t("read_only")}]` : ""}`,
                 };
             })
             .sort((l1, l2) => l1.label.localeCompare(l2.label));
         if (reportLayer) layers.push({ value: reportLayer?.name, label: reportLayer?.title });
         return layers;
-    }, [mapLayers, reportLayer, communityLayers]);
+    }, [mapLayers, reportLayer, communityLayers, t]);
 
     useEffect(() => {
         if (!mapWorkingLayer && workingLayers[0]) {

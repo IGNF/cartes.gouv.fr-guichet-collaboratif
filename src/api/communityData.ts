@@ -6,6 +6,7 @@ import { getGeoserviceAll } from "./geoservicesData";
 import { Community, CommunityGeoservice, CommunityLayer, layerData } from "@/constants/communities/types";
 import { axiosApi } from ".";
 import { getFeatureTypesAll } from "./featureTypesData";
+import { LAYER_FEATURE_TYPE } from "@/constants";
 
 let queryClient: QueryClient;
 
@@ -20,7 +21,7 @@ async function getCommunityLayers(communityId: string): Promise<CommunityLayer[]
     if (!res.data || res.status !== 200) return [];
     const layers = res.data;
     const layersGeoservice = layers.filter((layer: layerData) => layer.type === "geoservice");
-    const layersFeatureType = layers.filter((layer: layerData) => layer.type === "feature-type");
+    const layersFeatureType = layers.filter((layer: layerData) => layer.type === LAYER_FEATURE_TYPE);
     const geoservicesIds = layersGeoservice.map((layer: layerData) => layer?.geoservice?.id);
     const featureTypesIds = layersFeatureType.map((layer: layerData) => {
         return { database: layer?.database, table: layer?.table };
