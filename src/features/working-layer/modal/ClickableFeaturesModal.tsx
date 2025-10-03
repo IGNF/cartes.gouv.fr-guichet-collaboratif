@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import "./clickableFeaturesModal.css";
 import Button from "@codegouvfr/react-dsfr/Button";
 import { Feature } from "ol";
+import { useTranslation } from "@/i18n";
 
 const modal = createModal({
     id: "clickable-features-modal",
@@ -19,13 +20,20 @@ const ClickableFeaturesModal = () => {
         },
     });
 
+    const { t } = useTranslation({ ClickableFeaturesModal });
+
     useEffect(() => {
         if (clickableFeatures.length > 1) {
             modal.open();
+            const closeButtons = document.querySelectorAll(`button[aria-controls="${modal.id}"`);
+            closeButtons.forEach((button) => {
+                button.textContent = t("close");
+                button.setAttribute("title", t("close"));
+            });
         } else if (isOpen) {
             modal.close();
         }
-    }, [clickableFeatures, isOpen]);
+    }, [clickableFeatures, isOpen, t]);
 
     const handleSelectedFeature = (f: Feature) => {
         setClickedMapFeature(f);
@@ -48,20 +56,13 @@ const ClickableFeaturesModal = () => {
             title={
                 <>
                     {" "}
-                    Veuillez choisir un objet
+                    {t("title")}
                     <p className="clickable-features-modal_sub-title">{clickableFeatures[0]?.get("geoservice")?.title ?? mapWorkingLayer}</p>
                 </>
             }
             size="small"
             concealingBackdrop={false}
             topAnchor={false}
-            buttons={[
-                {
-                    children: "Fermer",
-                    priority: "secondary",
-                    size: "small",
-                },
-            ]}
         >
             <div className="clickable-features-modal_content">
                 {clickableFeatures.map((f, index) => (

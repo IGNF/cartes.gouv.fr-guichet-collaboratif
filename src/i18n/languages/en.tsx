@@ -30,6 +30,7 @@ import { useGetMapControlsEnTranslations } from "@/features/navigation/controls/
 import { useReportToolsEnTranslations } from "@/hooks/reports/locale/useReportTools.locale";
 import { FeatureTypeLayerLegendsEnTranslations } from "@/features/navigation/layers/legends/locale/FeatureTypeLayerLegends.locale";
 import { ShowFeatureTypeFormEnTranslations } from "@/features/working-layer/forms/locale/ShowFeatureTypeForm.locale";
+import { ClickableFeaturesModalEnTranslations } from "@/features/working-layer/modal/locale/ClickableFeaturesModal.locale";
 
 export const translations: Translations<"en"> = {
     AppFooter: AppFooterEnTranslations,
@@ -63,4 +64,5 @@ export const translations: Translations<"en"> = {
     useReportTools: useReportToolsEnTranslations,
     FeatureTypeLayerLegends: FeatureTypeLayerLegendsEnTranslations,
     ShowFeatureTypeForm: ShowFeatureTypeFormEnTranslations,
+    ClickableFeaturesModal: ClickableFeaturesModalEnTranslations,
 };

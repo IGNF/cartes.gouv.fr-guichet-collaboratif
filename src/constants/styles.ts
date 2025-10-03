@@ -393,7 +393,7 @@ export const getStyleWebGLDefault: (newStyle?: FeatureTypeStyleItem | undefined,
     } else if (isDefault) {
         iconScale = 0.4;
     } else if (newStyle?.pointRadius) {
-        iconScale = (newStyle?.pointRadius / Math.max(...allRadius)) * 1.3;
+        iconScale = (newStyle?.pointRadius / Math.min(10, Math.max(...allRadius))) * 0.6;
     }
     return {
         "stroke-color": newStyle ? hexToRgba(newStyle.strokeColor, newStyle.strokeOpacity) : "#fff",
@@ -480,6 +480,7 @@ export const getWebGLStyle = (geoservice: CommunityGeoservice, selectedStyle?: F
         ...filterStyleByCondition,
         {
             else: true,
+            filter: ["!", ["has", "selected"]],
             style: getStyleWebGLDefault(newTypes![0], allRadius, newStyle.name === DEFAULT_STYLE_NAME),
         },
         ...filterSelected,

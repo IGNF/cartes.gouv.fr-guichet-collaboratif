@@ -38,6 +38,7 @@ export type ComponentKey =
     | import("../features/reports/locale/EditReport.locale").I18n
     | import("../features/reports/locale/ShowReport.locale").I18n
     | import("../features/working-layer/forms/locale/ShowFeatureTypeForm.locale").I18n
+    | import("../features/working-layer/modal/locale/ClickableFeaturesModal.locale").I18n
     | import("../hooks/navigation/layers/locale/useGetReportsLayer.locale").I18n
     | import("../hooks/navigation/layers/locale/useGetWFSLayer.locale").I18n
     | import("../hooks/navigation/layers/locale/useGetWMSLayer.locale").I18n

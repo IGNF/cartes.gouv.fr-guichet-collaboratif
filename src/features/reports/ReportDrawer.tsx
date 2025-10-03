@@ -14,8 +14,7 @@ import ShowReport from "./ShowReport";
 import CreateReport from "./CreateReport";
 import TableReportDrawer from "./table/TableReportDrawer";
 import OpenReplyReportModal from "./forms/OpenReplyReportModal";
-
-const HIT_DETECTION_TOLERENCE = 5;
+import { HIT_DETECTION_TOLERENCE } from "@/constants";
 
 const ReportDrawer = () => {
     const { mapWorkingLayer } = useMapStore();
