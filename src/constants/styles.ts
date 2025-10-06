@@ -6,7 +6,11 @@ import { CLUSTER_CIRCLE_COLOR, CLUSTER_REPORT_CIRCLE_COLOR, CLUSTER_REPORT_CIRCL
 import { GeometryFeatueParams } from "./reports/types";
 import { Map } from "ol";
 import { FeatureLike } from "ol/Feature";
-import { FeatureTypeStyle, FeatureTypeStyleItem, RegularShapeStyleProps } from "./communities/types";
+import { CommunityGeoservice, FeatureTypeSelectedStyle, FeatureTypeStyle, FeatureTypeStyleItem, RegularShapeStyleProps } from "./communities/types";
+import { FlatStyle } from "ol/style/flat";
+import getWellKnownNames from "./wellKnownNames";
+import { symbolComparator } from "./mongo_parser";
+import { DEFAULT_STYLE_NAME } from ".";
 
 export const clusterReportCircleStyle = (coord: Coordinate) =>
     new Style({
@@ -290,7 +294,7 @@ export const featureTypeSelectedPolygonStyle = (isDefaultStyle: boolean = false)
 
 export const featureDefaultStyle = (type: string = "point"): FeatureTypeStyle => {
     return {
-        name: "par_defaut",
+        name: DEFAULT_STYLE_NAME,
         types: [
             {
                 title: "Par défaut",
@@ -314,4 +318,171 @@ export const getSelectedFeatureTypeStyle = (type: string, style: FeatureTypeStyl
     if (type === "point") return featureTypeSelectedPointCircleStyle(isDefaultStyle);
     if (type === "line") return featureTypeSelectedLineStyle(isDefaultStyle);
     if (type === "polygon") return featureTypeSelectedPolygonStyle(isDefaultStyle);
+};
+
+export const getStyleWebGLPolygon: (isDefault: boolean) => FlatStyle[] = (isDefault: boolean = false): FlatStyle[] => {
+    return [
+        {
+            "stroke-color": hexToRgba(isDefault ? "#13a7eb" : "#13a7eb", 1),
+            "stroke-width": isDefault ? 6 : 10,
+        },
+        {
+            "stroke-color": hexToRgba(isDefault ? "#13a7eb" : "#fafa00", 1),
+            "stroke-width": isDefault ? 4 : 6,
+        },
+        {
+            "stroke-color": hexToRgba(isDefault ? "#fff" : "#13a7eb", 1),
+            "stroke-width": 2,
+            "fill-color": hexToRgba(isDefault ? "#fff" : "#c89c4a", isDefault ? 0.4 : 0.8),
+        },
+    ];
+};
+
+export const getStyleWebGLLine: (isDefault: boolean) => FlatStyle[] = (isDefault: boolean = false): FlatStyle[] => {
+    return [
+        {
+            "stroke-color": hexToRgba(isDefault ? "#fff" : "#13a7eb", 1),
+            "stroke-width": 7,
+            "stroke-line-cap": "round",
+        },
+        {
+            "stroke-color": hexToRgba(isDefault ? "#13a7eb" : "#fafa00", 1),
+            "stroke-width": 4,
+            "stroke-line-cap": "round",
+        },
+    ];
+};
+
+export const getStyleWebGLPoint: (isDefault: boolean) => FlatStyle | FlatStyle[] = (isDefault: boolean = false): FlatStyle | FlatStyle[] => {
+    if (isDefault) {
+        return {
+            "circle-radius": 6,
+            "circle-stroke-color": hexToRgba("#fff", 1),
+            "circle-stroke-width": 2,
+            "circle-fill-color": hexToRgba("#13a7eb", 1),
+            "z-index": ["get", "zIndex"],
+        };
+    }
+    return [
+        {
+            "circle-radius": 8,
+            "circle-stroke-color": hexToRgba("#13a7eb", 1),
+            "circle-stroke-width": 2,
+            "circle-fill-color": hexToRgba("#fafa00", 1),
+            "z-index": ["get", "zIndex"],
+        },
+        {
+            "circle-radius": 3.5,
+            "circle-stroke-color": hexToRgba("#13a7eb", 1),
+            "circle-stroke-width": 2,
+            "circle-fill-color": hexToRgba("#c89c4a", 1),
+            "z-index": ["get", "zIndex"],
+        },
+    ];
+};
+
+export const getStyleWebGLDefault: (newStyle?: FeatureTypeStyleItem | undefined, allRadius?: number[], isDefault?: boolean) => FlatStyle | FlatStyle[] = (
+    newStyle,
+    allRadius = [],
+    isDefault = false
+) => {
+    const logo = newStyle?.logo ? newStyle?.logo : newStyle ? (getWellKnownNames(newStyle!)[1] as HTMLImageElement).src : "";
+    let iconScale = 0.6;
+    if (newStyle?.logo) {
+        iconScale = 1;
+    } else if (isDefault) {
+        iconScale = 0.4;
+    } else if (newStyle?.pointRadius) {
+        iconScale = (newStyle?.pointRadius / Math.min(10, Math.max(...allRadius))) * 0.6;
+    }
+    return {
+        "stroke-color": newStyle ? hexToRgba(newStyle.strokeColor, newStyle.strokeOpacity) : "#fff",
+        "stroke-width": newStyle ? newStyle.strokeWidth : 1,
+        "fill-color": newStyle ? hexToRgba(newStyle.fillColor, newStyle.fillOpacity) : "#fff",
+        "circle-radius": newStyle?.pointRadius ?? 4,
+        "circle-stroke-width": 2,
+        "circle-stroke-color": newStyle ? hexToRgba(newStyle.strokeColor, newStyle.strokeOpacity) : "#fff",
+        "circle-fill-color": newStyle ? hexToRgba(newStyle.fillColor, newStyle.fillOpacity) : "#fff",
+        "circle-scale": iconScale,
+        "circle-opacity": 1,
+        "icon-src": logo ?? "",
+        "icon-size": 34,
+        "icon-scale": iconScale,
+        "shape-stroke-line-cap": newStyle ? newStyle.strokeLinecap : "round",
+        "shape-stroke-line-dash": newStyle && newStyle.strokeDashstyle ? strokeLineDash(newStyle) : undefined,
+        "z-index": ["get", "zIndex"],
+    };
+};
+
+export const getFilterStyleByCondition = (newTypes: FeatureTypeStyleItem[], allRadius?: number[]) => {
+    const conditions = newTypes
+        ?.filter((t, index) => t.condition && newTypes![index])
+        .map((type) =>
+            type.condition?.$and.map((cond) =>
+                Object.keys(cond)
+                    .map((key) => [
+                        key,
+                        ...Object.keys(cond[key])
+                            .map((nestedKey) => [nestedKey, cond[key][nestedKey]])
+                            .flat(),
+                    ])
+                    .flat()
+            )
+        );
+    const filters = conditions?.map((cond, index) => {
+        const filter: (string | number | number[] | string[])[][] = [];
+        let property: string = "";
+        cond?.forEach((c) => {
+            const comparator = symbolComparator[c![1] as string];
+            property = c![0] as string;
+            const value = ["get", property];
+            const expectedValue = c![2] as number | string | string[] | number[];
+            filter.push(Array.isArray(expectedValue) ? [comparator, value, ...expectedValue] : [comparator, value, expectedValue]);
+        });
+
+        return {
+            filter: ["all", ["!", ["has", "selected"]], ["has", property], ...filter],
+            style: getStyleWebGLDefault(newTypes![index + 1], allRadius),
+        };
+    });
+    return filters ?? [];
+};
+
+export const getWebGLStyle = (geoservice: CommunityGeoservice, selectedStyle?: FeatureTypeSelectedStyle[]) => {
+    const layerStyle = selectedStyle?.find((type) => type.layer === geoservice.layer);
+    const newStyle = layerStyle ? layerStyle.selectedStyle : geoservice.styles![0];
+    const newTypes = newStyle.types;
+    const allRadius = newTypes ? newTypes.map((type) => type.pointRadius ?? 6) : [6];
+    const filterStyleByCondition = getFilterStyleByCondition(newTypes!, allRadius);
+    let filterSelected = [
+        {
+            filter: ["all", ["==", ["get", "featureType"], "point"], ["has", "selected"]],
+            style: getStyleWebGLPoint(newStyle.name === DEFAULT_STYLE_NAME),
+        },
+    ];
+    if (geoservice.featureType === "polygon") {
+        filterSelected = [
+            {
+                filter: ["all", ["==", ["get", "featureType"], "polygon"], ["has", "selected"]],
+                style: getStyleWebGLPolygon(newStyle.name === DEFAULT_STYLE_NAME),
+            },
+        ];
+    }
+    if (geoservice.featureType === "line") {
+        filterSelected = [
+            {
+                filter: ["all", ["==", ["get", "featureType"], "line"], ["has", "selected"]],
+                style: getStyleWebGLLine(newStyle.name === DEFAULT_STYLE_NAME),
+            },
+        ];
+    }
+    return [
+        ...filterStyleByCondition,
+        {
+            else: true,
+            filter: ["!", ["has", "selected"]],
+            style: getStyleWebGLDefault(newTypes![0], allRadius, newStyle.name === DEFAULT_STYLE_NAME),
+        },
+        ...filterSelected,
+    ];
 };

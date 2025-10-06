@@ -1,7 +1,6 @@
 import { ComponentKey } from "@/i18n/types";
 import { TranslationFunction } from "i18nifty/typeUtils/TranslationFunction";
-import { ArrayGeoJSONProps, CommunityGeoservice, FeatureTypeSelectedStyle, GeoJSONProps } from "../types";
-import { hexToRgba } from "@/constants/styles";
+import { ArrayGeoJSONProps, CommunityGeoservice, GeoJSONProps } from "../types";
 
 export const translateLayerSwitcherControl = (t: TranslationFunction<"useGetMapControls", ComponentKey>) => {
     const switcherControl = document.querySelector('div[id^="GPlayerSwitcher-"]');
@@ -54,10 +53,7 @@ export const translateSearchEngineControl = (t: TranslationFunction<"useGetMapCo
     if (searchEngineBtn) searchEngineBtn.setAttribute("title", t("control_search_engine_btn"));
 };
 
-export const arrayToGeoJSON = (arr: ArrayGeoJSONProps[], geoservice: CommunityGeoservice, featureTypeSelectedStyle: FeatureTypeSelectedStyle[]) => {
-    const layerStyle = featureTypeSelectedStyle.find((type) => type.layer === geoservice.layer);
-    const defaultStyle = geoservice.styles ? geoservice.styles![0]?.types![0] : null;
-    const newStyle = layerStyle ? layerStyle.selectedStyle.types![0] : defaultStyle;
+export const arrayToGeoJSON = (arr: ArrayGeoJSONProps[], geoservice: CommunityGeoservice) => {
     const features = {
         type: "FeatureCollection",
         features: arr.map((el) => {
@@ -67,11 +63,6 @@ export const arrayToGeoJSON = (arr: ArrayGeoJSONProps[], geoservice: CommunityGe
                     ?.replace(/POINT|\(|\)/g, "")
                     .split(",")
                     .map((s1: string) => s1.split(" ").map((w) => Number(w))) || [];
-            const style = {
-                strokeColor: newStyle ? hexToRgba(newStyle.strokeColor, newStyle.strokeOpacity) : "#fff",
-                strokeWidth: newStyle ? newStyle.strokeWidth : 1,
-                fillColor: newStyle ? hexToRgba(newStyle.fillColor, newStyle.fillOpacity) : "#fff",
-            };
             if (el.geometrie?.includes("MULTIPOLYGON")) {
                 lonLat = el.geometrie
                     .replace(/MULTIPOLYGON|\(|\)/g, "")
@@ -87,7 +78,7 @@ export const arrayToGeoJSON = (arr: ArrayGeoJSONProps[], geoservice: CommunityGe
                 type = "LineString";
             }
 
-            const featureTypeData = { ...el };
+            const featureTypeData = { ...el, id: el.id ?? el.cleabs };
             delete featureTypeData.geometrie;
 
             return {
@@ -101,7 +92,8 @@ export const arrayToGeoJSON = (arr: ArrayGeoJSONProps[], geoservice: CommunityGe
                 properties: {
                     featureTypeData,
                     geoservice: geoservice.featureType ? geoservice : undefined,
-                    ...style,
+                    featureType: geoservice.featureType,
+                    ...featureTypeData,
                 },
             };
         }),
@@ -109,26 +101,32 @@ export const arrayToGeoJSON = (arr: ArrayGeoJSONProps[], geoservice: CommunityGe
     return features;
 };
 
-export const getGeoJSONProps = (arr: GeoJSONProps, geoservice: CommunityGeoservice, featureTypeSelectedStyle: FeatureTypeSelectedStyle[]) => {
-    const layerStyle = featureTypeSelectedStyle.find((type) => type.layer === geoservice.layer);
-    const defaultStyle = geoservice.styles ? geoservice.styles![0]?.types![0] : null;
-    const newStyle = layerStyle ? layerStyle.selectedStyle.types![0] : defaultStyle;
+export const getGeoJSONProps = (arr: GeoJSONProps, geoservice: CommunityGeoservice) => {
     return {
         type: arr.type,
         features: arr.features.map((e) => {
-            const style = {
-                strokeColor: newStyle ? hexToRgba(newStyle.strokeColor, newStyle.strokeOpacity) : "#2b4ae6ff",
-                strokeWidth: newStyle ? newStyle.strokeWidth : 1,
-                fillColor: newStyle ? hexToRgba(newStyle.fillColor, newStyle.fillOpacity) : "#2724c0ff",
-            };
+            const featureTypeData = { ...(typeof e.properties === "object" && e.properties !== null ? e.properties : {}), id: e.id ?? e.cleabs };
             return {
                 ...e,
                 properties: {
-                    featureTypeData: e.properties,
+                    featureTypeData: featureTypeData,
                     geoservice: geoservice.featureType ? geoservice : undefined,
-                    ...style,
+                    featureType: geoservice.featureType,
+                    ...featureTypeData,
                 },
             };
         }),
     };
+};
+
+export const jsonToHtmlList = (data: object): string => {
+    if (Array.isArray(data)) {
+        return `<ul class="feature-type-form-table_ul">${data.map((item) => `<li>${jsonToHtmlList(item)}</li>`).join("")}</ul>`;
+    } else if (typeof data === "object" && data !== null) {
+        return `<ul class="feature-type-form-table_ul">${Object.entries(data)
+            .map(([key, value]) => `<li><strong>${key}:</strong> ${jsonToHtmlList(value)}</li>`)
+            .join("")}</ul>`;
+    } else {
+        return String(data);
+    }
 };

@@ -46,7 +46,7 @@ export type FeatureTypeStyleItem = {
     strokeOpacity: number;
     zIndex?: number;
     logo?: string;
-    condition?: { $and: { [key: string]: { [key: string]: number | string } }[] };
+    condition?: { $and: { [key: string]: { [key: string]: number | string | string[] | number[] } }[] };
 };
 
 export type FeatureTypeStyleItemData = FeatureTypeStyleItem & {
@@ -161,5 +161,6 @@ export interface GeoJSONProps {
 
 export interface ArrayGeoJSONProps {
     geometrie?: string;
+    id: string | number;
     cleabs: string | number;
 }

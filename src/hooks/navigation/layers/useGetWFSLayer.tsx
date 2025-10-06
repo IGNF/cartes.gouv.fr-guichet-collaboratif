@@ -14,6 +14,7 @@ import { createXYZ } from "ol/tilegrid";
 import { transformExtent } from "ol/proj";
 import { Extent } from "ol/extent";
 import { arrayToGeoJSON, getGeoJSONProps } from "@/constants/communities/utils";
+import { getWebGLStyle } from "@/constants/styles";
 
 const TILE_SIZE = 256;
 
@@ -27,15 +28,25 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
 
     const mapProjCode = useMemo(() => map?.getView()?.getProjection().getCode() ?? "EPSG:3857", [map]);
     const geoProjCode = useMemo(() => geoservice.columns?.find((c) => c.name === geoservice.geometryName)?.crs ?? "EPSG:3857", [geoservice]);
-    const filterDetruit = useMemo(() => geoservice.columns?.find((c) => c.name === "detruit"), [geoservice]);
+    const filterDetruit = useMemo(() => (geoservice.columns?.find((c) => c.name === "detruit") ? '"detruit":false' : ""), [geoservice]);
+    const filterFictif = useMemo(() => (geoservice.columns?.find((c) => c.name === "fictif") ? '"fictif":false' : ""), [geoservice]);
+
+    const urlsFilters = useMemo(() => {
+        const filters = [filterDetruit, filterFictif].filter((f) => !!f);
+
+        if (filters.length) {
+            return `&filter={${filters.join(",")}}`;
+        }
+        return "";
+    }, [filterDetruit, filterFictif]);
 
     const addFeaturesToSource = useCallback(
         (wfsSource: VectorSource, data: GeoJSONProps | ArrayGeoJSONProps[]) => {
             let newData = data;
             if (Array.isArray(data)) {
-                newData = arrayToGeoJSON(data, geoservice, featureTypeSelectedStyle);
+                newData = arrayToGeoJSON(data, geoservice);
             } else {
-                newData = getGeoJSONProps(data, geoservice, featureTypeSelectedStyle);
+                newData = getGeoJSONProps(data, geoservice);
             }
 
             const features = new GeoJSON().readFeatures(newData, {
@@ -44,7 +55,7 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
             });
             wfsSource.addFeatures(features);
         },
-        [geoProjCode, mapProjCode, geoservice, featureTypeSelectedStyle]
+        [geoProjCode, mapProjCode, geoservice]
     );
 
     const wfsLoader = useCallback(
@@ -59,7 +70,7 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
                     `&outputFormat=${geoservice.featureType ? "GeoJSON" : "application/json"}` + //
                     `&srsname=${geoProjCode}` +
                     `&maxFeatures=5000` +
-                    (filterDetruit ? `&filter={"detruit":false}` : "") +
+                    urlsFilters +
                     `&bbox=${transformedExtent.join(",")},${geoProjCode}`;
 
                 const queryKey = [`GET_WFS_GET_FEATURES_${geoservice.url}_${geoservice.version}_${geoservice.layer}_${transformedExtent.join(",")}`];
@@ -85,7 +96,7 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
                 addAlertMessage(StatusMessage.error, t("loading_layer_error", { layerTitle: geoservice.title }));
             }
         },
-        [addAlertMessage, addFeaturesToSource, filterDetruit, geoProjCode, geoservice, mapProjCode, queryClient, t]
+        [addAlertMessage, addFeaturesToSource, urlsFilters, geoProjCode, geoservice, mapProjCode, queryClient, t]
     );
 
     const wfsSource = useMemo(() => {
@@ -101,26 +112,15 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
     const wfsLayer = useMemo(() => {
         return new WebGLVectorLayer<VectorSource<Feature<Geometry>>>({
             source: wfsSource,
-            style: [
-                {
-                    "circle-stroke-color": ["get", "strokeColor"],
-                    "circle-fill-color": ["get", "fillColor"],
-                    "stroke-color": ["get", "strokeColor"],
-                    "stroke-width": ["get", "strokeWidth"],
-                    "fill-color": ["get", "fillColor"],
-                    "circle-radius": 6,
-                    "circle-stroke-width": 2,
-                },
-                {
-                    "circle-stroke-color": ["get", "strokeColor"],
-                    "circle-fill-color": ["get", "fillColor"],
-                    "stroke-color": ["get", "strokeColor"],
-                    "stroke-width": ["get", "strokeWidth"],
-                    "fill-color": ["get", "fillColor"],
-                },
-            ],
+            style: getWebGLStyle(geoservice),
         });
-    }, [wfsSource]);
+    }, [wfsSource, geoservice]);
+
+    useEffect(() => {
+        wfsLayer.setStyle(getWebGLStyle(geoservice, featureTypeSelectedStyle));
+        wfsLayer.changed();
+    }, [wfsLayer, featureTypeSelectedStyle, geoservice]);
+
     useEffect(() => {
         wfsLayer.set("title", geoservice.title);
         wfsLayer.set("name", geoservice.layer);

@@ -10,11 +10,13 @@ interface MapStore {
     clickedMapFeature: Feature | null;
     workingLayerDrawerOpened: boolean;
     mapWorkingLayer: string;
+    clickableFeatures: Feature[];
     setMap: (map: Map | null, mapSwitcher: typeof LayerSwitcher | null) => void;
     setFeatureTypeSelectedStyle: ({ layer, selectedStyle }: FeatureTypeSelectedStyle) => void;
     setClickedMapFeature: (feature: Feature | null) => void;
     setWorkingLayerDrawerOpened: (open: boolean) => void;
     setMapWorkingLayer: (layerName: string) => void;
+    setClickableFeatures: (features: Feature[]) => void;
 }
 
 export const useMapStore = create<MapStore>((set, get) => ({
@@ -24,6 +26,7 @@ export const useMapStore = create<MapStore>((set, get) => ({
     clickedMapFeature: null,
     workingLayerDrawerOpened: false,
     mapWorkingLayer: "",
+    clickableFeatures: [],
     setMap: (map, mapSwitcher) => {
         set({ map, mapSwitcher });
     },
@@ -48,4 +51,5 @@ export const useMapStore = create<MapStore>((set, get) => ({
     setMapWorkingLayer: (layerName) => {
         set({ mapWorkingLayer: layerName });
     },
+    setClickableFeatures: (features) => set({ clickableFeatures: features }),
 }));

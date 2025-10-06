@@ -1,11 +1,11 @@
 import { CommunityGeoservice, FeatureTypeColumn } from "@/constants/communities/types";
-import { hexToRgba } from "@/constants/styles";
+import { jsonToHtmlList } from "@/constants/communities/utils";
 import { useTranslation } from "@/i18n";
 import { useMapStore } from "@/store";
 import Button from "@codegouvfr/react-dsfr/Button";
 import Table from "@codegouvfr/react-dsfr/Table";
 import { Tooltip } from "@codegouvfr/react-dsfr/Tooltip";
-import { memo, useCallback, useEffect, useMemo, useRef } from "react";
+import { memo, useCallback, useEffect, useMemo } from "react";
 
 interface PointDataProps {
     [key: string]: string | number | null;
@@ -13,7 +13,6 @@ interface PointDataProps {
 
 const ShowFeatureTypeForm = () => {
     const { map, mapSwitcher, clickedMapFeature, setWorkingLayerDrawerOpened, setClickedMapFeature } = useMapStore();
-    const lastMapFeatStyle = useRef<{ [key: string]: string | number } | null>(null);
 
     const { t } = useTranslation({ ShowFeatureTypeForm });
 
@@ -34,31 +33,17 @@ const ShowFeatureTypeForm = () => {
 
     useEffect(() => {
         if (clickedMapFeature) {
-            lastMapFeatStyle.current = {
-                strokeColor: clickedMapFeature.get("strokeColor"),
-                strokeWidth: clickedMapFeature.get("strokeWidth"),
-                fillColor: clickedMapFeature.get("fillColor"),
-            };
-            const newStyle = geoserviceData?.styles![0].types![0];
-            clickedMapFeature.set("strokeColor", hexToRgba("#13a7eb", newStyle.strokeOpacity));
-            clickedMapFeature.set("strokeWidth", 2);
-            clickedMapFeature.set("fillColor", hexToRgba("#c89c4a", 0.8));
-            clickedMapFeature.set("strokeColor2", hexToRgba("#fafa00", newStyle.strokeOpacity));
-            clickedMapFeature.set("strokeWidth2", 4);
-            clickedMapFeature.set("fillColor2", hexToRgba("#fafa00", 0.2));
-            featureLayer?.getSource()?.changed();
+            clickedMapFeature.set("selected", true);
+            clickedMapFeature.set("zIndex", 100000);
+
+            clickedMapFeature.changed();
         }
         return () => {
-            if (clickedMapFeature && lastMapFeatStyle.current) {
-                clickedMapFeature.set("strokeColor", lastMapFeatStyle.current.strokeColor);
-                clickedMapFeature.set("strokeWidth", lastMapFeatStyle.current.strokeWidth);
-                clickedMapFeature.set("fillColor", lastMapFeatStyle.current.fillColor);
-                clickedMapFeature.set("strokeColor2", lastMapFeatStyle.current.strokeColor);
-                clickedMapFeature.set("strokeWidth2", lastMapFeatStyle.current.strokeWidth);
-                clickedMapFeature.set("fillColor2", lastMapFeatStyle.current.fillColor);
+            if (clickedMapFeature) {
+                clickedMapFeature.unset("selected");
+                clickedMapFeature.unset("zIndex");
 
-                featureLayer?.getSource()?.changed();
-                lastMapFeatStyle.current = null;
+                clickedMapFeature.changed();
             }
         };
     }, [clickedMapFeature, geoserviceData, featureLayer, setWorkingLayerDrawerOpened]);
@@ -89,6 +74,12 @@ const ShowFeatureTypeForm = () => {
                         break;
                 }
                 if (col.crs) return [];
+                try {
+                    const json = JSON.parse(value as string);
+                    value = jsonToHtmlList(json);
+                } catch {
+                    // Ignore JSON parse errors
+                }
                 return [
                     col.description ? (
                         <Tooltip kind="hover" title={<span dangerouslySetInnerHTML={{ __html: col.description }} />}>
@@ -97,7 +88,10 @@ const ShowFeatureTypeForm = () => {
                     ) : (
                         <span>{title}</span>
                     ),
-                    <span className={typeof value === "string" && value.includes("vide") ? "feature-type-form-table_null_value" : ""}>{value}</span>,
+                    <span
+                        className={typeof value === "string" && value.includes("vide") ? "feature-type-form-table_null_value" : ""}
+                        dangerouslySetInnerHTML={{ __html: value ?? "" }}
+                    />,
                 ];
             }),
         [columns, pointData, t]
@@ -108,7 +102,7 @@ const ShowFeatureTypeForm = () => {
     return (
         <>
             <h1 className="feature-type-form-title fr-mt-4v fr-mb-1v fr-text--lg">
-                {clickedMapFeature?.get("geoservice")?.title} {pointData.id || pointData.cleabs}
+                {clickedMapFeature?.get("geoservice")?.title} : {pointData.id || pointData.cleabs}
             </h1>
 
             <Table bordered fixed data={dataColumns} className="feature-type-form-table" />

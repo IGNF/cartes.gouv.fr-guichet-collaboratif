@@ -14,6 +14,7 @@ import ShowReport from "./ShowReport";
 import CreateReport from "./CreateReport";
 import TableReportDrawer from "./table/TableReportDrawer";
 import OpenReplyReportModal from "./forms/OpenReplyReportModal";
+import { HIT_DETECTION_TOLERENCE } from "@/constants";
 
 const ReportDrawer = () => {
     const { mapWorkingLayer } = useMapStore();
@@ -33,12 +34,15 @@ const ReportDrawer = () => {
         setTableDrawerOpened,
         setResponseDrawerOpened,
     } = useReportStore();
-    const { map, setClickedMapFeature } = useMapStore();
 
+    const { map, setClickedMapFeature, setClickableFeatures } = useMapStore();
     const { alertMessages, removeAlertMessage } = useCommunityStore();
 
     const clusterLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE);
     const clusterSource = clusterLayer?.getSource() as VectorSource;
+
+    const clickableLayer = map?.getAllLayers().find((layer) => layer.get("name") === mapWorkingLayer);
+    const clickableSource = clickableLayer?.getSource() as VectorSource;
 
     const handleCloseDrawer = useCallback(() => {
         if (!selectedReport) {
@@ -55,8 +59,8 @@ const ReportDrawer = () => {
                 ?.getFeatures()
                 .map((f) => f.get("features") || f)
                 .flat();
-
             const reportFeatures = clusterFeatures.filter((fc) => fc && !fc.get("main") && fc.get("reportData")?.id === selectedReport.id);
+
             reportSource?.removeFeatures(reportFeatures);
         }
 
@@ -79,6 +83,18 @@ const ReportDrawer = () => {
             if (selectedFeatures?.find((f) => f?.get("new"))) return;
             if (editReport) return;
             const features: { feature: Feature; zIndex: number }[] = [];
+
+            const coordinate = map?.getCoordinateFromPixel(evt.pixel);
+            const resolution = map?.getView().getResolution();
+            const buffer = (resolution || 0) * HIT_DETECTION_TOLERENCE;
+            const extent = [coordinate![0] - buffer, coordinate![1] - buffer, coordinate![0] + buffer, coordinate![1] + buffer];
+
+            const featuresAt = clickableSource?.getFeaturesInExtent(extent);
+
+            if (featuresAt && featuresAt.length) {
+                setClickableFeatures(featuresAt);
+                if (featuresAt.length > 1) return;
+            }
 
             map?.forEachFeatureAtPixel(evt.pixel, function (feature) {
                 const clickedFeature = feature as Feature;
@@ -121,10 +137,12 @@ const ReportDrawer = () => {
             selectedFeatures,
             editReport,
             mapWorkingLayer,
+            clickableSource,
             setSelectedReport,
             setSelectedFeatures,
             handleCloseDrawer,
             setClickedMapFeature,
+            setClickableFeatures,
         ]
     );
 
