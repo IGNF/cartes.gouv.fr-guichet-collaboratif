@@ -4,7 +4,6 @@ import Button from "@codegouvfr/react-dsfr/Button";
 import SearchReport from "@/components/SearchReport";
 import FilterAndSortReport from "@/components/FilterAndSortReport";
 import TableReport from "./TableReport";
-import "./table-report-drawer.css";
 
 interface Props {
     handleCloseDrawer: () => void;

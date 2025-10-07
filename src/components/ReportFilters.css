@@ -1,0 +1,20 @@
+.reportFilter__container {
+    display: flex;
+    justify-content: flex-start;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 16px;
+    list-style: none;
+}
+
+.reportFilter__container li:nth-last-child(-n + 2) > a {
+    background-image: none;
+}
+
+.reportFilter__container > li {
+    padding: 0;
+}
+
+.reportFilter__container > li > a {
+    text-transform: capitalize;
+}

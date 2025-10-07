@@ -558,7 +558,7 @@ export const transformReportsToExportData = (reports: CommunityReport[]) => {
         return {
             author: report.author?.username || "-",
             opening_date: report.opening_date ? new Date(report.opening_date).toLocaleDateString() : "-",
-            department: report.commune ? `${report.commune.title} (${report.departement?.name})` : "-",
+            departement: report.commune ? `${report.commune.title} (${report.departement?.name})` : "-",
             theme: report.attributes && report.attributes.length > 0 ? report.attributes.map((attr) => attr.theme || "").join(", ") : "-",
             status: report.status || "-",
         };

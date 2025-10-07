@@ -56,13 +56,21 @@ export async function getTableReports(
         url += `&author=${encodeURIComponent(String(filters?.author))}`;
     }
 
-    if (filters?.department) {
-        url += `&departements=${encodeURIComponent(filters?.department)}`;
+    if (filters?.departement) {
+        url += `&departements=${encodeURIComponent(filters?.departement)}`;
+    }
+
+    if (filters?.commune) {
+        url += `&commune=${encodeURIComponent(filters?.commune)}`;
     }
 
     if (filters?.theme) {
         const attributesFilter = [{ community: communityId, theme: filters?.theme }];
         url += `&attributes=${encodeURIComponent(JSON.stringify(attributesFilter))}`;
+    }
+
+    if (filters?.opening_date) {
+        url += `&opening_date=${encodeURIComponent(filters?.opening_date)}`;
     }
 
     if (searchReport) url += `&comment=%${encodeURIComponent(searchReport)}%`;
@@ -152,6 +160,10 @@ export async function getCommunityReports(communityId: number, extent: Extent): 
             comment: report.comment,
             themes: report.attributes,
             status: report.status as StatusKey,
+            opening_date: report.opening_date,
+            author: report.author,
+            commune: report.commune,
+            departement: report.departement,
             attachments: report.attachments.map((attachment) => {
                 return {
                     id: attachment.id,

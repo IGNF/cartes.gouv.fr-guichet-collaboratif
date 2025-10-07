@@ -1,12 +1,12 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "@/i18n";
 import { useCommunityStore, useModalStore, useReportStore } from "@/store";
 import { deleteCommunityReportAPI } from "@/api/reportsData";
 import { CommunityReport } from "@/constants/reports/types";
 import { StatusMessage } from "@/constants/communities/types";
-import TransformReportsToTableData from "@/components/TransformReportsToTableData";
 import ModaleComponent from "@/components/ModaleComponent";
+import CreateTableData from "../table/CreateTableData";
 
 const ConfirmDeleteReportModal = () => {
     const { t } = useTranslation({ ConfirmDeleteReportModal });
@@ -17,8 +17,10 @@ const ConfirmDeleteReportModal = () => {
 
     const { deleteReportModal } = useModalStore();
 
-    const reportsToUse = filteredReports.length > 0 ? filteredReports : (reports ?? []);
-    const tableData = TransformReportsToTableData(reportsToUse);
+    const reportsToUse = useMemo(() => {
+        return filteredReports.length > 0 ? filteredReports : (reports ?? []);
+    }, [filteredReports, reports]);
+    const tableData = useMemo(() => CreateTableData(reportsToUse, isChecked), [reportsToUse, isChecked]);
     const checkedIds = React.useMemo(() => {
         return tableData.filter((res) => !!isChecked[String(res.id)]).map((res) => res.id);
     }, [tableData, isChecked]);

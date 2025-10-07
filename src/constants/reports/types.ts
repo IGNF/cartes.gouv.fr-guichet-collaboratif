@@ -38,6 +38,7 @@ type AuthorData = {
 };
 type DepartementData = {
     name: string;
+    title: string;
 };
 
 export type GeometryFeatueParams =
@@ -69,10 +70,12 @@ export interface CommunityReport {
 }
 
 export interface FilterState {
-    status: string;
-    theme: string;
-    author: number | null;
-    department: string;
+    status?: string;
+    theme?: string;
+    author?: number | null;
+    departement?: string;
+    commune?: string;
+    opening_date?: string;
 }
 
 export type PostThemeReport = { [key: string]: string };
@@ -113,6 +116,10 @@ export type reportData = {
     status: StatusKey;
     attachments: attachmentData[];
     sketch: string | null;
+    opening_date?: string;
+    author?: AuthorData;
+    commune?: CommuneData;
+    departement?: DepartementData;
 };
 
 export type ErrorFile = {

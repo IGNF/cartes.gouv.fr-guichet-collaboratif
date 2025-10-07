@@ -1,13 +1,11 @@
+import { useTranslation } from "@/i18n";
+import { useCommunityStore, useReportStore } from "@/store";
 import Accordion from "@codegouvfr/react-dsfr/Accordion";
 import Button from "@codegouvfr/react-dsfr/Button";
 import AttachmentList from "./forms/AttachmentList";
-import ThemeForm from "./forms/ThemeForm";
-import RadioButtons from "@codegouvfr/react-dsfr/RadioButtons";
-import { useCommunityStore, useReportStore } from "@/store";
-import { getThemeAttributes } from "@/constants/utils";
 import SketchList from "./forms/SketchList";
 import EditReport from "./EditReport";
-import { useTranslation } from "@/i18n";
+import ReportFilters from "@/components/ReportFilters";
 
 interface Props {
     handleCloseDrawer: () => void;
@@ -22,34 +20,14 @@ const ShowReport: React.FC<Props> = ({ handleCloseDrawer }) => {
     if (!community || !selectedReport) return;
     if (editReport) return <EditReport handleCloseDrawer={handleCloseDrawer} />;
 
-    const selectedTheme = selectedReport.themes[0];
-    const themeAttributes = getThemeAttributes(selectedTheme);
     const description = selectedReport.comment || "";
-    const reportTheme = community.themes.find((theme) => theme.theme === selectedTheme.theme);
-
     return (
         <div className="report-drawer">
-            <h1 className="fr-mt-4v fr-mb-1v fr-text--md">{t("report_title", { reportId: selectedReport.id })}</h1>
-
-            <RadioButtons
-                legend={t("report_theme")}
-                options={[
-                    {
-                        label: reportTheme?.theme,
-                        nativeInputProps: {
-                            checked: true,
-                        },
-                    },
-                ]}
-                state="default"
-                stateRelatedMessage=""
-                orientation="vertical"
-                small
-                disabled={true}
-                className="theme-radio fr-mt-4v fr-mb-1v fr-text--md"
-            />
-
-            {selectedTheme && <ThemeForm theme={selectedTheme} themeAttributes={themeAttributes} />}
+            <h2 className="fr-mt-4v fr-mb-1v fr-text--md">
+                <span className="ri-map-pin-add-line fr-pr-1v" />
+                {t("report_title", { reportId: selectedReport.id })}
+            </h2>
+            <ReportFilters />
 
             <Accordion label={t("report_sketch_list")} defaultExpanded={true}>
                 <SketchList />
