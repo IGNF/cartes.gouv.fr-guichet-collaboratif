@@ -4,6 +4,8 @@ import { declareComponentKeys } from "i18nifty";
 export const OpenReplyReportModalFrTranslations: Translations<"fr">["OpenReplyReportModal"] = {
     openReplay_title: "Ma réponse au signalement ",
     openReplies_title: "Ma réponse aux signalements ",
+    replayStatus_text: "Statut",
+    replayContent_text: "Description ",
     send_report: "Envoyer",
     back_to_reports: "Retour aux signalements",
     status_submit: "Reçu dans nos services",
@@ -21,6 +23,8 @@ export const OpenReplyReportModalFrTranslations: Translations<"fr">["OpenReplyRe
 export const OpenReplyReportModalEnTranslations: Translations<"en">["OpenReplyReportModal"] = {
     openReplay_title: "My answer to",
     openReplies_title: "My answer to",
+    replayStatus_text: "Status",
+    replayContent_text: "Description",
     send_report: "Send",
     back_to_reports: "Return to reports list",
     status_submit: "Received in our services",
@@ -38,6 +42,8 @@ export const OpenReplyReportModalEnTranslations: Translations<"en">["OpenReplyRe
 const { i18n } = declareComponentKeys<
     | "openReplay_title"
     | "openReplies_title"
+    | "replayStatus_text"
+    | "replayContent_text"
     | "send_report"
     | "back_to_reports"
     | "status_submit"

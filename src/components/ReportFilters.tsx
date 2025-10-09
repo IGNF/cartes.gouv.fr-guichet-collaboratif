@@ -57,7 +57,7 @@ const ReportFilters = () => {
     }, [community, setFilteredReports]);
 
     return (
-        <ul className="fr-links-group reportFilter__container fr-mb-12v">
+        <ul className="fr-links-group reportFilter__container fr-mb-6v">
             <li>
                 <a
                     href="#"
@@ -157,7 +157,6 @@ const ReportFilters = () => {
                     onClick={async (e: React.MouseEvent) => {
                         e.preventDefault();
                         if (!community) return;
-                        // const statusFilter = selectedReport.status;
                         setCurrentFilters({ ...currentFilters, status: status });
                         setDrawerOpened(false);
                         setTableDrawerOpened(true);

@@ -5,6 +5,7 @@ import { Coordinate } from "ol/coordinate";
 import { Pixel } from "ol/pixel";
 import VectorSource from "ol/source/Vector";
 
+export type Severity = "success" | "info" | "warning" | "error" | "new";
 export type StatusKey = "submit" | "pending0" | "pending" | "pending1" | "pending2" | "valid" | "valid0" | "reject" | "reject0" | "test";
 export type SketchType = "Point" | "Ligne" | "MultiPolygone";
 export enum SketchFeatureType {
@@ -69,6 +70,17 @@ export interface CommunityReport {
     attributes?: CommunityTheme[];
 }
 
+type Reply = {
+    id: number;
+    author: AuthorData;
+    title: string;
+    content: string;
+    status: string;
+    date: string;
+};
+export interface Replies {
+    replies: Reply[];
+}
 export interface FilterState {
     status?: string;
     theme?: string;

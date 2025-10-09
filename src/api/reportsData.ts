@@ -6,7 +6,7 @@ import { REPORTS_API_URL } from "@/constants/urls";
 import { useCommunityStore } from "@/store/useCommunityStore";
 import { useUserStore } from "@/store/useUserStore";
 import { useReportStore } from "@/store/useReportStore";
-import { CommunityReport, FilterState, PostReport, reportData, SketchReport, StatusKey, PostReply } from "@/constants/reports/types";
+import { CommunityReport, FilterState, PostReport, reportData, SketchReport, StatusKey, PostReply, Replies } from "@/constants/reports/types";
 import { axiosApi } from ".";
 
 export const isDigital = (value: string): boolean => {
@@ -29,7 +29,10 @@ export const getCommunityReportSketch = (report: reportData) => {
           }
         : null;
 };
-
+export async function getReportReplies(reportId: number): Promise<Replies> {
+    const res = await axiosApi.get(`${REPORTS_API_URL}/${reportId}`);
+    return res.data;
+}
 export async function getTableReports(
     communityId: number,
     limit: number = 100,

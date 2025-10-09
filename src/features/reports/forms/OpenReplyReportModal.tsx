@@ -77,7 +77,7 @@ const OpenReplyReportModal: React.FC<Props> = ({ onClose }) => {
             confirmText={t("send_report")}
         >
             <Input
-                label={replay_title}
+                label={t("replayStatus_text")}
                 textArea
                 nativeTextAreaProps={{
                     onChange: (event) => setContent(event.target.value),
@@ -85,7 +85,7 @@ const OpenReplyReportModal: React.FC<Props> = ({ onClose }) => {
                 }}
             />
             <Select
-                label="Label pour liste déroulante"
+                label={t("replayContent_text")}
                 nativeSelectProps={{
                     onChange: (event) => setStatus(event.target.value),
                     value: status,
@@ -95,7 +95,7 @@ const OpenReplyReportModal: React.FC<Props> = ({ onClose }) => {
                     {CheckedIdStatus.length === 1 ? (
                         <option value={-1}>{reportImgStatus[CheckedIdStatus[0]].text || ""}</option>
                     ) : (
-                        <option disabled hidden value="">
+                        <option value={-1} disabled hidden>
                             Selectionnez un status
                         </option>
                     )}

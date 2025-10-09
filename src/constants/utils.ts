@@ -60,20 +60,20 @@ export const otherMarkers = markersStyles.map((style) => {
 });
 
 type ReportImgStatusType = {
-    [key: string]: { img: string; text: string };
+    [key: string]: { img: string; text: string; colorType: string };
 };
 
 export const reportImgStatus: ReportImgStatusType = {
-    submit: { img: imgSubmit, text: "Reçu dans nos services" },
-    pending: { img: imgPending, text: "En cours de traitement" },
-    pending0: { img: imgPending, text: "En demande de qualification" },
-    pending1: { img: imgPending, text: "En attente de saisie" },
-    pending2: { img: imgPending, text: "En attente de validation" },
-    valid: { img: imgValid, text: "Pris en compte" },
-    valid0: { img: imgValid, text: "Déjà pris en compte" },
-    reject: { img: imgReject, text: "Rejeté (hors spéc.)" },
-    reject0: { img: imgReject, text: "Rejeté (hors de propos)" },
-    test: { img: imgTest, text: "En mode test" },
+    submit: { img: imgSubmit, text: "Reçu dans nos services", colorType: "info" },
+    pending: { img: imgPending, text: "En cours de traitement", colorType: "new" },
+    pending0: { img: imgPending, text: "En demande de qualification", colorType: "new" },
+    pending1: { img: imgPending, text: "En attente de saisie", colorType: "new" },
+    pending2: { img: imgPending, text: "En attente de validation", colorType: "info" },
+    valid: { img: imgValid, text: "Pris en compte", colorType: "success" },
+    valid0: { img: imgValid, text: "Déjà pris en compte", colorType: "success" },
+    reject: { img: imgReject, text: "Rejeté (hors spéc.)", colorType: "error" },
+    reject0: { img: imgReject, text: "Rejeté (hors de propos)", colorType: "error" },
+    test: { img: imgTest, text: "En mode test", colorType: "new" },
 };
 
 type LonLatCoordinate = Coordinate | Coordinate[] | Coordinate[][] | Coordinate[][][];
