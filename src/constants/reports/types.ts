@@ -94,9 +94,9 @@ export type PostThemeReport = { [key: string]: string };
 
 export interface PostReport {
     community: number;
-    geometry: string;
-    comment: string;
-    attributes: { community: number; theme: string; attributes: PostThemeReport };
+    geometry?: string;
+    comment?: string;
+    attributes?: { community?: number; theme?: string; attributes?: PostThemeReport };
     sketch?: SketchReport | null;
 }
 export interface PostReply {

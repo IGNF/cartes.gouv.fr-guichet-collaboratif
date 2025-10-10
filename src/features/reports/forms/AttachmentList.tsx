@@ -51,14 +51,13 @@ const AttachmentList: React.FC<Props> = ({ newFiles, errorFiles, removeFile }) =
                         <a href={attachment.url} target="_blank">
                             {attachment.name}
                         </a>
-                        {!isShowReport() && (
-                            <Button
-                                iconId="ri-delete-bin-2-fill"
-                                title={t("delete_file", { fileName: attachment.name })}
-                                priority="tertiary"
-                                onClick={() => deleteAttachment(attachment)}
-                            ></Button>
-                        )}
+
+                        <Button
+                            iconId="ri-delete-bin-2-fill"
+                            title={t("delete_file", { fileName: attachment.name })}
+                            priority="tertiary"
+                            onClick={() => deleteAttachment(attachment)}
+                        ></Button>
                     </div>
                 ))}
             {newFiles &&

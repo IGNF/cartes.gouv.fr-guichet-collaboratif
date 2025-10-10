@@ -20,9 +20,9 @@ const TableReportDrawer = ({ handleCloseDrawer }: Props) => {
                     Fermer
                 </Button>
             </div>
-            <h1>
+            <h2>
                 <span className="fr-icon-discuss-line fr-icon--lg" aria-hidden="true" /> Signalements
-            </h1>
+            </h2>
             <div className="table-report-searchFilter">
                 <SearchReport />
                 <Button

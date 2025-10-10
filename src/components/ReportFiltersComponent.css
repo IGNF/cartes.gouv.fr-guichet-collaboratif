@@ -3,6 +3,7 @@
     justify-content: flex-start;
     align-items: baseline;
     flex-wrap: wrap;
+    padding-left: 0;
     gap: 16px;
     list-style: none;
 }

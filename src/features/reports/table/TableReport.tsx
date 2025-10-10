@@ -150,7 +150,7 @@ const TableReport = () => {
     }, [tableData, isChecked]);
 
     const downloadedTable = useMemo(() => {
-        if (checkedLines.length > 0) return checkedLines;
+        if (checkedLines.length > 0) return checkedLines.map((exp) => exp.exportData);
         if (Array.isArray(exportedData?.data)) {
             return transformReportsToExportData(exportedData.data).map((expData) => expData);
         }

@@ -2,10 +2,9 @@ import { useTranslation } from "@/i18n";
 import { useCommunityStore, useReportStore, useUserStore } from "@/store";
 import Accordion from "@codegouvfr/react-dsfr/Accordion";
 import Button from "@codegouvfr/react-dsfr/Button";
-import AttachmentList from "./forms/AttachmentList";
 import SketchList from "./forms/SketchList";
 import EditReport from "./EditReport";
-import ReportFilters from "@/components/ReportFilters";
+import ReportFiltersComponent from "@/components/ReportFiltersComponent";
 import { useState } from "react";
 import RadioButtons from "@codegouvfr/react-dsfr/RadioButtons";
 import Badge from "@codegouvfr/react-dsfr/Badge";
@@ -17,6 +16,7 @@ import { reportImgStatus } from "@/constants/utils";
 import React from "react";
 import Select from "@codegouvfr/react-dsfr/Select";
 import Input from "@codegouvfr/react-dsfr/Input";
+import FormAttachments from "./forms/FormAttachments";
 
 interface Props {
     handleCloseDrawer: () => void;
@@ -54,7 +54,7 @@ const ShowReport: React.FC<Props> = ({ handleCloseDrawer }) => {
                 <span className="ri-map-pin-add-line fr-pr-1v" />
                 {t("report_title", { reportId: selectedReport.id })}
             </h2>
-            <ReportFilters />
+            <ReportFiltersComponent />
             <Button onClick={() => setOpenSuivi(true)}>Répondre</Button>
 
             <div className="fr-mt-12v">
@@ -88,7 +88,8 @@ const ShowReport: React.FC<Props> = ({ handleCloseDrawer }) => {
 
                 <Accordion label={t("report_document_list") + " (" + selectedReport?.attachments.length + ")"}>
                     <div>
-                        <AttachmentList />
+                        <FormAttachments />
+                        {/* <AttachmentList /> */}
                     </div>
                 </Accordion>
 

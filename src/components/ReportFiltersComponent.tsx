@@ -1,12 +1,12 @@
 import { useEffect, useMemo } from "react";
-import "./ReportFilters.css";
+import "./ReportFiltersComponent.css";
 import Tag from "@codegouvfr/react-dsfr/Tag";
 import Badge from "@codegouvfr/react-dsfr/Badge";
 import { useCommunityStore, useReportStore } from "@/store";
 import { getTableReports } from "@/api/reportsData";
 import CreateTableData from "@/features/reports/table/CreateTableData";
 
-const ReportFilters = () => {
+const ReportFiltersComponent = () => {
     const {
         reports,
         currentFilters,
@@ -57,7 +57,7 @@ const ReportFilters = () => {
     }, [community, setFilteredReports]);
 
     return (
-        <ul className="fr-links-group reportFilter__container fr-mb-6v">
+        <ul className="fr-links-group reportFilter__container fr-mb-6v fr-mt-4v">
             <li>
                 <a
                     href="#"
@@ -172,4 +172,4 @@ const ReportFilters = () => {
     );
 };
 
-export default ReportFilters;
+export default ReportFiltersComponent;

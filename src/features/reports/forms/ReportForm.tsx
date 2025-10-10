@@ -229,9 +229,9 @@ const ReportForm: React.FC<Props> = ({ handleSubmit, handleDelete, handleClose }
         <>
             <div className="report-drawer">
                 {loading && <LoaderComponent />}
-                <h1 className="fr-mt-4v fr-mb-1v fr-text--md">
+                <h2 className="fr-mt-4v fr-mb-1v fr-text--md">
                     {selectedReport ? t("edit_report_title", { reportId: selectedReport.id }) : t("create_report_title")}
-                </h1>
+                </h2>
                 {!selectedReport && (
                     <p className={`fr-text--sm fr-mb-1v ${selectedFeatures && !selectedFeatures.length ? "fr-message--error" : ""}`}>
                         {t("localize_report_alert")}

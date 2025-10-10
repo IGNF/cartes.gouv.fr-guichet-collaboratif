@@ -3,29 +3,22 @@ import { axiosApi } from ".";
 import { attachmentData, CommunityReport, ReportAttachment } from "@/constants/reports/types";
 
 export async function postCommunityReportAttachments(report: CommunityReport, files: File[]): Promise<ReportAttachment[] | null> {
-    const documentsToUpload: { [key: string]: File } = {};
+    const formData = new FormData();
     files.forEach((file, index) => {
-        documentsToUpload[`document${index}`] = file;
+        formData.append(`document${index}`, file);
     });
-    const res = await axiosApi.post(`${REPORTS_API_URL}/${report.id}/attachments`, documentsToUpload, {
-        headers: {
-            "Content-Type": "multipart/form-data",
-        },
-    });
-
+    const res = await axiosApi.post(`${REPORTS_API_URL}/${report.id}/attachments`, formData);
     if (!res.data || res.status !== 200) return null;
 
     const newAttachments: attachmentData[] = res.data;
     if (!Array.isArray(newAttachments)) return null;
-    return newAttachments.map((attachment) => {
-        return {
-            id: attachment.id,
-            name: attachment.short_fileName,
-            type: attachment.mime_type,
-            size: attachment.size,
-            url: attachment.uri,
-        };
-    });
+    return newAttachments.map((attachment) => ({
+        id: attachment.id,
+        name: attachment.short_fileName,
+        type: attachment.mime_type,
+        size: attachment.size,
+        url: attachment.uri,
+    }));
 }
 
 function deleteAttachment(reportsId: number, attachmentId: number) {
