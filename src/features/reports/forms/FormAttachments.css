@@ -1,0 +1,7 @@
+.reportForm-attachments {
+    display: flex;
+    flex-direction: column;
+}
+.reportForm-attachments > button {
+    align-self: flex-end;
+}

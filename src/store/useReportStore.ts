@@ -84,7 +84,7 @@ export const useReportStore = create<ReportStore>((set, get) => ({
         set((state) => ({
             isChecked: typeof updater === "function" ? updater(state.isChecked) : updater,
         })),
-    currentFilters: { status: "", theme: "", author: null, department: "" },
+    currentFilters: { status: "", theme: "", author: null, departement: "" },
     setCurrentFilters: (filters) => set({ currentFilters: filters, currentPage: 1 }),
     currentPage: 1,
     setCurrentPage: (currentPage) => set({ currentPage }),

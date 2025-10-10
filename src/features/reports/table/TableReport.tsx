@@ -1,27 +1,36 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { CSVLink } from "react-csv";
+import { useTranslation } from "@/i18n";
+import VectorSource from "ol/source/Vector";
 import { getTableReports } from "@/api/reportsData";
-import { useReportStore, useModalStore } from "@/store";
+import { useReportStore, useModalStore, useMapStore, useLocalStorageStore } from "@/store";
 import { useCommunityStore } from "@/store/useCommunityStore";
-import { REPORT_TABLE_LIMIT_OPTIONS } from "@/constants/reports/utils";
+import { handleShowOnMap, transformReportsToExportData } from "@/constants/utils";
+import { REPORT_TABLE_LIMIT_OPTIONS, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
+import GetReportsLayer from "@/features/navigation/layers/GetReportsLayer";
 import { StatusMessage } from "@/constants/communities/types";
 import { applyFiltersToReports } from "@/constants/reports/utils/reportFilters";
+import { CommunityReport } from "@/constants/reports/types";
 import Checkbox from "@codegouvfr/react-dsfr/Checkbox";
 import { Table } from "@codegouvfr/react-dsfr/Table";
 import { Button } from "@codegouvfr/react-dsfr/Button";
 import { Badge } from "@codegouvfr/react-dsfr/Badge";
 import LoaderComponent from "@/components/LoaderComponent";
-import TransformReportsToTableData from "@/components/TransformReportsToTableData";
 import { SelectComponent } from "@/components/FilterAndSortReport";
 import PaginationReport from "./PaginationReport";
 import ConfirmDeleteReportModal from "../forms/ConfirmDeleteReportModal";
-import { transformReportsToExportData } from "@/constants/utils";
+import CreateTableData from "./CreateTableData";
 
-type FilterHeaderKey = "status" | "author" | "opening_date" | "department" | "theme";
+type FilterHeaderKey = "status" | "author" | "opening_date" | "departement" | "theme";
 
 const TableReport = () => {
     const [sortOrder, setSortOrder] = useState<"ASC" | "DESC" | undefined>(undefined);
+    const { t } = useTranslation({ GetReportsLayer });
+    const { map } = useMapStore();
+    const { localStorageData } = useLocalStorageStore();
+    const clusterLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE);
+    const clusterSource = clusterLayer?.getSource() as VectorSource;
 
     const { community, addAlertMessage } = useCommunityStore();
     const {
@@ -39,6 +48,8 @@ const TableReport = () => {
         sortBy,
         setSortBy,
         setCurrentPage,
+        setSelectedReport,
+        reportTableWidth,
     } = useReportStore();
 
     const { replyReportModal, deleteReportModal } = useModalStore();
@@ -47,7 +58,9 @@ const TableReport = () => {
             status: currentFilters.status,
             theme: currentFilters.theme,
             author: currentFilters.author,
-            department: currentFilters.department,
+            departement: currentFilters.departement,
+            commune: currentFilters.commune,
+            opening_date: currentFilters.opening_date,
         }),
         [currentFilters]
     );
@@ -92,22 +105,52 @@ const TableReport = () => {
                 currentFilters.status !== "" ||
                     currentFilters.theme !== "" ||
                     currentFilters.author !== null ||
-                    currentFilters.department !== "" ||
+                    currentFilters.departement !== "" ||
                     !!searchReport
             );
         }
     }, [reports, currentFilters, searchReport, setFilteredReports, setIsChecked]);
 
-    const reportsToUse = filteredReports.length > 0 ? filteredReports : (reports ?? []);
-    const tableData = TransformReportsToTableData(reportsToUse);
+    const onShowOnMap = useCallback(
+        (report: CommunityReport) => {
+            handleShowOnMap(report, map, clusterSource, localStorageData, t, reportTableWidth);
+        },
+        [map, clusterSource, localStorageData, t, reportTableWidth]
+    );
+
+    const onShowReportOnMap = useCallback(
+        (report: CommunityReport) => {
+            setSelectedReport(report);
+            handleShowOnMap(report, map, clusterSource, localStorageData, t, reportTableWidth);
+        },
+        [setSelectedReport, map, clusterSource, localStorageData, t, reportTableWidth]
+    );
+
+    const onCheckChange = useCallback(
+        (id: number, checked: boolean) => {
+            setIsChecked({
+                ...isChecked,
+                [id]: checked,
+            });
+        },
+        [isChecked, setIsChecked]
+    );
+    const reportsToUse = useMemo(() => {
+        return filteredReports.length > 0 ? filteredReports : (reports ?? []);
+    }, [filteredReports, reports]);
+
+    const tableData = useMemo(
+        () => CreateTableData(reportsToUse, isChecked, onCheckChange, onShowReportOnMap, onShowOnMap),
+        [reportsToUse, isChecked, onCheckChange, onShowReportOnMap, onShowOnMap]
+    );
 
     const checkedLines = useMemo(() => {
         if (!Array.isArray(tableData) || !isChecked) return [];
-        return tableData.filter((res) => !!isChecked[String(res.id)]).map((res) => res.exportData);
+        return tableData.filter((res) => !!isChecked[String(res.id)]).map((res) => res);
     }, [tableData, isChecked]);
 
     const downloadedTable = useMemo(() => {
-        if (checkedLines.length > 0) return checkedLines;
+        if (checkedLines.length > 0) return checkedLines.map((exp) => exp.exportData);
         if (Array.isArray(exportedData?.data)) {
             return transformReportsToExportData(exportedData.data).map((expData) => expData);
         }
@@ -117,7 +160,7 @@ const TableReport = () => {
     const tableHeaderToLabel: Record<FilterHeaderKey, string> = {
         author: "Auteur",
         opening_date: "Date de création",
-        department: "Département",
+        departement: "Département",
         theme: "Thème",
         status: "Statut",
     };
@@ -222,6 +265,7 @@ const TableReport = () => {
                                 ]}
                                 small
                             />,
+                            "id",
                             "Pseudo",
                             <Button
                                 type="button"

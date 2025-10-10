@@ -147,8 +147,8 @@
 }
 
 .report-drawer {
-    max-width: 855px;
-    padding: 20px 16px;
+    width: 588px;
+    padding: 10px 16px;
 }
 
 .report-drawer .note {

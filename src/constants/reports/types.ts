@@ -5,6 +5,7 @@ import { Coordinate } from "ol/coordinate";
 import { Pixel } from "ol/pixel";
 import VectorSource from "ol/source/Vector";
 
+export type Severity = "success" | "info" | "warning" | "error" | "new";
 export type StatusKey = "submit" | "pending0" | "pending" | "pending1" | "pending2" | "valid" | "valid0" | "reject" | "reject0" | "test";
 export type SketchType = "Point" | "Ligne" | "MultiPolygone";
 export enum SketchFeatureType {
@@ -38,6 +39,7 @@ type AuthorData = {
 };
 type DepartementData = {
     name: string;
+    title: string;
 };
 
 export type GeometryFeatueParams =
@@ -68,20 +70,33 @@ export interface CommunityReport {
     attributes?: CommunityTheme[];
 }
 
-export interface FilterState {
+type Reply = {
+    id: number;
+    author: AuthorData;
+    title: string;
+    content: string;
     status: string;
-    theme: string;
-    author: number | null;
-    department: string;
+    date: string;
+};
+export interface Replies {
+    replies: Reply[];
+}
+export interface FilterState {
+    status?: string;
+    theme?: string;
+    author?: number | null;
+    departement?: string;
+    commune?: string;
+    opening_date?: string;
 }
 
 export type PostThemeReport = { [key: string]: string };
 
 export interface PostReport {
     community: number;
-    geometry: string;
-    comment: string;
-    attributes: { community: number; theme: string; attributes: PostThemeReport };
+    geometry?: string;
+    comment?: string;
+    attributes?: { community?: number; theme?: string; attributes?: PostThemeReport };
     sketch?: SketchReport | null;
 }
 export interface PostReply {
@@ -113,6 +128,10 @@ export type reportData = {
     status: StatusKey;
     attachments: attachmentData[];
     sketch: string | null;
+    opening_date?: string;
+    author?: AuthorData;
+    commune?: CommuneData;
+    departement?: DepartementData;
 };
 
 export type ErrorFile = {

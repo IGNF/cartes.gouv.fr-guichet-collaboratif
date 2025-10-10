@@ -1,4 +1,5 @@
 import { useCallback, useEffect } from "react";
+import { useTranslation } from "@/i18n";
 import { Feature, MapBrowserEvent } from "ol";
 import Layer from "ol/layer/Layer";
 import VectorSource from "ol/source/Vector";
@@ -17,6 +18,7 @@ import OpenReplyReportModal from "./forms/OpenReplyReportModal";
 import { HIT_DETECTION_TOLERENCE } from "@/constants";
 
 const ReportDrawer = () => {
+    const { t } = useTranslation({ ShowReport });
     const { mapWorkingLayer } = useMapStore();
 
     const {
@@ -274,7 +276,7 @@ const ReportDrawer = () => {
                                     setDrawerOpened(false);
                                 }}
                             >
-                                Tous les signalements
+                                {t("report_back")}
                             </Button>
                             {selectedReport ? <ShowReport handleCloseDrawer={handleCloseDrawer} /> : <CreateReport handleCloseDrawer={handleCloseDrawer} />}
                         </>

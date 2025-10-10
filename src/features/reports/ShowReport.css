@@ -1,0 +1,56 @@
+.report-drawer_tracking {
+    display: flex;
+    flex-direction: column;
+}
+
+.report-drawer_trackingItem {
+    width: 100%;
+    position: relative;
+    padding: 16px 0px 15px;
+}
+
+.report-drawer_trackingItem_date {
+    color: var(--grey-425-625);
+    font-size: 12px;
+}
+.report-drawer_trackingItem_status {
+    display: flex;
+}
+
+.report-drawer_trackingItem > p {
+    margin-bottom: 5px;
+}
+
+.report-drawer_trackingItem--reverse {
+    display: flex;
+    flex-direction: row-reverse;
+}
+
+.report-drawer_trackingItem:not(:last-child)::after {
+    content: "";
+    width: 100%;
+    height: 1px;
+    background-color: var(--grey-900-175);
+    display: block;
+    position: absolute;
+    bottom: 0;
+}
+
+.report-drawer_trackingItem--right {
+    align-self: flex-end;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.report-drawer_status {
+    display: flex;
+    flex-direction: column;
+    padding: 16px 0px;
+    border-top: 1px solid var(--grey-900-175);
+    border-top-style: dashed;
+}
+
+.report-drawer_status > button {
+    align-self: flex-end;
+}

@@ -33,7 +33,7 @@ const TransformReportsToTableData = (reports: CommunityReport[]) => {
     return reports.map((report) => {
         const author = report.author?.username || "-";
         const date = report.opening_date ? new Date(report.opening_date).toLocaleDateString() : "-";
-        const department = report.commune ? `${report.commune.title} (${report.departement?.name})` : "-";
+        const departement = report.commune ? `${report.commune.title} (${report.departement?.name})` : "-";
         const themes = report.attributes && report.attributes.length > 0 ? report.attributes.map((attr) => attr.theme || "").join(", ") : "-";
         const status = report.status || "-";
 
@@ -45,7 +45,7 @@ const TransformReportsToTableData = (reports: CommunityReport[]) => {
             exportData: {
                 author,
                 opening_date: date,
-                department,
+                departement,
                 theme: themes,
                 status,
             },
@@ -69,7 +69,7 @@ const TransformReportsToTableData = (reports: CommunityReport[]) => {
                 />,
                 author,
                 date,
-                department,
+                departement,
                 <Tag>{themes}</Tag>,
                 <Badge severity="info" noIcon>
                     {status}

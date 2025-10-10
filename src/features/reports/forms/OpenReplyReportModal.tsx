@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "@/i18n";
 import { postReportsReply } from "@/api/reportsData";
@@ -7,27 +7,29 @@ import { PostReply, StatusKey } from "@/constants/reports/types";
 import { reportImgStatus } from "@/constants/utils";
 import Input from "@codegouvfr/react-dsfr/Input";
 import Select from "@codegouvfr/react-dsfr/Select";
-import TransformReportsToTableData from "@/components/TransformReportsToTableData";
 import ModaleComponent from "@/components/ModaleComponent";
+import CreateTableData from "../table/CreateTableData";
 
 interface Props {
     onClose: () => void;
 }
 
 const OpenReplyReportModal: React.FC<Props> = ({ onClose }) => {
-    const { filteredReports, isChecked, reports, setIsChecked } = useReportStore();
+    const { filteredReports, isChecked, reports, setIsChecked, selectedReport, setSelectedReport } = useReportStore();
     const { replyReportModal } = useModalStore();
 
     const queryClient = useQueryClient();
 
     const { t } = useTranslation({ OpenReplyReportModal });
-    const [selectedReport, setSelectedReport] = useState<number[]>();
+    const [selectedReportId, setSelectedReportId] = useState<number[]>();
 
     const [status, setStatus] = useState("");
     const [content, setContent] = useState("");
 
-    const reportsToUse = filteredReports.length > 0 ? filteredReports : (reports ?? []);
-    const tableData = TransformReportsToTableData(reportsToUse);
+    const reportsToUse = useMemo(() => {
+        return filteredReports.length > 0 ? filteredReports : (reports ?? []);
+    }, [filteredReports, reports]);
+    const tableData = useMemo(() => CreateTableData(reportsToUse, isChecked), [reportsToUse, isChecked]);
 
     const checkedIds = React.useMemo(() => {
         return tableData.filter((res) => !!isChecked[String(res.id)]).map((res) => res.id);
@@ -49,29 +51,33 @@ const OpenReplyReportModal: React.FC<Props> = ({ onClose }) => {
             setContent("");
             setStatus("");
             setIsChecked({});
+            setSelectedReport(selectedReport);
         },
     });
 
     useEffect(() => {
-        if (checkedIds.length > 0 && (selectedReport?.length !== checkedIds.length || !checkedIds.every((id, index) => id === selectedReport[index]))) {
-            setSelectedReport(checkedIds);
+        if (checkedIds.length > 0 && (selectedReportId?.length !== checkedIds.length || !checkedIds.every((id, index) => id === selectedReportId[index]))) {
+            setSelectedReportId(checkedIds);
         }
-    }, [checkedIds, selectedReport]);
+    }, [checkedIds, selectedReportId]);
+    useEffect(() => {
+        setSelectedReport(selectedReport);
+    }, [reports, selectedReport, setSelectedReport]);
 
-    const replay_title = `${selectedReport?.length === 1 ? t("openReplay_title") + selectedReport : t("openReplies_title")}`;
+    const replay_title = `${selectedReportId?.length === 1 ? t("openReplay_title") + selectedReportId : t("openReplies_title")}`;
     return (
         <ModaleComponent
             modal={replyReportModal}
             title={replay_title}
             onClose={onClose}
             onConfirm={async () => {
-                mutation.mutate({ reportsId: selectedReport || [], body: { title: "should not be empty !", content, status } });
+                mutation.mutate({ reportsId: selectedReportId || [], body: { title: "Could be empty !", content, status } });
             }}
             cancelText={t("back_to_reports")}
             confirmText={t("send_report")}
         >
             <Input
-                label={replay_title}
+                label={t("replayStatus_text")}
                 textArea
                 nativeTextAreaProps={{
                     onChange: (event) => setContent(event.target.value),
@@ -79,7 +85,7 @@ const OpenReplyReportModal: React.FC<Props> = ({ onClose }) => {
                 }}
             />
             <Select
-                label="Label pour liste déroulante"
+                label={t("replayContent_text")}
                 nativeSelectProps={{
                     onChange: (event) => setStatus(event.target.value),
                     value: status,
@@ -89,7 +95,7 @@ const OpenReplyReportModal: React.FC<Props> = ({ onClose }) => {
                     {CheckedIdStatus.length === 1 ? (
                         <option value={-1}>{reportImgStatus[CheckedIdStatus[0]].text || ""}</option>
                     ) : (
-                        <option disabled hidden value="">
+                        <option value={-1} disabled hidden>
                             Selectionnez un status
                         </option>
                     )}

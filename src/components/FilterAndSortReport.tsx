@@ -58,7 +58,7 @@ const FilterAndSortReport = () => {
             status: currentFilters.status,
             theme: currentFilters.theme,
             author: currentFilters.author,
-            department: currentFilters.department,
+            departement: currentFilters.departement,
         }),
         [currentFilters]
     );
@@ -85,6 +85,16 @@ const FilterAndSortReport = () => {
     const themeOptions = useMemo(() => [...new Set(themes)], [themes]);
     const sortOptions = ["Du plus récent au plus ancien", "Du plus ancien au plus récent"];
 
+    const onChangeOpeningDate = (index: number) => {
+        setSortOpeningDateIndex(index);
+        setSortUpdatingDateIndex(-1);
+    };
+
+    const onChangeUpdatingDate = (index: number) => {
+        setSortUpdatingDateIndex(index);
+        setSortOpeningDateIndex(-1);
+    };
+
     const handleSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
 
@@ -107,7 +117,7 @@ const FilterAndSortReport = () => {
             status: statusOptions[statusIndex] || "",
             theme: themeOptions[themeIndex] || "",
             author: Number(formData.get("author")) || null,
-            department: (formData.get("department") as string) || "",
+            departement: (formData.get("departement") as string) || "",
         };
         setCurrentFilters({ ...newFilters });
 
@@ -128,7 +138,7 @@ const FilterAndSortReport = () => {
             status: "",
             theme: "",
             author: null,
-            department: "",
+            departement: "",
         });
         setCurrentPage(1);
         setFilteredReports([], false);
@@ -151,14 +161,14 @@ const FilterAndSortReport = () => {
                             label="Date de création"
                             value={sortOpeningDateIndex}
                             options={sortOptions}
-                            onChange={setSortOpeningDateIndex}
+                            onChange={onChangeOpeningDate}
                         />
                         <SelectComponent
                             name="sortByDateMAJ"
                             label="Date de mise à jour"
                             value={sortUpdatingDateIndex}
                             options={sortOptions}
-                            onChange={setSortUpdatingDateIndex}
+                            onChange={onChangeUpdatingDate}
                         />
                     </div>
                 </div>
@@ -193,7 +203,7 @@ const FilterAndSortReport = () => {
                             label="Département"
                             nativeInputProps={{
                                 placeholder: "Sélectionner une option",
-                                name: "department",
+                                name: "departement",
                                 type: "number",
                                 max: 2,
                                 multiple: true,

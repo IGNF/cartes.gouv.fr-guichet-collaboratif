@@ -8,12 +8,12 @@ export function applyFiltersToReports(reports: CommunityReport[], filters: Filte
 
         const matchesAuthor = !filters.author || report.author?.id === filters.author;
 
-        const matchesDepartment = !filters.department || report.departement?.name === filters.department;
+        const matchesdepartement = !filters.departement || report.departement?.name === filters.departement;
 
         const lowerSearch = searchText.toLowerCase();
 
         const matchesSearch = !searchText || (report.comment?.toLowerCase().includes(lowerSearch) ?? false);
 
-        return matchesStatus && matchesTheme && matchesAuthor && matchesDepartment && matchesSearch;
+        return matchesStatus && matchesTheme && matchesAuthor && matchesdepartement && matchesSearch;
     });
 }

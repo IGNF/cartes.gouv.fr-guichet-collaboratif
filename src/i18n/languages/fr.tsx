@@ -31,6 +31,7 @@ import { useReportToolsFrTranslations } from "@/hooks/reports/locale/useReportTo
 import { FeatureTypeLayerLegendsFrTranslations } from "@/features/navigation/layers/legends/locale/FeatureTypeLayerLegends.locale";
 import { ShowFeatureTypeFormFrTranslations } from "@/features/working-layer/forms/locale/ShowFeatureTypeForm.locale";
 import { ClickableFeaturesModalFrTranslations } from "@/features/working-layer/modal/locale/ClickableFeaturesModal.locale";
+import { FormAttachmentsFrTranslations } from "@/features/reports/forms/locale/FormAttachments.locale";
 
 export const translations: Translations<"fr"> = {
     AppFooter: AppFooterFrTranslations,
@@ -65,4 +66,5 @@ export const translations: Translations<"fr"> = {
     FeatureTypeLayerLegends: FeatureTypeLayerLegendsFrTranslations,
     ShowFeatureTypeForm: ShowFeatureTypeFormFrTranslations,
     ClickableFeaturesModal: ClickableFeaturesModalFrTranslations,
+    FormAttachments: FormAttachmentsFrTranslations,
 };

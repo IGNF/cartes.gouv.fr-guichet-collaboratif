@@ -4,7 +4,6 @@ import Button from "@codegouvfr/react-dsfr/Button";
 import SearchReport from "@/components/SearchReport";
 import FilterAndSortReport from "@/components/FilterAndSortReport";
 import TableReport from "./TableReport";
-import "./table-report-drawer.css";
 
 interface Props {
     handleCloseDrawer: () => void;
@@ -21,9 +20,9 @@ const TableReportDrawer = ({ handleCloseDrawer }: Props) => {
                     Fermer
                 </Button>
             </div>
-            <h1>
+            <h2>
                 <span className="fr-icon-discuss-line fr-icon--lg" aria-hidden="true" /> Signalements
-            </h1>
+            </h2>
             <div className="table-report-searchFilter">
                 <SearchReport />
                 <Button
