@@ -4,7 +4,7 @@ import { useLocalStorageStore } from "@/store/useLocalStorageStore";
 import useGetWFSLayer from "@/hooks/navigation/layers/useGetWFSLayer";
 import { CommunityLayer } from "@/constants/communities/types";
 import { LocalLayer } from "@/constants/localStorage/types";
-import { LAYER_FEATURE_TYPE } from "@/constants";
+import { LAYER_FEATURE_TYPE, LAYER_SWITCHER_INFO_DIV } from "@/constants";
 
 interface Props {
     layer: CommunityLayer;
@@ -24,7 +24,7 @@ const GetWFSLayer: React.FC<Props> = ({ layer }) => {
         wfsLayerSource?.setVisible(localLayer ? localLayer.visibility : layer.visibility);
         wfsLayerSource?.set("type", layer.type);
         if (layer.type === LAYER_FEATURE_TYPE) {
-            wfsLayerSource?.set("description", `<div id="feature-type-style"></div>`);
+            wfsLayerSource?.set("description", LAYER_SWITCHER_INFO_DIV);
         }
         if (wfsLayerSource) {
             const wfsLayer = { source: wfsLayerSource, name: geoservice.layer, title: geoservice.title, order: localLayer ? localLayer.order : layer.order };

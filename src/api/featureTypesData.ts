@@ -63,6 +63,7 @@ export async function getFeatureTypesAll(featureTypesIds: FeatureTypeIds[]): Pro
                     }
                     return {
                         name: style.name,
+                        label: style.label,
                         types: [
                             {
                                 title: "Par défaut",
@@ -77,6 +78,14 @@ export async function getFeatureTypesAll(featureTypesIds: FeatureTypeIds[]): Pro
                                 strokeLinecap: style.strokeLinecap,
                                 strokeOpacity: style.strokeOpacity,
                                 logo: logoURI,
+                                label: style.label,
+                                fontSize: style.fontSize,
+                                fontWeight: style.fontWeight,
+                                fontColor: style.fontColor,
+                                fontFamily: style.fontFamily,
+                                labelXOffset: style.labelXOffset,
+                                labelYOffset: style.labelYOffset,
+                                labelMinZoom: style.labelMinZoom,
                             },
                             ...(style?.children?.map((type: FeatureTypeStyleItemData) => {
                                 let logoURItype = type?.uri ? type.uri?.replace("https://espacecollaboratif.ign.fr/gcms", `${API_URL}/espaceco`) : "";
@@ -96,6 +105,14 @@ export async function getFeatureTypesAll(featureTypesIds: FeatureTypeIds[]): Pro
                                     strokeOpacity: type.strokeOpacity,
                                     condition: JSON.parse(type.condition),
                                     logo: logoURItype,
+                                    label: type.label,
+                                    fontSize: type.fontSize,
+                                    fontWeight: type.fontWeight,
+                                    fontColor: type.fontColor,
+                                    fontFamily: type.fontFamily,
+                                    labelXOffset: type.labelXOffset,
+                                    labelYOffset: type.labelYOffset,
+                                    labelMinZoom: type.labelMinZoom,
                                 };
                             }) || []),
                         ],

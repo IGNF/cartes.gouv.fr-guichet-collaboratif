@@ -53,51 +53,52 @@ export const translateSearchEngineControl = (t: TranslationFunction<"useGetMapCo
     if (searchEngineBtn) searchEngineBtn.setAttribute("title", t("control_search_engine_btn"));
 };
 
+type LonLatNumber = number | number[] | number[][] | number[][][];
+
 export const arrayToGeoJSON = (arr: ArrayGeoJSONProps[], geoservice: CommunityGeoservice) => {
-    const features = {
+    const features: GeoJSONProps = {
         type: "FeatureCollection",
-        features: arr.map((el) => {
-            let type = "Point";
-            let lonLat =
-                el.geometrie
-                    ?.replace(/POINT|\(|\)/g, "")
-                    .split(",")
-                    .map((s1: string) => s1.split(" ").map((w) => Number(w))) || [];
-            if (el.geometrie?.includes("MULTIPOLYGON")) {
-                lonLat = el.geometrie
-                    .replace(/MULTIPOLYGON|\(|\)/g, "")
-                    .split(",")
-                    .map((s1: string) => s1.split(" ").map((w) => Number(w)));
-                type = "MultiPolygon";
-            }
-            if (el.geometrie?.includes("MULTILINE")) {
-                lonLat = el.geometrie
-                    .replace(/MULTILINE|\(|\)/g, "")
-                    .split(",")
-                    .map((s1: string) => s1.split(" ").map((w) => Number(w)));
-                type = "LineString";
-            }
-
-            const featureTypeData = { ...el, id: el.id ?? el.cleabs };
-            delete featureTypeData.geometrie;
-
-            return {
-                type: "Feature",
-                id: el.cleabs,
-                geometry: {
-                    type: type,
-                    coordinates: lonLat,
-                },
-                geometry_name: "geometrie",
-                properties: {
-                    featureTypeData,
-                    geoservice: geoservice.featureType ? geoservice : undefined,
-                    featureType: geoservice.featureType,
-                    ...featureTypeData,
-                },
-            };
-        }),
+        features: [],
     };
+    arr.forEach((el) => {
+        let type = "Point";
+        let lonLat: LonLatNumber = el.geometrie
+            ?.replace(/POINT|MULTIPOLYGON|MULTILINE|LINESTRING|\(|\)/g, "")
+            .split(",")
+            .map((s1: string) =>
+                s1.split(" ").map((w) => {
+                    return Number(w);
+                })
+            ) || [0, 0];
+        if (el.geometrie?.includes("MULTIPOLYGON")) {
+            lonLat = [[lonLat as number[]]];
+            type = "MultiPolygon";
+        }
+        if (el.geometrie?.includes("MULTILINE") || el.geometrie?.includes("LINESTRING")) {
+            type = "LineString";
+        }
+        if (el.geometrie?.includes("POINT")) {
+            lonLat = (lonLat as number[])[0];
+        }
+
+        const featureTypeData = { ...el, id: el.id ?? el.cleabs };
+        delete featureTypeData.geometrie;
+        features.features.push({
+            type: "Feature",
+            id: el.cleabs,
+            geometry: {
+                type: type,
+                coordinates: lonLat,
+            },
+            geometry_name: "geometrie",
+            properties: {
+                featureTypeData,
+                geoservice: geoservice.featureType ? geoservice : undefined,
+                featureType: geoservice.featureType,
+                ...featureTypeData,
+            },
+        });
+    });
     return features;
 };
 

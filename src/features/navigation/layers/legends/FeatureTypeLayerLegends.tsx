@@ -10,7 +10,6 @@ import "./FeatureTypeLayerLegends.css";
 import { useTranslation } from "@/i18n";
 import { LAYER_FEATURE_TYPE } from "@/constants";
 import WebGLVectorLayer from "ol/layer/WebGLVector";
-import { getWebGLStyle } from "@/constants/styles";
 
 const FeatureTypeLayerLegends = () => {
     const { communityLayers } = useCommunityStore();
@@ -44,10 +43,6 @@ const FeatureTypeLayerLegends = () => {
         if (currentLayerName && currentStyle && map && currentLayerStyle?.selectedStyle.name !== currentStyle.name) {
             setFeatureTypeSelectedStyle({ layer: currentLayer?.geoservice.layer, selectedStyle: currentStyle });
             changeFeatureTypeStyle(layerFeatures, currentStyle);
-            if (currentLayer.geoservice.featureType) {
-                layer.setStyle(getWebGLStyle(currentLayer.geoservice, featureTypeSelectedStyle));
-                layer.changed();
-            }
         }
         handleCancel();
     };

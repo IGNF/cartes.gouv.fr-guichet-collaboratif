@@ -6,6 +6,7 @@ import { useCommunityStore, useLocalStorageStore, useMapStore } from "@/store";
 import LayerSwitcher from "geopf-extensions-openlayers/src/packages/Controls/LayerSwitcher/LayerSwitcher";
 import isEqual from "lodash.isequal";
 import { Map } from "ol";
+import Layer from "ol/layer/Layer";
 import { useCallback, useEffect, useState } from "react";
 
 interface StateProps {
@@ -30,20 +31,18 @@ const SaveViewHandler: React.FC = () => {
     const handleSaveButton = useCallback(async () => {
         if (!community?.name || !map || !mapSwitcher) return;
         await mapSwitcher?._updateLayersOrder();
-        const layers = map.getAllLayers();
         const view = map.getView();
         const mapControls = map.getControls().getArray();
-        const switcher: typeof LayerSwitcher = mapControls[mapControls.length - 1];
+        const switcher: typeof LayerSwitcher = mapControls.find((c) => c instanceof LayerSwitcher);
         const newLocalStorageData: LocalStorageData = {
             activeLayer: mapWorkingLayer,
             center: view.getCenter()?.map((c) => c) || [],
-            layers: switcher._layersOrder.reverse().map((layer: { title: string }, index: number) => {
-                const mapLayer = layers.find((l) => l.get("title") === layer.title);
+            layers: switcher._layersOrder.reverse().map((switcherLayer: { layer: Layer }, index: number) => {
                 return {
-                    name: mapLayer?.get("title"),
-                    opacity: mapLayer?.getOpacity(),
-                    type: mapLayer?.get("type"),
-                    visibility: mapLayer?.getVisible(),
+                    name: switcherLayer?.layer?.get("title"),
+                    opacity: switcherLayer?.layer?.getOpacity(),
+                    type: switcherLayer?.layer?.get("type"),
+                    visibility: switcherLayer?.layer?.getVisible(),
                     order: index,
                 };
             }),
