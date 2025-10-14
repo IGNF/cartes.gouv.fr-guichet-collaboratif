@@ -73,6 +73,7 @@ const AppFooter: React.FC = () => {
                     },
                 ],
             }}
+            license={t("licence")}
         />
     );
 };

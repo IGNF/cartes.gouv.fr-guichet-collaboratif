@@ -54,6 +54,7 @@ export const translateSearchEngineControl = (t: TranslationFunction<"useGetMapCo
 };
 
 type LonLatNumber = number | number[] | number[][] | number[][][];
+type ObjectProps = { [key: string]: string | number | boolean | object };
 
 export const arrayToGeoJSON = (arr: ArrayGeoJSONProps[], geoservice: CommunityGeoservice) => {
     const features: GeoJSONProps = {
@@ -81,8 +82,20 @@ export const arrayToGeoJSON = (arr: ArrayGeoJSONProps[], geoservice: CommunityGe
             lonLat = (lonLat as number[])[0];
         }
 
-        const featureTypeData = { ...el, id: el.id ?? el.cleabs };
+        const featureTypeData: ObjectProps = { ...el, id: el.id ?? el.cleabs };
         delete featureTypeData.geometrie;
+
+        const validProperties: ObjectProps = {};
+        Object.keys(featureTypeData).forEach((key: string) => {
+            let value = featureTypeData[key];
+            if (typeof value === "boolean") {
+                value = value ? 1 : 0;
+            }
+            if (value === null) return;
+            if (isDateFormat(value as string)) value = new Date(value as string).getTime();
+            validProperties[key] = value;
+        });
+
         features.features.push({
             type: "Feature",
             id: el.cleabs,
@@ -95,7 +108,7 @@ export const arrayToGeoJSON = (arr: ArrayGeoJSONProps[], geoservice: CommunityGe
                 featureTypeData,
                 geoservice: geoservice.featureType ? geoservice : undefined,
                 featureType: geoservice.featureType,
-                ...featureTypeData,
+                ...validProperties,
             },
         });
     });
@@ -106,14 +119,29 @@ export const getGeoJSONProps = (arr: GeoJSONProps, geoservice: CommunityGeoservi
     return {
         type: arr.type,
         features: arr.features.map((e) => {
-            const featureTypeData = { ...(typeof e.properties === "object" && e.properties !== null ? e.properties : {}), id: e.id ?? e.cleabs };
+            const featureTypeData: ObjectProps = {
+                ...(typeof e.properties === "object" && e.properties !== null ? e.properties : {}),
+                id: e.id ?? e.cleabs,
+            };
+
+            const validProperties: ObjectProps = {};
+            Object.keys(featureTypeData).forEach((key: string) => {
+                let value = featureTypeData[key];
+                if (typeof value === "boolean") {
+                    value = value ? 1 : 0;
+                }
+                if (value === null) return;
+                if (isDateFormat(value as string)) value = new Date(value as string).getTime();
+                validProperties[key] = value;
+            });
+
             return {
                 ...e,
                 properties: {
                     featureTypeData: featureTypeData,
                     geoservice: geoservice.featureType ? geoservice : undefined,
                     featureType: geoservice.featureType,
-                    ...featureTypeData,
+                    ...validProperties,
                 },
             };
         }),
@@ -130,4 +158,9 @@ export const jsonToHtmlList = (data: object): string => {
     } else {
         return String(data);
     }
+};
+
+export const isDateFormat = (value: string) => {
+    const regex = /^\d{4}-\d{2}-\d{2}$/;
+    return typeof value === "string" && regex.test(value);
 };

@@ -2,8 +2,9 @@ import { Style } from "ol/style";
 import ImageStyle from "ol/style/Image";
 import { FeatureTypeStyleItem } from "./communities/types";
 import { getCircleStyle, getLineOrPolygonStyle, getRegularShapeStyle, hexToRgba, strokeLineDash } from "./styles";
+import { FlatStyle } from "ol/style/flat";
 
-export const getRawWellKnownNames = (newStyle: FeatureTypeStyleItem) => {
+export const getRawWellKnownNames = (newStyle: FeatureTypeStyleItem): FlatStyle | undefined => {
     switch (newStyle?.type) {
         case "circle":
             return {
@@ -65,14 +66,14 @@ export const getRawWellKnownNames = (newStyle: FeatureTypeStyleItem) => {
             return {
                 "shape-radius": newStyle?.pointRadius,
                 "shape-points": 4,
-                "shape-stroke-width": newStyle.strokeWidth,
+                "shape-stroke-width": newStyle?.strokeWidth,
                 "shape-stroke-color": hexToRgba(newStyle.strokeColor, newStyle.strokeOpacity),
                 "shape-fill-color": hexToRgba(newStyle.fillColor, newStyle.fillOpacity),
-                "shape-scale": 1,
+                "shape-scale": 1.2,
                 "shape-opacity": 1,
                 "shape-radius2": 0,
                 "shape-angle": Math.PI / 4,
-                "shape-stroke-line-cap": "square",
+                "shape-stroke-line-cap": "butt",
                 "shape-stroke-line-dash": strokeLineDash(newStyle),
             };
     }

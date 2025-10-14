@@ -1,5 +1,6 @@
 import { declareComponentKeys } from "i18nifty";
 import type { Translations } from "../../../i18n/types";
+import { JSX } from "react";
 
 export const AppFooterFrTranslations: Translations<"fr">["AppFooter"] = {
     content_description:
@@ -10,6 +11,20 @@ export const AppFooterFrTranslations: Translations<"fr">["AppFooter"] = {
     partner_2: "MINISTÈRE DE LA TRANSFORMATION ET DE LA FONCTION PUBLIQUES",
     partner_3: "MINISTÈRE DE LA TRANSITION ÉCOLOGIQUE ET DE LA COHÉSION DES TERRITOIRES",
     partner_4: "Conseil National de l’Information Géolocalisée",
+    licence: (
+        <>
+            Sauf mention explicite de propriété intellectuelle détenue par des tiers, les contenus de ce site sont proposés sous{" "}
+            <a
+                href="https://github.com/etalab/licence-ouverte/blob/master/LO.md"
+                target="_blank"
+                title="licence etalab-2.0 - nouvelle fenêtre"
+                id="footer-etalab-licence-link"
+                data-fr-js-footer-link-actionee="true"
+            >
+                licence etalab-2.0
+            </a>
+        </>
+    ),
 };
 
 export const AppFooterEnTranslations: Translations<"en">["AppFooter"] = {
@@ -21,9 +36,23 @@ export const AppFooterEnTranslations: Translations<"en">["AppFooter"] = {
     partner_2: "MINISTRY OF TRANSFORMATION AND CIVIL SERVICE",
     partner_3: "MINISTRY OF ECOLOGICAL TRANSITION AND TERRITORIAL COHESION",
     partner_4: "National Council for Geolocated Information",
+    licence: (
+        <>
+            Unless explicitly mentioned intellectual property held by third parties, the contents of this site are offered under{" "}
+            <a
+                href="https://github.com/etalab/licence-ouverte/blob/master/LO.md"
+                target="_blank"
+                title="licence etalab-2.0 - nouvelle fenêtre"
+                id="footer-etalab-licence-link"
+                data-fr-js-footer-link-actionee="true"
+            >
+                licence etalab-2.0
+            </a>
+        </>
+    ),
 };
 
-const { i18n } = declareComponentKeys<"content_description" | "conditions_generales" | "home_link" | "partner_1" | "partner_2" | "partner_3" | "partner_4">()(
-    "AppFooter"
-);
+const { i18n } = declareComponentKeys<
+    "content_description" | "conditions_generales" | "home_link" | "partner_1" | "partner_2" | "partner_3" | "partner_4" | { K: "licence"; R: JSX.Element }
+>()("AppFooter");
 export type I18n = typeof i18n;

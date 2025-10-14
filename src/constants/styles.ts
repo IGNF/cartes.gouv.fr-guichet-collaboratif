@@ -11,6 +11,7 @@ import { FlatStyle } from "ol/style/flat";
 import { getRawWellKnownNames } from "./wellKnownNames";
 import { symbolComparator } from "./mongo_parser";
 import { DEFAULT_STYLE_NAME } from ".";
+import { isDateFormat } from "./communities/utils";
 
 export const clusterReportCircleStyle = (coord: Coordinate) =>
     new Style({
@@ -333,7 +334,7 @@ export const getStyleWebGLPolygon: (isDefault: boolean) => FlatStyle[] = (isDefa
         {
             "stroke-color": hexToRgba(isDefault ? "#fff" : "#13a7eb", 1),
             "stroke-width": 2,
-            "fill-color": hexToRgba(isDefault ? "#fff" : "#c89c4a", isDefault ? 0.4 : 0.8),
+            "fill-color": hexToRgba(isDefault ? "#fff" : "#bc8d3a", isDefault ? 0.4 : 0.6),
         },
     ];
 };
@@ -405,26 +406,37 @@ export const getStyleWebGLDefault: (newStyle?: FeatureTypeStyleItem | undefined)
 export const getFilterStyleByCondition = (newTypes: FeatureTypeStyleItem[]) => {
     const conditions = newTypes
         ?.filter((t, index) => t.condition && newTypes![index])
-        .map((type) =>
-            type.condition?.$and.map((cond) =>
+        .map((type) => {
+            return type.condition?.$and.map((cond) =>
                 Object.keys(cond)
-                    .map((key) => [
-                        key,
-                        ...Object.keys(cond[key])
-                            .map((nestedKey) => [nestedKey, cond[key][nestedKey]])
-                            .flat(),
-                    ])
+                    .map((key) => {
+                        if (typeof cond[key] === "object") {
+                            return [
+                                key,
+                                ...Object.keys(cond[key])
+                                    .map((nestedKey) => [nestedKey, cond[key][nestedKey]])
+                                    .flat(),
+                            ];
+                        }
+                        return [key, cond[key]];
+                    })
                     .flat()
-            )
-        );
+            );
+        });
     const filters = conditions?.map((cond, index) => {
         const filter: (string | number | number[] | string[])[][] = [];
         let property: string = "";
         cond?.forEach((c) => {
-            const comparator = symbolComparator[c![1] as string];
+            let comparator = symbolComparator[c![1] as string];
+            if (!comparator) comparator = "==";
             property = c![0] as string;
             const value = ["get", property];
-            const expectedValue = c![2] as number | string | string[] | number[];
+            let expectedValue = c![2] as number | string | string[] | number[];
+            if (!expectedValue) expectedValue = c![1];
+            if (typeof expectedValue === "boolean") {
+                expectedValue = expectedValue ? 1 : 0;
+            }
+            if (isDateFormat(expectedValue as string)) expectedValue = new Date(expectedValue as string).getTime();
             filter.push(Array.isArray(expectedValue) ? [comparator, value, ...expectedValue] : [comparator, value, expectedValue]);
         });
 

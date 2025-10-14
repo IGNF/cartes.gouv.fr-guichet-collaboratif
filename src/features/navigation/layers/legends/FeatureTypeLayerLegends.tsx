@@ -74,12 +74,17 @@ const FeatureTypeLayerLegends = () => {
             </Select>
             <div className="feature-type-list">
                 {currentStyle?.types?.map((type, index) => {
-                    const imgSrc = !type.logo ? (getWellKnownNames(type)[1] as HTMLImageElement).src : type.logo;
-                    const imgWidth = !type.logo && type.pointRadius ? type.pointRadius * 2 : 50;
+                    let imgSrc = type.logo;
+                    let imgWidth = 50;
+                    if (!imgSrc) {
+                        imgSrc = (getWellKnownNames(type)[1] as HTMLImageElement).src;
+                        if (type.pointRadius) imgWidth = type.pointRadius * 2;
+                    }
+
                     return (
                         <div key={`feature_type_${index}`}>
                             <div className="feature-type-image">
-                                <img src={imgSrc || undefined} alt={type.title} width={imgWidth} height={imgWidth} />
+                                <img src={imgSrc || undefined} alt={type.title} width={imgWidth} height={imgWidth} property="low" rel="preload" />
                             </div>
                             <span>{type.title}</span>
                         </div>

@@ -19,7 +19,7 @@ import { LAYER_FEATURE_TYPE, LAYER_SWITCHER_INFO_DIV, TILE_MAX_FEATURES, TILE_SI
 import VectorLayer from "ol/layer/Vector";
 import { Stroke, Style } from "ol/style";
 import Text from "ol/style/Text";
-import { LayerGroupSource } from "@/classes/LayerGeoupSource";
+import { LayerGroupSource } from "@/classes/LayerGroupSource";
 import { ObjectEvent } from "ol/Object";
 
 function useGetWFSLayer(geoservice: CommunityGeoservice) {
@@ -102,9 +102,9 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
 
                 addFeaturesToSource(wfsSource, data);
                 if (Array.isArray(data)) {
-                    if (data.length === 5000) await wfsLoader(extent, wfsSource, page + 1);
+                    if (data.length === TILE_MAX_FEATURES) await wfsLoader(extent, wfsSource, page + 1);
                 } else {
-                    if (data.features.length === 5000) await wfsLoader(extent, wfsSource, page + 1);
+                    if (data.features.length === TILE_MAX_FEATURES) await wfsLoader(extent, wfsSource, page + 1);
                 }
             } catch {
                 addAlertMessage(StatusMessage.error, t("loading_layer_error", { layerTitle: geoservice.title }));
@@ -169,7 +169,6 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
         (e: VectorSourceEvent) => {
             const feature = e.feature;
             if (!feature) return;
-
             const fCloned = feature.clone();
             feature.on("propertychange", (e) => changeFeatureProperty(e, feature, fCloned));
             fCloned.on("propertychange", (e) => changeFeatureProperty(e, fCloned, feature));
@@ -192,10 +191,11 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
 
         wfsLayer.setStyle(getWebGLStyle(geoservice, featureTypeSelectedStyle));
         wfsLayerLabels.setStyle((ft) => {
-            if (ft.get("selected")) return;
+            const text = ft.get(typeLabelStyle?.label?.replace(/\${|}/g, "") as string);
+            if (ft.get("selected") || text === "null") return;
             return new Style({
                 text: new Text({
-                    text: ft.get(typeLabelStyle?.label?.replace(/\${|}/g, "") as string),
+                    text: text,
                     font: `${typeLabelStyle?.fontWeight} ${typeLabelStyle?.fontSize}px ${typeLabelStyle?.fontFamily}`,
                     offsetX: typeLabelStyle?.labelXOffset,
                     offsetY: typeLabelStyle?.labelYOffset,
