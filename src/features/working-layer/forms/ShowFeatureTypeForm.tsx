@@ -34,15 +34,11 @@ const ShowFeatureTypeForm = () => {
     useEffect(() => {
         if (clickedMapFeature) {
             clickedMapFeature.set("selected", true);
-            clickedMapFeature.set("zIndex", 100000);
-
             clickedMapFeature.changed();
         }
         return () => {
             if (clickedMapFeature) {
                 clickedMapFeature.unset("selected");
-                clickedMapFeature.unset("zIndex");
-
                 clickedMapFeature.changed();
             }
         };

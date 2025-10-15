@@ -7,7 +7,7 @@ const Preload = () => {
     return (
         <>
             {preloadImgList.map((imgSrc, index) => (
-                <img key={`preload-img-${index}`} src={imgSrc} property="low" style={{ display: "none" }} />
+                <link key={`preload-img-${index}`} href={imgSrc} rel="preload" as="image" />
             ))}
         </>
     );

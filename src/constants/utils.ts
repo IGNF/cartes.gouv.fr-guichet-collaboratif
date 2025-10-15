@@ -93,7 +93,6 @@ const applyStylePoint = (features: Feature[], newStyle: FeatureTypeStyle) => {
     const condExpression = conditions[conditionKey];
     const condExpKey = condExpression ? (Object.keys(condExpression)[0] as string) : "";
     const comparisonFunc = simpleComparators[condExpKey as keyof typeof simpleComparators] as ComparatorFunc;
-
     features?.forEach((feat) => {
         const newDefaultStyleType = newStyle.types![0];
         if (newDefaultStyleType.logo) {
@@ -124,11 +123,11 @@ const applyStylePoint = (features: Feature[], newStyle: FeatureTypeStyle) => {
         }
 
         const applyType = newStyle.types?.find((type) => {
-            if (type.condition) {
+            if (type.condition && comparisonFunc) {
                 const typeCond = type.condition!["$and"]![0];
                 let typeCondValue = typeCond[conditionKey][condExpKey];
                 if (Array.isArray(typeCondValue)) typeCondValue = typeCondValue[0];
-                return comparisonFunc(conditionValue, typeCondValue);
+                return comparisonFunc!(conditionValue, typeCondValue);
             }
             return false;
         });

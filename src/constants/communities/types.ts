@@ -46,6 +46,14 @@ export type FeatureTypeStyleItem = {
     strokeOpacity: number;
     zIndex?: number;
     logo?: string;
+    label?: string;
+    fontSize?: number;
+    fontWeight?: string;
+    fontColor?: string;
+    fontFamily?: string;
+    labelXOffset?: number;
+    labelYOffset?: number;
+    labelMinZoom?: number;
     condition?: { $and: { [key: string]: { [key: string]: number | string | string[] | number[] } }[] };
 };
 
@@ -58,6 +66,7 @@ export type FeatureTypeStyleItemData = FeatureTypeStyleItem & {
 };
 export type FeatureTypeStyle = {
     name?: string;
+    label?: string;
     types?: FeatureTypeStyleItem[];
 };
 

@@ -8,9 +8,10 @@ import { Map } from "ol";
 import { FeatureLike } from "ol/Feature";
 import { CommunityGeoservice, FeatureTypeSelectedStyle, FeatureTypeStyle, FeatureTypeStyleItem, RegularShapeStyleProps } from "./communities/types";
 import { FlatStyle } from "ol/style/flat";
-import getWellKnownNames from "./wellKnownNames";
+import { getRawWellKnownNames } from "./wellKnownNames";
 import { symbolComparator } from "./mongo_parser";
 import { DEFAULT_STYLE_NAME } from ".";
+import { isDateFormat } from "./communities/utils";
 
 export const clusterReportCircleStyle = (coord: Coordinate) =>
     new Style({
@@ -333,7 +334,7 @@ export const getStyleWebGLPolygon: (isDefault: boolean) => FlatStyle[] = (isDefa
         {
             "stroke-color": hexToRgba(isDefault ? "#fff" : "#13a7eb", 1),
             "stroke-width": 2,
-            "fill-color": hexToRgba(isDefault ? "#fff" : "#c89c4a", isDefault ? 0.4 : 0.8),
+            "fill-color": hexToRgba(isDefault ? "#fff" : "#bc8d3a", isDefault ? 0.4 : 0.6),
         },
     ];
 };
@@ -381,68 +382,67 @@ export const getStyleWebGLPoint: (isDefault: boolean) => FlatStyle | FlatStyle[]
     ];
 };
 
-export const getStyleWebGLDefault: (newStyle?: FeatureTypeStyleItem | undefined, allRadius?: number[], isDefault?: boolean) => FlatStyle | FlatStyle[] = (
-    newStyle,
-    allRadius = [],
-    isDefault = false
-) => {
-    const logo = newStyle?.logo ? newStyle?.logo : newStyle ? (getWellKnownNames(newStyle!)[1] as HTMLImageElement).src : "";
-    let iconScale = 0.6;
-    if (newStyle?.logo) {
-        iconScale = 1;
-    } else if (isDefault) {
-        iconScale = 0.4;
-    } else if (newStyle?.pointRadius) {
-        iconScale = (newStyle?.pointRadius / Math.min(10, Math.max(...allRadius))) * 0.6;
+export const getStyleWebGLDefault: (newStyle?: FeatureTypeStyleItem | undefined) => FlatStyle | FlatStyle[] = (newStyle) => {
+    if (newStyle?.logo)
+        return {
+            "icon-src": newStyle?.logo,
+            "icon-size": 34,
+            "icon-scale": 1,
+        };
+    if (newStyle?.type) {
+        const style = getRawWellKnownNames(newStyle);
+        if (style) return style;
     }
+
     return {
         "stroke-color": newStyle ? hexToRgba(newStyle.strokeColor, newStyle.strokeOpacity) : "#fff",
         "stroke-width": newStyle ? newStyle.strokeWidth : 1,
         "fill-color": newStyle ? hexToRgba(newStyle.fillColor, newStyle.fillOpacity) : "#fff",
-        "circle-radius": newStyle?.pointRadius ?? 4,
-        "circle-stroke-width": 2,
-        "circle-stroke-color": newStyle ? hexToRgba(newStyle.strokeColor, newStyle.strokeOpacity) : "#fff",
-        "circle-fill-color": newStyle ? hexToRgba(newStyle.fillColor, newStyle.fillOpacity) : "#fff",
-        "circle-scale": iconScale,
-        "circle-opacity": 1,
-        "icon-src": logo ?? "",
-        "icon-size": 34,
-        "icon-scale": iconScale,
         "shape-stroke-line-cap": newStyle ? newStyle.strokeLinecap : "round",
         "shape-stroke-line-dash": newStyle && newStyle.strokeDashstyle ? strokeLineDash(newStyle) : undefined,
-        "z-index": ["get", "zIndex"],
     };
 };
 
-export const getFilterStyleByCondition = (newTypes: FeatureTypeStyleItem[], allRadius?: number[]) => {
+export const getFilterStyleByCondition = (newTypes: FeatureTypeStyleItem[]) => {
     const conditions = newTypes
         ?.filter((t, index) => t.condition && newTypes![index])
-        .map((type) =>
-            type.condition?.$and.map((cond) =>
+        .map((type) => {
+            return type.condition?.$and.map((cond) =>
                 Object.keys(cond)
-                    .map((key) => [
-                        key,
-                        ...Object.keys(cond[key])
-                            .map((nestedKey) => [nestedKey, cond[key][nestedKey]])
-                            .flat(),
-                    ])
+                    .map((key) => {
+                        if (typeof cond[key] === "object") {
+                            return [
+                                key,
+                                ...Object.keys(cond[key])
+                                    .map((nestedKey) => [nestedKey, cond[key][nestedKey]])
+                                    .flat(),
+                            ];
+                        }
+                        return [key, cond[key]];
+                    })
                     .flat()
-            )
-        );
+            );
+        });
     const filters = conditions?.map((cond, index) => {
         const filter: (string | number | number[] | string[])[][] = [];
         let property: string = "";
         cond?.forEach((c) => {
-            const comparator = symbolComparator[c![1] as string];
+            let comparator = symbolComparator[c![1] as string];
+            if (!comparator) comparator = "==";
             property = c![0] as string;
             const value = ["get", property];
-            const expectedValue = c![2] as number | string | string[] | number[];
+            let expectedValue = c![2] as number | string | string[] | number[];
+            if (!expectedValue) expectedValue = c![1];
+            if (typeof expectedValue === "boolean") {
+                expectedValue = expectedValue ? 1 : 0;
+            }
+            if (isDateFormat(expectedValue as string)) expectedValue = new Date(expectedValue as string).getTime();
             filter.push(Array.isArray(expectedValue) ? [comparator, value, ...expectedValue] : [comparator, value, expectedValue]);
         });
 
         return {
             filter: ["all", ["!", ["has", "selected"]], ["has", property], ...filter],
-            style: getStyleWebGLDefault(newTypes![index + 1], allRadius),
+            style: getStyleWebGLDefault(newTypes![index + 1]),
         };
     });
     return filters ?? [];
@@ -452,19 +452,19 @@ export const getWebGLStyle = (geoservice: CommunityGeoservice, selectedStyle?: F
     const layerStyle = selectedStyle?.find((type) => type.layer === geoservice.layer);
     const newStyle = layerStyle ? layerStyle.selectedStyle : geoservice.styles![0];
     const newTypes = newStyle.types;
-    const allRadius = newTypes ? newTypes.map((type) => type.pointRadius ?? 6) : [6];
-    const filterStyleByCondition = getFilterStyleByCondition(newTypes!, allRadius);
+    const filterStyleByCondition = getFilterStyleByCondition(newTypes!);
+    const isDefault = newStyle.name === DEFAULT_STYLE_NAME;
     let filterSelected = [
         {
             filter: ["all", ["==", ["get", "featureType"], "point"], ["has", "selected"]],
-            style: getStyleWebGLPoint(newStyle.name === DEFAULT_STYLE_NAME),
+            style: getStyleWebGLPoint(isDefault),
         },
     ];
     if (geoservice.featureType === "polygon") {
         filterSelected = [
             {
                 filter: ["all", ["==", ["get", "featureType"], "polygon"], ["has", "selected"]],
-                style: getStyleWebGLPolygon(newStyle.name === DEFAULT_STYLE_NAME),
+                style: getStyleWebGLPolygon(isDefault),
             },
         ];
     }
@@ -472,7 +472,7 @@ export const getWebGLStyle = (geoservice: CommunityGeoservice, selectedStyle?: F
         filterSelected = [
             {
                 filter: ["all", ["==", ["get", "featureType"], "line"], ["has", "selected"]],
-                style: getStyleWebGLLine(newStyle.name === DEFAULT_STYLE_NAME),
+                style: getStyleWebGLLine(isDefault),
             },
         ];
     }
@@ -481,7 +481,7 @@ export const getWebGLStyle = (geoservice: CommunityGeoservice, selectedStyle?: F
         {
             else: true,
             filter: ["!", ["has", "selected"]],
-            style: getStyleWebGLDefault(newTypes![0], allRadius, newStyle.name === DEFAULT_STYLE_NAME),
+            style: getStyleWebGLDefault(newTypes![0]),
         },
         ...filterSelected,
     ];

@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo } from "react";
 import { useCommunityStore } from "@/store/useCommunityStore";
-import VectorSource from "ol/source/Vector";
+import VectorSource, { VectorSourceEvent } from "ol/source/Vector";
 import WebGLVectorLayer from "ol/layer/WebGLVector";
-import { Feature } from "ol";
+import { Collection, Feature } from "ol";
 import { Geometry } from "ol/geom";
 import GeoJSON from "ol/format/GeoJSON";
 import { tile as tileStrategy } from "ol/loadingstrategy";
@@ -15,12 +15,16 @@ import { transformExtent } from "ol/proj";
 import { Extent } from "ol/extent";
 import { arrayToGeoJSON, getGeoJSONProps } from "@/constants/communities/utils";
 import { getWebGLStyle } from "@/constants/styles";
-
-const TILE_SIZE = 256;
+import { LAYER_FEATURE_TYPE, LAYER_SWITCHER_INFO_DIV, TILE_MAX_FEATURES, TILE_SIZE } from "@/constants";
+import VectorLayer from "ol/layer/Vector";
+import { Stroke, Style } from "ol/style";
+import Text from "ol/style/Text";
+import { LayerGroupSource } from "@/classes/LayerGroupSource";
+import { ObjectEvent } from "ol/Object";
 
 function useGetWFSLayer(geoservice: CommunityGeoservice) {
     const { addAlertMessage } = useCommunityStore();
-    const { map, featureTypeSelectedStyle } = useMapStore();
+    const { map, featureTypeSelectedStyle, setFeatureTypeSelectedStyle } = useMapStore();
 
     const queryClient = useQueryClient();
 
@@ -40,6 +44,8 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
         return "";
     }, [filterDetruit, filterFictif]);
 
+    const selectedStyle = featureTypeSelectedStyle.find((style) => style.layer === geoservice.layer);
+
     const addFeaturesToSource = useCallback(
         (wfsSource: VectorSource, data: GeoJSONProps | ArrayGeoJSONProps[]) => {
             let newData = data;
@@ -53,13 +59,14 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
                 dataProjection: geoProjCode,
                 featureProjection: mapProjCode,
             });
+
             wfsSource.addFeatures(features);
         },
         [geoProjCode, mapProjCode, geoservice]
     );
 
     const wfsLoader = useCallback(
-        async function (extent: Extent, wfsSource: VectorSource) {
+        async function (extent: Extent, wfsSource: VectorSource, page: number = 0) {
             try {
                 const transformedExtent = transformExtent(extent, mapProjCode, geoProjCode);
                 const url =
@@ -69,11 +76,12 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
                     `&typename=${geoservice.layer}` +
                     `&outputFormat=${geoservice.featureType ? "GeoJSON" : "application/json"}` + //
                     `&srsname=${geoProjCode}` +
-                    `&maxFeatures=5000` +
+                    `&maxFeatures=${TILE_MAX_FEATURES}` +
+                    `&offset=${page * TILE_MAX_FEATURES}` +
                     urlsFilters +
                     `&bbox=${transformedExtent.join(",")},${geoProjCode}`;
 
-                const queryKey = [`GET_WFS_GET_FEATURES_${geoservice.url}_${geoservice.version}_${geoservice.layer}_${transformedExtent.join(",")}`];
+                const queryKey = [`GET_WFS_GET_FEATURES_${geoservice.url}_${geoservice.version}_${geoservice.layer}_${transformedExtent.join(",")}_${page}`];
 
                 const data: GeoJSONProps | ArrayGeoJSONProps[] = await queryClient.fetchQuery({
                     queryKey: queryKey,
@@ -91,7 +99,13 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
                     },
                     retry: 1,
                 });
+
                 addFeaturesToSource(wfsSource, data);
+                if (Array.isArray(data)) {
+                    if (data.length === TILE_MAX_FEATURES) await wfsLoader(extent, wfsSource, page + 1);
+                } else {
+                    if (data.features.length === TILE_MAX_FEATURES) await wfsLoader(extent, wfsSource, page + 1);
+                }
             } catch {
                 addAlertMessage(StatusMessage.error, t("loading_layer_error", { layerTitle: geoservice.title }));
             }
@@ -99,49 +113,136 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
         [addAlertMessage, addFeaturesToSource, urlsFilters, geoProjCode, geoservice, mapProjCode, queryClient, t]
     );
 
-    const wfsSource = useMemo(() => {
-        const wfsSource = new VectorSource<Feature<Geometry>>({
-            format: new GeoJSON(),
-            loader: (extent) => wfsLoader(extent, wfsSource),
-            strategy: tileStrategy(createXYZ({ tileSize: TILE_SIZE, minZoom: geoservice.tileZoom, maxZoom: geoservice.maxZoom })),
-        });
+    const wfsSource = useMemo(
+        () =>
+            new VectorSource<Feature<Geometry>>({
+                format: new GeoJSON(),
+                loader: (extent) => wfsLoader(extent, wfsSource),
+                strategy: tileStrategy(createXYZ({ tileSize: TILE_SIZE, minZoom: geoservice.tileZoom, maxZoom: geoservice.maxZoom })),
+            }),
+        [geoservice, wfsLoader]
+    );
 
-        return wfsSource;
-    }, [geoservice, wfsLoader]);
+    const wfsSourceLabels = useMemo(() => new VectorSource<Feature<Geometry>>(), []);
 
     const wfsLayer = useMemo(() => {
         return new WebGLVectorLayer<VectorSource<Feature<Geometry>>>({
             source: wfsSource,
             style: getWebGLStyle(geoservice),
+            properties: {
+                name: geoservice.layer,
+                title: geoservice.title,
+                description: LAYER_SWITCHER_INFO_DIV,
+            },
         });
     }, [wfsSource, geoservice]);
 
+    const wfsLayerLabels = useMemo(() => {
+        const wfsLayerLabels = new VectorLayer<VectorSource<Feature<Geometry>>>({
+            source: wfsSourceLabels,
+            properties: {
+                title: `${geoservice.title} labels`,
+                description: LAYER_SWITCHER_INFO_DIV,
+            },
+        });
+
+        return wfsLayerLabels;
+    }, [geoservice, wfsSourceLabels]);
+
+    const layerGroup = useMemo(() => {
+        return new LayerGroupSource({
+            layers: [wfsLayer, wfsLayerLabels],
+            properties: { title: geoservice.title, type: LAYER_FEATURE_TYPE, description: LAYER_SWITCHER_INFO_DIV, source: wfsLayer.getSource() },
+        });
+    }, [wfsLayer, wfsLayerLabels, geoservice]);
+
+    const changeFeatureProperty = useCallback((e: ObjectEvent, original: Feature, clone: Feature) => {
+        const value = original.get(e.key);
+        if (value) {
+            clone.set(e.key, value);
+        } else {
+            clone.unset(e.key);
+        }
+    }, []);
+
+    const addFeaturesToLabels = useCallback(
+        (e: VectorSourceEvent) => {
+            const feature = e.feature;
+            if (!feature) return;
+            const fCloned = feature.clone();
+            feature.on("propertychange", (e) => changeFeatureProperty(e, feature, fCloned));
+            fCloned.on("propertychange", (e) => changeFeatureProperty(e, fCloned, feature));
+            wfsSourceLabels.addFeature(fCloned);
+        },
+        [wfsSourceLabels, changeFeatureProperty]
+    );
+
     useEffect(() => {
+        wfsSource.on("addfeature", addFeaturesToLabels);
+
+        return () => {
+            wfsSource.un("addfeature", addFeaturesToLabels);
+        };
+    }, [wfsSource, addFeaturesToLabels]);
+
+    useEffect(() => {
+        const typeLabelStyle = selectedStyle?.selectedStyle?.types![0];
+        if (typeLabelStyle?.labelMinZoom) wfsLayerLabels.setMinZoom(typeLabelStyle.labelMinZoom);
+
         wfsLayer.setStyle(getWebGLStyle(geoservice, featureTypeSelectedStyle));
-        wfsLayer.changed();
-    }, [wfsLayer, featureTypeSelectedStyle, geoservice]);
+        wfsLayerLabels.setStyle((ft) => {
+            const text = ft.get(typeLabelStyle?.label?.replace(/\${|}/g, "") as string);
+            if (ft.get("selected") || text === "null") return;
+            return new Style({
+                text: new Text({
+                    text: text,
+                    font: `${typeLabelStyle?.fontWeight} ${typeLabelStyle?.fontSize}px ${typeLabelStyle?.fontFamily}`,
+                    offsetX: typeLabelStyle?.labelXOffset,
+                    offsetY: typeLabelStyle?.labelYOffset,
+                    stroke: new Stroke({
+                        color: "#fff",
+                        width: 2,
+                    }),
+                }),
+            });
+        });
+
+        if (typeLabelStyle?.label) {
+            layerGroup.setLayers(new Collection([wfsLayer, wfsLayerLabels]));
+        } else {
+            layerGroup.setLayers(new Collection([wfsLayer]));
+        }
+    }, [featureTypeSelectedStyle, map, selectedStyle, selectedStyle?.selectedStyle.name, geoservice, wfsLayer, layerGroup, wfsSource, wfsLayerLabels]);
 
     useEffect(() => {
-        wfsLayer.set("title", geoservice.title);
-        wfsLayer.set("name", geoservice.layer);
+        layerGroup.set("title", geoservice.title);
+        layerGroup.set("name", geoservice.layer);
 
-        wfsLayer.set("description", geoservice.description);
-        wfsLayer.setMinZoom(geoservice.minZoom);
-        wfsLayer.setMaxZoom(geoservice.maxZoom);
+        layerGroup.set("description", geoservice.description);
+        layerGroup.setMinZoom(geoservice.minZoom);
+        layerGroup.setMaxZoom(geoservice.maxZoom);
         if (map) {
             const mapView = map.getView();
             const minResolution = mapView?.getResolutionForZoom(geoservice.maxZoom);
             const maxResolution = mapView?.getResolutionForZoom(geoservice.minZoom);
-            wfsLayer.setMinResolution(minResolution);
-            wfsLayer.setMaxResolution(maxResolution);
+            layerGroup.setMinResolution(minResolution);
+            layerGroup.setMaxResolution(maxResolution);
         }
-    }, [map, geoservice, wfsLayer]);
+    }, [map, geoservice, layerGroup, wfsLayer, wfsLayerLabels]);
+
+    useEffect(() => {
+        const currentLayerStyle = featureTypeSelectedStyle.find((style) => style.layer === geoservice.layer);
+        if (!currentLayerStyle) {
+            setFeatureTypeSelectedStyle({ layer: geoservice.layer, selectedStyle: geoservice.styles![0] });
+        }
+    });
 
     if (geoservice.extent) {
         const extent = geoservice.extent.split(",")?.map((extent) => parseFloat(extent));
         wfsLayer.setExtent(transformExtent(extent, "EPSG:4326", mapProjCode));
     }
-    return wfsLayer;
+
+    return layerGroup;
 }
 
 const { i18n } = declareComponentKeys<"loading_report_layer_error" | { K: "loading_layer_error"; P: { layerTitle: string }; R: string }>()(

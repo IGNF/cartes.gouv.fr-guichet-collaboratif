@@ -82,6 +82,7 @@ const ReportDrawer = () => {
 
     const handleSingleClick = useCallback(
         (evt: MapBrowserEvent) => {
+            if (!map) return;
             if (selectedFeatures?.find((f) => f?.get("new"))) return;
             if (editReport) return;
             const features: { feature: Feature; zIndex: number }[] = [];
@@ -91,14 +92,16 @@ const ReportDrawer = () => {
             const buffer = (resolution || 0) * HIT_DETECTION_TOLERENCE;
             const extent = [coordinate![0] - buffer, coordinate![1] - buffer, coordinate![0] + buffer, coordinate![1] + buffer];
 
+            const featuresAtPixel = map?.getFeaturesAtPixel(evt.pixel);
+            if (!featuresAtPixel?.length) return;
+
             const featuresAt = clickableSource?.getFeaturesInExtent(extent);
 
             if (featuresAt && featuresAt.length) {
                 setClickableFeatures(featuresAt);
                 if (featuresAt.length > 1) return;
             }
-
-            map?.forEachFeatureAtPixel(evt.pixel, function (feature) {
+            featuresAtPixel?.forEach((feature) => {
                 const clickedFeature = feature as Feature;
                 if (clickedFeature.get("geoservice")?.layer !== mapWorkingLayer && mapWorkingLayer !== REPORTS_LAYER_TYPE) return;
                 if (mapWorkingLayer === REPORTS_LAYER_TYPE && clickedFeature.get("features")) {
@@ -113,6 +116,7 @@ const ReportDrawer = () => {
                     });
                 }
             });
+
             const topFeature = features[0];
             if (topFeature) {
                 if (mapWorkingLayer === REPORTS_LAYER_TYPE) {
