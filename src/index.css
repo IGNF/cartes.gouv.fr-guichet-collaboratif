@@ -16,10 +16,48 @@
     background-color: white;
 }
 
-.app-footer {
-    position: fixed;
+.app-footer-body {
+    height: 0;
     bottom: 0;
-    background-color: white;
+    display: none;
+}
+
+.app-footer-root {
+    height: 100%;
+    padding-top: unset;
+    box-shadow: unset;
+}
+
+.app-footer-root .fr-container {
+    margin: unset;
+    max-width: unset;
+}
+.app-footer-root .fr-footer__bottom {
+    box-shadow: unset;
+    margin: unset;
+}
+
+.app-footer-root .fr-footer__bottom ul {
+    padding: 2px 0px;
+    flex: 1;
+}
+
+.app-footer-close {
+    float: right;
+    margin: 10px;
+}
+
+.app-footer-root .fr-footer__bottom-copy,
+.app-footer-root .fr-footer__bottom-copy p {
+    margin: 0;
+}
+
+.app-footer-extended {
+    position: absolute;
+    bottom: 0;
+    background-color: var(--text-inverted-grey);
+    width: 100%;
+    z-index: 999;
 }
 
 .footer-button {
@@ -136,4 +174,84 @@
     background-color: unset;
     left: unset;
     height: unset;
+}
+
+.ol-scale-line.ol-scale-line {
+    right: 62px;
+    left: unset;
+    padding-bottom: 4px;
+}
+
+.ol-scale-line-inner {
+    height: 100%;
+}
+
+.custom-controls {
+    position: absolute;
+    right: 2px;
+    top: 54px;
+    width: 54px;
+    padding-right: 14px;
+}
+.custom-controls div {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--background-default-grey);
+    border-radius: 4px;
+}
+
+.custom-controls div button:first-child {
+    border-radius: 4px 4px 0px 0px;
+}
+.custom-controls div button:last-child {
+    border-radius: 0px 0px 4px 4px;
+}
+
+.btn-show-drawer {
+    margin-top: 8px;
+    border-radius: 4px;
+    background-color: var(--background-default-grey);
+}
+
+div[id^="GPtoolbox-measure-main-"],
+div[id^="GPdrawing-"] {
+    display: none !important;
+}
+
+.working-layer-label-map {
+    position: absolute;
+    bottom: 8px;
+    right: 192px;
+    background-color: var(--background-default-grey);
+    color: var(--text-default-grey);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-family: "Marianne";
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 24px;
+    transition: all 0.25s;
+}
+
+.MuiTooltip-tooltipPlacementLeft.MuiTooltip-tooltipPlacementLeft {
+    height: 40px;
+    background-color: var(--text-inverted-grey);
+    border-radius: 0px;
+    white-space: normal;
+    color: var(--text-default-grey);
+    align-items: center;
+    display: flex;
+    font-family: "Marianne";
+    font-size: 0.75rem;
+    font-style: normal;
+    font-weight: 600;
+    transition: none;
+    transform: none;
+    width: calc(100% - 6px);
+    cursor: pointer;
+}
+
+.MuiTooltip-arrow.MuiTooltip-arrow {
+    color: var(--text-inverted-grey);
 }

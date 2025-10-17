@@ -23,12 +23,18 @@ import { clusterStyle } from "@/constants/styles";
 import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import useGetMapControls from "./controls";
 import WorkingLayerDrawer from "../working-layer/WorkingLayerDrawer";
+import { Control } from "ol/control";
+import Layer from "ol/layer/Layer";
+import WorkingLayerControl from "./controls/WorkingLayerControl";
+import { APP_FOOTER_MIN_HEIGHT } from "@/constants";
+import WorkingLayerLabelMap from "./controls/WorkingLayerLabelMap";
+import CustomControls from "./controls/cusom-controls";
 
 export default function MainMap() {
     const mapTargetRef = useRef<HTMLDivElement>(null);
     const mapRef = useRef<Map>(null);
     const viewRef = useRef<View>(null);
-    const switcherRef = useRef<typeof LayerSwitcher>(null);
+    const switcherRef = useRef<LayerSwitcher>(null);
 
     const { community, mapLayers } = useCommunityStore();
     const { localStorageData } = useLocalStorageStore();
@@ -55,22 +61,22 @@ export default function MainMap() {
         switcherRef.current?.addLayer(reportLayer, {
             title: layer.get("title"),
             description: layer.get("description"),
-            type: layer.get("type"),
+            //type: layer.get("type"),
         });
     }, []);
 
     const addLayer = useCallback(
-        (layer: MapLayerSource): void => {
+        (layer: MapLayerSource | Layer): void => {
             if (layer.get("type") === REPORTS_LAYER_TYPE) {
                 addReportLayer(layer as VectorLayer);
                 return;
             }
 
             mapRef.current?.addLayer(layer);
-            switcherRef.current?.addLayer(layer, {
+            switcherRef.current?.addLayer(layer as Layer, {
                 title: layer.get("title"),
                 description: layer.get("description"),
-                type: layer.get("type"),
+                //type: layer.get("type"),
             });
         },
         [addReportLayer]
@@ -80,6 +86,7 @@ export default function MainMap() {
     useEffect(() => {
         if (cfg && typeof cfg.call === "function") cfg.call();
     }, [cfg]);
+
     useLayoutEffect(() => {
         if (mapRef.current && switcherRef.current) return;
         const mapLayersSource: MapLayerSource[] = mapLayers.map((layer: MapLayer) => layer.source);
@@ -90,16 +97,15 @@ export default function MainMap() {
             zoom: localStorageData?.zoom || community?.zoom,
         });
 
+        const switcher = layerSwitcherControl(mapLayers);
+
         mapRef.current = new Map({
             target: mapTargetRef.current as HTMLElement,
             layers: mapLayersSource,
             interactions: defaultInteractions(),
-            controls: mapControls,
+            controls: [...(mapControls as Control[]), switcher],
             view: mapView,
         });
-
-        const switcher = layerSwitcherControl(mapLayers);
-        mapRef.current.addControl(switcher);
 
         viewRef.current = mapView;
         switcherRef.current = switcher;
@@ -128,7 +134,7 @@ export default function MainMap() {
             <div
                 className={cx(fr.cx("fr-col"), "map-view")}
                 ref={mapTargetRef}
-                style={{ height: `calc(100vh - ${mapToolbarHeader?.clientHeight || 0}px)` }}
+                style={{ height: `calc(100vh - ${(mapToolbarHeader?.clientHeight || 0) + APP_FOOTER_MIN_HEIGHT}px)` }}
             ></div>
 
             <SaveViewHandler />
@@ -136,6 +142,10 @@ export default function MainMap() {
 
             <ReportDrawer />
             <WorkingLayerDrawer />
+            <WorkingLayerControl />
+            <WorkingLayerLabelMap />
+
+            {map?.getAllLayers().length && <CustomControls />}
         </div>
     );
 }

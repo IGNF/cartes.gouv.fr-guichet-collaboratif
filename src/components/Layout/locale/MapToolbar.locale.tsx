@@ -25,10 +25,8 @@ export const MapToolbarFrTranslations: Translations<"fr">["MapToolbar"] = {
     review: "Revoir vos objets créés et modifiés avant de les enregistrer",
     reset: "Réinitialiser",
     manage: "Gérer le guichet",
-    working_layer: "Couche de travail :",
     seismicity_zone: "Zones de sismicité",
     all_reports: "Tous les signalements",
-    read_only: "Lecture",
 };
 
 export const MapToolbarEnTranslations: Translations<"en">["MapToolbar"] = {
@@ -54,10 +52,8 @@ export const MapToolbarEnTranslations: Translations<"en">["MapToolbar"] = {
     review: "Review your created and modified objects before saving them",
     reset: "Reset",
     manage: "Manage community",
-    working_layer: "Working layer:",
     seismicity_zone: "Seismicity zones",
     all_reports: "All reports",
-    read_only: "Read only",
 };
 
 const { i18n } = declareComponentKeys<
@@ -70,9 +66,7 @@ const { i18n } = declareComponentKeys<
     | "review"
     | "reset"
     | "manage"
-    | "working_layer"
     | "seismicity_zone"
     | "all_reports"
-    | "read_only"
 >()("MapToolbar");
 export type I18n = typeof i18n;

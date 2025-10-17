@@ -5,6 +5,7 @@ import { useMapStore } from "@/store";
 import Button from "@codegouvfr/react-dsfr/Button";
 import Table from "@codegouvfr/react-dsfr/Table";
 import { Tooltip } from "@codegouvfr/react-dsfr/Tooltip";
+import { EventTypes } from "ol/Observable";
 import { memo, useCallback, useEffect, useMemo } from "react";
 
 interface PointDataProps {
@@ -45,10 +46,10 @@ const ShowFeatureTypeForm = () => {
     }, [clickedMapFeature, geoserviceData, featureLayer, setWorkingLayerDrawerOpened]);
 
     useEffect(() => {
-        mapSwitcher?.on("layerswitcher:change:visibility", handleLayerVisibility);
+        mapSwitcher?.on("layerswitcher:change:visibility" as EventTypes, handleLayerVisibility);
 
         return () => {
-            mapSwitcher?.un("layerswitcher:change:visibility", handleLayerVisibility);
+            mapSwitcher?.un("layerswitcher:change:visibility" as EventTypes, handleLayerVisibility);
         };
     }, [mapSwitcher, handleLayerVisibility]);
 

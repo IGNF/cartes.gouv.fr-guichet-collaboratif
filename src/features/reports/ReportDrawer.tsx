@@ -78,7 +78,18 @@ const ReportDrawer = () => {
         setTableDrawerOpened(!tableDrawerOpened && true);
         setSelectedReport(null);
         setSelectedFeatures([]);
-    }, [map, selectedReport, alertMessages, removeAlertMessage, setEditReport, setSelectedFeatures, setSelectedReport]);
+    }, [
+        map,
+        selectedReport,
+        alertMessages,
+        removeAlertMessage,
+        setEditReport,
+        setSelectedFeatures,
+        setSelectedReport,
+        setDrawerOpened,
+        setTableDrawerOpened,
+        tableDrawerOpened,
+    ]);
 
     const handleSingleClick = useCallback(
         (evt: MapBrowserEvent) => {
@@ -95,12 +106,15 @@ const ReportDrawer = () => {
             const featuresAtPixel = map?.getFeaturesAtPixel(evt.pixel);
             if (!featuresAtPixel?.length) return;
 
-            const featuresAt = clickableSource?.getFeaturesInExtent(extent);
+            if (clickableSource && "getFeaturesInExtent" in clickableSource) {
+                const featuresAt = clickableSource?.getFeaturesInExtent!(extent);
 
-            if (featuresAt && featuresAt.length) {
-                setClickableFeatures(featuresAt);
-                if (featuresAt.length > 1) return;
+                if (featuresAt && featuresAt.length) {
+                    setClickableFeatures(featuresAt);
+                    if (featuresAt.length > 1) return;
+                }
             }
+
             featuresAtPixel?.forEach((feature) => {
                 const clickedFeature = feature as Feature;
                 if (clickedFeature.get("geoservice")?.layer !== mapWorkingLayer && mapWorkingLayer !== REPORTS_LAYER_TYPE) return;
@@ -249,7 +263,7 @@ const ReportDrawer = () => {
         return () => {
             document.removeEventListener("create-report-event", handleDrawingAdd);
         };
-    }, [drawerOpened, selectedReport, handleDrawingAdd]);
+    }, [drawerOpened, selectedReport, handleDrawingAdd, setDrawerOpened]);
 
     useEffect(() => {
         if (drawerOpened) {

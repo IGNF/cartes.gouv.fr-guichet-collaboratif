@@ -1,4 +1,4 @@
-import { ParamsReport, toolNames } from "@/constants/reports/types";
+import { ParamsReport } from "@/constants/reports/types";
 import Drawing from "geopf-extensions-openlayers/src/packages/Controls/Drawing/Drawing";
 import "geopf-extensions-openlayers/src/packages/CSS/Controls/Drawing/DSFRdrawingStyle.css";
 import { mainMarker, otherMarkers } from "@/constants/utils";
@@ -6,20 +6,14 @@ import { useTranslation } from "@/i18n";
 
 const markersList = [mainMarker, ...otherMarkers];
 
-const DrawingControl: React.FC = () => {
+const DrawingControl = () => {
     const { t } = useTranslation({ DrawingControl });
     const drawingControl = new Drawing({
         collapsed: true,
-        position: "top-right",
-        removable: true,
         layerDescription: {
             title: t("layer_title"),
             description: t("layer_description"),
         },
-        labels: {
-            control: t("control_label"),
-        },
-        markersList: markersList,
         tools: {
             points: true,
             lines: true,
@@ -43,20 +37,7 @@ const DrawingControl: React.FC = () => {
             },
         },
     });
-    drawingControl.onShowDrawingClick = (e: Event) => {
-        e.preventDefault();
-        const button = e.target as HTMLElement;
-        button.setAttribute("aria-pressed", "false");
-        if (button.classList.contains("active")) {
-            button.classList.remove("active");
-        } else {
-            button.classList.add("active");
-        }
-        const toolButton = document.querySelector(`button[id*="${toolNames.point}"]`) as HTMLButtonElement | null;
-        if (toolButton) {
-            toolButton.click();
-        }
-    };
+    drawingControl.options.markersList = markersList;
     return drawingControl;
 };
 

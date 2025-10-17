@@ -1,7 +1,7 @@
 import LoaderComponent from "@/components/LoaderComponent";
 import { CommunityTheme } from "@/constants/communities/types";
 import { ClickedTool, ErrorFile, PostThemeReport, ReportTool } from "@/constants/reports/types";
-import { useCommunityStore, useModalStore, useReportStore } from "@/store";
+import { useCommunityStore, useMapStore, useModalStore, useReportStore } from "@/store";
 import Accordion from "@codegouvfr/react-dsfr/Accordion";
 import Button from "@codegouvfr/react-dsfr/Button";
 import Input from "@codegouvfr/react-dsfr/Input";
@@ -52,6 +52,7 @@ const ReportForm: React.FC<Props> = ({ handleSubmit, handleDelete, handleClose }
 
     const reportTools = useReportTools();
     const { confirmCancelModal } = useModalStore();
+    const { setClickedControl } = useMapStore();
 
     const { t } = useTranslation({ ReportForm });
 
@@ -196,6 +197,7 @@ const ReportForm: React.FC<Props> = ({ handleSubmit, handleDelete, handleClose }
         if (handleClose) handleClose();
 
         setTableDrawerOpened(true);
+        setClickedControl(null);
     };
 
     const removeFile = (file: File) => {
