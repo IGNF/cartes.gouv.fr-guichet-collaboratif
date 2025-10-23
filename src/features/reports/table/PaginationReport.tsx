@@ -1,6 +1,5 @@
 import { Pagination } from "@codegouvfr/react-dsfr/Pagination";
 import { useReportStore } from "@/store";
-import "./PaginationReport.css";
 
 type PaginationReportProps = {
     totalPages: number;

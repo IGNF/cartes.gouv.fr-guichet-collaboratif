@@ -7,7 +7,6 @@ import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
 import olDefaults from "@/api/ol-defaults.json";
 import "ol/ol.css";
 import "geopf-extensions-openlayers/css/Dsfr.css";
-import "./map-view.css";
 import { useCommunityStore, useLocalStorageStore, useMapStore } from "@/store";
 import LayerSwitcher from "geopf-extensions-openlayers/src/packages/Controls/LayerSwitcher/LayerSwitcher";
 import layerSwitcherControl from "./controls/layerSwitcherControl";

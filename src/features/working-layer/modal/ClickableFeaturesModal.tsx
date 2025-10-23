@@ -2,7 +2,6 @@ import { createModal } from "@codegouvfr/react-dsfr/Modal";
 import { useIsModalOpen } from "@codegouvfr/react-dsfr/Modal/useIsModalOpen";
 import { useMapStore } from "@/store";
 import { useEffect } from "react";
-import "./clickableFeaturesModal.css";
 import Button from "@codegouvfr/react-dsfr/Button";
 import { Feature } from "ol";
 import { useTranslation } from "@/i18n";

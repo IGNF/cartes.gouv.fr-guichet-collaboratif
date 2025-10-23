@@ -1,7 +1,7 @@
-.reportForm-attachments {
+.report-form-attachments {
     display: flex;
     flex-direction: column;
 }
-.reportForm-attachments > button {
+.report-form-attachments > button {
     align-self: flex-end;
 }

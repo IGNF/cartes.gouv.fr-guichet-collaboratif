@@ -1,17 +1,17 @@
 import { Button } from "@codegouvfr/react-dsfr/Button";
-import { useState, useRef } from "react";
-import { useCommunityStore } from "@/store";
-
-import "./MapToolbar.css";
+import { useMemo } from "react";
+import { useCommunityStore, useUserStore } from "@/store";
 import { useTranslation } from "@/i18n";
+import { ADMIN_ROLE } from "@/constants";
+import ContributionsCount from "./ContributionsCount";
 
 const MapToolbar: React.FC = () => {
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const buttonGroupRef = useRef<HTMLDivElement>(null);
-
     const { community } = useCommunityStore();
+    const { user } = useUserStore();
 
     const { t } = useTranslation({ MapToolbar });
+
+    const userCommunityMember = useMemo(() => user?.communitiesMember.find((cm) => cm.communityId === community?.id), [user, community]);
 
     if (!community) return null;
 
@@ -29,47 +29,13 @@ const MapToolbar: React.FC = () => {
                 <span className="map-toolbar-label">{t("community_title", { communityName: community.name })}</span>
             </div>
             <div>
-                <div ref={buttonGroupRef} className="map-toolbar-button-group">
-                    <Button
-                        iconId="fr-icon-save-fill"
-                        priority="primary"
-                        title={t("save_contributions", { contributionCount: null })}
-                        onClick={() => {
-                            const event = new CustomEvent("save-view-button");
-                            document.dispatchEvent(event);
-                        }}
-                        className="map-toolbar-button-primary"
-                    >
-                        {t("save_contributions", { contributionCount: 2 })}
+                <ContributionsCount t={t} />
+
+                {userCommunityMember?.role === ADMIN_ROLE && (
+                    <Button iconId="fr-icon-settings-5-fill" priority="secondary" linkProps={{ href: "#" }} className="map-toolbar-manage">
+                        {t("manage")}
                     </Button>
-
-                    <Button
-                        iconId={isDropdownOpen ? `fr-icon-arrow-up-s-line` : `fr-icon-arrow-down-s-line`}
-                        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                        title={t("show_more")}
-                        className="map-toolbar-button-toggle"
-                    ></Button>
-
-                    {isDropdownOpen && (
-                        <div className="map-toolbar-dropdown" style={{ width: buttonGroupRef.current?.offsetWidth ?? 40 }}>
-                            <div className="map-toolbar-line">{t("object_created", { count: 1 })}</div>
-                            <div className="map-toolbar-line">{t("object_modified", { count: 2 })}</div>
-                            <div className="map-toolbar-line">{t("object_deleted", { count: 0 })}</div>
-                            <div className="map-toolbar-review">
-                                <Button className="fr-btn fr-btn--tertiary map-toolbar-review-link">{t("review")}</Button>
-                            </div>
-                            <div className="map-toolbar-reset">
-                                <Button iconId="ri-refresh-line" priority="secondary">
-                                    {t("reset")}
-                                </Button>
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                <Button iconId="fr-icon-settings-5-fill" priority="secondary" linkProps={{ href: "#" }} className="map-toolbar-manage">
-                    {t("manage")}
-                </Button>
+                )}
             </div>
         </div>
     );

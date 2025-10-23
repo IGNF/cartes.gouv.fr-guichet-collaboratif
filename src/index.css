@@ -1,3 +1,5 @@
+@import url("./css/index.css");
+
 .t-h3 {
     font-size: 1.75rem;
     line-height: 2.25rem;
@@ -14,50 +16,6 @@
     padding: 0;
     z-index: 1;
     background-color: white;
-}
-
-.app-footer-body {
-    height: 0;
-    bottom: 0;
-    display: none;
-}
-
-.app-footer-root {
-    height: 100%;
-    padding-top: unset;
-    box-shadow: unset;
-}
-
-.app-footer-root .fr-container {
-    margin: unset;
-    max-width: unset;
-}
-.app-footer-root .fr-footer__bottom {
-    box-shadow: unset;
-    margin: unset;
-}
-
-.app-footer-root .fr-footer__bottom ul {
-    padding: 2px 0px;
-    flex: 1;
-}
-
-.app-footer-close {
-    float: right;
-    margin: 10px;
-}
-
-.app-footer-root .fr-footer__bottom-copy,
-.app-footer-root .fr-footer__bottom-copy p {
-    margin: 0;
-}
-
-.app-footer-extended {
-    position: absolute;
-    bottom: 0;
-    background-color: var(--text-inverted-grey);
-    width: 100%;
-    z-index: 999;
 }
 
 .footer-button {

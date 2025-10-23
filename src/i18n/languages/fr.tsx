@@ -35,6 +35,7 @@ import { FormAttachmentsFrTranslations } from "@/features/reports/forms/locale/F
 import { WorkingLayerControlFrTranslations } from "@/features/navigation/controls/locale/WorkingLayerControl.locale";
 import { WorkingLayerLabelMapFrTranslations } from "@/features/navigation/controls/locale/WorkingLayerLabelMap.locale";
 import { MesureLengthControlFrTranslations } from "@/features/navigation/controls/locale/MesureLengthControl.locale";
+import { CustomControlsFrTranslations } from "@/features/navigation/controls/cusom-controls/locale/index.locale";
 
 export const translations: Translations<"fr"> = {
     AppFooter: AppFooterFrTranslations,
@@ -73,4 +74,5 @@ export const translations: Translations<"fr"> = {
     WorkingLayerControl: WorkingLayerControlFrTranslations,
     WorkingLayerLabelMap: WorkingLayerLabelMapFrTranslations,
     MesureLengthControl: MesureLengthControlFrTranslations,
+    CustomControls: CustomControlsFrTranslations,
 };

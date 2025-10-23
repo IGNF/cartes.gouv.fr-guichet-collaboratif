@@ -19,7 +19,15 @@ const ShowFeatureTypeForm = () => {
 
     const pointData: PointDataProps = useMemo(() => clickedMapFeature?.get("featureTypeData"), [clickedMapFeature]);
     const geoserviceData: CommunityGeoservice = useMemo(() => clickedMapFeature?.get("geoservice"), [clickedMapFeature]);
-    const featureLayer = useMemo(() => geoserviceData && map?.getAllLayers()?.find((l) => l.get("name") === geoserviceData.layer), [map, geoserviceData]);
+    const featureLayer = useMemo(
+        () =>
+            geoserviceData &&
+            map
+                ?.getLayers()
+                ?.getArray()
+                .find((l) => l.get("name") === geoserviceData.layer),
+        [map, geoserviceData]
+    );
 
     const handleCancel = useCallback(() => {
         setClickedMapFeature(null);

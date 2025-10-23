@@ -324,17 +324,17 @@ export const getSelectedFeatureTypeStyle = (type: string, style: FeatureTypeStyl
 export const getStyleWebGLPolygon: (isDefault: boolean) => FlatStyle[] = (isDefault: boolean = false): FlatStyle[] => {
     return [
         {
-            "stroke-color": hexToRgba(isDefault ? "#13a7eb" : "#13a7eb", 1),
-            "stroke-width": isDefault ? 6 : 10,
-        },
-        {
-            "stroke-color": hexToRgba(isDefault ? "#13a7eb" : "#fafa00", 1),
-            "stroke-width": isDefault ? 4 : 6,
+            "stroke-color": hexToRgba(isDefault ? "#fff" : "#13a7eb", 1),
+            "stroke-width": 2,
+            "fill-color": hexToRgba(isDefault ? "#fff" : "#ee9900", 0.4),
         },
         {
             "stroke-color": hexToRgba(isDefault ? "#fff" : "#13a7eb", 1),
-            "stroke-width": 2,
-            "fill-color": hexToRgba(isDefault ? "#fff" : "#bc8d3a", isDefault ? 0.4 : 0.6),
+            "stroke-width": 6,
+        },
+        {
+            "stroke-color": hexToRgba(isDefault ? "#13a7eb" : "#fafa00", 1),
+            "stroke-width": 3,
         },
     ];
 };

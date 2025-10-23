@@ -2,7 +2,6 @@ import DrawerComponent from "@/components/DrawerComponent";
 import { useMapStore } from "@/store";
 import { useEffect } from "react";
 import ShowFeatureTypeForm from "./forms/ShowFeatureTypeForm";
-import "./workingLayerDrawer.css";
 
 const WorkingLayerDrawer = () => {
     const { clickedMapFeature, workingLayerDrawerOpened, setWorkingLayerDrawerOpened, setClickedMapFeature } = useMapStore();

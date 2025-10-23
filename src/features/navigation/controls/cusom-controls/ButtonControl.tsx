@@ -14,6 +14,7 @@ const ButtonControl: React.FC<Props> = ({ control, handleClick }) => {
     const { clickedControl, setClickedControl } = useMapStore();
 
     const onClick = useCallback(() => {
+        if (control.disabled) return;
         handleClick(control);
         setClickedControl(control === clickedControl ? null : control);
 
@@ -35,6 +36,7 @@ const ButtonControl: React.FC<Props> = ({ control, handleClick }) => {
             enterDelay={0}
             leaveDelay={0}
             slotProps={{ tooltip: { onClick: () => handleClick(control) } }}
+            disableInteractive={control.disabled}
         >
             <Button
                 iconId={control.icon}

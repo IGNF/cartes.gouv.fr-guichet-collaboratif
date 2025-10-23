@@ -1,12 +1,6 @@
 import { headerFooterDisplayItem } from "@codegouvfr/react-dsfr/Display";
 import Footer from "@codegouvfr/react-dsfr/Footer";
-
 import { FooterConsentManagementItem, FooterPersonalDataPolicyItem } from "@/components/ConsentManagement";
-
-import logoIgn from "@/img/partners-logos/logo-ign.png";
-import logoMinistereTransformation from "@/img/partners-logos/logo-ministere-transformation.jpg";
-import logoMinistereEcologie from "@/img/partners-logos/logo-ministere-ecologie.jpg";
-import logoCnig from "@/img/partners-logos/logo-rf-cnig.jpg";
 import { useCommunityStore, useUserStore } from "@/store";
 import { useTranslation } from "@/i18n";
 import Button from "@codegouvfr/react-dsfr/Button";
@@ -22,7 +16,7 @@ const AppFooter: React.FC = () => {
     const showFullFooter = !community || !user || isExtended;
 
     return (
-        <div className={isExtended ? "app-footer-extended" : ""}>
+        <div className={`${community && user ? "app-footer-main" : ""} ${isExtended ? "app-footer-extended" : ""}`}>
             {isExtended && (
                 <Button
                     iconId="fr-icon-close-line"
@@ -83,22 +77,22 @@ const AppFooter: React.FC = () => {
                                   {
                                       alt: t("partner_1"),
                                       href: "https://www.ign.fr",
-                                      imgUrl: logoIgn,
+                                      imgUrl: "https://data.geopf.fr/annexes/ressources/footer/ign.png",
                                   },
                                   {
                                       alt: t("partner_2"),
                                       href: "https://www.transformation.gouv.fr/",
-                                      imgUrl: logoMinistereTransformation,
+                                      imgUrl: "https://data.geopf.fr/annexes/ressources/footer/min_fp.jpg",
                                   },
                                   {
                                       alt: t("partner_3"),
                                       href: "https://www.ecologie.gouv.fr/",
-                                      imgUrl: logoMinistereEcologie,
+                                      imgUrl: "https://data.geopf.fr/annexes/ressources/footer/min_ecologie.jpg",
                                   },
                                   {
                                       alt: t("partner_4"),
                                       href: "https://cnig.gouv.fr/",
-                                      imgUrl: logoCnig,
+                                      imgUrl: "https://data.geopf.fr/annexes/ressources/footer/rf_cnig.jpg",
                                   },
                               ],
                           }

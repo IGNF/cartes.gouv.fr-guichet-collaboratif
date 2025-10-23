@@ -1,4 +1,4 @@
-.reportFilter__container {
+.report-filter__container {
     display: flex;
     justify-content: flex-start;
     align-items: baseline;
@@ -8,14 +8,14 @@
     list-style: none;
 }
 
-.reportFilter__container li:nth-last-child(-n + 2) > a {
+.report-filter__container li:nth-last-child(-n + 2) > a {
     background-image: none;
 }
 
-.reportFilter__container > li {
+.report-filter__container > li {
     padding: 0;
 }
 
-.reportFilter__container > li > a {
+.report-filter__container > li > a {
     text-transform: capitalize;
 }

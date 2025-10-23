@@ -10,6 +10,7 @@ import { click } from "ol/events/condition";
 import VectorLayer from "ol/layer/Vector";
 import WebGLVectorLayer from "ol/layer/WebGLVector";
 import AllReportsControl from "./AllReportsControl";
+import { useTranslation } from "@/i18n";
 
 const CustomControls = () => {
     const [selectedFeatures, setSelectedFeatures] = useState<Feature[]>([]);
@@ -17,11 +18,13 @@ const CustomControls = () => {
 
     const { community } = useCommunityStore();
 
+    const { t } = useTranslation({ CustomControls });
+
     const constrolsList: CustomControlItem[] = useMemo(() => {
         return [
             {
                 id: 0,
-                title: "Sélecteur",
+                title: t("selector"),
                 target: "drawing-tool-point-",
                 icon: "ri-cursor-line",
                 disabled: false,
@@ -29,7 +32,7 @@ const CustomControls = () => {
             },
             {
                 id: 1,
-                title: "Soumettre un signalement",
+                title: t("create_report"),
                 target: "drawing-tool-point-",
                 icon: "ri-map-pin-add-line",
                 disabled: false,
@@ -37,38 +40,38 @@ const CustomControls = () => {
             },
             {
                 id: 2,
-                title: "Ajouter un objet",
+                title: t("add_object"),
                 target: "drawing-tool-point-",
                 icon: "ri-pen-nib-line",
-                disabled: !community?.functionalities.includes("draw"),
+                disabled: !community?.functionalities?.includes("draw"),
                 interaction: null,
             },
             {
                 id: 3,
-                title: "Couper un objet",
+                title: t("cut_object"),
                 target: "drawing-tool-edit-",
                 icon: "ri-scissors-cut-line",
-                disabled: !community?.functionalities.includes("modify"),
+                disabled: !community?.functionalities?.includes("modify"),
                 interaction: "modify",
             },
             {
                 id: 4,
-                title: "Supprimer un objet",
+                title: t("delete_object"),
                 target: "drawing-tool-remove-",
                 icon: "ri-delete-bin-line",
-                disabled: !community?.functionalities.includes("delete"),
+                disabled: !community?.functionalities?.includes("delete"),
                 interaction: "remove",
             },
             {
                 id: 5,
-                title: "Mesurer la distance",
+                title: t("measure_distance"),
                 target: "GPshowMeasureLengthPicto-",
                 icon: "ri-ruler-line",
-                disabled: !community?.functionalities.includes("measureDistance"),
+                disabled: !community?.functionalities?.includes("measureDistance"),
                 interaction: null,
             },
         ];
-    }, [community]);
+    }, [community, t]);
 
     const clickableLayer = map
         ?.getAllLayers()

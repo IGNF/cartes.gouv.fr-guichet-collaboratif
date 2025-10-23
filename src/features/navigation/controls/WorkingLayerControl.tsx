@@ -4,6 +4,8 @@ import { useCommunityStore, useLocalStorageStore, useMapStore } from "@/store";
 import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import { useTranslation } from "@/i18n";
 import Select from "@codegouvfr/react-dsfr/Select";
+import Tooltip from "@mui/material/Tooltip";
+import Fade from "@mui/material/Fade";
 
 const WorkingLayerControl = () => {
     const { community, mapLayers, communityLayers } = useCommunityStore();
@@ -97,20 +99,22 @@ const WorkingLayerControl = () => {
     if (!showSelect) return null;
 
     return (
-        <div className="map-toolbar-bottom-select">
-            <Select
-                label=""
-                nativeSelectProps={{
-                    value: mapWorkingLayer,
-                    onChange: (e) => handleWorkingLayerChange(e.target.value),
-                }}
-            >
-                {workingLayers?.map((option) => (
-                    <option value={option.value}>{option.label}</option>
-                ))}
-            </Select>
-            <div className="separator"></div>
-        </div>
+        <Tooltip placement="left" arrow title={t("working_layer")} slots={{ transition: Fade }} enterDelay={0} leaveDelay={0}>
+            <div className="map-toolbar-bottom-select">
+                <Select
+                    label=""
+                    nativeSelectProps={{
+                        value: mapWorkingLayer,
+                        onChange: (e) => handleWorkingLayerChange(e.target.value),
+                    }}
+                >
+                    {workingLayers?.map((option) => (
+                        <option value={option.value}>{option.label}</option>
+                    ))}
+                </Select>
+                <div className="separator"></div>
+            </div>
+        </Tooltip>
     );
 };
 
