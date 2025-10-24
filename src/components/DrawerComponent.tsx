@@ -1,3 +1,4 @@
+import { APP_FOOTER_MIN_HEIGHT } from "@/constants";
 import { useTranslation } from "@/i18n";
 import Button from "@codegouvfr/react-dsfr/Button";
 import MuiDsfrThemeProvider from "@codegouvfr/react-dsfr/mui";
@@ -16,7 +17,7 @@ interface Props {
 
 const DrawerComponent: React.FC<Props> = ({ anchor, isOpen, children, create, onClose }) => {
     const mapToolbarHeader = document.getElementById("map-toolbar-header");
-    const headerHeight = mapToolbarHeader?.clientHeight || 0;
+    const headerHeight = (mapToolbarHeader?.clientHeight || 0) + APP_FOOTER_MIN_HEIGHT;
 
     const { t } = useTranslation({ DrawerComponent });
     return (
@@ -27,7 +28,13 @@ const DrawerComponent: React.FC<Props> = ({ anchor, isOpen, children, create, on
                 onClose={onClose}
                 className="drawer-component"
                 variant="persistent"
-                sx={{ "& .MuiDrawer-paper,.MuiBackdrop-root": { height: `calc(100vh - ${headerHeight}px)`, top: headerHeight, overflow: "unset" } }}
+                sx={{
+                    "& .MuiDrawer-paper,.MuiBackdrop-root": {
+                        height: `calc(100vh - ${headerHeight}px)`,
+                        top: mapToolbarHeader?.clientHeight || 0,
+                        overflow: "unset",
+                    },
+                }}
             >
                 <div className="drawer-close">
                     {!create && <Button iconId="ri-close-line" onClick={onClose} priority="tertiary no outline" title={t("button_title")} />}

@@ -1,3 +1,4 @@
+import { FrIconClassName, RiIconClassName } from "@codegouvfr/react-dsfr";
 import BaseLayer from "ol/layer/Base";
 import TileLayer from "ol/layer/Tile";
 import VectorLayer from "ol/layer/Vector";
@@ -173,3 +174,12 @@ export interface ArrayGeoJSONProps {
     id: string | number;
     cleabs: string | number;
 }
+
+export type CustomControlItem = {
+    id: number;
+    title: string;
+    target: string;
+    icon: FrIconClassName | RiIconClassName;
+    disabled: boolean;
+    interaction: string | null;
+};

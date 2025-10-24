@@ -134,6 +134,7 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
                 title: geoservice.title,
                 description: LAYER_SWITCHER_INFO_DIV,
             },
+            disableHitDetection: false,
         });
     }, [wfsSource, geoservice]);
 

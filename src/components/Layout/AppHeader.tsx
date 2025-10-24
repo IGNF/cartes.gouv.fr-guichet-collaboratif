@@ -13,41 +13,45 @@ const AppHeader: React.FC = () => {
 
     const { t } = useTranslation({ AppHeader });
 
-    if (community && user) return <MapToolbar />;
-
     return (
-        <Header
-            className={community ? "app-header" : ""}
-            brandTop={
-                <>
-                    République
-                    <br />
-                    Française
-                </>
-            }
-            homeLinkProps={{
-                href: HOME_URL,
-                title: t("home_link"),
-            }}
-            serviceTitle="cartes.gouv.fr-guichet-collaboratif"
-            quickAccessItems={[
-                user && {
-                    iconId: "fr-icon-account-fill",
-                    linkProps: {
-                        href: PROFILE_URL,
+        <>
+            <Header
+                className={community ? "app-header" : ""}
+                brandTop={
+                    <>
+                        République
+                        <br />
+                        Française
+                    </>
+                }
+                homeLinkProps={{
+                    href: HOME_URL,
+                    title: t("home_link"),
+                }}
+                serviceTitle="cartes.gouv.fr-guichet-collaboratif"
+                quickAccessItems={[
+                    user && {
+                        iconId: "fr-icon-account-fill",
+                        linkProps: {
+                            href: PROFILE_URL,
+                        },
+                        text: user.name,
                     },
-                    text: user.name,
-                },
-                {
-                    iconId: "fr-icon-logout-box-r-line",
-                    linkProps: {
-                        href: user ? LOGOUT_URL : LOGIN_URL,
+                    {
+                        iconId: "fr-icon-logout-box-r-line",
+                        linkProps: {
+                            href: user ? LOGOUT_URL : LOGIN_URL,
+                        },
+                        text: user ? t("logout") : t("login"),
                     },
-                    text: user ? t("logout") : t("login"),
-                },
-                <LanguageSelect />,
-            ]}
-        />
+                    <LanguageSelect />,
+                ]}
+                style={{
+                    display: community && user ? "none" : undefined,
+                }}
+            />
+            <MapToolbar />
+        </>
     );
 };
 

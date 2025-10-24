@@ -11,7 +11,6 @@ import Badge from "@codegouvfr/react-dsfr/Badge";
 import { getReportReplies } from "@/api/reportsData";
 import { useQuery } from "@tanstack/react-query";
 import { Replies, Severity, StatusKey } from "@/constants/reports/types";
-import "./ShowReport.css";
 import { reportImgStatus } from "@/constants/utils";
 import React from "react";
 import Select from "@codegouvfr/react-dsfr/Select";

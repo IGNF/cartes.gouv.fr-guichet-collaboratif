@@ -1,6 +1,5 @@
 import { useCommunityStore, useMapStore, useReportStore } from "@/store";
 
-import "./report.css";
 import { CommunityTheme, StatusMessage } from "@/constants/communities/types";
 import { postCommunityReport } from "@/api/reportsData";
 import { CommunityReport, PostReport, PostThemeReport } from "@/constants/reports/types";

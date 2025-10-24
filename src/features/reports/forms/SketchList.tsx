@@ -42,10 +42,10 @@ const SketchList = () => {
 
     useEffect(() => {
         if (!map) return;
-        const drawingControl: typeof Drawing = map
+        const drawingControl = map
             ?.getControls()
             .getArray()
-            .find((c: Control) => "layer" in c && c.layer === drawingLayer);
+            .find((c: Control) => "layer" in c && c instanceof Drawing);
 
         if (drawingControl && mainFeature) {
             drawingControl.options.markersList = otherMarkers;

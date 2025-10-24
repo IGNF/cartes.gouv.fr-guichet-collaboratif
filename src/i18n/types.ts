@@ -25,6 +25,10 @@ export type ComponentKey =
     | import("../features/navigation/controls/locale/CatalogControl.locale").I18n
     | import("../features/navigation/controls/locale/useCenterViewToReportControl.locale").I18n
     | import("../features/navigation/controls/locale/useGetMapControls.locale").I18n
+    | import("../features/navigation/controls/locale/WorkingLayerControl.locale").I18n
+    | import("../features/navigation/controls/locale/WorkingLayerLabelMap.locale").I18n
+    | import("../features/navigation/controls/locale/MesureLengthControl.locale").I18n
+    | import("../features/navigation/controls/cusom-controls/locale/index.locale").I18n
     | import("../features/reports/forms/locale/AttachmentList.locale").I18n
     | import("../features/reports/forms/locale/ConfirmCancelModal.locale").I18n
     | import("../features/reports/forms/locale/OpenReplyReportModal.locale").I18n

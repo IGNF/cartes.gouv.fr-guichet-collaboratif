@@ -15,7 +15,7 @@ export const DOWNLOAD_DOCUMENT_URL = SERVER_URL + "/document/download";
 export const LOGIN_URL = BASE_URL + "/login";
 export const LOGOUT_URL = BASE_URL + "/logout?app=guichet-collaboratif";
 
-export const USER_PROFILE_API_URL = API_URL + "/users/me";
+export const USER_PROFILE_API_URL = API_URL + "/espaceco/user/me";
 export const USERS_API_URL = API_URL + "/users";
 export const COMMUNITIES_API_URL = API_URL + "/espaceco/community";
 export const GEOSERVICES_API_URL = API_URL + "/espaceco/geoservice";

@@ -6,7 +6,6 @@ import getWellKnownNames from "@/constants/wellKnownNames";
 import Button from "@codegouvfr/react-dsfr/Button";
 import Select from "@codegouvfr/react-dsfr/Select";
 import { changeFeatureTypeStyle } from "@/constants/utils";
-import "./FeatureTypeLayerLegends.css";
 import { useTranslation } from "@/i18n";
 import { LAYER_FEATURE_TYPE } from "@/constants";
 import WebGLVectorLayer from "ol/layer/WebGLVector";

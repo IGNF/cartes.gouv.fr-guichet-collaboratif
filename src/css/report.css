@@ -267,10 +267,27 @@
     background-color: var(--hover-tint) !important;
 }
 
+button[id^="GPshowLayersListPicto-"] {
+    border-radius: 0px 4px 4px 0px !important;
+}
+
+button[id^="GPshowLayersListPicto-"]:hover,
+button[id^="GPshowLayersListPicto-"][aria-pressed="true"] {
+    border-radius: 4px !important;
+}
+
+button[id^="GPshowDrawingPicto-"] {
+    border-radius: 4px !important;
+}
+
 button[id^="GPshowDrawingPicto-"]::after {
-    mask: url("geopf-extensions-openlayers/src/packages/CSS/Controls/Drawing/img/dsfr/create-point.svg") center no-repeat;
+    mask: url("../../icons/map-pin-add.svg") center no-repeat;
 }
 
 button[id^="drawing-tool-import-"]::after {
     mask: url("../../img/reports/import-file.svg") center no-repeat;
+}
+
+#position-container-top-right {
+    gap: 8px;
 }

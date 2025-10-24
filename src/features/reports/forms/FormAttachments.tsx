@@ -7,7 +7,6 @@ import { StatusMessage } from "@/constants/communities/types";
 import { Upload } from "@codegouvfr/react-dsfr/Upload";
 import Button from "@codegouvfr/react-dsfr/Button";
 import AttachmentList from "./AttachmentList";
-import "./FormAttachments.css";
 
 const allowedTypes = ["image/png", "image/jpg", "application/pdf"];
 const maxSizeMB = 3;
@@ -51,7 +50,7 @@ const FormAttachments = () => {
             }
             return !errors.length;
         },
-        [allowedTypes, maxSizeBytes, t]
+        [t]
     );
     const { community, addAlertMessage } = useCommunityStore();
     const { reports, selectedReport, setReports } = useReportStore();
@@ -99,7 +98,7 @@ const FormAttachments = () => {
         }
     };
     return (
-        <div className="reportForm-attachments">
+        <div className="report-form-attachments">
             <AttachmentList newFiles={filesUploaded} errorFiles={errorFiles} removeFile={removeFile} />
             <Upload
                 ref={filesRef}

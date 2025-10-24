@@ -1,5 +1,4 @@
 import { useEffect, useMemo } from "react";
-import "./ReportFiltersComponent.css";
 import Tag from "@codegouvfr/react-dsfr/Tag";
 import Badge from "@codegouvfr/react-dsfr/Badge";
 import { useCommunityStore, useReportStore } from "@/store";
@@ -57,12 +56,12 @@ const ReportFiltersComponent = () => {
     }, [community, setFilteredReports]);
 
     return (
-        <ul className="fr-links-group reportFilter__container fr-mb-6v fr-mt-4v">
+        <ul className="fr-links-group report-filter__container fr-mb-6v fr-mt-4v">
             <li>
                 <a
                     href="#"
                     title="Voir les signalements de cet auteur"
-                    className="fr-link reportFilter__item"
+                    className="fr-link report-filter__item"
                     onClick={async (e: React.MouseEvent) => {
                         e.preventDefault();
                         if (!community) return;
@@ -80,7 +79,7 @@ const ReportFiltersComponent = () => {
                 <a
                     href="#"
                     title="Voir les signalements envoyés à partir de cette date"
-                    className="fr-link reportFilter__item"
+                    className="fr-link report-filter__item"
                     onClick={async (e: React.MouseEvent) => {
                         e.preventDefault();
                         if (!community) return;
@@ -98,7 +97,7 @@ const ReportFiltersComponent = () => {
                 <a
                     href="#"
                     title="Voir les signalements de cette commune"
-                    className="fr-link reportFilter__item"
+                    className="fr-link report-filter__item"
                     onClick={async (e: React.MouseEvent) => {
                         e.preventDefault();
                         if (!community) return;
@@ -116,7 +115,7 @@ const ReportFiltersComponent = () => {
                 <a
                     href="#"
                     title="Voir les signalements de ce département"
-                    className="fr-link reportFilter__item"
+                    className="fr-link report-filter__item"
                     onClick={async (e: React.MouseEvent) => {
                         e.preventDefault();
                         if (!community) return;
@@ -135,7 +134,7 @@ const ReportFiltersComponent = () => {
                     linkProps={{
                         href: "#",
                         title: "Voir les signalements de ce thème",
-                        className: "fr-link reportFilter__item",
+                        className: "fr-link report-filter__item",
                         onClick: async (e: React.MouseEvent) => {
                             e.preventDefault();
                             if (!community) return;
@@ -153,7 +152,7 @@ const ReportFiltersComponent = () => {
             <li>
                 <a
                     href="#"
-                    className="fr-link reportFilter__item"
+                    className="fr-link report-filter__item"
                     onClick={async (e: React.MouseEvent) => {
                         e.preventDefault();
                         if (!community) return;

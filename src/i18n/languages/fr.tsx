@@ -32,6 +32,10 @@ import { FeatureTypeLayerLegendsFrTranslations } from "@/features/navigation/lay
 import { ShowFeatureTypeFormFrTranslations } from "@/features/working-layer/forms/locale/ShowFeatureTypeForm.locale";
 import { ClickableFeaturesModalFrTranslations } from "@/features/working-layer/modal/locale/ClickableFeaturesModal.locale";
 import { FormAttachmentsFrTranslations } from "@/features/reports/forms/locale/FormAttachments.locale";
+import { WorkingLayerControlFrTranslations } from "@/features/navigation/controls/locale/WorkingLayerControl.locale";
+import { WorkingLayerLabelMapFrTranslations } from "@/features/navigation/controls/locale/WorkingLayerLabelMap.locale";
+import { MesureLengthControlFrTranslations } from "@/features/navigation/controls/locale/MesureLengthControl.locale";
+import { CustomControlsFrTranslations } from "@/features/navigation/controls/cusom-controls/locale/index.locale";
 
 export const translations: Translations<"fr"> = {
     AppFooter: AppFooterFrTranslations,
@@ -67,4 +71,8 @@ export const translations: Translations<"fr"> = {
     ShowFeatureTypeForm: ShowFeatureTypeFormFrTranslations,
     ClickableFeaturesModal: ClickableFeaturesModalFrTranslations,
     FormAttachments: FormAttachmentsFrTranslations,
+    WorkingLayerControl: WorkingLayerControlFrTranslations,
+    WorkingLayerLabelMap: WorkingLayerLabelMapFrTranslations,
+    MesureLengthControl: MesureLengthControlFrTranslations,
+    CustomControls: CustomControlsFrTranslations,
 };

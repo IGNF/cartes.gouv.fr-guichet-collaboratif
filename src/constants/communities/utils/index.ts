@@ -17,7 +17,11 @@ export const translateLayerSwitcherControl = (t: TranslationFunction<"useGetMapC
     const constrolIconsExtent = switcherControl?.querySelectorAll('button[id^="GPextent_ID_"]');
     const constrolIconsOpacity = switcherControl?.querySelectorAll('div[id^="GPopacity_ID_"]');
 
-    if (controlButton) controlButton.setAttribute("aria-label", t("control_layer_swticher_aria_label"));
+    if (controlButton) {
+        controlButton.setAttribute("aria-label", t("control_layer_swticher_aria_label"));
+        controlButton.classList.add("gpf-btn--primary", "fr-btn--primary");
+        controlButton.classList.remove("gpf-btn--tertiary", "fr-btn--tertiary");
+    }
     if (controlPanelTitle) controlPanelTitle.innerHTML = t("control_layer_swticher_pannel_title");
     if (controlPanelIcon) controlPanelIcon.setAttribute("title", t("control_layer_swticher_pannel_title"));
     if (controlPanelClose) {

@@ -1,7 +1,7 @@
 import { USER_PROFILE_API_URL } from "@/constants/urls";
 import { useQuery } from "@tanstack/react-query";
 import { useUserStore } from "@/store/useUserStore";
-import { User } from "@/constants/user/types";
+import { User, UserAPIData } from "@/constants/user/types";
 import { axiosApi } from ".";
 
 async function getUserProfile(): Promise<User> {
@@ -9,9 +9,17 @@ async function getUserProfile(): Promise<User> {
     if (res.status > 206) {
         return null;
     }
+
+    const user: UserAPIData = res.data;
     return {
-        id: `${res.data.id}`,
-        name: res.data.user_name,
+        id: `${user.id}`,
+        name: user.username,
+        communitiesMember: user.communities_member.map((cm) => {
+            return {
+                communityId: cm.community_id,
+                role: cm.role,
+            };
+        }),
     };
 }
 
