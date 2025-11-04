@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useMemo, useState } from "react";
+import { useEffect, useCallback, useMemo } from "react";
 import { useCommunityStore, useLocalStorageStore, useMapStore } from "@/store";
 
 import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
@@ -9,10 +9,8 @@ import Fade from "@mui/material/Fade";
 
 const WorkingLayerControl = () => {
     const { community, mapLayers, communityLayers } = useCommunityStore();
-    const { mapWorkingLayer, setMapWorkingLayer } = useMapStore();
+    const { mapWorkingLayer, showMapWorkingLayerSelect, setMapWorkingLayer, setShowMapWorkingLayerSelect } = useMapStore();
     const { localStorageData, setLocalStorage } = useLocalStorageStore();
-
-    const [showSelect, setShowSelect] = useState(true);
 
     const { t } = useTranslation({ WorkingLayerControl });
 
@@ -37,23 +35,23 @@ const WorkingLayerControl = () => {
 
     const handleLayerSwitcherClick = useCallback(() => {
         if (layerSwitcherButton?.getAttribute("aria-pressed") === "true") {
-            setShowSelect(false);
+            setShowMapWorkingLayerSelect(false);
         } else {
-            setShowSelect(true);
+            setShowMapWorkingLayerSelect(true);
         }
-    }, [layerSwitcherButton]);
+    }, [layerSwitcherButton, setShowMapWorkingLayerSelect]);
 
     const handleLayerSwitcherMouseOver = useCallback(() => {
         if (layerSwitcherButton?.getAttribute("aria-pressed") === "false") {
-            setShowSelect(false);
+            setShowMapWorkingLayerSelect(false);
         }
-    }, [layerSwitcherButton]);
+    }, [layerSwitcherButton, setShowMapWorkingLayerSelect]);
 
     const handleLayerSwitcherMouseLeave = useCallback(() => {
         if (layerSwitcherButton?.getAttribute("aria-pressed") === "false") {
-            setShowSelect(true);
+            setShowMapWorkingLayerSelect(true);
         }
-    }, [layerSwitcherButton]);
+    }, [layerSwitcherButton, setShowMapWorkingLayerSelect]);
 
     useEffect(() => {
         if (!mapWorkingLayer && workingLayers[0]) {
@@ -96,7 +94,7 @@ const WorkingLayerControl = () => {
         [community, localStorageData, mapLayers, setLocalStorage, setMapWorkingLayer]
     );
 
-    if (!showSelect) return null;
+    if (!showMapWorkingLayerSelect) return null;
 
     return (
         <Tooltip placement="left" arrow title={t("working_layer")} slots={{ transition: Fade }} enterDelay={0} leaveDelay={0}>

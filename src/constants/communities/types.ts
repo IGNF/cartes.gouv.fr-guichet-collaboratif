@@ -32,6 +32,9 @@ export interface RegularShapeStyleProps {
     radius2?: number | undefined;
     angle: number | undefined;
 }
+export type FeatureTypeConditionValue = string | number | string[] | number[];
+export type FeatureTypeCondition = { [key: string]: { [key: string]: FeatureTypeConditionValue } }[];
+export type WebGLFilterType = (string | number | (string | number | string[])[] | WebGLFilterType)[];
 
 export type FeatureTypeStyleItem = {
     title: string;
@@ -55,7 +58,10 @@ export type FeatureTypeStyleItem = {
     labelXOffset?: number;
     labelYOffset?: number;
     labelMinZoom?: number;
-    condition?: { $and: { [key: string]: { [key: string]: number | string | string[] | number[] } }[] };
+    condition?: {
+        $and?: FeatureTypeCondition;
+        $or?: FeatureTypeCondition;
+    };
 };
 
 export type FeatureTypeStyleItemData = FeatureTypeStyleItem & {

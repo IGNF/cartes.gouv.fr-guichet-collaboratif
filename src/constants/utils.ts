@@ -88,9 +88,11 @@ export const featureExists = (newFeature: Feature, source: VectorSource) => {
 
 const applyStylePoint = (features: Feature[], newStyle: FeatureTypeStyle) => {
     const condition = newStyle.types![1]?.condition;
-    const conditions = condition ? condition!["$and"]![0] : {};
+    let conditions;
+    if (condition!["$and"]) conditions = condition!["$and"]![0];
+    if (condition!["$or"]) conditions = condition!["$or"]![0];
     const conditionKey = conditions ? Object.keys(conditions)[0] : "";
-    const condExpression = conditions[conditionKey];
+    const condExpression = conditions![conditionKey];
     const condExpKey = condExpression ? (Object.keys(condExpression)[0] as string) : "";
     const comparisonFunc = simpleComparators[condExpKey as keyof typeof simpleComparators] as ComparatorFunc;
     features?.forEach((feat) => {
@@ -124,10 +126,12 @@ const applyStylePoint = (features: Feature[], newStyle: FeatureTypeStyle) => {
 
         const applyType = newStyle.types?.find((type) => {
             if (type.condition && comparisonFunc) {
-                const typeCond = type.condition!["$and"]![0];
-                let typeCondValue = typeCond[conditionKey][condExpKey];
-                if (Array.isArray(typeCondValue)) typeCondValue = typeCondValue[0];
-                return comparisonFunc!(conditionValue, typeCondValue);
+                const typeCond = type.condition!["$and"] ? type.condition!["$and"]![0] : type.condition!["$or"]![0];
+                if (typeCond[conditionKey]) {
+                    let typeCondValue = typeCond[conditionKey]![condExpKey];
+                    if (Array.isArray(typeCondValue)) typeCondValue = typeCondValue[0];
+                    return comparisonFunc!(conditionValue, typeCondValue);
+                }
             }
             return false;
         });
