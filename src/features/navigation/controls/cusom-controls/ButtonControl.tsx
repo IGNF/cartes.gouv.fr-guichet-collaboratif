@@ -35,7 +35,7 @@ const ButtonControl: React.FC<Props> = ({ control, handleClick }) => {
             slots={{ transition: Fade }}
             enterDelay={0}
             leaveDelay={0}
-            slotProps={{ tooltip: { onClick: () => handleClick(control) } }}
+            slotProps={{ tooltip: { onClick } }}
             disableInteractive={control.disabled}
         >
             <Button

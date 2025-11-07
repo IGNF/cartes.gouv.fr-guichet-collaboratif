@@ -1,3 +1,4 @@
+import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_GEOSERVICE_PROPERTY } from "@/constants";
 import { CommunityGeoservice, FeatureTypeColumn } from "@/constants/communities/types";
 import { featureTypeSelectedLineStyle, featureTypeSelectedPointCircleStyle, featureTypeSelectedPolygonStyle } from "@/constants/styles";
 import { useMapStore } from "@/store";
@@ -23,8 +24,8 @@ const getSelectedFeatureTypeStyle = (type: string) => {
 const EditFeatureTypeForm = () => {
     const { clickedMapFeature, setWorkingLayerDrawerOpened, setClickedMapFeature } = useMapStore();
     const lastMapFeatStyle = useRef<Style | null>(null);
-    const pointData: PointDataProps = clickedMapFeature?.get("featureTypeData");
-    const geoserviceData: CommunityGeoservice = clickedMapFeature?.get("geoservice");
+    const pointData: PointDataProps = clickedMapFeature?.get(FEATURE_TYPE_DATA_PROPERTY);
+    const geoserviceData: CommunityGeoservice = clickedMapFeature?.get(FEATURE_TYPE_GEOSERVICE_PROPERTY);
     useEffect(() => {
         if (clickedMapFeature) {
             lastMapFeatStyle.current = clickedMapFeature.getStyle() as Style;
@@ -47,11 +48,11 @@ const EditFeatureTypeForm = () => {
 
     if (!pointData) return;
 
-    const columns: FeatureTypeColumn[] = clickedMapFeature?.get("geoservice").columns || [];
+    const columns: FeatureTypeColumn[] = clickedMapFeature?.get(FEATURE_TYPE_GEOSERVICE_PROPERTY).columns || [];
     return (
         <>
             <h1 className="fr-mt-4v fr-mb-1v fr-text--md">
-                {clickedMapFeature?.get("geoservice")?.title} {pointData.id || pointData.cleabs}
+                {clickedMapFeature?.get(FEATURE_TYPE_GEOSERVICE_PROPERTY)?.title} {pointData.id || pointData.cleabs}
             </h1>
 
             {columns.map((col, index) => {

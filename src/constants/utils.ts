@@ -31,6 +31,7 @@ import { REPORTS_LAYER_TYPE } from "./reports/utils";
 import { ComparatorFunc, simpleComparators } from "./mongo_parser";
 import getWellKnownNames from "./wellKnownNames";
 import addProjectionsToProj4 from "./projectionsToDefine";
+import { FEATURE_TYPE_DATA_PROPERTY } from ".";
 
 const wktFormat = new WKT();
 addProjectionsToProj4();
@@ -248,7 +249,7 @@ export const getGeoserviceFeatureTypeGeometries = (
             }
         }
 
-        feat.set("featureTypeData", item);
+        feat.set(FEATURE_TYPE_DATA_PROPERTY, item);
         if (feat && !featureExists(feat, wfsSource)) {
             features.push(feat);
         }
@@ -488,7 +489,7 @@ export const handleCenterToFeature = (map: Map | null, feature: Feature) => {
     const featureZoom = view?.getZoomForResolution(resolution!);
 
     if (featureZoom) {
-        view?.setZoom(featureZoom);
+        view?.setZoom(view.getZoom() ?? 18);
     }
 
     view?.setCenter(featureCenter);

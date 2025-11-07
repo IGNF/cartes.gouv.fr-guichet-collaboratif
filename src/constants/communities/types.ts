@@ -189,3 +189,6 @@ export type CustomControlItem = {
     disabled: boolean;
     interaction: string | null;
 };
+
+export type LonLatNumber = number | number[] | number[][] | number[][][];
+export type ObjectProps = { [key: string]: string | number | boolean | object | null | undefined };

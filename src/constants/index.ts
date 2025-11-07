@@ -3,6 +3,11 @@ export const DEFAULT_STYLE_NAME = "par_defaut";
 export const LAYER_SWITCHER_INFO_ID = "feature-type-style";
 export const LAYER_SWITCHER_INFO_DIV = `<div id="${LAYER_SWITCHER_INFO_ID}"></div>`;
 
+export const FEATURE_TYPE_DATA_PROPERTY = "featureTypeData";
+export const FEATURE_TYPE_GEOSERVICE_PROPERTY = "geoservice";
+export const FEATURE_TYPE_SELECTED_PROPERTY = "selected";
+export const FEATURE_TYPE_NEW_PROPERTY = "new";
+
 export const ADMIN_ROLE = "admin";
 export const MEMBER_ROLE = "member";
 

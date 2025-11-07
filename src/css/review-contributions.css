@@ -1,0 +1,15 @@
+.review-contributions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    position: absolute;
+    bottom: 8px;
+    right: 50%;
+    background-color: var(--background-default-grey);
+    border: 1px solid var(--border-default-grey);
+    color: var(--text-default-grey);
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.25s;
+    z-index: 9999;
+}

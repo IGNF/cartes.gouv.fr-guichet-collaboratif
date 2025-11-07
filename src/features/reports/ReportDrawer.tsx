@@ -6,7 +6,7 @@ import VectorSource from "ol/source/Vector";
 import { Style } from "ol/style";
 import { useGetUserProfileAPI } from "@/api/userData";
 import { useCommunityStore, useMapStore, useReportStore, useUserStore } from "@/store";
-import { HIT_DETECTION_TOLERENCE } from "@/constants";
+import { HIT_DETECTION_TOLERENCE, FEATURE_TYPE_GEOSERVICE_PROPERTY } from "@/constants";
 import { getClickedMapReport, getReportSketchFeatures, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import { getCenterReportMessage, showCenterReportButtons } from "@/constants/utils";
 import { clearClusterStyles } from "@/constants/reports/utils/cluster";
@@ -43,8 +43,8 @@ const ReportDrawer = () => {
     const { map, setClickedMapFeature, setClickableFeatures } = useMapStore();
     const { alertMessages, removeAlertMessage } = useCommunityStore();
 
-    const clusterLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE);
-    const clusterSource = clusterLayer?.getSource() as VectorSource;
+    const reportClusterLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE);
+    const reportClusterSource = reportClusterLayer?.getSource() as VectorSource;
 
     const clickableLayer = map?.getAllLayers().find((layer) => layer.get("name") === mapWorkingLayer);
     const clickableSource = clickableLayer?.getSource() as VectorSource;
@@ -124,9 +124,9 @@ const ReportDrawer = () => {
 
             featuresAtPixel?.forEach((feature) => {
                 const clickedFeature = feature as Feature;
-                if (clickedFeature.get("geoservice")?.layer !== mapWorkingLayer && mapWorkingLayer !== REPORTS_LAYER_TYPE) return;
+                if (clickedFeature.get(FEATURE_TYPE_GEOSERVICE_PROPERTY)?.layer !== mapWorkingLayer && mapWorkingLayer !== REPORTS_LAYER_TYPE) return;
                 if (mapWorkingLayer === REPORTS_LAYER_TYPE && clickedFeature.get("features")) {
-                    getClickedMapReport({ feature: clickedFeature, map, pixel: evt.pixel, clusterSource, features, handleCloseDrawer });
+                    getClickedMapReport({ feature: clickedFeature, map, pixel: evt.pixel, clusterSource: reportClusterSource, features, handleCloseDrawer });
                 } else {
                     const currentFeatureStyle = clickedFeature.getStyle() as Style;
                     const currentZIndex = currentFeatureStyle && "getStyle" in currentFeatureStyle ? (currentFeatureStyle?.getZIndex() ?? 1) : 1;
@@ -142,13 +142,13 @@ const ReportDrawer = () => {
             if (topFeature) {
                 if (mapWorkingLayer === REPORTS_LAYER_TYPE) {
                     if (selectedReport) {
-                        const reportFeatures = clusterSource.getFeatures().filter((f) => f.get("reportData")?.id === selectedReport.id);
-                        clusterSource.removeFeatures(reportFeatures?.filter((f) => !f.get("main")));
+                        const reportFeatures = reportClusterSource.getFeatures().filter((f) => f.get("reportData")?.id === selectedReport.id);
+                        reportClusterSource.removeFeatures(reportFeatures?.filter((f) => !f.get("main")));
                     }
                     const report = topFeature.feature.get("reportData");
                     if (report) {
                         const selectedReportFeatures = getReportSketchFeatures(report);
-                        clusterSource?.addFeatures(selectedReportFeatures);
+                        reportClusterSource?.addFeatures(selectedReportFeatures);
                         setSelectedFeatures([topFeature.feature, ...selectedReportFeatures]);
                         setSelectedReport(report);
                     }
@@ -159,7 +159,7 @@ const ReportDrawer = () => {
         },
         [
             map,
-            clusterSource,
+            reportClusterSource,
             selectedReport,
             selectedFeatures,
             editReport,
@@ -182,7 +182,7 @@ const ReportDrawer = () => {
                     const fCluster = f.get("features");
                     if (fCluster?.length > 1) return fCluster[0];
                     return fCluster?.find((fc: Feature) => fc.get("reportData") || fc.get("new"));
-                } else if (f.get("geoservice")?.layer === mapWorkingLayer) {
+                } else if (clickableSource?.hasFeature(f as Feature)) {
                     return f;
                 }
                 return null;
@@ -203,22 +203,22 @@ const ReportDrawer = () => {
                 }
             }
         },
-        [map, selectedFeatures, mapWorkingLayer]
+        [map, selectedFeatures, mapWorkingLayer, clickableSource]
     );
 
     const handleClusterChange = useCallback(() => {
         if (!selectedReport || !drawerOpened) return;
-        const clusterFeatures = clusterSource?.getFeatures();
+        const clusterFeatures = reportClusterSource?.getFeatures();
         if (clusterFeatures) {
             const allFeatures = clusterFeatures.map((fc) => fc.get("features") || fc).flat();
             if (selectedFeatures.length > 1) {
                 const sketchExist = allFeatures.find((fc) => fc.get("reportData")?.id === selectedReport?.id && !fc.get("main"));
                 if (!sketchExist) {
-                    clusterSource.addFeatures(selectedFeatures.filter((f) => !f.get("main")));
+                    reportClusterSource.addFeatures(selectedFeatures.filter((f) => !f.get("main")));
                 }
             }
         }
-    }, [clusterSource, selectedReport, selectedFeatures, drawerOpened]);
+    }, [reportClusterSource, selectedReport, selectedFeatures, drawerOpened]);
 
     useEffect(() => {
         if (!map) return;
@@ -237,7 +237,7 @@ const ReportDrawer = () => {
 
     const handleDrawingAdd = useCallback(
         (e: Event) => {
-            clearClusterStyles(clusterSource);
+            clearClusterStyles(reportClusterSource);
             const customEvent = e as CustomEvent<ParamsReport>;
             customEvent.detail.feature.set("new", true);
             if (customEvent.detail.geomType === "Point" && !drawerOpened) {
@@ -254,7 +254,7 @@ const ReportDrawer = () => {
                 setDrawerOpened(true);
             }
         },
-        [drawerOpened, clusterSource, setDrawerOpened]
+        [drawerOpened, reportClusterSource, setDrawerOpened]
     );
 
     useEffect(() => {
