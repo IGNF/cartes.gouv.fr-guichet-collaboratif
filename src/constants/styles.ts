@@ -6,7 +6,16 @@ import { CLUSTER_CIRCLE_COLOR, CLUSTER_REPORT_CIRCLE_COLOR, CLUSTER_REPORT_CIRCL
 import { GeometryFeatueParams } from "./reports/types";
 import { Map } from "ol";
 import { FeatureLike } from "ol/Feature";
-import { CommunityGeoservice, FeatureTypeSelectedStyle, FeatureTypeStyle, FeatureTypeStyleItem, RegularShapeStyleProps } from "./communities/types";
+import {
+    CommunityGeoservice,
+    FeatureTypeCondition,
+    FeatureTypeConditionValue,
+    FeatureTypeSelectedStyle,
+    FeatureTypeStyle,
+    FeatureTypeStyleItem,
+    RegularShapeStyleProps,
+    WebGLFilterType,
+} from "./communities/types";
 import { FlatStyle } from "ol/style/flat";
 import { getRawWellKnownNames } from "./wellKnownNames";
 import { symbolComparator } from "./mongo_parser";
@@ -403,47 +412,69 @@ export const getStyleWebGLDefault: (newStyle?: FeatureTypeStyleItem | undefined)
     };
 };
 
-export const getFilterStyleByCondition = (newTypes: FeatureTypeStyleItem[]) => {
-    const conditions = newTypes
-        ?.filter((t, index) => t.condition && newTypes![index])
-        .map((type) => {
-            return type.condition?.$and.map((cond) =>
-                Object.keys(cond)
-                    .map((key) => {
-                        if (typeof cond[key] === "object") {
-                            return [
-                                key,
-                                ...Object.keys(cond[key])
-                                    .map((nestedKey) => [nestedKey, cond[key][nestedKey]])
-                                    .flat(),
-                            ];
-                        }
-                        return [key, cond[key]];
-                    })
-                    .flat()
-            );
-        });
-    const filters = conditions?.map((cond, index) => {
-        const filter: (string | number | number[] | string[])[][] = [];
-        let property: string = "";
-        cond?.forEach((c) => {
-            let comparator = symbolComparator[c![1] as string];
-            if (!comparator) comparator = "==";
-            property = c![0] as string;
-            const value = ["get", property];
-            let expectedValue = c![2] as number | string | string[] | number[];
-            if (!expectedValue) expectedValue = c![1];
-            if (typeof expectedValue === "boolean") {
-                expectedValue = expectedValue ? 1 : 0;
-            }
-            if (isDateFormat(expectedValue as string)) expectedValue = new Date(expectedValue as string).getTime();
-            filter.push(Array.isArray(expectedValue) ? [comparator, value, ...expectedValue] : [comparator, value, expectedValue]);
-        });
+export const getConditionsByType = (condition: FeatureTypeCondition | undefined) => {
+    return condition?.map((cond) =>
+        Object.keys(cond)
+            .map((key) => {
+                if (typeof cond[key] === "object") {
+                    return [
+                        key,
+                        ...Object.keys(cond[key])
+                            .map((nestedKey) => [nestedKey, cond[key][nestedKey]])
+                            .flat(),
+                    ];
+                }
+                return [key, cond[key]];
+            })
+            .flat()
+    );
+};
 
-        return {
-            filter: ["all", ["!", ["has", "selected"]], ["has", property], ...filter],
-            style: getStyleWebGLDefault(newTypes![index + 1]),
-        };
+export const getConditionedFiltersByType = (cond: FeatureTypeConditionValue[][] | undefined) => {
+    const filter: WebGLFilterType = [];
+    let property: string = "";
+    cond?.forEach((c: FeatureTypeConditionValue[]) => {
+        if (c![0] === "$and" || c![0] === "$or") {
+            const nc = getConditionedFiltersByType(getConditionsByType(c.splice(2).filter((el) => typeof el === "object") as unknown as FeatureTypeCondition));
+            property = "";
+            if (nc.length === 1) return filter.push(...nc);
+            return filter.push([c![0] === "$and" ? "all" : "any", ...nc]);
+        }
+        property = c![0] as string;
+        let comparator = symbolComparator[c![1] as string];
+        if (!comparator) comparator = "==";
+        const value = ["get", property];
+        let expectedValue = c![2] as FeatureTypeConditionValue;
+        if (!expectedValue) expectedValue = c![1];
+        if (typeof expectedValue === "boolean") {
+            expectedValue = expectedValue ? 1 : 0;
+        }
+        if (isDateFormat(expectedValue as string)) expectedValue = new Date(expectedValue as string).getTime();
+        filter.push(Array.isArray(expectedValue) ? [comparator, value, ...expectedValue] : [comparator, value, expectedValue]);
+    });
+    return filter;
+};
+
+export const getFilterStyleByCondition = (newTypes: FeatureTypeStyleItem[]) => {
+    const filters: { else: boolean; filter: WebGLFilterType; style: FlatStyle | FlatStyle[] }[] = [];
+    const conditions = newTypes?.filter((t, index) => t.condition && newTypes![index]);
+    conditions.forEach((type, index) => {
+        if (type.condition?.$or) {
+            const orCondition = getConditionsByType(type.condition?.$or);
+            filters.push({
+                else: true,
+                filter: ["all", ["!", ["has", "selected"]], ["any", ...getConditionedFiltersByType(orCondition)]],
+                style: getStyleWebGLDefault(newTypes![index + 1]),
+            });
+        }
+        if (type.condition?.$and) {
+            const andCondition = getConditionsByType(type.condition?.$and);
+            filters.push({
+                else: true,
+                filter: ["all", ["!", ["has", "selected"]], ...getConditionedFiltersByType(andCondition)],
+                style: getStyleWebGLDefault(newTypes![index + 1]),
+            });
+        }
     });
     return filters ?? [];
 };

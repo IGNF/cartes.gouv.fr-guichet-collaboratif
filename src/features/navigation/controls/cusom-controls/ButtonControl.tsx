@@ -11,7 +11,7 @@ interface Props {
 }
 
 const ButtonControl: React.FC<Props> = ({ control, handleClick }) => {
-    const { clickedControl, setClickedControl } = useMapStore();
+    const { clickedControl, showMapWorkingLayerSelect, setClickedControl } = useMapStore();
 
     const onClick = useCallback(() => {
         if (control.disabled) return;
@@ -31,7 +31,7 @@ const ButtonControl: React.FC<Props> = ({ control, handleClick }) => {
         <Tooltip
             placement="left"
             arrow
-            title={control.title}
+            title={showMapWorkingLayerSelect ? control.title : undefined}
             slots={{ transition: Fade }}
             enterDelay={0}
             leaveDelay={0}
