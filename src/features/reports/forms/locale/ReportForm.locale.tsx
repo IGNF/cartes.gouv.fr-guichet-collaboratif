@@ -35,6 +35,7 @@ export const ReportFormFrTranslations: Translations<"fr">["ReportForm"] = {
     report_status: "Statut",
     report_content: "Votre message",
     report_send: "Envoyer",
+    report_reply: "Répondre",
 };
 
 export const ReportFormEnTranslations: Translations<"en">["ReportForm"] = {
@@ -70,6 +71,7 @@ export const ReportFormEnTranslations: Translations<"en">["ReportForm"] = {
     report_status: "Status",
     report_content: "Your message",
     report_send: "Send",
+    report_reply: "Reply",
 };
 
 const { i18n } = declareComponentKeys<
@@ -97,5 +99,6 @@ const { i18n } = declareComponentKeys<
     | "report_status"
     | "report_content"
     | "report_send"
+    | "report_reply"
 >()("ReportForm");
 export type I18n = typeof i18n;

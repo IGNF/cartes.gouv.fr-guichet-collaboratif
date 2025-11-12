@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { useTranslation } from "@/i18n";
 import { Feature } from "ol";
 import VectorSource from "ol/source/Vector";
@@ -17,17 +16,12 @@ interface Props {
 
 const EditReport: React.FC<Props> = ({ handleCloseDrawer }) => {
     const { community, addAlertMessage } = useCommunityStore();
-    const { reports, selectedReport, setReports, setTableDrawerOpened, setEditReport } = useReportStore();
+    const { reports, selectedReport, setReports, setTableDrawerOpened } = useReportStore();
 
     const { map } = useMapStore();
 
     const { t } = useTranslation({ EditReport });
 
-    useEffect(() => {
-        setEditReport(true);
-
-        return () => {};
-    }, [setEditReport]);
     if (!community || !map || !selectedReport) return null;
 
     const handleDeleteReport = async () => {
@@ -111,7 +105,6 @@ const EditReport: React.FC<Props> = ({ handleCloseDrawer }) => {
 
     return (
         <>
-            EditReport
             <ReportForm handleClose={handleCloseEditReportDrawer} handleDelete={handleDeleteReport} handleSubmit={handleUpdateReport} />
         </>
     );

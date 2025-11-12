@@ -18,6 +18,7 @@ import { CenterMessageFrTranslations } from "@/features/reports/locale/CenterMes
 import { CreateReportFrTranslations } from "@/features/reports/locale/CreateReport.locale";
 import { EditReportFrTranslations } from "@/features/reports/locale/EditReport.locale";
 import { ShowReportFrTranslations } from "@/features/reports/locale/ShowReport.locale";
+import { ReportTrackingFrTranslations } from "@/features/reports/locale/ReportTracking.locale";
 import { useGetReportsLayerFrTranslations } from "@/hooks/navigation/layers/locale/useGetReportsLayer.locale";
 import { useGetWFSLayerFrTranslations } from "@/hooks/navigation/layers/locale/useGetWFSLayer.locale";
 import { useGetWMSLayerFrTranslations } from "@/hooks/navigation/layers/locale/useGetWMSLayer.locale";
@@ -58,6 +59,7 @@ export const translations: Translations<"fr"> = {
     CreateReport: CreateReportFrTranslations,
     EditReport: EditReportFrTranslations,
     ShowReport: ShowReportFrTranslations,
+    ReportTracking: ReportTrackingFrTranslations,
     useGetReportsLayer: useGetReportsLayerFrTranslations,
     useGetWFSLayer: useGetWFSLayerFrTranslations,
     useGetWMSLayer: useGetWMSLayerFrTranslations,

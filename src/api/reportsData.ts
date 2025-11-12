@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { transformExtent } from "ol/proj";
 import { Extent, isEmpty } from "ol/extent";
 import { parseContentRange } from "@/constants/utils";
-import { REPORTS_API_URL, USER_PROFILE_API_URL } from "@/constants/urls";
+import { REPORTS_API_URL } from "@/constants/urls";
 import { useCommunityStore } from "@/store/useCommunityStore";
 import { useUserStore } from "@/store/useUserStore";
 import { useReportStore } from "@/store/useReportStore";
@@ -14,10 +14,6 @@ export const isDigital = (value: string): boolean => {
     return regex.test(value);
 };
 
-export async function getUserRole() {
-    const res = await axiosApi.get(`${USER_PROFILE_API_URL}`);
-    return res.data;
-}
 export const getCommunityReportSketch = (report: reportData) => {
     const sketchJson = report.sketch ? JSON.parse(report.sketch) : null;
     return sketchJson

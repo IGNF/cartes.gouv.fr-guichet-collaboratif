@@ -4,7 +4,7 @@ interface RepliesStore {
     replies: Reply[];
     setReplies: (newReplies: Reply[]) => void;
 }
-export const useRepliesStore = create<RepliesStore>((set, get) => ({
+export const useReplyStore = create<RepliesStore>((set, get) => ({
     replies: [],
     setReplies: (newReplies, appendOnly = true) => {
         if (appendOnly) {

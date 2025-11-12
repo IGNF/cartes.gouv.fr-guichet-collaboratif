@@ -1,23 +1,20 @@
 import React, { useMemo, useRef } from "react";
 import { useState } from "react";
 import { useTranslation } from "@/i18n";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { postReportsReply } from "@/api/reportsData";
+
 import { useGetReportReplies } from "@/api/repliesData";
-import { useCommunityStore, useReportStore, useUserStore } from "@/store";
-import { useRepliesStore } from "@/store/userRepliesStore";
-import { MutationReportParams, Reply, Severity, StatusKey } from "@/constants/reports/types";
-import { reportImgStatus } from "@/constants/utils";
+import { useCommunityStore, useReportStore } from "@/store";
+import { useReplyStore } from "@/store/useReplyStore";
+
 import RadioButtons from "@codegouvfr/react-dsfr/RadioButtons";
-import Badge from "@codegouvfr/react-dsfr/Badge";
-import Select from "@codegouvfr/react-dsfr/Select";
-import Input from "@codegouvfr/react-dsfr/Input";
+
 import Accordion from "@codegouvfr/react-dsfr/Accordion";
 import Button from "@codegouvfr/react-dsfr/Button";
 import ReportFiltersComponent from "@/components/ReportFiltersComponent";
 import AttachmentList from "./forms/AttachmentList";
 import EditReport from "./EditReport";
 import SketchList from "./forms/SketchList";
+import ReportTracking from "./ReportTracking";
 
 interface Props {
     handleCloseDrawer: () => void;
@@ -25,17 +22,13 @@ interface Props {
 
 const ShowReport: React.FC<Props> = ({ handleCloseDrawer }) => {
     const [openSuivi, setOpenSuivi] = useState(false);
-    const [status, setStatus] = useState("");
     const [committedStatus, setCommittedStatus] = useState("");
-    const [content, setContent] = useState("");
 
     const accordionRef = useRef<HTMLDivElement>(null);
 
-    const { user } = useUserStore();
-    const { setIsChecked, setSelectedReport, selectedReport, editReport } = useReportStore();
-    const { setReplies } = useRepliesStore();
+    const { selectedReport, editReport } = useReportStore();
+    const { setReplies } = useReplyStore();
 
-    const queryClient = useQueryClient();
     const { community } = useCommunityStore();
 
     const { t } = useTranslation({ ShowReport });
@@ -43,19 +36,6 @@ const ShowReport: React.FC<Props> = ({ handleCloseDrawer }) => {
     const reportId = selectedReport?.id;
     const { data: repliesData } = useGetReportReplies(reportId);
     const repliesRes = useMemo(() => repliesData?.replies ?? [], [repliesData]);
-
-    const mutation = useMutation<Reply[] | null, Error, MutationReportParams>({
-        mutationFn: ({ reportId, body }) => postReportsReply(reportId, body),
-        onSuccess: (newReplies) => {
-            queryClient.invalidateQueries({ queryKey: ["reportReplies", reportId] });
-            setContent("");
-            setIsChecked({});
-            setSelectedReport(selectedReport);
-            if (newReplies && newReplies.length > 0) {
-                setReplies([...(repliesData?.replies ?? []), ...newReplies]);
-            }
-        },
-    });
 
     if (!community || !selectedReport) return;
     if (editReport) return <EditReport handleCloseDrawer={handleCloseDrawer} />;
@@ -80,7 +60,7 @@ const ShowReport: React.FC<Props> = ({ handleCloseDrawer }) => {
                         }, 100);
                     }}
                 >
-                    Répondre
+                    {t("report_reply")}
                 </Button>
                 <div className="fr-mt-12v">
                     <Accordion label={t("report_theme")} defaultExpanded={false}>
@@ -128,86 +108,7 @@ const ShowReport: React.FC<Props> = ({ handleCloseDrawer }) => {
                         }}
                         expanded={openSuivi}
                     >
-                        <div className="report-drawer_tracking fr-mx-3v">
-                            {repliesRes.map((reply) => {
-                                const hideIcon = reportImgStatus[reply.status as StatusKey].text !== "test";
-                                return (
-                                    <div
-                                        key={reply.id}
-                                        className={`report-drawer_trackingItem  ${reply.author?.username === user?.name ? "report-drawer_trackingItem--right" : ""}`}
-                                    >
-                                        {reply.author?.username === user?.name ? (
-                                            <p>
-                                                {reply.author?.username}
-                                                <span className="fr-icon-account-fill fr-ml-1v" aria-hidden="true"></span>
-                                            </p>
-                                        ) : (
-                                            <p>
-                                                <span className="fr-icon-account-line fr-mr-1v" aria-hidden="true"></span> {reply.author?.username}
-                                            </p>
-                                        )}
-
-                                        <p className="report-drawer_trackingItem_date"> {reply.date}</p>
-                                        <p> {reply.content}</p>
-                                        <div className="report-drawer_trackingItem_status">
-                                            Statut:
-                                            <Badge
-                                                noIcon={hideIcon}
-                                                severity={reportImgStatus[reply.status as StatusKey].colorType as Severity}
-                                                className="fr-ml-2v"
-                                            >
-                                                {reply.status}
-                                            </Badge>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                        <div>
-                            <form className="report-drawer_status fr-mt-6v">
-                                <Select
-                                    label={t("report_status")}
-                                    nativeSelectProps={{
-                                        onChange: (event) => setStatus(event.target.value),
-                                        value: status,
-                                    }}
-                                >
-                                    <React.Fragment key=".0">
-                                        <option value={-1}>{reportImgStatus[selectedReport.status].text || ""}</option>
-
-                                        {Object.keys(reportImgStatus).map((key) => {
-                                            const statusKey = key as StatusKey;
-                                            return (
-                                                <option key={statusKey} value={key}>
-                                                    {reportImgStatus[statusKey].text}
-                                                </option>
-                                            );
-                                        })}
-                                    </React.Fragment>
-                                </Select>
-                                <Input
-                                    label={t("report_content")}
-                                    textArea
-                                    nativeTextAreaProps={{
-                                        onChange: (event) => setContent(event.target.value),
-                                        value: content,
-                                    }}
-                                />
-                                <Button
-                                    onClick={async (e) => {
-                                        e.preventDefault();
-
-                                        if (reportId) {
-                                            setCommittedStatus(status);
-                                            mutation.mutate({ reportId, body: { title: "Could be empty !", content, status } });
-                                        }
-                                    }}
-                                    className="fr-mt-4v"
-                                >
-                                    {t("report_send")}
-                                </Button>
-                            </form>
-                        </div>
+                        <ReportTracking setCommittedStatus={setCommittedStatus} />
                     </Accordion>
                 </div>
             </div>

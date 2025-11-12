@@ -1,22 +1,18 @@
 import React from "react";
 import { ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "@/i18n";
 import { Feature } from "ol";
-import { postReportsReply } from "@/api/reportsData";
 import { useGetReportReplies } from "@/api/repliesData";
-import { useCommunityStore, useMapStore, useModalStore, useReportStore, useUserStore } from "@/store";
-import { useRepliesStore } from "@/store/userRepliesStore";
+import { useCommunityStore, useMapStore, useModalStore, useReportStore } from "@/store";
+import { useReplyStore } from "@/store/useReplyStore";
 import { CommunityTheme } from "@/constants/communities/types";
-import { ClickedTool, ErrorFile, PostThemeReport, Reply, ReportTool, Severity, StatusKey } from "@/constants/reports/types";
-import { getThemeAttributes, reportImgStatus } from "@/constants/utils";
+import { ClickedTool, ErrorFile, PostThemeReport, ReportTool } from "@/constants/reports/types";
+import { getThemeAttributes } from "@/constants/utils";
 import useReportTools from "@/hooks/reports/useReportTools";
 import Accordion from "@codegouvfr/react-dsfr/Accordion";
-import Badge from "@codegouvfr/react-dsfr/Badge";
 import Button from "@codegouvfr/react-dsfr/Button";
 import Input from "@codegouvfr/react-dsfr/Input";
 import RadioButtons from "@codegouvfr/react-dsfr/RadioButtons";
-import Select from "@codegouvfr/react-dsfr/Select";
 import { Upload } from "@codegouvfr/react-dsfr/Upload";
 import LoaderComponent from "@/components/LoaderComponent";
 import ReportFiltersComponent from "@/components/ReportFiltersComponent";
@@ -25,6 +21,7 @@ import DrawingForm from "./DrawingForm";
 import CenterReport from "../CenterReport";
 import ConfirmCancelModal from "./ConfirmCancelModal";
 import AttachmentList from "./AttachmentList";
+import ReportTracking from "../ReportTracking";
 
 const allowedTypes = ["image/png", "image/jpg", "application/pdf"];
 const maxSizeMB = 3;
@@ -44,8 +41,7 @@ const ReportForm: React.FC<Props> = ({ handleSubmit, handleDelete, handleClose }
     const [clickedTool, setClickedTool] = useState<ClickedTool>({ name: "", clicked: false });
 
     const [openSuivi, setOpenSuivi] = useState(false);
-    const [status, setStatus] = useState("");
-    const [content, setContent] = useState("");
+    const [committedStatus, setCommittedStatus] = useState("");
 
     const accordionRef = useRef<HTMLDivElement>(null);
 
@@ -60,43 +56,21 @@ const ReportForm: React.FC<Props> = ({ handleSubmit, handleDelete, handleClose }
     const filesRef = useRef<HTMLDivElement>(null);
 
     const [loading, setLoading] = useState<boolean>(false);
-    const [committedStatus, setCommittedStatus] = useState("");
-
-    const queryClient = useQueryClient();
 
     const { community } = useCommunityStore();
-    const { setSelectedReport, reports, setIsChecked, editReport, selectedReport, selectedFeatures, setSelectedFeatures, setTableDrawerOpened } =
-        useReportStore();
+    const { setSelectedReport, reports, editReport, selectedReport, selectedFeatures, setSelectedFeatures, setTableDrawerOpened } = useReportStore();
 
     const reportTools = useReportTools();
     const { confirmCancelModal } = useModalStore();
     const { setClickedControl } = useMapStore();
-    const { setReplies } = useRepliesStore();
-    const { user } = useUserStore();
+    const { setReplies } = useReplyStore();
 
     const { t } = useTranslation({ ReportForm });
 
     const reportId = selectedReport?.id;
 
-    type MutationParams = {
-        reportId: number;
-        body: Reply;
-    };
-
     const { data: repliesData } = useGetReportReplies(reportId);
     const repliesRes = useMemo(() => repliesData?.replies ?? [], [repliesData]);
-    const mutation = useMutation<Reply[] | null, Error, MutationParams>({
-        mutationFn: ({ reportId, body }) => postReportsReply(reportId, body),
-        onSuccess: (newReplies) => {
-            queryClient.invalidateQueries({ queryKey: ["reportReplies", reportId] });
-            setContent("");
-            setIsChecked({});
-            setSelectedReport(selectedReport);
-            if (newReplies && newReplies.length > 0) {
-                setReplies([...(repliesData?.replies ?? []), ...newReplies]);
-            }
-        },
-    });
 
     useEffect(() => {
         setSelectedReport(selectedReport);
@@ -274,7 +248,6 @@ const ReportForm: React.FC<Props> = ({ handleSubmit, handleDelete, handleClose }
     if (!community) return;
     return (
         <>
-            REPORTFORM
             <div className="report-drawer">
                 {loading && <LoaderComponent />}
                 <h2 className="ri-map-pin-add-line fr-mt-4v fr-mb-1v fr-text--md">
@@ -295,7 +268,7 @@ const ReportForm: React.FC<Props> = ({ handleSubmit, handleDelete, handleClose }
                         }, 100);
                     }}
                 >
-                    Répondre
+                    {t("report_reply")}
                 </Button>
                 <div className="fr-mt-12v">
                     <Accordion label={t("select_theme")} defaultExpanded={false}>
@@ -399,86 +372,7 @@ const ReportForm: React.FC<Props> = ({ handleSubmit, handleDelete, handleClose }
                         }}
                         expanded={openSuivi}
                     >
-                        <div className="report-drawer_tracking fr-mx-3v">
-                            {repliesRes.map((reply) => {
-                                const hideIcon = reportImgStatus[reply.status as StatusKey].text !== "test";
-                                return (
-                                    <div
-                                        key={reply.id}
-                                        className={`report-drawer_trackingItem  ${reply?.author?.username === user?.name ? "report-drawer_trackingItem--right" : ""}`}
-                                    >
-                                        {reply?.author?.username === user?.name ? (
-                                            <p>
-                                                {reply?.author?.username}
-                                                <span className="fr-icon-account-fill fr-ml-1v" aria-hidden="true"></span>
-                                            </p>
-                                        ) : (
-                                            <p>
-                                                <span className="fr-icon-account-line fr-mr-1v" aria-hidden="true"></span> {reply?.author?.username}
-                                            </p>
-                                        )}
-
-                                        <p className="report-drawer_trackingItem_date"> {reply.date}</p>
-                                        <p> {reply.content}</p>
-                                        <div className="report-drawer_trackingItem_status">
-                                            Statut:
-                                            <Badge
-                                                noIcon={hideIcon}
-                                                severity={reportImgStatus[reply.status as StatusKey].colorType as Severity}
-                                                className="fr-ml-2v"
-                                            >
-                                                {reply.status}
-                                            </Badge>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                        <div>
-                            <form className="report-drawer_status fr-mt-6v">
-                                <Select
-                                    label={t("report_status")}
-                                    nativeSelectProps={{
-                                        onChange: (event) => setStatus(event.target.value),
-                                        value: status,
-                                    }}
-                                >
-                                    <React.Fragment key=".0">
-                                        {selectedReport && <option value={-1}>{reportImgStatus[selectedReport.status]?.text || ""}</option>}
-
-                                        {Object.keys(reportImgStatus).map((key) => {
-                                            const statusKey = key as StatusKey;
-                                            return (
-                                                <option key={statusKey} value={key}>
-                                                    {reportImgStatus[statusKey].text}
-                                                </option>
-                                            );
-                                        })}
-                                    </React.Fragment>
-                                </Select>
-                                <Input
-                                    label={t("report_content")}
-                                    textArea
-                                    nativeTextAreaProps={{
-                                        onChange: (event) => setContent(event.target.value),
-                                        value: content,
-                                    }}
-                                />
-                                <Button
-                                    onClick={async (e) => {
-                                        e.preventDefault();
-
-                                        if (reportId !== undefined) {
-                                            setCommittedStatus(status);
-                                            mutation.mutate({ reportId, body: { title: "Could be empty !", content, status } });
-                                        }
-                                    }}
-                                    className="fr-mt-4v"
-                                >
-                                    {t("report_send")}
-                                </Button>
-                            </form>
-                        </div>
+                        <ReportTracking setCommittedStatus={setCommittedStatus} />
                     </Accordion>
 
                     {!selectedReport && t("report_note")}

@@ -236,7 +236,7 @@ const TableReport = () => {
                                 type="button"
                                 disabled={!isChecked || !Object.values(isChecked).some(Boolean)}
                             >
-                                répondre
+                                {t("report_reply")}
                             </Button>
                         </div>
                     </div>

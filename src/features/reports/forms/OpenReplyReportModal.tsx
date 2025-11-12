@@ -60,6 +60,7 @@ const OpenReplyReportModal: React.FC<Props> = ({ onClose }) => {
             setSelectedReportId(checkedIds);
         }
     }, [checkedIds, selectedReportId]);
+
     useEffect(() => {
         setSelectedReport(selectedReport);
     }, [reports, selectedReport, setSelectedReport]);
@@ -71,7 +72,7 @@ const OpenReplyReportModal: React.FC<Props> = ({ onClose }) => {
             title={replay_title}
             onClose={onClose}
             onConfirm={async () => {
-                mutation.mutate({ reportsId: selectedReportId || [], body: { title: "Could be empty !", content, status } });
+                mutation.mutate({ reportsId: selectedReportId || [], body: { title: "", content, status } });
             }}
             cancelText={t("back_to_reports")}
             confirmText={t("send_report")}
@@ -92,13 +93,14 @@ const OpenReplyReportModal: React.FC<Props> = ({ onClose }) => {
                 }}
             >
                 <React.Fragment key=".0">
-                    {CheckedIdStatus.length === 1 ? (
-                        <option value={-1}>{reportImgStatus[CheckedIdStatus[0]].text || ""}</option>
+                    {CheckedIdStatus.length === 1 && CheckedIdStatus[0] in reportImgStatus ? (
+                        <option value={-1}>{reportImgStatus[CheckedIdStatus[0]].text}</option>
                     ) : (
                         <option value={-1} disabled hidden>
-                            Selectionnez un status
+                            {t("select_status")}
                         </option>
                     )}
+
                     {Object.keys(reportImgStatus).map((key) => {
                         const statusKey = key as StatusKey;
                         return (

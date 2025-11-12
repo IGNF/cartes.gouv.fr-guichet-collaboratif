@@ -284,10 +284,14 @@ const ReportDrawer = () => {
         }
     }, [drawerOpened, responseDrawerOpened, setDrawerOpened, setResponseDrawerOpened, setTableDrawerOpened, tableDrawerOpened]);
 
-    const ifRole = useMemo(() => {
+    const isAdmin = useMemo(() => {
         const currentUser = userData?.communitiesMember?.filter((cm) => cm.communityId === community?.id);
         return Array.isArray(currentUser) ? currentUser.some((role) => role.role === "admin") : false;
     }, [userData, community?.id]);
+
+    useEffect(() => {
+        if (isAdmin) setEditReport(true);
+    }, [isAdmin, setEditReport]);
 
     return (
         <>
@@ -309,7 +313,7 @@ const ReportDrawer = () => {
                             </Button>
                             {!selectedReport ? (
                                 <CreateReport handleCloseDrawer={handleCloseDrawer} />
-                            ) : ifRole ? (
+                            ) : isAdmin ? (
                                 <EditReport handleCloseDrawer={handleCloseDrawer} />
                             ) : (
                                 <ShowReport handleCloseDrawer={handleCloseDrawer} />
