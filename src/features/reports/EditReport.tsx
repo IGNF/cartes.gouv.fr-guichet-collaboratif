@@ -1,14 +1,14 @@
-import { deleteCommunityReportAPI, updateCommunityReport } from "@/api/reportsData";
-import { CommunityTheme, StatusMessage } from "@/constants/communities/types";
-import { PostReport, PostThemeReport } from "@/constants/reports/types";
-import { useCommunityStore, useMapStore, useReportStore } from "@/store";
-import { deleteCommunityReportAllAttachments, postCommunityReportAttachments } from "@/api/attachmentData";
-import { clearDrawingLayer, getFeatureGeometryWKT } from "@/constants/utils";
+import { useTranslation } from "@/i18n";
 import { Feature } from "ol";
 import VectorSource from "ol/source/Vector";
+import { deleteCommunityReportAPI, updateCommunityReport } from "@/api/reportsData";
+import { deleteCommunityReportAllAttachments, postCommunityReportAttachments } from "@/api/attachmentData";
+import { useCommunityStore, useMapStore, useReportStore } from "@/store";
+import { CommunityTheme, StatusMessage } from "@/constants/communities/types";
+import { PostReport, PostThemeReport } from "@/constants/reports/types";
+import { clearDrawingLayer, getFeatureGeometryWKT } from "@/constants/utils";
 import { getReportSketch, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import ReportForm from "./forms/ReportForm";
-import { useTranslation } from "@/i18n";
 
 interface Props {
     handleCloseDrawer: () => void;
@@ -102,7 +102,12 @@ const EditReport: React.FC<Props> = ({ handleCloseDrawer }) => {
         handleCloseDrawer();
         setTableDrawerOpened(true);
     };
-    return <ReportForm handleClose={handleCloseEditReportDrawer} handleDelete={handleDeleteReport} handleSubmit={handleUpdateReport} />;
+
+    return (
+        <>
+            <ReportForm handleClose={handleCloseEditReportDrawer} handleDelete={handleDeleteReport} handleSubmit={handleUpdateReport} />
+        </>
+    );
 };
 
 export default EditReport;

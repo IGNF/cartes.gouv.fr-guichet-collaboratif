@@ -1,12 +1,12 @@
-import { ErrorFile, ReportAttachment } from "@/constants/reports/types";
-import fileUploadIcon from "../../../icons/file-upload-icon.jpg";
-import Button from "@codegouvfr/react-dsfr/Button";
+import { Fragment, useMemo, useState } from "react";
+import { useTranslation } from "@/i18n";
 import { deleteCommunityReportAttachment } from "@/api/attachmentData";
 import { useCommunityStore, useReportStore } from "@/store";
+import { ErrorFile, ReportAttachment } from "@/constants/reports/types";
 import { StatusMessage } from "@/constants/communities/types";
-import { Fragment, useMemo, useState } from "react";
+import Button from "@codegouvfr/react-dsfr/Button";
 import LoaderComponent from "@/components/LoaderComponent";
-import { useTranslation } from "@/i18n";
+import fileUploadIcon from "../../../icons/file-upload-icon.jpg";
 
 interface Props {
     newFiles?: File[] | null;
@@ -16,7 +16,7 @@ interface Props {
 
 const AttachmentList: React.FC<Props> = ({ newFiles, errorFiles, removeFile }) => {
     const { addAlertMessage } = useCommunityStore();
-    const { reports, selectedReport, setReports, isShowReport } = useReportStore();
+    const { reports, selectedReport, setReports, isShowReport, editReport } = useReportStore();
 
     const [loading, setLoading] = useState(false);
 
@@ -52,12 +52,14 @@ const AttachmentList: React.FC<Props> = ({ newFiles, errorFiles, removeFile }) =
                             {attachment.name}
                         </a>
 
-                        <Button
-                            iconId="ri-delete-bin-2-fill"
-                            title={t("delete_file", { fileName: attachment.name })}
-                            priority="tertiary"
-                            onClick={() => deleteAttachment(attachment)}
-                        ></Button>
+                        {editReport && (
+                            <Button
+                                iconId="ri-delete-bin-2-fill"
+                                title={t("delete_file", { fileName: attachment.name })}
+                                priority="tertiary"
+                                onClick={() => deleteAttachment(attachment)}
+                            ></Button>
+                        )}
                     </div>
                 ))}
             {newFiles &&

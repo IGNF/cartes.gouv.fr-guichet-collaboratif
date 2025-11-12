@@ -1,15 +1,14 @@
-import { useCommunityStore, useMapStore, useReportStore } from "@/store";
-
-import { CommunityTheme, StatusMessage } from "@/constants/communities/types";
+import { useState } from "react";
+import { Feature } from "ol";
+import { useTranslation } from "@/i18n";
+import { postCommunityReportAttachments } from "@/api/attachmentData";
 import { postCommunityReport } from "@/api/reportsData";
+import { useCommunityStore, useMapStore, useReportStore } from "@/store";
 import { CommunityReport, PostReport, PostThemeReport } from "@/constants/reports/types";
 import { clearDrawingLayer, getFeatureGeometryWKT } from "@/constants/utils";
-import ReportForm from "./forms/ReportForm";
-import { postCommunityReportAttachments } from "@/api/attachmentData";
-import { Feature } from "ol";
+import { CommunityTheme, StatusMessage } from "@/constants/communities/types";
 import { getReportSketch } from "@/constants/reports/utils";
-import { useState } from "react";
-import { useTranslation } from "@/i18n";
+import ReportForm from "./forms/ReportForm";
 
 interface Props {
     handleCloseDrawer: () => void;

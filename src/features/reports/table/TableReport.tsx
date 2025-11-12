@@ -6,7 +6,7 @@ import VectorSource from "ol/source/Vector";
 import { getTableReports } from "@/api/reportsData";
 import { useReportStore, useModalStore, useMapStore, useLocalStorageStore } from "@/store";
 import { useCommunityStore } from "@/store/useCommunityStore";
-import { handleShowOnMap, transformReportsToExportData } from "@/constants/utils";
+import { handleShowOnMap } from "@/constants/utils";
 import { REPORT_TABLE_LIMIT_OPTIONS, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import GetReportsLayer from "@/features/navigation/layers/GetReportsLayer";
 import { StatusMessage } from "@/constants/communities/types";
@@ -144,18 +144,23 @@ const TableReport = () => {
         [reportsToUse, isChecked, onCheckChange, onShowReportOnMap, onShowOnMap]
     );
 
+    const selectedLines = useMemo(() => {
+        if (!exportedData || !Array.isArray(exportedData.data)) return [];
+        return CreateTableData(exportedData.data, isChecked, onCheckChange, onShowReportOnMap, onShowOnMap);
+    }, [exportedData, isChecked, onCheckChange, onShowReportOnMap, onShowOnMap]);
+
     const checkedLines = useMemo(() => {
-        if (!Array.isArray(tableData) || !isChecked) return [];
-        return tableData.filter((res) => !!isChecked[String(res.id)]).map((res) => res);
-    }, [tableData, isChecked]);
+        if (!Array.isArray(selectedLines) || !isChecked) return [];
+        return selectedLines.filter((res) => !!isChecked[String(res.id)]).map((res) => res.exportData);
+    }, [selectedLines, isChecked]);
 
     const downloadedTable = useMemo(() => {
-        if (checkedLines.length > 0) return checkedLines.map((exp) => exp.exportData);
-        if (Array.isArray(exportedData?.data)) {
-            return transformReportsToExportData(exportedData.data).map((expData) => expData);
+        if (checkedLines.length > 0) return checkedLines.map((exp) => exp);
+        if (Array.isArray(selectedLines)) {
+            return selectedLines.map((expData) => expData.exportData);
         }
         return [];
-    }, [checkedLines, exportedData]);
+    }, [checkedLines, selectedLines]);
 
     const tableHeaderToLabel: Record<FilterHeaderKey, string> = {
         author: "Auteur",
@@ -231,7 +236,7 @@ const TableReport = () => {
                                 type="button"
                                 disabled={!isChecked || !Object.values(isChecked).some(Boolean)}
                             >
-                                répondre
+                                {t("report_reply")}
                             </Button>
                         </div>
                     </div>

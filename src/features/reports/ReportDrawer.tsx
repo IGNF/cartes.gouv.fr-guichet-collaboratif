@@ -1,21 +1,23 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { useTranslation } from "@/i18n";
 import { Feature, MapBrowserEvent } from "ol";
 import Layer from "ol/layer/Layer";
 import VectorSource from "ol/source/Vector";
 import { Style } from "ol/style";
-import { getClickedMapReport, getReportSketchFeatures, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
-import { clearClusterStyles } from "@/constants/reports/utils/cluster";
-import { getCenterReportMessage, showCenterReportButtons } from "@/constants/utils";
-import { ParamsReport, toolNames } from "@/constants/reports/types";
+import { useGetUserProfileAPI } from "@/api/userData";
 import { useCommunityStore, useMapStore, useReportStore } from "@/store";
+import { HIT_DETECTION_TOLERENCE } from "@/constants";
+import { getClickedMapReport, getReportSketchFeatures, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
+import { getCenterReportMessage, showCenterReportButtons } from "@/constants/utils";
+import { clearClusterStyles } from "@/constants/reports/utils/cluster";
+import { ParamsReport, toolNames } from "@/constants/reports/types";
 import Button from "@codegouvfr/react-dsfr/Button";
 import DrawerComponent from "@/components/DrawerComponent";
 import ShowReport from "./ShowReport";
 import CreateReport from "./CreateReport";
 import TableReportDrawer from "./table/TableReportDrawer";
 import OpenReplyReportModal from "./forms/OpenReplyReportModal";
-import { HIT_DETECTION_TOLERENCE } from "@/constants";
+import EditReport from "./EditReport";
 
 const ReportDrawer = () => {
     const { t } = useTranslation({ ShowReport });
@@ -45,6 +47,10 @@ const ReportDrawer = () => {
 
     const clickableLayer = map?.getAllLayers().find((layer) => layer.get("name") === mapWorkingLayer);
     const clickableSource = clickableLayer?.getSource() as VectorSource;
+
+    const { community } = useCommunityStore();
+
+    const { data: userData } = useGetUserProfileAPI();
 
     const handleCloseDrawer = useCallback(() => {
         if (!selectedReport) {
@@ -278,6 +284,15 @@ const ReportDrawer = () => {
         }
     }, [drawerOpened, responseDrawerOpened, setDrawerOpened, setResponseDrawerOpened, setTableDrawerOpened, tableDrawerOpened]);
 
+    const isAdmin = useMemo(() => {
+        const currentUser = userData?.communitiesMember?.filter((cm) => cm.communityId === community?.id);
+        return Array.isArray(currentUser) ? currentUser.some((role) => role.role === "admin") : false;
+    }, [userData, community?.id]);
+
+    useEffect(() => {
+        if (isAdmin) setEditReport(true);
+    }, [isAdmin, setEditReport]);
+
     return (
         <>
             <DrawerComponent anchor="left" isOpen={drawerOpened || tableDrawerOpened} create={!selectedReport} onClose={handleCloseDrawer}>
@@ -296,7 +311,13 @@ const ReportDrawer = () => {
                             >
                                 {t("report_back")}
                             </Button>
-                            {selectedReport ? <ShowReport handleCloseDrawer={handleCloseDrawer} /> : <CreateReport handleCloseDrawer={handleCloseDrawer} />}
+                            {!selectedReport ? (
+                                <CreateReport handleCloseDrawer={handleCloseDrawer} />
+                            ) : isAdmin ? (
+                                <EditReport handleCloseDrawer={handleCloseDrawer} />
+                            ) : (
+                                <ShowReport handleCloseDrawer={handleCloseDrawer} />
+                            )}
                         </>
                     ) : tableDrawerOpened ? (
                         <TableReportDrawer handleCloseDrawer={handleCloseDrawer} />

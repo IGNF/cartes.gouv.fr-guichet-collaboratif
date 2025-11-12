@@ -7,6 +7,7 @@ export const OpenReplyReportModalFrTranslations: Translations<"fr">["OpenReplyRe
     replayStatus_text: "Statut",
     replayContent_text: "Description ",
     send_report: "Envoyer",
+    select_status: "Séléctionner un statut",
     back_to_reports: "Retour aux signalements",
     status_submit: "Reçu dans nos services",
     status_pending0: "En demande de qualification",
@@ -26,6 +27,7 @@ export const OpenReplyReportModalEnTranslations: Translations<"en">["OpenReplyRe
     replayStatus_text: "Status",
     replayContent_text: "Description",
     send_report: "Send",
+    select_status: "Select a status",
     back_to_reports: "Return to reports list",
     status_submit: "Received in our services",
     status_pending0: "Requesting qualification",
@@ -45,6 +47,7 @@ const { i18n } = declareComponentKeys<
     | "replayStatus_text"
     | "replayContent_text"
     | "send_report"
+    | "select_status"
     | "back_to_reports"
     | "status_submit"
     | "status_pending0"

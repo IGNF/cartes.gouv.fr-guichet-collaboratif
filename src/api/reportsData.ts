@@ -6,7 +6,7 @@ import { REPORTS_API_URL } from "@/constants/urls";
 import { useCommunityStore } from "@/store/useCommunityStore";
 import { useUserStore } from "@/store/useUserStore";
 import { useReportStore } from "@/store/useReportStore";
-import { CommunityReport, FilterState, PostReport, reportData, SketchReport, StatusKey, PostReply, Replies } from "@/constants/reports/types";
+import { CommunityReport, FilterState, PostReport, reportData, SketchReport, StatusKey, Reply } from "@/constants/reports/types";
 import { axiosApi } from ".";
 
 export const isDigital = (value: string): boolean => {
@@ -29,10 +29,7 @@ export const getCommunityReportSketch = (report: reportData) => {
           }
         : null;
 };
-export async function getReportReplies(reportId: number): Promise<Replies> {
-    const res = await axiosApi.get(`${REPORTS_API_URL}/${reportId}`);
-    return res.data;
-}
+
 export async function getTableReports(
     communityId: number,
     limit: number = 100,
@@ -96,19 +93,24 @@ export async function getTableReports(
     };
 }
 
-export async function postReportsReply(reportsIds: number[], body: PostReply): Promise<PostReply[] | null> {
+export async function postReportsReply(reportsIds: number | number[], body: Reply): Promise<Reply[] | null> {
     try {
-        return await Promise.all(
-            reportsIds.map(async (reportId) => {
+        const idsArray = Array.isArray(reportsIds) ? reportsIds : [reportsIds];
+
+        const results = await Promise.all(
+            idsArray.map(async (reportId) => {
                 const urlReply = `${REPORTS_API_URL}/${reportId}/replies`;
-                return await axiosApi.post(urlReply, body, {
+                const response = await axiosApi.post(urlReply, body, {
                     headers: {
                         "Content-Type": "application/json",
                         Accept: "application/json",
                     },
                 });
+                return response.data;
             })
         );
+
+        return results;
     } catch {
         return null;
     }

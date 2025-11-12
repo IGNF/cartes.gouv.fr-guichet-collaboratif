@@ -1,4 +1,5 @@
-import { CommunityReport } from "@/constants/reports/types";
+import { CommunityReport, StatusKey } from "@/constants/reports/types";
+import { reportImgStatus } from "@/constants/utils";
 import Badge from "@codegouvfr/react-dsfr/Badge";
 import Button from "@codegouvfr/react-dsfr/Button";
 import Checkbox from "@codegouvfr/react-dsfr/Checkbox";
@@ -16,7 +17,9 @@ const CreateTableData = (
         const date = report.opening_date ? new Date(report.opening_date).toLocaleDateString() : "-";
         const departement = report.commune ? `${report.commune.title} (${report.departement?.name})` : "-";
         const themes = report.attributes && report.attributes.length > 0 ? report.attributes.map((attr) => attr.theme || "").join(", ") : "-";
+
         const status = report.status || "-";
+        const statusText = reportImgStatus[status as StatusKey].text;
 
         return {
             id: report.id,
@@ -28,7 +31,7 @@ const CreateTableData = (
                 opening_date: date,
                 departement,
                 theme: themes,
-                status,
+                statusText,
             },
             row: [
                 <Checkbox
@@ -50,7 +53,7 @@ const CreateTableData = (
                 departement,
                 <Tag>{report.attributes && report.attributes.length > 0 ? report.attributes.map((attr) => attr.theme || "").join(", ") : "-"}</Tag>,
                 <Badge severity="info" noIcon>
-                    {report.status || "-"}
+                    {statusText || "-"}
                 </Badge>,
                 <div>
                     {onShowReport && (

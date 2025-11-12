@@ -31,6 +31,11 @@ export const ReportFormFrTranslations: Translations<"fr">["ReportForm"] = {
     select_theme_error_message: "Vous devez obligatoirement choisir un thème et ses attributs pour envoyer un signalement",
     import_file_error_message_type: `Formats supportés : JPG, PNG, PDF`,
     import_file_error_message_size: ({ maxSizeMB }: { maxSizeMB: number }) => `Taille maximale : ${maxSizeMB} Mo.`,
+    report_tracking: "Suivi",
+    report_status: "Statut",
+    report_content: "Votre message",
+    report_send: "Envoyer",
+    report_reply: "Répondre",
 };
 
 export const ReportFormEnTranslations: Translations<"en">["ReportForm"] = {
@@ -62,6 +67,11 @@ export const ReportFormEnTranslations: Translations<"en">["ReportForm"] = {
     select_theme_error_message: "You must choose a theme and its attributes to send a report",
     import_file_error_message_type: "Supported formats: JPG, PNG, PDF",
     import_file_error_message_size: ({ maxSizeMB }: { maxSizeMB: number }) => `Maximum size: ${maxSizeMB} MB.`,
+    report_tracking: "Tracking",
+    report_status: "Status",
+    report_content: "Your message",
+    report_send: "Send",
+    report_reply: "Reply",
 };
 
 const { i18n } = declareComponentKeys<
@@ -85,5 +95,10 @@ const { i18n } = declareComponentKeys<
     | "select_theme_error_message"
     | "import_file_error_message_type"
     | { K: "import_file_error_message_size"; P: { maxSizeMB: number }; R: string }
+    | "report_tracking"
+    | "report_status"
+    | "report_content"
+    | "report_send"
+    | "report_reply"
 >()("ReportForm");
 export type I18n = typeof i18n;

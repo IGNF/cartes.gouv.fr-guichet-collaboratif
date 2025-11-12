@@ -1,11 +1,15 @@
 import { useEffect, useMemo } from "react";
+import { getTableReports } from "@/api/reportsData";
+import { useCommunityStore, useReportStore } from "@/store";
+import { reportImgStatus } from "@/constants/utils";
+import { StatusKey } from "@/constants/reports/types";
+import CreateTableData from "@/features/reports/table/CreateTableData";
 import Tag from "@codegouvfr/react-dsfr/Tag";
 import Badge from "@codegouvfr/react-dsfr/Badge";
-import { useCommunityStore, useReportStore } from "@/store";
-import { getTableReports } from "@/api/reportsData";
-import CreateTableData from "@/features/reports/table/CreateTableData";
-
-const ReportFiltersComponent = () => {
+interface ReportFiltersProps {
+    reportStatus: string;
+}
+const ReportFiltersComponent = ({ reportStatus }: ReportFiltersProps) => {
     const {
         reports,
         currentFilters,
@@ -39,6 +43,9 @@ const ReportFiltersComponent = () => {
     const themes =
         currentReport?.attributes && currentReport?.attributes.length > 0 ? currentReport?.attributes.map((attr) => attr.theme || "").join(", ") : "-";
     const status = currentReport?.status || "-";
+    const statusText = reportImgStatus[status as StatusKey]?.text || "";
+
+    const statusLabel = reportImgStatus[reportStatus as StatusKey]?.text || "";
 
     function convertDateToIso(dateStr: string): string {
         const [day, month, year] = dateStr.split("/");
@@ -46,6 +53,7 @@ const ReportFiltersComponent = () => {
 
         return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
     }
+
     useEffect(() => {
         async function fetchReports() {
             if (!community) return;
@@ -163,7 +171,7 @@ const ReportFiltersComponent = () => {
                     }}
                 >
                     <Badge severity="info" noIcon>
-                        {status}
+                        {statusText !== statusLabel && statusLabel !== "" ? statusLabel : statusText}
                     </Badge>
                 </a>
             </li>

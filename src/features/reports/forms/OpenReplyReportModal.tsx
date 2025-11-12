@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "@/i18n";
 import { postReportsReply } from "@/api/reportsData";
 import { useModalStore, useReportStore } from "@/store";
-import { PostReply, StatusKey } from "@/constants/reports/types";
+import { Reply, StatusKey } from "@/constants/reports/types";
 import { reportImgStatus } from "@/constants/utils";
 import Input from "@codegouvfr/react-dsfr/Input";
 import Select from "@codegouvfr/react-dsfr/Select";
@@ -36,15 +36,15 @@ const OpenReplyReportModal: React.FC<Props> = ({ onClose }) => {
     }, [tableData, isChecked]);
 
     const CheckedIdStatus = React.useMemo(() => {
-        return tableData.filter((res) => !!isChecked[String(res.id)]).map((checkedStatus) => checkedStatus.exportData.status);
+        return tableData.filter((res) => !!isChecked[String(res.id)]).map((checkedStatus) => checkedStatus.exportData.statusText);
     }, [tableData, isChecked]);
 
     type MutationParams = {
         reportsId: number[];
-        body: PostReply;
+        body: Reply;
     };
 
-    const mutation = useMutation<PostReply[] | null, Error, MutationParams>({
+    const mutation = useMutation<Reply[] | null, Error, MutationParams>({
         mutationFn: ({ reportsId, body }) => postReportsReply(reportsId, body),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["reports"] });
@@ -60,6 +60,7 @@ const OpenReplyReportModal: React.FC<Props> = ({ onClose }) => {
             setSelectedReportId(checkedIds);
         }
     }, [checkedIds, selectedReportId]);
+
     useEffect(() => {
         setSelectedReport(selectedReport);
     }, [reports, selectedReport, setSelectedReport]);
@@ -71,7 +72,7 @@ const OpenReplyReportModal: React.FC<Props> = ({ onClose }) => {
             title={replay_title}
             onClose={onClose}
             onConfirm={async () => {
-                mutation.mutate({ reportsId: selectedReportId || [], body: { title: "Could be empty !", content, status } });
+                mutation.mutate({ reportsId: selectedReportId || [], body: { title: "", content, status } });
             }}
             cancelText={t("back_to_reports")}
             confirmText={t("send_report")}
@@ -92,13 +93,14 @@ const OpenReplyReportModal: React.FC<Props> = ({ onClose }) => {
                 }}
             >
                 <React.Fragment key=".0">
-                    {CheckedIdStatus.length === 1 ? (
-                        <option value={-1}>{reportImgStatus[CheckedIdStatus[0]].text || ""}</option>
+                    {CheckedIdStatus.length === 1 && CheckedIdStatus[0] in reportImgStatus ? (
+                        <option value={-1}>{reportImgStatus[CheckedIdStatus[0]].text}</option>
                     ) : (
                         <option value={-1} disabled hidden>
-                            Selectionnez un status
+                            {t("select_status")}
                         </option>
                     )}
+
                     {Object.keys(reportImgStatus).map((key) => {
                         const statusKey = key as StatusKey;
                         return (
