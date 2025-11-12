@@ -16,7 +16,7 @@ interface Props {
 
 const AttachmentList: React.FC<Props> = ({ newFiles, errorFiles, removeFile }) => {
     const { addAlertMessage } = useCommunityStore();
-    const { reports, selectedReport, setReports, isShowReport } = useReportStore();
+    const { reports, selectedReport, setReports, isShowReport, editReport } = useReportStore();
 
     const [loading, setLoading] = useState(false);
 
@@ -52,12 +52,14 @@ const AttachmentList: React.FC<Props> = ({ newFiles, errorFiles, removeFile }) =
                             {attachment.name}
                         </a>
 
-                        <Button
-                            iconId="ri-delete-bin-2-fill"
-                            title={t("delete_file", { fileName: attachment.name })}
-                            priority="tertiary"
-                            onClick={() => deleteAttachment(attachment)}
-                        ></Button>
+                        {editReport && (
+                            <Button
+                                iconId="ri-delete-bin-2-fill"
+                                title={t("delete_file", { fileName: attachment.name })}
+                                priority="tertiary"
+                                onClick={() => deleteAttachment(attachment)}
+                            ></Button>
+                        )}
                     </div>
                 ))}
             {newFiles &&

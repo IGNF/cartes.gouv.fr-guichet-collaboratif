@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "@/i18n";
 import { postReportsReply } from "@/api/reportsData";
 import { useModalStore, useReportStore } from "@/store";
-import { PostReply, StatusKey } from "@/constants/reports/types";
+import { Reply, StatusKey } from "@/constants/reports/types";
 import { reportImgStatus } from "@/constants/utils";
 import Input from "@codegouvfr/react-dsfr/Input";
 import Select from "@codegouvfr/react-dsfr/Select";
@@ -36,15 +36,15 @@ const OpenReplyReportModal: React.FC<Props> = ({ onClose }) => {
     }, [tableData, isChecked]);
 
     const CheckedIdStatus = React.useMemo(() => {
-        return tableData.filter((res) => !!isChecked[String(res.id)]).map((checkedStatus) => checkedStatus.exportData.status);
+        return tableData.filter((res) => !!isChecked[String(res.id)]).map((checkedStatus) => checkedStatus.exportData.statusText);
     }, [tableData, isChecked]);
 
     type MutationParams = {
         reportsId: number[];
-        body: PostReply;
+        body: Reply;
     };
 
-    const mutation = useMutation<PostReply[] | null, Error, MutationParams>({
+    const mutation = useMutation<Reply[] | null, Error, MutationParams>({
         mutationFn: ({ reportsId, body }) => postReportsReply(reportsId, body),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["reports"] });

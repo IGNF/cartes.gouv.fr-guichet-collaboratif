@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { useTranslation } from "@/i18n";
 import { Feature, MapBrowserEvent } from "ol";
 import Layer from "ol/layer/Layer";
@@ -16,6 +16,10 @@ import CreateReport from "./CreateReport";
 import TableReportDrawer from "./table/TableReportDrawer";
 import OpenReplyReportModal from "./forms/OpenReplyReportModal";
 import { HIT_DETECTION_TOLERENCE } from "@/constants";
+// import { getUserRole } from "@/api/reportsData";
+// import { useQuery } from "@tanstack/react-query";
+import { useGetUserProfileAPI } from "@/api/userData";
+import EditReport from "./EditReport";
 
 const ReportDrawer = () => {
     const { t } = useTranslation({ ShowReport });
@@ -45,6 +49,16 @@ const ReportDrawer = () => {
 
     const clickableLayer = map?.getAllLayers().find((layer) => layer.get("name") === mapWorkingLayer);
     const clickableSource = clickableLayer?.getSource() as VectorSource;
+
+    const { community } = useCommunityStore();
+
+    // const { data: userRole } = useQuery({
+    //     queryKey: ["userRole"],
+    //     queryFn: () => getUserRole(),
+    //     enabled: true,
+    // });
+
+    const { data: userData } = useGetUserProfileAPI();
 
     const handleCloseDrawer = useCallback(() => {
         if (!selectedReport) {
@@ -278,6 +292,11 @@ const ReportDrawer = () => {
         }
     }, [drawerOpened, responseDrawerOpened, setDrawerOpened, setResponseDrawerOpened, setTableDrawerOpened, tableDrawerOpened]);
 
+    const ifRole = useMemo(() => {
+        const currentUser = userData?.communitiesMember?.filter((cm) => cm.communityId === community?.id);
+        return Array.isArray(currentUser) ? currentUser.some((role) => role.role === "admin") : false;
+    }, [userData, community?.id]);
+
     return (
         <>
             <DrawerComponent anchor="left" isOpen={drawerOpened || tableDrawerOpened} create={!selectedReport} onClose={handleCloseDrawer}>
@@ -296,7 +315,13 @@ const ReportDrawer = () => {
                             >
                                 {t("report_back")}
                             </Button>
-                            {selectedReport ? <ShowReport handleCloseDrawer={handleCloseDrawer} /> : <CreateReport handleCloseDrawer={handleCloseDrawer} />}
+                            {!selectedReport ? (
+                                <CreateReport handleCloseDrawer={handleCloseDrawer} />
+                            ) : ifRole ? (
+                                <EditReport handleCloseDrawer={handleCloseDrawer} />
+                            ) : (
+                                <ShowReport handleCloseDrawer={handleCloseDrawer} />
+                            )}
                         </>
                     ) : tableDrawerOpened ? (
                         <TableReportDrawer handleCloseDrawer={handleCloseDrawer} />

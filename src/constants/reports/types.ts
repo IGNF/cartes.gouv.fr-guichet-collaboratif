@@ -70,13 +70,14 @@ export interface CommunityReport {
     attributes?: CommunityTheme[];
 }
 
-type Reply = {
-    id: number;
-    author: AuthorData;
+export type Reply = {
+    id?: number;
+    community?: number;
+    author?: AuthorData;
     title: string;
     content: string;
     status: string;
-    date: string;
+    date?: string;
 };
 export interface Replies {
     replies: Reply[];
@@ -98,11 +99,6 @@ export interface PostReport {
     comment?: string;
     attributes?: { community?: number; theme?: string; attributes?: PostThemeReport };
     sketch?: SketchReport | null;
-}
-export interface PostReply {
-    title?: string;
-    content: string;
-    status: string;
 }
 
 export interface FileUpload {

@@ -1,15 +1,15 @@
 import LoaderComponent from "@/components/LoaderComponent";
 import { CommunityTheme } from "@/constants/communities/types";
-import { ClickedTool, ErrorFile, PostThemeReport, ReportTool } from "@/constants/reports/types";
-import { useCommunityStore, useMapStore, useModalStore, useReportStore } from "@/store";
+import { ClickedTool, ErrorFile, PostThemeReport, Reply, ReportTool, Severity, StatusKey } from "@/constants/reports/types";
+import { useCommunityStore, useMapStore, useModalStore, useReportStore, useUserStore } from "@/store";
 import Accordion from "@codegouvfr/react-dsfr/Accordion";
 import Button from "@codegouvfr/react-dsfr/Button";
 import Input from "@codegouvfr/react-dsfr/Input";
 import RadioButtons from "@codegouvfr/react-dsfr/RadioButtons";
 import { Upload } from "@codegouvfr/react-dsfr/Upload";
-import { ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
+import { ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ThemeForm from "./ThemeForm";
-import { getThemeAttributes } from "@/constants/utils";
+import { getThemeAttributes, reportImgStatus } from "@/constants/utils";
 import DrawingForm from "./DrawingForm";
 import { Feature } from "ol";
 import CenterReport from "../CenterReport";
@@ -17,6 +17,15 @@ import ConfirmCancelModal from "./ConfirmCancelModal";
 import AttachmentList from "./AttachmentList";
 import { useTranslation } from "@/i18n";
 import useReportTools from "@/hooks/reports/useReportTools";
+import ReportFiltersComponent from "@/components/ReportFiltersComponent";
+import Badge from "@codegouvfr/react-dsfr/Badge";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { postReportsReply } from "@/api/reportsData";
+import Select from "@codegouvfr/react-dsfr/Select";
+import React from "react";
+import { useGetReportReplies } from "@/api/repliesData";
+import { useRepliesStore } from "@/store/userRepliesStore";
+// import CreateTableData from "../table/CreateTableData";
 
 const allowedTypes = ["image/png", "image/jpg", "application/pdf"];
 const maxSizeMB = 3;
@@ -35,6 +44,12 @@ const ReportForm: React.FC<Props> = ({ handleSubmit, handleDelete, handleClose }
     const [filesUploaded, setFilesUploaded] = useState<File[]>([]);
     const [clickedTool, setClickedTool] = useState<ClickedTool>({ name: "", clicked: false });
 
+    const [openSuivi, setOpenSuivi] = useState(false);
+    const [status, setStatus] = useState("");
+    const [content, setContent] = useState("");
+
+    const accordionRef = useRef<HTMLDivElement>(null);
+
     const [expendedDrawing, setExpendedDrawing] = useState<boolean>(false);
     const [expendedDescription, setExpendedDescription] = useState<boolean>(false);
     const [expendedDocument, setExpendedDocument] = useState<boolean>(false);
@@ -46,15 +61,58 @@ const ReportForm: React.FC<Props> = ({ handleSubmit, handleDelete, handleClose }
     const filesRef = useRef<HTMLDivElement>(null);
 
     const [loading, setLoading] = useState<boolean>(false);
+    const [committedStatus, setCommittedStatus] = useState("");
+
+    const queryClient = useQueryClient();
 
     const { community } = useCommunityStore();
-    const { editReport, selectedReport, selectedFeatures, setSelectedFeatures, setTableDrawerOpened } = useReportStore();
+    const {
+        // filteredReports,
+        setSelectedReport,
+        // isChecked,
+        reports,
+        setIsChecked,
+        editReport,
+        selectedReport,
+        selectedFeatures,
+        setSelectedFeatures,
+        setTableDrawerOpened,
+    } = useReportStore();
 
     const reportTools = useReportTools();
     const { confirmCancelModal } = useModalStore();
     const { setClickedControl } = useMapStore();
+    const { setReplies } = useRepliesStore();
+    const { user } = useUserStore();
 
     const { t } = useTranslation({ ReportForm });
+
+    const reportId = selectedReport?.id;
+
+    type MutationParams = {
+        reportId: number;
+        body: Reply;
+    };
+
+    const { data: repliesData } = useGetReportReplies(reportId);
+    const repliesRes = useMemo(() => repliesData?.replies ?? [], [repliesData]);
+    const mutation = useMutation<Reply[] | null, Error, MutationParams>({
+        mutationFn: ({ reportId, body }) => postReportsReply(reportId, body),
+        onSuccess: (newReplies) => {
+            queryClient.invalidateQueries({ queryKey: ["reportReplies", reportId] });
+            setContent("");
+            setIsChecked({});
+            setSelectedReport(selectedReport);
+            if (newReplies && newReplies.length > 0) {
+                setReplies([...(repliesData?.replies ?? []), ...newReplies]);
+                // setReplies(newReplies);
+            }
+        },
+    });
+
+    useEffect(() => {
+        setSelectedReport(selectedReport);
+    }, [reports, selectedReport, setSelectedReport]);
 
     const handleToolClick = useCallback((tool: ReportTool | undefined) => {
         if (!tool) return;
@@ -226,130 +284,241 @@ const ReportForm: React.FC<Props> = ({ handleSubmit, handleDelete, handleClose }
     };
 
     if (!community) return;
-
     return (
         <>
+            REPORTFORM
             <div className="report-drawer">
                 {loading && <LoaderComponent />}
-                <h2 className="fr-mt-4v fr-mb-1v fr-text--md">
+                <h2 className="ri-map-pin-add-line fr-mt-4v fr-mb-1v fr-text--md">
                     {selectedReport ? t("edit_report_title", { reportId: selectedReport.id }) : t("create_report_title")}
                 </h2>
+                {selectedReport && <ReportFiltersComponent reportStatus={committedStatus} />}
                 {!selectedReport && (
                     <p className={`fr-text--sm fr-mb-1v ${selectedFeatures && !selectedFeatures.length ? "fr-message--error" : ""}`}>
                         {t("localize_report_alert")}
                     </p>
                 )}
 
-                <RadioButtons
-                    ref={themeRef}
-                    legend={t("select_theme")}
-                    options={community.themes.map((theme) => {
-                        return {
-                            label: theme.theme,
-                            nativeInputProps: {
-                                checked: selectedTheme?.theme === theme.theme,
-                                onClick: () => {
-                                    setSelectedTheme(theme);
-                                    setThemeAttributes(getThemeAttributes(theme));
-
-                                    setErrorTheme(() => "");
-                                },
-                                required: true,
-                            },
-                        };
-                    })}
-                    state={errorTheme ? "error" : selectedTheme ? "success" : "default"}
-                    stateRelatedMessage={errorTheme ?? ""}
-                    orientation="horizontal"
-                    small
-                    className="theme-radio fr-mt-4v fr-mb-1v fr-text--md"
-                />
-
-                {selectedTheme && <ThemeForm theme={selectedTheme} themeAttributes={themeAttributes} onChangeThemeAttributes={onChangeThemeAttributes} />}
-
-                <Accordion
-                    label={t("draw_sketch")}
-                    onExpandedChange={() => {
-                        setExpendedDrawing(!expendedDrawing);
+                <Button
+                    onClick={() => {
+                        setOpenSuivi(true);
+                        setTimeout(() => {
+                            accordionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                        }, 100);
                     }}
-                    expanded={expendedDrawing}
                 >
-                    <DrawingForm clickedTool={clickedTool} handleToolClick={handleToolClick} />
-                </Accordion>
-                <Accordion
-                    label={t("describe_report")}
-                    onExpandedChange={() => {
-                        setExpendedDescription(!expendedDescription);
-                    }}
-                    expanded={expendedDescription}
-                >
-                    <Input
-                        label={t("describe_report_label")}
-                        textArea
-                        nativeTextAreaProps={{
-                            value: description,
-                            rows: 5,
-                            onChange: (e) => {
-                                setDescription(e.target.value);
-                            },
+                    Répondre
+                </Button>
+                <div className="fr-mt-12v">
+                    <Accordion label={t("select_theme")} defaultExpanded={false}>
+                        <RadioButtons
+                            ref={themeRef}
+                            legend={t("select_theme")}
+                            options={community.themes.map((theme) => {
+                                return {
+                                    label: theme.theme,
+                                    nativeInputProps: {
+                                        checked: selectedTheme?.theme === theme.theme,
+                                        onClick: () => {
+                                            setSelectedTheme(theme);
+                                            setThemeAttributes(getThemeAttributes(theme));
+
+                                            setErrorTheme(() => "");
+                                        },
+                                        required: true,
+                                    },
+                                };
+                            })}
+                            state={errorTheme ? "error" : selectedTheme ? "success" : "default"}
+                            stateRelatedMessage={errorTheme ?? ""}
+                            orientation="horizontal"
+                            small
+                            className="theme-radio fr-mt-4v fr-mb-1v fr-text--md"
+                        />
+                        {selectedTheme && (
+                            <ThemeForm theme={selectedTheme} themeAttributes={themeAttributes} onChangeThemeAttributes={onChangeThemeAttributes} />
+                        )}
+                    </Accordion>
+
+                    <Accordion
+                        label={t("draw_sketch")}
+                        onExpandedChange={() => {
+                            setExpendedDrawing(!expendedDrawing);
                         }}
-                    />
-                </Accordion>
-
-                <Accordion
-                    label={t("import_attachments")}
-                    onExpandedChange={() => {
-                        setExpendedDocument(!expendedDocument);
-                    }}
-                    expanded={expendedDocument}
-                >
-                    <div
-                        style={{
-                            width: "100%",
-                        }}
+                        expanded={expendedDrawing}
                     >
-                        <Upload
-                            ref={filesRef}
-                            label={t("import_attachments_label")}
-                            hint={t("import_attachments_hint", { maxSizeMB })}
-                            state={errorFiles.length ? "error" : filesUploaded.length ? "success" : "default"}
-                            stateRelatedMessage=""
-                            multiple
-                            className="upload-file"
-                            nativeInputProps={{
-                                value: "",
-                                accept: ".jpg,.png,.pdf",
-                                onChange: (e) => onUploadChange(e),
+                        <DrawingForm clickedTool={clickedTool} handleToolClick={handleToolClick} />
+                    </Accordion>
+
+                    <Accordion
+                        label={t("describe_report")}
+                        onExpandedChange={() => {
+                            setExpendedDescription(!expendedDescription);
+                        }}
+                        expanded={expendedDescription}
+                    >
+                        <Input
+                            label={t("describe_report_label")}
+                            textArea
+                            nativeTextAreaProps={{
+                                value: description,
+                                rows: 5,
+                                onChange: (e) => {
+                                    setDescription(e.target.value);
+                                },
                             }}
                         />
-                        <AttachmentList newFiles={filesUploaded} errorFiles={errorFiles} removeFile={removeFile} />
-                    </div>
-                </Accordion>
-                {!selectedReport && t("report_note")}
+                    </Accordion>
 
-                {!selectedReport ? (
-                    <div className="submit">
-                        <Button size="large" onClick={onSubmit}>
-                            {t("submit_report")}
-                        </Button>
-                        <Button nativeButtonProps={confirmCancelModal.buttonProps} priority="tertiary" title="Annuler">
-                            {t("cancel_report")}
-                        </Button>
-                    </div>
-                ) : (
-                    <div className="buttons">
-                        <Button priority="secondary" onClick={onDelete}>
-                            {t("delete_report")}
-                        </Button>
-                        <Button priority="secondary" onClick={onClose}>
-                            {t("cancel_report")}
-                        </Button>
-                        <Button onClick={onSubmit}>{t("save_report")}</Button>
-                    </div>
-                )}
+                    <Accordion
+                        label={t("import_attachments")}
+                        onExpandedChange={() => {
+                            setExpendedDocument(!expendedDocument);
+                        }}
+                        expanded={expendedDocument}
+                    >
+                        <div
+                            style={{
+                                width: "100%",
+                            }}
+                        >
+                            <Upload
+                                ref={filesRef}
+                                label={t("import_attachments_label")}
+                                hint={t("import_attachments_hint", { maxSizeMB })}
+                                state={errorFiles.length ? "error" : filesUploaded.length ? "success" : "default"}
+                                stateRelatedMessage=""
+                                multiple
+                                className="upload-file"
+                                nativeInputProps={{
+                                    value: "",
+                                    accept: ".jpg,.png,.pdf",
+                                    onChange: (e) => onUploadChange(e),
+                                }}
+                            />
+                            <AttachmentList newFiles={filesUploaded} errorFiles={errorFiles} removeFile={removeFile} />
+                        </div>
+                    </Accordion>
+
+                    <Accordion
+                        ref={accordionRef}
+                        label={t("report_tracking")}
+                        onExpandedChange={(expanded: boolean) => {
+                            setOpenSuivi(expanded);
+                            if (expanded) {
+                                setReplies(repliesRes);
+                            }
+                        }}
+                        expanded={openSuivi}
+                    >
+                        <div className="report-drawer_tracking fr-mx-3v">
+                            {repliesRes.map((reply) => {
+                                const hideIcon = reportImgStatus[reply.status as StatusKey].text !== "test";
+                                return (
+                                    <div
+                                        key={reply.id}
+                                        className={`report-drawer_trackingItem  ${reply?.author?.username === user?.name ? "report-drawer_trackingItem--right" : ""}`}
+                                    >
+                                        {reply?.author?.username === user?.name ? (
+                                            <p>
+                                                {reply?.author?.username}
+                                                <span className="fr-icon-account-fill fr-ml-1v" aria-hidden="true"></span>
+                                            </p>
+                                        ) : (
+                                            <p>
+                                                <span className="fr-icon-account-line fr-mr-1v" aria-hidden="true"></span> {reply?.author?.username}
+                                            </p>
+                                        )}
+
+                                        <p className="report-drawer_trackingItem_date"> {reply.date}</p>
+                                        <p> {reply.content}</p>
+                                        <div className="report-drawer_trackingItem_status">
+                                            Statut:
+                                            <Badge
+                                                noIcon={hideIcon}
+                                                severity={reportImgStatus[reply.status as StatusKey].colorType as Severity}
+                                                className="fr-ml-2v"
+                                            >
+                                                {reply.status}
+                                            </Badge>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        <div>
+                            <form className="report-drawer_status fr-mt-6v">
+                                <Select
+                                    label={t("report_status")}
+                                    nativeSelectProps={{
+                                        onChange: (event) => setStatus(event.target.value),
+                                        value: status,
+                                    }}
+                                >
+                                    <React.Fragment key=".0">
+                                        {selectedReport && <option value={-1}>{reportImgStatus[selectedReport.status]?.text || ""}</option>}
+
+                                        {Object.keys(reportImgStatus).map((key) => {
+                                            const statusKey = key as StatusKey;
+                                            return (
+                                                <option key={statusKey} value={key}>
+                                                    {reportImgStatus[statusKey].text}
+                                                </option>
+                                            );
+                                        })}
+                                    </React.Fragment>
+                                </Select>
+                                <Input
+                                    label={t("report_content")}
+                                    textArea
+                                    nativeTextAreaProps={{
+                                        onChange: (event) => setContent(event.target.value),
+                                        value: content,
+                                    }}
+                                />
+                                <Button
+                                    onClick={async (e) => {
+                                        e.preventDefault();
+
+                                        if (reportId !== undefined) {
+                                            setCommittedStatus(status);
+                                            mutation.mutate({ reportId, body: { title: "Could be empty !", content, status } });
+                                        }
+                                    }}
+                                    className="fr-mt-4v"
+                                >
+                                    {t("report_send")}
+                                </Button>
+                            </form>
+                        </div>
+                    </Accordion>
+
+                    {!selectedReport && t("report_note")}
+
+                    {!selectedReport ? (
+                        <div className="submit">
+                            <Button size="large" onClick={onSubmit}>
+                                {t("submit_report")}
+                            </Button>
+                            <Button nativeButtonProps={confirmCancelModal.buttonProps} priority="tertiary" title="Annuler">
+                                {t("cancel_report")}
+                            </Button>
+                        </div>
+                    ) : (
+                        <div className="buttons">
+                            <Button priority="secondary" onClick={onDelete}>
+                                {t("delete_report")}
+                            </Button>
+                            <Button priority="secondary" onClick={onClose}>
+                                {t("cancel_report")}
+                            </Button>
+                            <Button onClick={onSubmit}>{t("save_report")}</Button>
+                        </div>
+                    )}
+                </div>
+                <CenterReport />
+                <ConfirmCancelModal onClose={onClose} />
             </div>
-            <CenterReport />
-            <ConfirmCancelModal onClose={onClose} />
         </>
     );
 };

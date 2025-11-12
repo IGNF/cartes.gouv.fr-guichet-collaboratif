@@ -9,6 +9,7 @@ import VectorSource from "ol/source/Vector";
 import { getReportSketch, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import ReportForm from "./forms/ReportForm";
 import { useTranslation } from "@/i18n";
+import { useEffect } from "react";
 
 interface Props {
     handleCloseDrawer: () => void;
@@ -16,12 +17,17 @@ interface Props {
 
 const EditReport: React.FC<Props> = ({ handleCloseDrawer }) => {
     const { community, addAlertMessage } = useCommunityStore();
-    const { reports, selectedReport, setReports, setTableDrawerOpened } = useReportStore();
+    const { reports, selectedReport, setReports, setTableDrawerOpened, setEditReport } = useReportStore();
 
     const { map } = useMapStore();
 
     const { t } = useTranslation({ EditReport });
 
+    useEffect(() => {
+        setEditReport(true);
+
+        return () => {};
+    }, [setEditReport]);
     if (!community || !map || !selectedReport) return null;
 
     const handleDeleteReport = async () => {
@@ -102,7 +108,13 @@ const EditReport: React.FC<Props> = ({ handleCloseDrawer }) => {
         handleCloseDrawer();
         setTableDrawerOpened(true);
     };
-    return <ReportForm handleClose={handleCloseEditReportDrawer} handleDelete={handleDeleteReport} handleSubmit={handleUpdateReport} />;
+
+    return (
+        <>
+            EditReport
+            <ReportForm handleClose={handleCloseEditReportDrawer} handleDelete={handleDeleteReport} handleSubmit={handleUpdateReport} />
+        </>
+    );
 };
 
 export default EditReport;
