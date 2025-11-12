@@ -25,6 +25,10 @@ export type ParamsReport = {
     closeFunc: () => void;
 };
 
+export type MutationReportParams = {
+    reportId: number;
+    body: Reply;
+};
 type CommuneData = {
     name: string;
     title: string;

@@ -4,21 +4,19 @@ import { Feature, MapBrowserEvent } from "ol";
 import Layer from "ol/layer/Layer";
 import VectorSource from "ol/source/Vector";
 import { Style } from "ol/style";
-import { getClickedMapReport, getReportSketchFeatures, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
-import { clearClusterStyles } from "@/constants/reports/utils/cluster";
-import { getCenterReportMessage, showCenterReportButtons } from "@/constants/utils";
-import { ParamsReport, toolNames } from "@/constants/reports/types";
+import { useGetUserProfileAPI } from "@/api/userData";
 import { useCommunityStore, useMapStore, useReportStore } from "@/store";
+import { HIT_DETECTION_TOLERENCE } from "@/constants";
+import { getClickedMapReport, getReportSketchFeatures, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
+import { getCenterReportMessage, showCenterReportButtons } from "@/constants/utils";
+import { clearClusterStyles } from "@/constants/reports/utils/cluster";
+import { ParamsReport, toolNames } from "@/constants/reports/types";
 import Button from "@codegouvfr/react-dsfr/Button";
 import DrawerComponent from "@/components/DrawerComponent";
 import ShowReport from "./ShowReport";
 import CreateReport from "./CreateReport";
 import TableReportDrawer from "./table/TableReportDrawer";
 import OpenReplyReportModal from "./forms/OpenReplyReportModal";
-import { HIT_DETECTION_TOLERENCE } from "@/constants";
-// import { getUserRole } from "@/api/reportsData";
-// import { useQuery } from "@tanstack/react-query";
-import { useGetUserProfileAPI } from "@/api/userData";
 import EditReport from "./EditReport";
 
 const ReportDrawer = () => {
@@ -51,12 +49,6 @@ const ReportDrawer = () => {
     const clickableSource = clickableLayer?.getSource() as VectorSource;
 
     const { community } = useCommunityStore();
-
-    // const { data: userRole } = useQuery({
-    //     queryKey: ["userRole"],
-    //     queryFn: () => getUserRole(),
-    //     enabled: true,
-    // });
 
     const { data: userData } = useGetUserProfileAPI();
 

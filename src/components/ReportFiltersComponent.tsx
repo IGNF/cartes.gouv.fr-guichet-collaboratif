@@ -1,16 +1,15 @@
 import { useEffect, useMemo } from "react";
-import Tag from "@codegouvfr/react-dsfr/Tag";
-import Badge from "@codegouvfr/react-dsfr/Badge";
-import { useCommunityStore, useReportStore } from "@/store";
 import { getTableReports } from "@/api/reportsData";
-import CreateTableData from "@/features/reports/table/CreateTableData";
+import { useCommunityStore, useReportStore } from "@/store";
 import { reportImgStatus } from "@/constants/utils";
 import { StatusKey } from "@/constants/reports/types";
+import CreateTableData from "@/features/reports/table/CreateTableData";
+import Tag from "@codegouvfr/react-dsfr/Tag";
+import Badge from "@codegouvfr/react-dsfr/Badge";
 interface ReportFiltersProps {
     reportStatus: string;
 }
-const ReportFiltersComponent: React.FC<ReportFiltersProps> = ({ reportStatus }) => {
-    // const [status, setStatus] = useState("");
+const ReportFiltersComponent = ({ reportStatus }: ReportFiltersProps) => {
     const {
         reports,
         currentFilters,
@@ -43,9 +42,7 @@ const ReportFiltersComponent: React.FC<ReportFiltersProps> = ({ reportStatus }) 
     const departement = currentReport?.departement ? `${currentReport?.departement.title} (${currentReport?.departement?.name})` : "-";
     const themes =
         currentReport?.attributes && currentReport?.attributes.length > 0 ? currentReport?.attributes.map((attr) => attr.theme || "").join(", ") : "-";
-    // setStatus(currentReport?.status || "-");
     const status = currentReport?.status || "-";
-    // const statusText = reportImgStatus[status as StatusKey].text || "";
     const statusText = reportImgStatus[status as StatusKey]?.text || "";
 
     const statusLabel = reportImgStatus[reportStatus as StatusKey]?.text || "";

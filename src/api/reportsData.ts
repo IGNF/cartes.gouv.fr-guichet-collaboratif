@@ -33,10 +33,7 @@ export const getCommunityReportSketch = (report: reportData) => {
           }
         : null;
 };
-// export async function getReportReplies(reportId: number): Promise<Replies> {
-//     const res = await axiosApi.get(`${REPORTS_API_URL}/${reportId}`);
-//     return res.data;
-// }
+
 export async function getTableReports(
     communityId: number,
     limit: number = 100,

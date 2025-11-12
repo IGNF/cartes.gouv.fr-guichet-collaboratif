@@ -3,29 +3,25 @@ import { useState } from "react";
 import { useTranslation } from "@/i18n";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { postReportsReply } from "@/api/reportsData";
+import { useGetReportReplies } from "@/api/repliesData";
 import { useCommunityStore, useReportStore, useUserStore } from "@/store";
-import { Reply, Severity, StatusKey } from "@/constants/reports/types";
+import { useRepliesStore } from "@/store/userRepliesStore";
+import { MutationReportParams, Reply, Severity, StatusKey } from "@/constants/reports/types";
 import { reportImgStatus } from "@/constants/utils";
-import ReportFiltersComponent from "@/components/ReportFiltersComponent";
 import RadioButtons from "@codegouvfr/react-dsfr/RadioButtons";
 import Badge from "@codegouvfr/react-dsfr/Badge";
 import Select from "@codegouvfr/react-dsfr/Select";
 import Input from "@codegouvfr/react-dsfr/Input";
 import Accordion from "@codegouvfr/react-dsfr/Accordion";
 import Button from "@codegouvfr/react-dsfr/Button";
+import ReportFiltersComponent from "@/components/ReportFiltersComponent";
+import AttachmentList from "./forms/AttachmentList";
 import EditReport from "./EditReport";
 import SketchList from "./forms/SketchList";
-import AttachmentList from "./forms/AttachmentList";
-import { useGetReportReplies } from "@/api/repliesData";
-import { useRepliesStore } from "@/store/userRepliesStore";
 
 interface Props {
     handleCloseDrawer: () => void;
 }
-type MutationParams = {
-    reportId: number;
-    body: Reply;
-};
 
 const ShowReport: React.FC<Props> = ({ handleCloseDrawer }) => {
     const [openSuivi, setOpenSuivi] = useState(false);
@@ -48,7 +44,7 @@ const ShowReport: React.FC<Props> = ({ handleCloseDrawer }) => {
     const { data: repliesData } = useGetReportReplies(reportId);
     const repliesRes = useMemo(() => repliesData?.replies ?? [], [repliesData]);
 
-    const mutation = useMutation<Reply[] | null, Error, MutationParams>({
+    const mutation = useMutation<Reply[] | null, Error, MutationReportParams>({
         mutationFn: ({ reportId, body }) => postReportsReply(reportId, body),
         onSuccess: (newReplies) => {
             queryClient.invalidateQueries({ queryKey: ["reportReplies", reportId] });
@@ -57,7 +53,6 @@ const ShowReport: React.FC<Props> = ({ handleCloseDrawer }) => {
             setSelectedReport(selectedReport);
             if (newReplies && newReplies.length > 0) {
                 setReplies([...(repliesData?.replies ?? []), ...newReplies]);
-                // setReplies(newReplies);
             }
         },
     });
@@ -71,7 +66,6 @@ const ShowReport: React.FC<Props> = ({ handleCloseDrawer }) => {
 
     return (
         <>
-            SHOWREPORT
             <div className="report-drawer">
                 <h2 className="fr-mt-4v fr-mb-1v fr-text--md">
                     <span className="ri-map-pin-add-line fr-pr-1v" />
@@ -119,7 +113,6 @@ const ShowReport: React.FC<Props> = ({ handleCloseDrawer }) => {
 
                     <Accordion label={t("report_document_list") + " (" + selectedReport?.attachments.length + ")"}>
                         <div>
-                            {/* <FormAttachments /> */}
                             <AttachmentList />
                         </div>
                     </Accordion>

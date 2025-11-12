@@ -1,31 +1,30 @@
-import LoaderComponent from "@/components/LoaderComponent";
+import React from "react";
+import { ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "@/i18n";
+import { Feature } from "ol";
+import { postReportsReply } from "@/api/reportsData";
+import { useGetReportReplies } from "@/api/repliesData";
+import { useCommunityStore, useMapStore, useModalStore, useReportStore, useUserStore } from "@/store";
+import { useRepliesStore } from "@/store/userRepliesStore";
 import { CommunityTheme } from "@/constants/communities/types";
 import { ClickedTool, ErrorFile, PostThemeReport, Reply, ReportTool, Severity, StatusKey } from "@/constants/reports/types";
-import { useCommunityStore, useMapStore, useModalStore, useReportStore, useUserStore } from "@/store";
+import { getThemeAttributes, reportImgStatus } from "@/constants/utils";
+import useReportTools from "@/hooks/reports/useReportTools";
 import Accordion from "@codegouvfr/react-dsfr/Accordion";
+import Badge from "@codegouvfr/react-dsfr/Badge";
 import Button from "@codegouvfr/react-dsfr/Button";
 import Input from "@codegouvfr/react-dsfr/Input";
 import RadioButtons from "@codegouvfr/react-dsfr/RadioButtons";
+import Select from "@codegouvfr/react-dsfr/Select";
 import { Upload } from "@codegouvfr/react-dsfr/Upload";
-import { ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import LoaderComponent from "@/components/LoaderComponent";
+import ReportFiltersComponent from "@/components/ReportFiltersComponent";
 import ThemeForm from "./ThemeForm";
-import { getThemeAttributes, reportImgStatus } from "@/constants/utils";
 import DrawingForm from "./DrawingForm";
-import { Feature } from "ol";
 import CenterReport from "../CenterReport";
 import ConfirmCancelModal from "./ConfirmCancelModal";
 import AttachmentList from "./AttachmentList";
-import { useTranslation } from "@/i18n";
-import useReportTools from "@/hooks/reports/useReportTools";
-import ReportFiltersComponent from "@/components/ReportFiltersComponent";
-import Badge from "@codegouvfr/react-dsfr/Badge";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { postReportsReply } from "@/api/reportsData";
-import Select from "@codegouvfr/react-dsfr/Select";
-import React from "react";
-import { useGetReportReplies } from "@/api/repliesData";
-import { useRepliesStore } from "@/store/userRepliesStore";
-// import CreateTableData from "../table/CreateTableData";
 
 const allowedTypes = ["image/png", "image/jpg", "application/pdf"];
 const maxSizeMB = 3;
@@ -66,18 +65,8 @@ const ReportForm: React.FC<Props> = ({ handleSubmit, handleDelete, handleClose }
     const queryClient = useQueryClient();
 
     const { community } = useCommunityStore();
-    const {
-        // filteredReports,
-        setSelectedReport,
-        // isChecked,
-        reports,
-        setIsChecked,
-        editReport,
-        selectedReport,
-        selectedFeatures,
-        setSelectedFeatures,
-        setTableDrawerOpened,
-    } = useReportStore();
+    const { setSelectedReport, reports, setIsChecked, editReport, selectedReport, selectedFeatures, setSelectedFeatures, setTableDrawerOpened } =
+        useReportStore();
 
     const reportTools = useReportTools();
     const { confirmCancelModal } = useModalStore();
@@ -105,7 +94,6 @@ const ReportForm: React.FC<Props> = ({ handleSubmit, handleDelete, handleClose }
             setSelectedReport(selectedReport);
             if (newReplies && newReplies.length > 0) {
                 setReplies([...(repliesData?.replies ?? []), ...newReplies]);
-                // setReplies(newReplies);
             }
         },
     });

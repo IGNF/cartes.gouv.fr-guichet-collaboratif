@@ -1,12 +1,12 @@
-import { ErrorFile, ReportAttachment } from "@/constants/reports/types";
-import fileUploadIcon from "../../../icons/file-upload-icon.jpg";
-import Button from "@codegouvfr/react-dsfr/Button";
+import { Fragment, useMemo, useState } from "react";
+import { useTranslation } from "@/i18n";
 import { deleteCommunityReportAttachment } from "@/api/attachmentData";
 import { useCommunityStore, useReportStore } from "@/store";
+import { ErrorFile, ReportAttachment } from "@/constants/reports/types";
 import { StatusMessage } from "@/constants/communities/types";
-import { Fragment, useMemo, useState } from "react";
+import Button from "@codegouvfr/react-dsfr/Button";
 import LoaderComponent from "@/components/LoaderComponent";
-import { useTranslation } from "@/i18n";
+import fileUploadIcon from "../../../icons/file-upload-icon.jpg";
 
 interface Props {
     newFiles?: File[] | null;
