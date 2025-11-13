@@ -6,10 +6,10 @@ interface Props {
 }
 
 const ContributionsConfirmReset: React.FC<Props> = ({ onConfirm }) => {
-    const { confirmCancelModal } = useModalStore();
+    const { confirmResetContributionModal } = useModalStore();
 
     return (
-        <ModaleComponent modal={confirmCancelModal} title="Attention" onConfirm={onConfirm} cancelText={"Non"} confirmText={"Oui"}>
+        <ModaleComponent modal={confirmResetContributionModal} title="Attention" onConfirm={onConfirm} cancelText={"Non"} confirmText={"Oui"}>
             <p>Les modifications ne seront pas enregistrées, voulez-vous continuer ?</p>
         </ModaleComponent>
     );

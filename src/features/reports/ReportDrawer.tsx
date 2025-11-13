@@ -18,6 +18,7 @@ import CreateReport from "./CreateReport";
 import TableReportDrawer from "./table/TableReportDrawer";
 import OpenReplyReportModal from "./forms/OpenReplyReportModal";
 import EditReport from "./EditReport";
+import { InteractionType } from "@/constants/communities/types";
 
 const ReportDrawer = () => {
     const { t } = useTranslation({ ShowReport });
@@ -40,13 +41,13 @@ const ReportDrawer = () => {
         setResponseDrawerOpened,
     } = useReportStore();
 
-    const { map, setClickedMapFeature, setClickableFeatures } = useMapStore();
+    const { map, setClickedMapFeature, setClickableFeatures, setClickedControl } = useMapStore();
     const { alertMessages, removeAlertMessage } = useCommunityStore();
 
-    const reportClusterLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE);
+    const reportClusterLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE && layer.getSource() instanceof VectorSource);
     const reportClusterSource = reportClusterLayer?.getSource() as VectorSource;
 
-    const clickableLayer = map?.getAllLayers().find((layer) => layer.get("name") === mapWorkingLayer);
+    const clickableLayer = map?.getAllLayers().find((layer) => layer.get("name") === mapWorkingLayer && layer.getSource() instanceof VectorSource);
     const clickableSource = clickableLayer?.getSource() as VectorSource;
 
     const { community } = useCommunityStore();
@@ -113,10 +114,15 @@ const ReportDrawer = () => {
             const featuresAtPixel = map?.getFeaturesAtPixel(evt.pixel);
             if (!featuresAtPixel?.length) return;
 
+            const selectInteraction = map
+                ?.getInteractions()
+                .getArray()
+                .find((i) => i.get("type") === InteractionType.SELECT || i.get("type") === InteractionType.REMOVE);
+
             if (clickableSource && "getFeaturesInExtent" in clickableSource) {
                 const featuresAt = clickableSource?.getFeaturesInExtent!(extent);
 
-                if (featuresAt && featuresAt.length) {
+                if (featuresAt && featuresAt.length && !selectInteraction) {
                     setClickableFeatures(featuresAt);
                     if (featuresAt.length > 1) return;
                 }
@@ -153,7 +159,7 @@ const ReportDrawer = () => {
                         setSelectedReport(report);
                     }
                 } else {
-                    setClickedMapFeature(topFeature.feature);
+                    if (!selectInteraction) setClickedMapFeature(topFeature.feature);
                 }
             }
         },
@@ -249,12 +255,12 @@ const ReportDrawer = () => {
                 }
 
                 if (toolButton && toolButton.classList.contains("drawing-tool-active")) {
-                    toolButton.click();
+                    setClickedControl(null);
                 }
                 setDrawerOpened(true);
             }
         },
-        [drawerOpened, reportClusterSource, setDrawerOpened]
+        [drawerOpened, reportClusterSource, setDrawerOpened, setClickedControl]
     );
 
     useEffect(() => {

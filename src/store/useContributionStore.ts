@@ -5,12 +5,12 @@ interface ContributionStore {
     contributions: Contribution[];
     isReviewContribution: boolean;
     setContributions: (contributions: Contribution[]) => void;
-    toggleReviewContribution: () => void;
+    setReviewContribution: (isReview: boolean) => void;
 }
 
-export const useContributionStore = create<ContributionStore>((set, get) => ({
+export const useContributionStore = create<ContributionStore>((set) => ({
     contributions: [],
     isReviewContribution: false,
     setContributions: (contributions) => set({ contributions }),
-    toggleReviewContribution: () => set({ isReviewContribution: !get().isReviewContribution }),
+    setReviewContribution: (isReview) => set({ isReviewContribution: isReview }),
 }));

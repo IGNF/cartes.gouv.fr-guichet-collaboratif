@@ -1,4 +1,5 @@
-import { CustomControlItem } from "@/constants/communities/types";
+import { CommunityLayerFunctionalityType, CommunityLayerRoleType, CustomControlItem, InteractionType } from "@/constants/communities/types";
+import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import { ComponentKey } from "@/i18n/types";
 import { useCommunityStore, useMapStore } from "@/store";
 import { TranslationFunction } from "i18nifty/typeUtils/TranslationFunction";
@@ -18,7 +19,8 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
                 target: "drawing-tool-point-",
                 icon: "ri-cursor-line",
                 disabled: false,
-                interaction: "select",
+                enabled: true,
+                interaction: InteractionType.SELECT,
             },
             {
                 id: 1,
@@ -26,43 +28,49 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
                 target: "drawing-tool-point-",
                 icon: "ri-map-pin-add-line",
                 disabled: false,
-                interaction: "create_report",
+                enabled: true,
+                interaction: null,
             },
             {
                 id: 2,
                 title: t("add_object"),
                 target: currentCommunityLayer?.geoservice.featureType ?? "",
                 icon: "ri-pen-nib-line",
-                disabled: !community?.functionalities?.includes("draw"),
-                interaction: "add",
+                disabled: currentCommunityLayer?.role === CommunityLayerRoleType.VISU || mapWorkingLayer === REPORTS_LAYER_TYPE,
+                enabled: !!community?.functionalities?.includes(CommunityLayerFunctionalityType.DRAW),
+                interaction: InteractionType.ADD_OBJECT,
             },
             {
                 id: 3,
                 title: t("cut_object"),
                 target: "drawing-tool-edit-",
                 icon: "ri-scissors-cut-line",
-                disabled: !community?.functionalities?.includes("modify"),
-                interaction: "modify",
+                disabled: currentCommunityLayer?.role === CommunityLayerRoleType.VISU || mapWorkingLayer === REPORTS_LAYER_TYPE,
+                enabled: !!community?.functionalities?.includes(CommunityLayerFunctionalityType.MODIFY),
+                interaction: InteractionType.MODIFY,
             },
             {
                 id: 4,
                 title: t("delete_object"),
                 target: "drawing-tool-remove-",
                 icon: "ri-delete-bin-line",
-                disabled: !community?.functionalities?.includes("delete"),
-                interaction: "remove",
+                disabled: currentCommunityLayer?.role === CommunityLayerRoleType.VISU || mapWorkingLayer === REPORTS_LAYER_TYPE,
+                enabled: !!community?.functionalities?.includes(CommunityLayerFunctionalityType.DELETE),
+                interaction: InteractionType.REMOVE,
             },
             {
                 id: 5,
                 title: t("measure_distance"),
                 target: "GPshowMeasureLengthPicto-",
                 icon: "ri-ruler-line",
-                disabled: !community?.functionalities?.includes("measureDistance"),
+                disabled: currentCommunityLayer?.role === CommunityLayerRoleType.VISU || mapWorkingLayer === REPORTS_LAYER_TYPE,
+                enabled: !!community?.functionalities?.includes(CommunityLayerFunctionalityType.MEASURE_DISTANCE),
                 interaction: null,
             },
         ];
-    }, [community, currentCommunityLayer?.geoservice.featureType, t]);
-    return constrolsList;
+    }, [community, currentCommunityLayer?.geoservice.featureType, currentCommunityLayer?.role, mapWorkingLayer, t]);
+
+    return constrolsList.filter((c) => c.enabled);
 };
 
 export default useCustomControlsList;

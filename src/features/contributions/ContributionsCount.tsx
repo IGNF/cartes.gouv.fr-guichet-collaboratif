@@ -6,25 +6,22 @@ import { TranslationFunction } from "i18nifty/typeUtils/TranslationFunction";
 import VectorSource from "ol/source/Vector";
 import { useState, useRef, useCallback, useMemo } from "react";
 import ContributionsConfirmReset from "./ContributionsConfirmReset";
+import { FEATURE_TYPE_SELECTED_PROPERTY } from "@/constants";
 
 interface Props {
     t: TranslationFunction<"MapToolbar", ComponentKey>;
 }
 
 const ContributionsCount: React.FC<Props> = ({ t }) => {
-    const { map } = useMapStore();
-    const { contributions, isReviewContribution, toggleReviewContribution, setContributions } = useContributionStore();
-    const { confirmCancelModal } = useModalStore();
+    const { map, setWorkingLayerDrawerOpened, setClickedMapFeature } = useMapStore();
+    const { contributions, isReviewContribution, setReviewContribution, setContributions } = useContributionStore();
+    const { confirmResetContributionModal } = useModalStore();
 
     const contrToReview = useMemo(() => contributions.filter((contr) => contr.type !== ContributionType.DELETE), [contributions]);
 
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
     const buttonGroupRef = useRef<HTMLDivElement>(null);
-
-    const onClickReview = useCallback(() => {
-        toggleReviewContribution();
-    }, [toggleReviewContribution]);
 
     const onClickReset = useCallback(() => {
         contributions.forEach((contr) => {
@@ -33,24 +30,30 @@ const ContributionsCount: React.FC<Props> = ({ t }) => {
                 .find((l) => l.get("name") === contr.layer)
                 ?.getSource() as VectorSource;
 
+            contr.feature.unset(FEATURE_TYPE_SELECTED_PROPERTY);
+            contr.initialFeature?.unset(FEATURE_TYPE_SELECTED_PROPERTY);
+            setReviewContribution(false);
+            setWorkingLayerDrawerOpened(false);
+            setClickedMapFeature(null);
+
             if (featLayerSource) {
                 switch (contr.type) {
                     case ContributionType.CREATE:
-                        featLayerSource.removeFeature(contr.feature);
+                        if (featLayerSource.hasFeature(contr.feature)) featLayerSource.removeFeature(contr.feature);
                         break;
                     case ContributionType.MODIFY:
-                        featLayerSource.removeFeature(contr.feature);
-                        featLayerSource.addFeature(contr.initialFeature);
+                        if (featLayerSource.hasFeature(contr.feature)) featLayerSource.removeFeature(contr.feature);
+                        if (!featLayerSource.hasFeature(contr.initialFeature)) featLayerSource.addFeature(contr.initialFeature);
                         break;
                     case ContributionType.DELETE:
-                        featLayerSource.addFeature(contr.feature);
+                        if (!featLayerSource.hasFeature(contr.initialFeature)) featLayerSource.addFeature(contr.initialFeature);
                         break;
                 }
             }
         });
         setContributions([]);
         setIsDropdownOpen(false);
-    }, [map, contributions, setContributions]);
+    }, [map, contributions, setContributions, setReviewContribution, setClickedMapFeature, setWorkingLayerDrawerOpened]);
 
     return (
         <div ref={buttonGroupRef} className="map-toolbar-button-group">
@@ -89,7 +92,7 @@ const ContributionsCount: React.FC<Props> = ({ t }) => {
                         <Button
                             className="map-toolbar-review-link"
                             priority={isReviewContribution ? "secondary" : "tertiary"}
-                            onClick={onClickReview}
+                            onClick={() => setReviewContribution(!isReviewContribution)}
                             disabled={!contrToReview.length}
                         >
                             {t("review")}
@@ -99,7 +102,7 @@ const ContributionsCount: React.FC<Props> = ({ t }) => {
                         <Button
                             iconId="ri-refresh-line"
                             priority="secondary"
-                            nativeButtonProps={confirmCancelModal.buttonProps}
+                            nativeButtonProps={confirmResetContributionModal.buttonProps}
                             disabled={!contributions.length}
                         >
                             {t("reset")}

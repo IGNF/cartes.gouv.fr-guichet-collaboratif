@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import ButtonControl from "./ButtonControl";
-import { CustomControlItem } from "@/constants/communities/types";
+import { CommunityLayerRoleType, CustomControlItem, InteractionType } from "@/constants/communities/types";
 import { useCommunityStore, useContributionStore, useMapStore } from "@/store";
 import { Modify, Select, Draw } from "ol/interaction";
 import VectorSource from "ol/source/Vector";
@@ -16,13 +16,14 @@ import { ModifyEvent } from "ol/interaction/Modify";
 import { DrawEvent } from "ol/interaction/Draw";
 import useCustomControlsList from "@/hooks/navigation/controls/useCustomControlsList";
 import { FEATURE_TYPE_NEW_PROPERTY, FEATURE_TYPE_SELECTED_PROPERTY } from "@/constants";
-import { addFeatureProperties } from "@/constants/contributions/utils";
+import { addFeatureProperties, addInteractionToMap, removeInteractionFromMap } from "@/constants/contributions/utils";
 
 let isModifing = false;
 let initialFeat: Feature | null = null;
+
 const CustomControls = () => {
     const [selectedFeatures, setSelectedFeatures] = useState<Feature[]>([]);
-    const { map, mapWorkingLayer, clickedControl } = useMapStore();
+    const { map, mapWorkingLayer, clickedControl, setClickedControl } = useMapStore();
     const { contributions, setContributions } = useContributionStore();
 
     const { communityLayers } = useCommunityStore();
@@ -38,12 +39,15 @@ const CustomControls = () => {
                 ?.getSource() as VectorSource,
         [map, mapWorkingLayer]
     );
-    const constrolsList = useCustomControlsList(t);
 
     const clickableLayer = map
         ?.getAllLayers()
         .find((layer) => layer.get("name") === mapWorkingLayer && (layer instanceof VectorLayer || layer instanceof WebGLVectorLayer));
     const clickableSource = clickableLayer?.getSource() as VectorSource;
+
+    const selectInteraction = useMemo(() => new Select({ condition: click, layers: [clickableLayer!], multi: true }), [clickableLayer]);
+
+    const constrolsList = useCustomControlsList(t);
 
     const selectInteractionFunc = useCallback(
         (e: SelectEvent) => {
@@ -65,7 +69,7 @@ const CustomControls = () => {
 
             const newContr: Contribution = {
                 feature: feat,
-                initialFeature: initialFeat ?? feat.clone(),
+                initialFeature: initialFeat ?? feat?.clone(),
                 layer: mapWorkingLayer,
                 type,
             };
@@ -73,6 +77,7 @@ const CustomControls = () => {
             let newContributions = [...contributions, newContr];
 
             if (contrExist) {
+                newContr.initialFeature = contrExist.initialFeature;
                 newContributions = [...contributions.filter((contr) => contr.feature !== contrExist.feature), newContr];
                 if (contrExist.type === ContributionType.CREATE) {
                     if (type === ContributionType.DELETE) {
@@ -80,12 +85,10 @@ const CustomControls = () => {
                     }
                     if (type === ContributionType.MODIFY) {
                         newContr.type = ContributionType.CREATE;
-                        newContr.initialFeature = contrExist.initialFeature;
                         newContributions = [...contributions.filter((contr) => contr.feature !== contrExist.feature), newContr];
                     }
                 }
                 if (type === ContributionType.MODIFY) {
-                    newContr.initialFeature = contrExist.initialFeature;
                     newContributions = [...contributions.filter((contr) => contr.feature !== contrExist.feature), newContr];
                 }
             }
@@ -96,6 +99,7 @@ const CustomControls = () => {
 
     const removeInteractionFunc = useCallback(
         (e: SelectEvent) => {
+            selectInteraction.getFeatures().clear();
             const features = e.selected;
             const feat = features[0];
             if (currentMapWorkingSource) {
@@ -103,7 +107,7 @@ const CustomControls = () => {
                 saveContributions(feat, ContributionType.DELETE);
             }
         },
-        [currentMapWorkingSource, saveContributions]
+        [currentMapWorkingSource, selectInteraction, saveContributions]
     );
 
     const modifyInteractionFunc = useCallback(
@@ -147,20 +151,20 @@ const CustomControls = () => {
             let interaction: Select | Modify | Draw;
 
             switch (type) {
-                case "select":
-                    interaction = new Select({ condition: click, layers: [clickableLayer] });
+                case InteractionType.SELECT:
+                    interaction = selectInteraction;
                     interaction.on("select", selectInteractionFunc);
                     break;
-                case "remove":
-                    interaction = new Select({ condition: click, layers: [clickableLayer] });
-                    interaction?.on("select", removeInteractionFunc);
+                case InteractionType.REMOVE:
+                    interaction = selectInteraction;
+                    interaction.on("select", removeInteractionFunc);
                     break;
-                case "modify":
-                    interaction = new Modify({ source: clickableSource });
+                case InteractionType.MODIFY:
+                    interaction = new Modify({ features: selectInteraction?.getFeatures() });
                     interaction.on("modifyend", modifyInteractionFunc);
                     interaction.on("modifystart", modifyInteractionFuncStart);
                     break;
-                case "add":
+                case InteractionType.ADD_OBJECT:
                     interaction = new Draw({ type: "Point" });
                     if (target === "line") interaction = new Draw({ type: "LineString" });
                     if (target === "polygon") interaction = new Draw({ type: "Polygon" });
@@ -172,66 +176,102 @@ const CustomControls = () => {
             interaction.set("type", type);
             return interaction;
         },
-        [clickableLayer, clickableSource, selectInteractionFunc, removeInteractionFunc, modifyInteractionFunc, modifyInteractionFuncStart, drawInteractionFunc]
-    );
-
-    const removeInteractionByType = useCallback(
-        (type: string | null) => {
-            if (!type) return;
-            const controlInteraction = map
-                ?.getInteractions()
-                .getArray()
-                .find((inter) => inter.get("type") === type);
-            if (controlInteraction) {
-                map?.removeInteraction(controlInteraction);
-                return;
-            }
-        },
-        [map]
-    );
-
-    const addInteractionByType = useCallback(
-        (type: string | null, target: string) => {
-            const controlInteraction = getInteractionByType(type, target);
-            if (controlInteraction) {
-                map?.addInteraction(controlInteraction);
-                return;
-            }
-        },
-        [map, getInteractionByType]
+        [
+            clickableLayer,
+            clickableSource,
+            selectInteraction,
+            selectInteractionFunc,
+            removeInteractionFunc,
+            modifyInteractionFunc,
+            modifyInteractionFuncStart,
+            drawInteractionFunc,
+        ]
     );
 
     const handleClick = useCallback(
         (control: CustomControlItem) => {
-            if (control === clickedControl) {
+            if (control.interaction === InteractionType.REMOVE) {
+                selectInteraction.getFeatures().clear();
+            }
+            if (control.interaction !== InteractionType.MODIFY) {
                 selectedFeatures.forEach((feat) => {
                     feat.unset(FEATURE_TYPE_SELECTED_PROPERTY);
                 });
+            }
+            if (control === clickedControl) {
                 setSelectedFeatures([]);
-                removeInteractionByType(control.interaction);
+                removeInteractionFromMap(control.interaction, map!);
             } else {
-                removeInteractionByType(clickedControl?.interaction ?? null);
-                addInteractionByType(control.interaction, control.target);
+                removeInteractionFromMap(clickedControl?.interaction ?? null, map!);
+                const interaction = getInteractionByType(control.interaction, control.target);
+                addInteractionToMap(interaction, map!);
             }
         },
-        [clickedControl, selectedFeatures, addInteractionByType, removeInteractionByType]
+        [map, clickedControl, selectedFeatures, selectInteraction, getInteractionByType]
     );
 
     useEffect(() => {
         if (!isModifing && clickedControl && clickedControl.interaction) {
-            removeInteractionByType(clickedControl.interaction);
-            addInteractionByType(clickedControl.interaction, currentCommunityLayer?.geoservice.featureType ?? clickedControl.target);
+            removeInteractionFromMap(clickedControl.interaction, map!);
+            const interaction = getInteractionByType(clickedControl.interaction, currentCommunityLayer?.geoservice.featureType ?? clickedControl.target);
+            addInteractionToMap(interaction, map!);
         }
-    }, [clickedControl, map, mapWorkingLayer, currentCommunityLayer?.geoservice.featureType, addInteractionByType, removeInteractionByType]);
+        return () => {
+            if (!isModifing && clickedControl && clickedControl.interaction) {
+                if (clickedControl?.interaction === InteractionType.REMOVE) selectInteraction.un("select", removeInteractionFunc);
+                if (clickedControl?.interaction === InteractionType.SELECT) {
+                    selectInteraction.un("select", selectInteractionFunc);
+                }
+            }
+        };
+    }, [
+        clickedControl,
+        map,
+        mapWorkingLayer,
+        currentCommunityLayer?.geoservice.featureType,
+        selectInteraction,
+        getInteractionByType,
+        removeInteractionFunc,
+        selectInteractionFunc,
+    ]);
+
+    const clickToolButton = useCallback(() => {
+        if (!clickedControl || clickedControl?.interaction || clickedControl?.disabled) return;
+        const controlButton = document.querySelector(`button[id^='${clickedControl?.target}'`) as HTMLButtonElement;
+        if (controlButton) {
+            controlButton.click();
+            if (controlButton.classList.contains("active")) {
+                setClickedControl(null);
+            }
+        }
+    }, [clickedControl, setClickedControl]);
+
+    useEffect(() => {
+        clickToolButton();
+        return () => {
+            clickToolButton();
+        };
+    }, [map, clickedControl, clickToolButton]);
 
     return (
         <div className="custom-controls">
-            <div>
-                {constrolsList.map((control) => (
-                    <ButtonControl key={`custom-control-${control.id}`} control={control} handleClick={handleClick} />
-                ))}
+            <div className="control-btns">
+                {constrolsList.map((control) => {
+                    if (control.interaction === InteractionType.MODIFY && currentCommunityLayer?.role === CommunityLayerRoleType.EDIT) {
+                        if (!selectInteraction.getFeatures().getLength()) {
+                            control.disabled = true;
+                            control.title = t("please_select_object");
+                        } else {
+                            control.disabled = false;
+                            control.title = t("cut_object");
+                        }
+                    }
+                    return <ButtonControl key={`custom-control-${control.id}`} control={control} handleClick={handleClick} />;
+                })}
             </div>
-            <AllReportsControl />
+            <div className="all-reports-btn">
+                <AllReportsControl />
+            </div>
         </div>
     );
 };

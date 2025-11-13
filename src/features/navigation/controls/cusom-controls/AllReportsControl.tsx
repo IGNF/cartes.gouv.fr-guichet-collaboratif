@@ -19,7 +19,16 @@ const AllReportsControl = () => {
             slots={{ transition: Fade }}
             slotProps={{ tooltip: { onClick: displayTableReportsDrawer } }}
         >
-            <Button iconId="fr-icon-discuss-line" className="btn-show-drawer fr-icon--sm" priority="tertiary" title="" onClick={displayTableReportsDrawer} />
+            <Button
+                iconId="fr-icon-discuss-line"
+                className="btn-show-drawer fr-icon--sm"
+                priority={tableDrawerOpened ? "primary" : "tertiary no outline"}
+                title=""
+                nativeButtonProps={{
+                    "aria-pressed": tableDrawerOpened,
+                }}
+                onClick={displayTableReportsDrawer}
+            />
         </Tooltip>
     );
 };
