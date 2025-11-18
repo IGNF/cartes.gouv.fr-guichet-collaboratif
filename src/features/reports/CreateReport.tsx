@@ -60,7 +60,6 @@ const CreateReport: React.FC<Props> = ({ handleCloseDrawer }) => {
                 throw Error;
             } else {
                 reportCreated.attachments = attachmentsUploaded;
-                addAlertMessage(StatusMessage.success, t("report_document_uploaded_success"));
                 setCurrentReport(null);
             }
         }

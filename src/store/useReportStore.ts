@@ -36,6 +36,7 @@ interface ReportStore {
     setDrawerOpened: (drawerOpened: boolean) => void;
     responseDrawerOpened: boolean;
     setResponseDrawerOpened: (responseDrawerOpened: boolean) => void;
+    hideToolsDiv?: boolean;
 }
 export const useReportStore = create<ReportStore>((set, get) => ({
     reports: [],
@@ -100,4 +101,5 @@ export const useReportStore = create<ReportStore>((set, get) => ({
     setDrawerOpened: (drawerOpened: boolean) => set({ drawerOpened }),
     responseDrawerOpened: false,
     setResponseDrawerOpened: (responseDrawerOpened: boolean) => set({ responseDrawerOpened }),
+    hideToolsDiv: false,
 }));

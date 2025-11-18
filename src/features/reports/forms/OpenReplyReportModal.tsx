@@ -105,7 +105,7 @@ const OpenReplyReportModal: React.FC<Props> = ({ onClose }) => {
                         const statusKey = key as StatusKey;
                         return (
                             <option key={statusKey} value={key}>
-                                {reportImgStatus[statusKey].text}
+                                {CheckedIdStatus}
                             </option>
                         );
                     })}

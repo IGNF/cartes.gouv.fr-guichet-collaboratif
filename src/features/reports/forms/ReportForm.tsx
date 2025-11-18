@@ -28,12 +28,24 @@ const maxSizeMB = 3;
 const maxSizeBytes = maxSizeMB * 1024 * 1024;
 
 interface Props {
-    handleSubmit: (theme: CommunityTheme, themeAttributes: PostThemeReport, description: string, files: File[], features: Feature[]) => Promise<void>;
+    handleSubmit?: (theme: CommunityTheme, themeAttributes: PostThemeReport, description: string, files: File[], features: Feature[]) => Promise<void>;
+    handleSubmitSketch?: (theme: CommunityTheme, themeAttributes: PostThemeReport, features: Feature[]) => Promise<void>;
+    handleSubmitTheme?: (theme: CommunityTheme, themeAttributes: PostThemeReport, features: Feature[]) => Promise<void>;
+    handleSubmitDescription?: (theme: CommunityTheme, themeAttributes: PostThemeReport, description: string, features: Feature[]) => Promise<void>;
+    handleSubmitDocument?: (theme: CommunityTheme, themeAttributes: PostThemeReport, description: string, files: File[], features: Feature[]) => Promise<void>;
     handleDelete?: () => void;
     handleClose?: () => void;
 }
 
-const ReportForm: React.FC<Props> = ({ handleSubmit, handleDelete, handleClose }) => {
+const ReportForm: React.FC<Props> = ({
+    handleSubmit,
+    handleDelete,
+    handleSubmitTheme,
+    handleSubmitSketch,
+    handleSubmitDescription,
+    handleSubmitDocument,
+    handleClose,
+}) => {
     const [selectedTheme, setSelectedTheme] = useState<CommunityTheme | null>(null);
     const [themeAttributes, setThemeAttributes] = useState<PostThemeReport>({});
     const [description, setDescription] = useState<string>("");
@@ -183,7 +195,77 @@ const ReportForm: React.FC<Props> = ({ handleSubmit, handleDelete, handleClose }
         if (!community || !selectedTheme) return;
         try {
             setLoading(true);
-            await handleSubmit(selectedTheme, themeAttributes, description, filesUploaded, selectedFeatures);
+            if (handleSubmit) {
+                await handleSubmit(selectedTheme, themeAttributes, description, filesUploaded, selectedFeatures);
+            }
+            onClose();
+        } catch {
+            setLoading(false);
+        }
+    };
+    const onSubmitTheme = async () => {
+        if (clickedTool.clicked) handleToolClick(reportTools.find((tool) => tool.name === clickedTool.name));
+
+        if (!validateTheme()) {
+            return;
+        }
+        if (!community || !selectedTheme) return;
+        try {
+            setLoading(true);
+            if (handleSubmitTheme) {
+                await handleSubmitTheme(selectedTheme, themeAttributes, selectedFeatures);
+            }
+            onClose();
+        } catch {
+            setLoading(false);
+        }
+    };
+
+    const onSubmitSketch = async () => {
+        if (clickedTool.clicked) handleToolClick(reportTools.find((tool) => tool.name === clickedTool.name));
+
+        if (!community || !selectedTheme) return;
+        try {
+            setLoading(true);
+            if (handleSubmitSketch) {
+                await handleSubmitSketch(selectedTheme, themeAttributes, selectedFeatures);
+            }
+            onClose();
+        } catch {
+            setLoading(false);
+        }
+    };
+
+    const onSubmitDescription = async () => {
+        if (clickedTool.clicked) handleToolClick(reportTools.find((tool) => tool.name === clickedTool.name));
+
+        if (!validateTheme()) {
+            return;
+        }
+        if (!community || !selectedTheme) return;
+        try {
+            setLoading(true);
+            if (handleSubmitDescription) {
+                await handleSubmitDescription(selectedTheme, themeAttributes, description, selectedFeatures);
+            }
+            onClose();
+        } catch {
+            setLoading(false);
+        }
+    };
+
+    const onSubmitDocument = async () => {
+        if (clickedTool.clicked) handleToolClick(reportTools.find((tool) => tool.name === clickedTool.name));
+
+        if (!validateTheme() || !validateFiles(filesUploaded)) {
+            return;
+        }
+        if (!community || !selectedTheme) return;
+        try {
+            setLoading(true);
+            if (handleSubmitDocument) {
+                await handleSubmitDocument(selectedTheme, themeAttributes, description, filesUploaded, selectedFeatures);
+            }
             onClose();
         } catch {
             setLoading(false);
@@ -299,6 +381,12 @@ const ReportForm: React.FC<Props> = ({ handleSubmit, handleDelete, handleClose }
                         {selectedTheme && (
                             <ThemeForm theme={selectedTheme} themeAttributes={themeAttributes} onChangeThemeAttributes={onChangeThemeAttributes} />
                         )}
+
+                        {editReport && (
+                            <Button size="large" onClick={onSubmitTheme}>
+                                {t("submit_theme")}
+                            </Button>
+                        )}
                     </Accordion>
 
                     <Accordion
@@ -309,6 +397,12 @@ const ReportForm: React.FC<Props> = ({ handleSubmit, handleDelete, handleClose }
                         expanded={expendedDrawing}
                     >
                         <DrawingForm clickedTool={clickedTool} handleToolClick={handleToolClick} />
+
+                        {editReport && (
+                            <Button size="large" onClick={onSubmitSketch}>
+                                {t("submit_sketch")}
+                            </Button>
+                        )}
                     </Accordion>
 
                     <Accordion
@@ -329,6 +423,11 @@ const ReportForm: React.FC<Props> = ({ handleSubmit, handleDelete, handleClose }
                                 },
                             }}
                         />
+                        {editReport && (
+                            <Button size="large" onClick={onSubmitDescription}>
+                                {t("submit_description")}
+                            </Button>
+                        )}
                     </Accordion>
 
                     <Accordion
@@ -358,6 +457,11 @@ const ReportForm: React.FC<Props> = ({ handleSubmit, handleDelete, handleClose }
                                 }}
                             />
                             <AttachmentList newFiles={filesUploaded} errorFiles={errorFiles} removeFile={removeFile} />
+                            {editReport && (
+                                <Button size="large" onClick={onSubmitDocument}>
+                                    {t("submit_document")}
+                                </Button>
+                            )}
                         </div>
                     </Accordion>
 

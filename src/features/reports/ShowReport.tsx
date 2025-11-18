@@ -1,35 +1,30 @@
-import React, { useMemo, useRef } from "react";
-import { useState } from "react";
+import React, { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "@/i18n";
-
 import { useGetReportReplies } from "@/api/repliesData";
 import { useCommunityStore, useReportStore } from "@/store";
 import { useReplyStore } from "@/store/useReplyStore";
-
+import { ClickedTool, ReportTool } from "@/constants/reports/types";
 import RadioButtons from "@codegouvfr/react-dsfr/RadioButtons";
-
 import Accordion from "@codegouvfr/react-dsfr/Accordion";
 import Button from "@codegouvfr/react-dsfr/Button";
 import ReportFiltersComponent from "@/components/ReportFiltersComponent";
 import AttachmentList from "./forms/AttachmentList";
-import EditReport from "./EditReport";
-import SketchList from "./forms/SketchList";
 import ReportTracking from "./ReportTracking";
-
+import DrawingForm from "./forms/DrawingForm";
 interface Props {
     handleCloseDrawer: () => void;
 }
 
-const ShowReport: React.FC<Props> = ({ handleCloseDrawer }) => {
+const ShowReport: React.FC<Props> = () => {
     const [openSuivi, setOpenSuivi] = useState(false);
     const [committedStatus, setCommittedStatus] = useState("");
+    const [, setClickedTool] = useState<ClickedTool>({ name: "", clicked: false });
 
-    const accordionRef = useRef<HTMLDivElement>(null);
-
-    const { selectedReport, editReport } = useReportStore();
+    const { setSelectedReport, reports, selectedReport } = useReportStore();
+    const { community } = useCommunityStore();
     const { setReplies } = useReplyStore();
 
-    const { community } = useCommunityStore();
+    const accordionRef = useRef<HTMLDivElement>(null);
 
     const { t } = useTranslation({ ShowReport });
 
@@ -37,8 +32,22 @@ const ShowReport: React.FC<Props> = ({ handleCloseDrawer }) => {
     const { data: repliesData } = useGetReportReplies(reportId);
     const repliesRes = useMemo(() => repliesData?.replies ?? [], [repliesData]);
 
+    useEffect(() => {
+        setSelectedReport(selectedReport);
+    }, [reports, selectedReport, setSelectedReport]);
+
+    const handleToolClick = useCallback((tool: ReportTool | undefined) => {
+        if (!tool) return;
+        const toolButton = document.querySelector(`button[id*="${tool.name}"]`) as HTMLButtonElement | null;
+        if (toolButton) {
+            toolButton.click();
+            setClickedTool((prev) => {
+                return { name: tool.name, clicked: prev.name === tool.name ? !prev.clicked : true };
+            });
+        }
+    }, []);
+
     if (!community || !selectedReport) return;
-    if (editReport) return <EditReport handleCloseDrawer={handleCloseDrawer} />;
 
     const selectedTheme = selectedReport.themes[0];
     const description = selectedReport.comment || "";
@@ -83,7 +92,7 @@ const ShowReport: React.FC<Props> = ({ handleCloseDrawer }) => {
                         />
                     </Accordion>
                     <Accordion label={t("report_sketch_list")} defaultExpanded={false}>
-                        <SketchList />
+                        <DrawingForm handleToolClick={handleToolClick} hideToolsDiv />
                     </Accordion>
                     {description && (
                         <Accordion label={t("report_description")} defaultExpanded={false}>
