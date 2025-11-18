@@ -496,7 +496,13 @@ export const handleCenterToFeature = (map: Map | null, feature: Feature) => {
 };
 
 export const showCenterReportButtons = (show: boolean = true) => {
+    const buttonsDiv = document.querySelector(".custom-button-top-right");
     const buttons = document.getElementsByClassName("center-feature");
+    const customControls = document.querySelector(".custom-controls");
+
+    if (buttonsDiv && customControls) {
+        (buttonsDiv as HTMLDivElement).style.top = `${customControls?.clientHeight + 62}px`;
+    }
     Array.from(buttons).forEach((button) => {
         (button as HTMLButtonElement).style.display = show ? "block" : "none";
     });

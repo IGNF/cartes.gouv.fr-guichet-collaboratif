@@ -29,10 +29,15 @@
 .custom-controls .control-btns button:last-child {
     border-radius: 0px 0px 4px 4px;
 }
+.custom-controls .center-to-report-btns {
+    margin-top: 8px;
+}
 
 .custom-controls .all-reports-btn {
     margin-top: 8px;
     border-radius: 4px;
+    display: flex;
+    gap: 8px;
 }
 
 .custom-controls .all-reports-btn button {

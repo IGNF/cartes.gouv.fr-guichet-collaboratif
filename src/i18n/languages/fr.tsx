@@ -26,7 +26,7 @@ import { useGetWMTSLayerFrTranslations } from "@/hooks/navigation/layers/locale/
 import { DrawerComponentFrTranslations } from "@/components/locale/DrawerComponent.locale";
 import { DrawingControlFrTranslations } from "@/features/navigation/controls/locale/DrawingControl.locale";
 import { CatalogControlFrTranslations } from "@/features/navigation/controls/locale/CatalogControl.locale";
-import { useCenterViewToReportControlFrTranslations } from "@/features/navigation/controls/locale/useCenterViewToReportControl.locale";
+import { CenterReportControlFrTranslations } from "@/features/navigation/controls/cusom-controls/locale/CenterReportControl.locale";
 import { useGetMapControlsFrTranslations } from "@/features/navigation/controls/locale/useGetMapControls.locale";
 import { useReportToolsFrTranslations } from "@/hooks/reports/locale/useReportTools.locale";
 import { FeatureTypeLayerLegendsFrTranslations } from "@/features/navigation/layers/legends/locale/FeatureTypeLayerLegends.locale";
@@ -66,7 +66,7 @@ export const translations: Translations<"fr"> = {
     useGetWMTSLayer: useGetWMTSLayerFrTranslations,
     DrawingControl: DrawingControlFrTranslations,
     CatalogControl: CatalogControlFrTranslations,
-    useCenterViewToReportControl: useCenterViewToReportControlFrTranslations,
+    CenterReportControl: CenterReportControlFrTranslations,
     useGetMapControls: useGetMapControlsFrTranslations,
     useReportTools: useReportToolsFrTranslations,
     FeatureTypeLayerLegends: FeatureTypeLayerLegendsFrTranslations,

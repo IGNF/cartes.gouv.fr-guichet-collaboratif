@@ -9,6 +9,7 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
     const { mapWorkingLayer } = useMapStore();
     const { community, communityLayers } = useCommunityStore();
 
+    const communityEditableLayers = useMemo(() => communityLayers?.filter((l) => l.role !== CommunityLayerRoleType.VISU), [communityLayers]);
     const currentCommunityLayer = useMemo(() => communityLayers?.find((l) => l.geoservice.layer === mapWorkingLayer), [communityLayers, mapWorkingLayer]);
 
     const constrolsList: CustomControlItem[] = useMemo(() => {
@@ -28,7 +29,7 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
                 target: "drawing-tool-point-",
                 icon: "ri-map-pin-add-line",
                 disabled: false,
-                enabled: true,
+                enabled: !!community?.themes?.length,
                 interaction: null,
             },
             {
@@ -37,7 +38,7 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
                 target: currentCommunityLayer?.geoservice.featureType ?? "",
                 icon: "ri-pen-nib-line",
                 disabled: currentCommunityLayer?.role === CommunityLayerRoleType.VISU || mapWorkingLayer === REPORTS_LAYER_TYPE,
-                enabled: !!community?.functionalities?.includes(CommunityLayerFunctionalityType.DRAW),
+                enabled: !!communityEditableLayers?.length && !!community?.functionalities?.includes(CommunityLayerFunctionalityType.DRAW),
                 interaction: InteractionType.ADD_OBJECT,
             },
             {
@@ -46,7 +47,7 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
                 target: "drawing-tool-edit-",
                 icon: "ri-scissors-cut-line",
                 disabled: currentCommunityLayer?.role === CommunityLayerRoleType.VISU || mapWorkingLayer === REPORTS_LAYER_TYPE,
-                enabled: !!community?.functionalities?.includes(CommunityLayerFunctionalityType.MODIFY),
+                enabled: !!communityEditableLayers?.length && !!community?.functionalities?.includes(CommunityLayerFunctionalityType.MODIFY),
                 interaction: InteractionType.MODIFY,
             },
             {
@@ -55,7 +56,7 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
                 target: "drawing-tool-remove-",
                 icon: "ri-delete-bin-line",
                 disabled: currentCommunityLayer?.role === CommunityLayerRoleType.VISU || mapWorkingLayer === REPORTS_LAYER_TYPE,
-                enabled: !!community?.functionalities?.includes(CommunityLayerFunctionalityType.DELETE),
+                enabled: !!communityEditableLayers?.length && !!community?.functionalities?.includes(CommunityLayerFunctionalityType.DELETE),
                 interaction: InteractionType.REMOVE,
             },
             {
@@ -64,11 +65,11 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
                 target: "GPshowMeasureLengthPicto-",
                 icon: "ri-ruler-line",
                 disabled: currentCommunityLayer?.role === CommunityLayerRoleType.VISU || mapWorkingLayer === REPORTS_LAYER_TYPE,
-                enabled: !!community?.functionalities?.includes(CommunityLayerFunctionalityType.MEASURE_DISTANCE),
+                enabled: !!communityEditableLayers?.length && !!community?.functionalities?.includes(CommunityLayerFunctionalityType.MEASURE_DISTANCE),
                 interaction: null,
             },
         ];
-    }, [community, currentCommunityLayer?.geoservice.featureType, currentCommunityLayer?.role, mapWorkingLayer, t]);
+    }, [community, currentCommunityLayer?.geoservice.featureType, currentCommunityLayer?.role, mapWorkingLayer, communityEditableLayers, t]);
 
     return constrolsList.filter((c) => c.enabled);
 };

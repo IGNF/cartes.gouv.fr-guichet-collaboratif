@@ -17,6 +17,7 @@ import { DrawEvent } from "ol/interaction/Draw";
 import useCustomControlsList from "@/hooks/navigation/controls/useCustomControlsList";
 import { FEATURE_TYPE_NEW_PROPERTY, FEATURE_TYPE_SELECTED_PROPERTY } from "@/constants";
 import { addFeatureProperties, addInteractionToMap, removeInteractionFromMap } from "@/constants/contributions/utils";
+import CenterReportControl from "./CenterReportControl";
 
 let isModifing = false;
 let initialFeat: Feature | null = null;
@@ -272,6 +273,7 @@ const CustomControls = () => {
             <div className="all-reports-btn">
                 <AllReportsControl />
             </div>
+            <CenterReportControl />
         </div>
     );
 };
