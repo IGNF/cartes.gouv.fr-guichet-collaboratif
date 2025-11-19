@@ -1,7 +1,7 @@
 import { useContributionStore, useMapStore } from "@/store";
 import Button from "@codegouvfr/react-dsfr/Button";
 import type { FrIconClassName, RiIconClassName } from "@codegouvfr/react-dsfr";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { handleCenterToFeature } from "@/constants/utils";
 import { ContributionType } from "@/constants/contributions/types";
 
@@ -17,21 +17,32 @@ const ContributionButton: React.FC<ContributionButtonProps> = ({ icon, title, di
 );
 
 const ReviewContributions = () => {
-    const { map, setClickedMapFeature } = useMapStore();
+    const { map, clickedMapFeature, setClickedMapFeature } = useMapStore();
     const { contributions } = useContributionStore();
 
     const contrToReview = useMemo(() => contributions.filter((contr) => contr.type !== ContributionType.DELETE), [contributions]);
 
     const [currentPosition, setCurrentPosition] = useState(contrToReview.length - 1);
 
+    const setCurrentContribution = useCallback(
+        (position: number) => {
+            const previousContribution = contributions[position];
+            setCurrentPosition(position);
+            setClickedMapFeature(previousContribution.feature);
+        },
+        [contributions, setClickedMapFeature]
+    );
+
     useEffect(() => {
-        const currentContribution = contrToReview[currentPosition];
+        const clickedMapContribution = contrToReview.find((c) => c.feature === clickedMapFeature);
+        const currentIndex = contrToReview.indexOf(clickedMapContribution!);
+        const currentContribution = contrToReview[currentIndex ?? currentPosition];
         const feature = currentContribution?.feature;
         if (feature) {
             handleCenterToFeature(map, feature);
-            setClickedMapFeature(feature);
+            if (currentIndex !== -1) setCurrentContribution(currentIndex);
         }
-    }, [currentPosition, contrToReview, map, setClickedMapFeature]);
+    }, [currentPosition, contrToReview, map, clickedMapFeature, setClickedMapFeature, setCurrentContribution]);
 
     const total = contrToReview.length;
 
@@ -41,7 +52,7 @@ const ReviewContributions = () => {
                 icon="ri-arrow-left-line"
                 title="Contribution précédente"
                 disabled={currentPosition === 0}
-                onClick={() => setCurrentPosition((prev) => Math.max(0, prev - 1))}
+                onClick={() => setCurrentContribution(currentPosition - 1)}
             />
 
             <span>
@@ -52,7 +63,7 @@ const ReviewContributions = () => {
                 icon="ri-arrow-right-line"
                 title="Contribution suivante"
                 disabled={currentPosition === total - 1}
-                onClick={() => setCurrentPosition((prev) => Math.min(total - 1, prev + 1))}
+                onClick={() => setCurrentContribution(currentPosition + 1)}
             />
         </div>
     );

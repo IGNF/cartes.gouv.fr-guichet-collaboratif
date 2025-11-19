@@ -3,10 +3,10 @@ import { ComponentKey } from "@/i18n/types";
 import { useContributionStore, useMapStore, useModalStore } from "@/store";
 import { Button } from "@codegouvfr/react-dsfr/Button";
 import { TranslationFunction } from "i18nifty/typeUtils/TranslationFunction";
-import VectorSource from "ol/source/Vector";
 import { useState, useRef, useCallback, useMemo } from "react";
 import ContributionsConfirmReset from "./ContributionsConfirmReset";
-import { FEATURE_TYPE_SELECTED_PROPERTY } from "@/constants";
+import ContributionList from "./ContributionList";
+import { resetContributionToMap } from "@/constants/contributions/utils";
 
 interface Props {
     t: TranslationFunction<"MapToolbar", ComponentKey>;
@@ -25,32 +25,11 @@ const ContributionsCount: React.FC<Props> = ({ t }) => {
 
     const onClickReset = useCallback(() => {
         contributions.forEach((contr) => {
-            const featLayerSource = map
-                ?.getAllLayers()
-                .find((l) => l.get("name") === contr.layer)
-                ?.getSource() as VectorSource;
-
-            contr.feature.unset(FEATURE_TYPE_SELECTED_PROPERTY);
-            contr.initialFeature?.unset(FEATURE_TYPE_SELECTED_PROPERTY);
-            setReviewContribution(false);
-            setWorkingLayerDrawerOpened(false);
-            setClickedMapFeature(null);
-
-            if (featLayerSource) {
-                switch (contr.type) {
-                    case ContributionType.CREATE:
-                        if (featLayerSource.hasFeature(contr.feature)) featLayerSource.removeFeature(contr.feature);
-                        break;
-                    case ContributionType.MODIFY:
-                        if (featLayerSource.hasFeature(contr.feature)) featLayerSource.removeFeature(contr.feature);
-                        if (!featLayerSource.hasFeature(contr.initialFeature)) featLayerSource.addFeature(contr.initialFeature);
-                        break;
-                    case ContributionType.DELETE:
-                        if (!featLayerSource.hasFeature(contr.initialFeature)) featLayerSource.addFeature(contr.initialFeature);
-                        break;
-                }
-            }
+            resetContributionToMap(map!, contr);
         });
+        setReviewContribution(false);
+        setWorkingLayerDrawerOpened(false);
+        setClickedMapFeature(null);
         setContributions([]);
         setIsDropdownOpen(false);
     }, [map, contributions, setContributions, setReviewContribution, setClickedMapFeature, setWorkingLayerDrawerOpened]);
@@ -111,6 +90,7 @@ const ContributionsCount: React.FC<Props> = ({ t }) => {
                 </div>
             )}
             <ContributionsConfirmReset onConfirm={onClickReset} />
+            <ContributionList />
         </div>
     );
 };

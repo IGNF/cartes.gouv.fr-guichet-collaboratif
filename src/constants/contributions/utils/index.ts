@@ -1,9 +1,10 @@
-import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_GEOSERVICE_PROPERTY } from "@/constants";
+import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_GEOSERVICE_PROPERTY, FEATURE_TYPE_SELECTED_PROPERTY } from "@/constants";
 import { CommunityGeoservice, ObjectProps } from "@/constants/communities/types";
 import { getValideProperties } from "@/constants/communities/utils";
 import { Feature, Map } from "ol";
-import { Contribution } from "../types";
+import { Contribution, ContributionType } from "../types";
 import { Interaction } from "ol/interaction";
+import VectorSource from "ol/source/Vector";
 
 export const addFeatureProperties = (feat: Feature, geoservice: CommunityGeoservice | undefined, contributions: Contribution[]) => {
     const featureTypeData: ObjectProps = {};
@@ -38,5 +39,30 @@ export const addInteractionToMap = (interaction: Interaction | null, map: Map) =
     if (interaction) {
         map?.addInteraction(interaction);
         return;
+    }
+};
+
+export const resetContributionToMap = (map: Map, contr: Contribution) => {
+    const featLayerSource = map
+        ?.getAllLayers()
+        .find((l) => l.get("name") === contr.layer)
+        ?.getSource() as VectorSource;
+
+    contr.feature.unset(FEATURE_TYPE_SELECTED_PROPERTY);
+    contr.initialFeature?.unset(FEATURE_TYPE_SELECTED_PROPERTY);
+
+    if (featLayerSource) {
+        switch (contr.type) {
+            case ContributionType.CREATE:
+                if (featLayerSource.hasFeature(contr.feature)) featLayerSource.removeFeature(contr.feature);
+                break;
+            case ContributionType.MODIFY:
+                if (featLayerSource.hasFeature(contr.feature)) featLayerSource.removeFeature(contr.feature);
+                if (!featLayerSource.hasFeature(contr.initialFeature)) featLayerSource.addFeature(contr.initialFeature);
+                break;
+            case ContributionType.DELETE:
+                if (!featLayerSource.hasFeature(contr.initialFeature)) featLayerSource.addFeature(contr.initialFeature);
+                break;
+        }
     }
 };

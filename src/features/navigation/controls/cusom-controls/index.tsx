@@ -137,7 +137,11 @@ const CustomControls = () => {
         (e: DrawEvent) => {
             const feature = e.feature;
             if (currentMapWorkingSource) {
-                addFeatureProperties(feature, currentCommunityLayer?.geoservice, contributions);
+                addFeatureProperties(
+                    feature,
+                    currentCommunityLayer?.geoservice,
+                    contributions.filter((contr) => contr.type === ContributionType.CREATE)
+                );
                 feature.set(FEATURE_TYPE_NEW_PROPERTY, true);
                 currentMapWorkingSource.addFeature(feature);
                 saveContributions(feature, ContributionType.CREATE);
