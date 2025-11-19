@@ -5,7 +5,7 @@ import Layer from "ol/layer/Layer";
 import VectorSource from "ol/source/Vector";
 import { Style } from "ol/style";
 import { useGetUserProfileAPI } from "@/api/userData";
-import { useCommunityStore, useMapStore, useReportStore } from "@/store";
+import { useCommunityStore, useMapStore, useReportStore, useUserStore } from "@/store";
 import { HIT_DETECTION_TOLERENCE } from "@/constants";
 import { getClickedMapReport, getReportSketchFeatures, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import { getCenterReportMessage, showCenterReportButtons } from "@/constants/utils";
@@ -22,6 +22,7 @@ import EditReport from "./EditReport";
 const ReportDrawer = () => {
     const { t } = useTranslation({ ShowReport });
     const { mapWorkingLayer } = useMapStore();
+    const { user } = useUserStore();
 
     const {
         reports,
@@ -289,9 +290,15 @@ const ReportDrawer = () => {
         return Array.isArray(currentUser) ? currentUser.some((role) => role.role === "admin") : false;
     }, [userData, community?.id]);
 
+    const isOwner = Number(user?.id) === Number(selectedReport?.author?.id);
+
     useEffect(() => {
-        if (isAdmin) setEditReport(true);
-    }, [isAdmin, setEditReport]);
+        if (drawerOpened && selectedReport && (isAdmin || isOwner)) {
+            setEditReport(true);
+        } else {
+            setEditReport(false);
+        }
+    }, [drawerOpened, selectedReport, isAdmin, isOwner, setEditReport]);
 
     return (
         <>
@@ -313,7 +320,7 @@ const ReportDrawer = () => {
                             </Button>
                             {!selectedReport ? (
                                 <CreateReport handleCloseDrawer={handleCloseDrawer} />
-                            ) : isAdmin ? (
+                            ) : isAdmin || isOwner ? (
                                 <EditReport handleCloseDrawer={handleCloseDrawer} />
                             ) : (
                                 <ShowReport handleCloseDrawer={handleCloseDrawer} />

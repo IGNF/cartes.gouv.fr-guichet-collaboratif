@@ -9,6 +9,7 @@ export const EditReportFrTranslations: Translations<"fr">["EditReport"] = {
     report_document_deleted_error: "Erreur dans la suppression des documents du signalement !",
     report_document_uploaded_error: "Erreur dans le chargement de document",
     report_document_uploaded_success: "Chargement du document avec succès.",
+    report_no_permission: "Vous n'avez pas les droits nécessaires pour effectuer cette action.",
 };
 
 export const EditReportEnTranslations: Translations<"en">["EditReport"] = {
@@ -19,6 +20,7 @@ export const EditReportEnTranslations: Translations<"en">["EditReport"] = {
     report_document_deleted_error: "Error deleting documents from the report!",
     report_document_uploaded_error: "Error loading document",
     report_document_uploaded_success: "Document loaded successfully.",
+    report_no_permission: "You do not have the necessary permissions to perform this action.",
 };
 
 const { i18n } = declareComponentKeys<
@@ -29,5 +31,6 @@ const { i18n } = declareComponentKeys<
     | "report_document_deleted_error"
     | "report_document_uploaded_error"
     | "report_document_uploaded_success"
+    | "report_no_permission"
 >()("EditReport");
 export type I18n = typeof i18n;

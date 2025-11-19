@@ -23,6 +23,10 @@ export const ReportFormFrTranslations: Translations<"fr">["ReportForm"] = {
         </div>
     ),
     submit_report: "Envoyer le signalement",
+    submit_theme: "Enregistrer le thème",
+    submit_sketch: "Enregistrer le croquis",
+    submit_description: "Enregistrer la description",
+    submit_document: "Enregistrer le document",
     cancel_report: "Annuler",
     delete_report: "Supprimer",
     save_report: "Enregistrer",
@@ -59,6 +63,10 @@ export const ReportFormEnTranslations: Translations<"en">["ReportForm"] = {
         </div>
     ),
     submit_report: "Send the report",
+    submit_theme: "Save the theme",
+    submit_sketch: "Save the sketch",
+    submit_description: "Save the description",
+    submit_document: "Save the document",
     cancel_report: "Cancel",
     delete_report: "Delete",
     save_report: "Save",
@@ -87,6 +95,10 @@ const { i18n } = declareComponentKeys<
     | { K: "import_attachments_hint"; P: { maxSizeMB: number }; R: string }
     | { K: "report_note"; R: JSX.Element }
     | "submit_report"
+    | "submit_theme"
+    | "submit_description"
+    | "submit_document"
+    | "submit_sketch"
     | "cancel_report"
     | "delete_report"
     | "save_report"

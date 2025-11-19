@@ -1,23 +1,23 @@
-import { ClickedTool, ReportTool, toolNames } from "@/constants/reports/types";
-import { getReportAllFeatures, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
-import { useMapStore, useReportStore } from "@/store";
-import Button from "@codegouvfr/react-dsfr/Button";
-
+import { useCallback, useEffect, useRef } from "react";
+import { useTranslation } from "@/i18n";
 import { Feature } from "ol";
 import Layer from "ol/layer/Layer";
 import VectorSource, { VectorSourceEvent } from "ol/source/Vector";
-import { useCallback, useEffect, useRef } from "react";
+import useReportTools from "@/hooks/reports/useReportTools";
+import { useMapStore, useReportStore } from "@/store";
+import { ClickedTool, ReportTool, toolNames } from "@/constants/reports/types";
+import { getReportAllFeatures, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
+import Button from "@codegouvfr/react-dsfr/Button";
 import SketchList from "./SketchList";
 import ImportSketchFile from "./ImportSketchFile";
-import { useTranslation } from "@/i18n";
-import useReportTools from "@/hooks/reports/useReportTools";
 
 interface Props {
-    clickedTool: ClickedTool;
-    handleToolClick: (tool: ReportTool | undefined) => void;
+    clickedTool?: ClickedTool;
+    handleToolClick?: (tool: ReportTool | undefined) => void;
+    hideToolsDiv?: boolean;
 }
 
-const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick }) => {
+const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsDiv }) => {
     const { map } = useMapStore();
     const { selectedReport, selectedFeatures, setSelectedFeatures } = useReportStore();
 
@@ -71,9 +71,9 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick }) => {
 
         if (selectedReport) {
             const editTool = reportTools.find((t) => t.name === toolNames.edit);
-            handleToolClick(editTool);
+            if (handleToolClick) handleToolClick(editTool);
             selectedReportFeatures = getReportAllFeatures(selectedReport);
-            handleToolClick(editTool);
+            if (handleToolClick) handleToolClick(editTool);
             drawingSource?.addFeatures(selectedReportFeatures);
             const clusterFeatures = reportSource
                 ?.getFeatures()
@@ -108,7 +108,7 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick }) => {
 
     const getToolPriority = (tool: ReportTool) => {
         if (isToolDisabled(tool)) return "primary";
-        if (clickedTool.name === tool.name && clickedTool.clicked) return "secondary";
+        if (clickedTool?.name === tool.name && clickedTool.clicked) return "secondary";
         return "tertiary";
     };
 
@@ -121,58 +121,60 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick }) => {
 
     return (
         <>
-            <>
-                <p className="fr-text--sm fr-mb-1v ">{t("drawing_message")}</p>
-                <div className="report-tools">
-                    <p className="fr-mt-4v fr-mb-2v fr-text--sm">{t("creation_tools")}</p>
-                    <div>
-                        {reportTools
-                            .filter((tool) => tool.type === "create")
-                            .map((tool) => (
-                                <Button
-                                    key={tool.name}
-                                    id={`${tool.name}-report-drawer-${tool.type}`}
-                                    onClick={() => {
-                                        if (tool.name === toolNames.import) {
-                                            importFileRef?.current?.click();
-                                            return;
-                                        }
-                                        handleToolClick(tool);
-                                    }}
-                                    priority={getToolPriority(tool)}
-                                    title={tool.title}
-                                    className="gpf-btn--tertiary drawing-tool"
-                                    disabled={isToolDisabled(tool)}
-                                >
-                                    <></>
-                                </Button>
-                            ))}
-                        <ImportSketchFile inputRef={importFileRef} />
+            {!hideToolsDiv && (
+                <>
+                    <p className="fr-text--sm fr-mb-1v">{t("drawing_message")}</p>
+                    <div className="report-tools">
+                        <p className="fr-mt-4v fr-mb-2v fr-text--sm">{t("creation_tools")}</p>
+                        <div>
+                            {reportTools
+                                .filter((tool) => tool.type === "create")
+                                .map((tool) => (
+                                    <Button
+                                        key={tool.name}
+                                        id={`${tool.name}-report-drawer-${tool.type}`}
+                                        onClick={() => {
+                                            if (tool.name === toolNames.import) {
+                                                importFileRef?.current?.click();
+                                                return;
+                                            }
+                                            if (handleToolClick) handleToolClick(tool);
+                                        }}
+                                        priority={getToolPriority(tool)}
+                                        title={tool.title}
+                                        className="gpf-btn--tertiary drawing-tool"
+                                        disabled={isToolDisabled(tool)}
+                                    >
+                                        <></>
+                                    </Button>
+                                ))}
+                            <ImportSketchFile inputRef={importFileRef} />
+                        </div>
                     </div>
-                </div>
 
-                <div className="report-tools">
-                    <p className="fr-mt-4v fr-mb-2v fr-text--sm">{t("edit_tools")}</p>
-                    <div>
-                        {reportTools
-                            .filter((tool) => tool.type === "edit")
-                            .map((tool) => (
-                                <Button
-                                    key={tool.name}
-                                    id={`${tool.name}-report-drawer-${tool.type}`}
-                                    onClick={() => {
-                                        handleToolClick(tool);
-                                    }}
-                                    priority={clickedTool.name === tool.name && clickedTool.clicked ? "secondary" : "tertiary"}
-                                    title={tool.title}
-                                    className="gpf-btn--tertiary drawing-tool"
-                                >
-                                    <></>
-                                </Button>
-                            ))}
+                    <div className="report-tools">
+                        <p className="fr-mt-4v fr-mb-2v fr-text--sm">{t("edit_tools")}</p>
+                        <div>
+                            {reportTools
+                                .filter((tool) => tool.type === "edit")
+                                .map((tool) => (
+                                    <Button
+                                        key={tool.name}
+                                        id={`${tool.name}-report-drawer-${tool.type}`}
+                                        onClick={() => {
+                                            if (handleToolClick) handleToolClick(tool);
+                                        }}
+                                        priority={clickedTool?.name === tool.name && clickedTool.clicked ? "secondary" : "tertiary"}
+                                        title={tool.title}
+                                        className="gpf-btn--tertiary drawing-tool"
+                                    >
+                                        <></>
+                                    </Button>
+                                ))}
+                        </div>
                     </div>
-                </div>
-            </>
+                </>
+            )}
 
             <SketchList />
         </>
