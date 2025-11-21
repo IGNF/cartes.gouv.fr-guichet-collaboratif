@@ -397,13 +397,7 @@ const ReportForm: React.FC<Props> = ({
                         }}
                         expanded={expendedDrawing}
                     >
-                        <DrawingForm clickedTool={clickedTool} handleToolClick={handleToolClick} />
-
-                        {editReport && (
-                            <Button size="large" onClick={onSubmitSketch}>
-                                {t("submit_sketch")}
-                            </Button>
-                        )}
+                        <DrawingForm clickedTool={clickedTool} handleToolClick={handleToolClick} onSubmitSketch={onSubmitSketch} />
                     </Accordion>
 
                     <Accordion

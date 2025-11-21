@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "@/i18n";
 import { Feature } from "ol";
 import Layer from "ol/layer/Layer";
@@ -15,11 +15,13 @@ interface Props {
     clickedTool?: ClickedTool;
     handleToolClick?: (tool: ReportTool | undefined) => void;
     hideToolsDiv?: boolean;
+    onSubmitSketch?: () => void;
 }
 
-const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsDiv }) => {
+const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsDiv, onSubmitSketch }) => {
+    const [showSketch, setShowSketch] = useState<boolean>(false);
     const { map } = useMapStore();
-    const { selectedReport, selectedFeatures, setSelectedFeatures } = useReportStore();
+    const { selectedReport, selectedFeatures, setSelectedFeatures, editReport } = useReportStore();
 
     const importFileRef = useRef<HTMLInputElement>(null);
 
@@ -121,62 +123,77 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsD
 
     return (
         <>
-            {!hideToolsDiv && (
-                <>
-                    <p className="fr-text--sm fr-mb-1v">{t("drawing_message")}</p>
-                    <div className="report-tools">
-                        <p className="fr-mt-4v fr-mb-2v fr-text--sm">{t("creation_tools")}</p>
-                        <div>
-                            {reportTools
-                                .filter((tool) => tool.type === "create")
-                                .map((tool) => (
-                                    <Button
-                                        key={tool.name}
-                                        id={`${tool.name}-report-drawer-${tool.type}`}
-                                        onClick={() => {
-                                            if (tool.name === toolNames.import) {
-                                                importFileRef?.current?.click();
-                                                return;
-                                            }
-                                            if (handleToolClick) handleToolClick(tool);
-                                        }}
-                                        priority={getToolPriority(tool)}
-                                        title={tool.title}
-                                        className="gpf-btn--tertiary drawing-tool"
-                                        disabled={isToolDisabled(tool)}
-                                    >
-                                        <></>
-                                    </Button>
-                                ))}
-                            <ImportSketchFile inputRef={importFileRef} />
-                        </div>
-                    </div>
+            <SketchList />
 
-                    <div className="report-tools">
-                        <p className="fr-mt-4v fr-mb-2v fr-text--sm">{t("edit_tools")}</p>
-                        <div>
-                            {reportTools
-                                .filter((tool) => tool.type === "edit")
-                                .map((tool) => (
-                                    <Button
-                                        key={tool.name}
-                                        id={`${tool.name}-report-drawer-${tool.type}`}
-                                        onClick={() => {
-                                            if (handleToolClick) handleToolClick(tool);
-                                        }}
-                                        priority={clickedTool?.name === tool.name && clickedTool.clicked ? "secondary" : "tertiary"}
-                                        title={tool.title}
-                                        className="gpf-btn--tertiary drawing-tool"
-                                    >
-                                        <></>
-                                    </Button>
-                                ))}
-                        </div>
-                    </div>
-                </>
+            {!hideToolsDiv && (
+                <Button className="fr-mt-4v fr-mb-4v" onClick={() => setShowSketch(!showSketch)}>
+                    {showSketch ? t("hide_sketchToEdit") : t("show_sketchToEdit")}
+                </Button>
             )}
 
-            <SketchList />
+            <>
+                {!hideToolsDiv && showSketch && (
+                    <>
+                        <>
+                            <p className="fr-text--sm fr-mb-1v">{t("drawing_message")}</p>
+                            <div className="report-tools">
+                                <p className="fr-mt-4v fr-mb-2v fr-text--sm">{t("creation_tools")}</p>
+                                <div>
+                                    {reportTools
+                                        .filter((tool) => tool.type === "create")
+                                        .map((tool) => (
+                                            <Button
+                                                key={tool.name}
+                                                id={`${tool.name}-report-drawer-${tool.type}`}
+                                                onClick={() => {
+                                                    if (tool.name === toolNames.import) {
+                                                        importFileRef?.current?.click();
+                                                        return;
+                                                    }
+                                                    if (handleToolClick) handleToolClick(tool);
+                                                }}
+                                                priority={getToolPriority(tool)}
+                                                title={tool.title}
+                                                className="gpf-btn--tertiary drawing-tool"
+                                                disabled={isToolDisabled(tool)}
+                                            >
+                                                <></>
+                                            </Button>
+                                        ))}
+                                    <ImportSketchFile inputRef={importFileRef} />
+                                </div>
+                            </div>
+
+                            <div className="report-tools">
+                                <p className="fr-mt-4v fr-mb-2v fr-text--sm">{t("edit_tools")}</p>
+                                <div>
+                                    {reportTools
+                                        .filter((tool) => tool.type === "edit")
+                                        .map((tool) => (
+                                            <Button
+                                                key={tool.name}
+                                                id={`${tool.name}-report-drawer-${tool.type}`}
+                                                onClick={() => {
+                                                    if (handleToolClick) handleToolClick(tool);
+                                                }}
+                                                priority={clickedTool?.name === tool.name && clickedTool.clicked ? "secondary" : "tertiary"}
+                                                title={tool.title}
+                                                className="gpf-btn--tertiary drawing-tool"
+                                            >
+                                                <></>
+                                            </Button>
+                                        ))}
+                                </div>
+                            </div>
+                        </>
+                        {editReport && (
+                            <Button className="fr-mt-4v fr-mb-4v" onClick={onSubmitSketch}>
+                                {t("save_sketch")}
+                            </Button>
+                        )}
+                    </>
+                )}
+            </>
         </>
     );
 };
