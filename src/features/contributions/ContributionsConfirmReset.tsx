@@ -1,5 +1,7 @@
 import ModaleComponent from "@/components/ModaleComponent";
-import { useModalStore } from "@/store";
+import { useTranslation } from "@/i18n";
+import { useContributionStore, useModalStore } from "@/store";
+import { useCallback } from "react";
 
 interface Props {
     onConfirm: () => void;
@@ -8,9 +10,24 @@ interface Props {
 const ContributionsConfirmReset: React.FC<Props> = ({ onConfirm }) => {
     const { confirmResetContributionModal } = useModalStore();
 
+    const { contributions, contrToCancel, setReviewContribution } = useContributionStore();
+
+    const { t } = useTranslation({ ContributionsConfirmReset });
+
+    const onClose = useCallback(() => {
+        setReviewContribution(false);
+    }, [setReviewContribution]);
+
     return (
-        <ModaleComponent modal={confirmResetContributionModal} title="Attention" onConfirm={onConfirm} cancelText={"Non"} confirmText={"Oui"}>
-            <p>Les modifications ne seront pas enregistrées, voulez-vous continuer ?</p>
+        <ModaleComponent
+            modal={confirmResetContributionModal}
+            title={t("title")}
+            onConfirm={onConfirm}
+            onClose={onClose}
+            cancelText={t("no")}
+            confirmText={t("yes")}
+        >
+            {t("description", { count: contrToCancel.length === contributions.length ? 1000 : contrToCancel.length })}
         </ModaleComponent>
     );
 };

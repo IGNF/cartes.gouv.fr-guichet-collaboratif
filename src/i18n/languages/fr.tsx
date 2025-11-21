@@ -37,6 +37,9 @@ import { WorkingLayerControlFrTranslations } from "@/features/navigation/control
 import { WorkingLayerLabelMapFrTranslations } from "@/features/navigation/controls/locale/WorkingLayerLabelMap.locale";
 import { MesureLengthControlFrTranslations } from "@/features/navigation/controls/locale/MesureLengthControl.locale";
 import { CustomControlsFrTranslations } from "@/features/navigation/controls/cusom-controls/locale/index.locale";
+import { ContributionListFrTranslations } from "@/features/contributions/locale/ContributionList.locale";
+import { ContributionsConfirmResetFrTranslations } from "@/features/contributions/locale/ContributionsConfirmReset.locale";
+import { ReviewContributionsFrTranslations } from "@/features/contributions/locale/ReviewContributions.locale";
 
 export const translations: Translations<"fr"> = {
     AppFooter: AppFooterFrTranslations,
@@ -77,4 +80,7 @@ export const translations: Translations<"fr"> = {
     WorkingLayerLabelMap: WorkingLayerLabelMapFrTranslations,
     MesureLengthControl: MesureLengthControlFrTranslations,
     CustomControls: CustomControlsFrTranslations,
+    ContributionList: ContributionListFrTranslations,
+    ContributionsConfirmReset: ContributionsConfirmResetFrTranslations,
+    ReviewContributions: ReviewContributionsFrTranslations,
 };

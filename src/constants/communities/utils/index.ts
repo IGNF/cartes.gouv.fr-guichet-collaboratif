@@ -27,7 +27,7 @@ export const translateLayerSwitcherControl = (t: TranslationFunction<"useGetMapC
     if (controlPanelIcon) controlPanelIcon.setAttribute("title", t("control_layer_swticher_pannel_title"));
     if (controlPanelClose) {
         controlPanelClose.setAttribute("title", t("close_panel_title"));
-        controlPanelClose.firstElementChild!.innerHTML = t("close_panel_text");
+        if (controlPanelClose.firstElementChild) controlPanelClose.firstElementChild.innerHTML = t("close_panel_text");
     }
 
     if (constrolIconsRemove) {

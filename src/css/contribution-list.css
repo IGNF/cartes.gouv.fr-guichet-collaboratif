@@ -28,6 +28,16 @@
     border-bottom: 1px solid grey;
 }
 
+.contribution-list-modal .line:first-child {
+    flex: content;
+    justify-content: flex-end;
+    padding-bottom: 8px;
+}
+
+.contribution-list-modal .line .fr-checkbox-group {
+    min-height: 24px;
+}
+
 .contribution-list-modal .line button:first-child {
     flex: 2;
 }

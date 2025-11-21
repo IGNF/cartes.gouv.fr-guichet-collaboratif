@@ -1,6 +1,6 @@
 import { ContributionType } from "@/constants/contributions/types";
 import { ComponentKey } from "@/i18n/types";
-import { useContributionStore, useMapStore, useModalStore } from "@/store";
+import { useContributionStore, useMapStore } from "@/store";
 import { Button } from "@codegouvfr/react-dsfr/Button";
 import { TranslationFunction } from "i18nifty/typeUtils/TranslationFunction";
 import { useState, useRef, useCallback, useMemo } from "react";
@@ -14,8 +14,7 @@ interface Props {
 
 const ContributionsCount: React.FC<Props> = ({ t }) => {
     const { map, setWorkingLayerDrawerOpened, setClickedMapFeature } = useMapStore();
-    const { contributions, isReviewContribution, setReviewContribution, setContributions } = useContributionStore();
-    const { confirmResetContributionModal } = useModalStore();
+    const { contributions, isReviewContribution, contrToCancel, setReviewContribution, setContributions, setContrToCancel } = useContributionStore();
 
     const contrToReview = useMemo(() => contributions.filter((contr) => contr.type !== ContributionType.DELETE), [contributions]);
 
@@ -24,15 +23,16 @@ const ContributionsCount: React.FC<Props> = ({ t }) => {
     const buttonGroupRef = useRef<HTMLDivElement>(null);
 
     const onClickReset = useCallback(() => {
-        contributions.forEach((contr) => {
+        contrToCancel.forEach((contr) => {
             resetContributionToMap(map!, contr);
         });
         setReviewContribution(false);
         setWorkingLayerDrawerOpened(false);
         setClickedMapFeature(null);
-        setContributions([]);
+        setContributions(contributions.filter((c) => !contrToCancel.includes(c)));
+        setContrToCancel([]);
         setIsDropdownOpen(false);
-    }, [map, contributions, setContributions, setReviewContribution, setClickedMapFeature, setWorkingLayerDrawerOpened]);
+    }, [map, contrToCancel, contributions, setContributions, setReviewContribution, setClickedMapFeature, setWorkingLayerDrawerOpened, setContrToCancel]);
 
     return (
         <div ref={buttonGroupRef} className="map-toolbar-button-group">
@@ -75,16 +75,6 @@ const ContributionsCount: React.FC<Props> = ({ t }) => {
                             disabled={!contrToReview.length}
                         >
                             {t("review")}
-                        </Button>
-                    </div>
-                    <div className="map-toolbar-reset">
-                        <Button
-                            iconId="ri-refresh-line"
-                            priority="secondary"
-                            nativeButtonProps={confirmResetContributionModal.buttonProps}
-                            disabled={!contributions.length}
-                        >
-                            {t("reset")}
                         </Button>
                     </div>
                 </div>

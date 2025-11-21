@@ -19,6 +19,9 @@ export type ComponentKey =
     | import("../pages/locale/NotConnected.locale").I18n
     | import("../pages/locale/NotFound.locale").I18n
     | import("../pages/locale/Carte.locale").I18n
+    | import("../features/contributions/locale/ContributionList.locale").I18n
+    | import("../features/contributions/locale/ContributionsConfirmReset.locale").I18n
+    | import("../features/contributions/locale/ReviewContributions.locale").I18n
     | import("../features/navigation/layers/locale/GetReportsLayer.locale").I18n
     | import("../features/navigation/layers/legends/locale/FeatureTypeLayerLegends.locale").I18n
     | import("../features/navigation/controls/locale/DrawingControl.locale").I18n

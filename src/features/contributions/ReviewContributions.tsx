@@ -4,6 +4,8 @@ import type { FrIconClassName, RiIconClassName } from "@codegouvfr/react-dsfr";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { handleCenterToFeature } from "@/constants/utils";
 import { ContributionType } from "@/constants/contributions/types";
+import Tooltip from "@codegouvfr/react-dsfr/Tooltip";
+import { useTranslation } from "@/i18n";
 
 interface ContributionButtonProps {
     icon: FrIconClassName | RiIconClassName;
@@ -19,6 +21,8 @@ const ContributionButton: React.FC<ContributionButtonProps> = ({ icon, title, di
 const ReviewContributions = () => {
     const { map, clickedMapFeature, setClickedMapFeature } = useMapStore();
     const { contributions } = useContributionStore();
+
+    const { t } = useTranslation({ ReviewContributions });
 
     const contrToReview = useMemo(() => contributions.filter((contr) => contr.type !== ContributionType.DELETE), [contributions]);
 
@@ -48,23 +52,26 @@ const ReviewContributions = () => {
 
     return (
         <div className="review-contributions">
-            <ContributionButton
-                icon="ri-arrow-left-line"
-                title="Contribution précédente"
-                disabled={currentPosition === 0}
-                onClick={() => setCurrentContribution(currentPosition - 1)}
-            />
+            <Tooltip title={t("previous")}>
+                <ContributionButton
+                    icon="ri-arrow-left-line"
+                    title=""
+                    disabled={currentPosition === 0}
+                    onClick={() => setCurrentContribution(currentPosition - 1)}
+                />
+            </Tooltip>
 
             <span>
                 Contribution {currentPosition + 1} / {total}
             </span>
-
-            <ContributionButton
-                icon="ri-arrow-right-line"
-                title="Contribution suivante"
-                disabled={currentPosition === total - 1}
-                onClick={() => setCurrentContribution(currentPosition + 1)}
-            />
+            <Tooltip title={t("next")}>
+                <ContributionButton
+                    icon="ri-arrow-right-line"
+                    title=""
+                    disabled={currentPosition === total - 1}
+                    onClick={() => setCurrentContribution(currentPosition + 1)}
+                />
+            </Tooltip>
         </div>
     );
 };
