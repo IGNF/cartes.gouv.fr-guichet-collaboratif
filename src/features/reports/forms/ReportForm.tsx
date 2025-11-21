@@ -69,7 +69,8 @@ const ReportForm: React.FC<Props> = ({
     const [loading, setLoading] = useState<boolean>(false);
 
     const { community } = useCommunityStore();
-    const { setSelectedReport, reports, editReport, selectedReport, selectedFeatures, setSelectedFeatures, setTableDrawerOpened } = useReportStore();
+    const { setSelectedReport, reports, editReport, selectedReport, selectedFeatures, setSelectedFeatures, setTableDrawerOpened, setDrawerOpened } =
+        useReportStore();
 
     const reportTools = useReportTools();
     const { confirmCancelModal } = useModalStore();
@@ -298,6 +299,7 @@ const ReportForm: React.FC<Props> = ({
         if (handleClose) handleClose();
 
         setTableDrawerOpened(true);
+        setDrawerOpened(false);
         setClickedControl(null);
     };
 

@@ -326,7 +326,7 @@ const ReportDrawer = () => {
                             </Button>
                             {!selectedReport ? (
                                 <CreateReport handleCloseDrawer={handleCloseDrawer} />
-                            ) : isAdmin || isOwner ? (
+                            ) : (["valid", "valid0", "reject", "test"].includes(status) ? false : isAdmin || isOwner) ? (
                                 <EditReport handleCloseDrawer={handleCloseDrawer} />
                             ) : (
                                 <ShowReport handleCloseDrawer={handleCloseDrawer} />

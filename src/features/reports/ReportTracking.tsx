@@ -60,71 +60,83 @@ const ReportTracking: React.FC<ReportTrackingProps> = ({ setCommittedStatus }) =
     return (
         <>
             <div className="report-drawer_tracking fr-mx-3v">
-                {repliesRes.map((reply) => {
-                    const hideIcon = reportImgStatus[reply.status as StatusKey].text !== "test";
-                    return (
-                        <div
-                            key={reply.id}
-                            className={`report-drawer_trackingItem  ${reply.author?.username === user?.name ? "report-drawer_trackingItem--right" : ""}`}
-                        >
-                            {reply.author?.username === user?.name ? (
-                                <p>
-                                    {reply.author?.username}
-                                    <span className="fr-icon-account-fill fr-ml-1v" aria-hidden="true"></span>
-                                </p>
-                            ) : (
-                                <p>
-                                    <span className="fr-icon-account-line fr-mr-1v" aria-hidden="true"></span> {reply.author?.username}
-                                </p>
-                            )}
+                {repliesRes.length > 0 ? (
+                    repliesRes.map((reply) => {
+                        const hideIcon = reportImgStatus[reply.status as StatusKey].text !== "test";
+                        const formattedDate = reply.date
+                            ? new Date(reply.date).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) +
+                              ", " +
+                              new Date(reply.date).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", hour12: false }).replace(":", "H")
+                            : "-";
 
-                            <p className="report-drawer_trackingItem_date"> {reply.date}</p>
-                            <p> {reply.content}</p>
-                            <div className="report-drawer_trackingItem_status">
-                                {t("report_status")}:
-                                <Badge noIcon={hideIcon} severity={reportImgStatus[reply.status as StatusKey].colorType as Severity} className="fr-ml-2v">
-                                    {reply.status}
-                                </Badge>
+                        return (
+                            <div
+                                key={reply.id}
+                                className={`report-drawer_trackingItem  ${reply.author?.username === user?.name ? "report-drawer_trackingItem--right" : ""}`}
+                            >
+                                {reply.author?.username === user?.name ? (
+                                    <p>
+                                        {reply.author?.username}
+                                        <span className="fr-icon-account-fill fr-ml-1v" aria-hidden="true"></span>
+                                    </p>
+                                ) : (
+                                    <p>
+                                        <span className="fr-icon-account-line fr-mr-1v" aria-hidden="true"></span> {reply.author?.username}
+                                    </p>
+                                )}
+
+                                <p className="report-drawer_trackingItem_date"> {formattedDate}</p>
+                                <p> {reply.content}</p>
+                                <div className="report-drawer_trackingItem_status">
+                                    {t("report_status")}:
+                                    <Badge noIcon={hideIcon} severity={reportImgStatus[reply.status as StatusKey].colorType as Severity} className="fr-ml-2v">
+                                        {reportImgStatus[reply.status as StatusKey].text}
+                                    </Badge>
+                                </div>
                             </div>
-                        </div>
-                    );
-                })}
+                        );
+                    })
+                ) : (
+                    <p> {t("no_reply")}</p>
+                )}
             </div>
-            <div>
-                <form className="report-drawer_status fr-mt-6v">
-                    <Select
-                        label={t("report_status")}
-                        nativeSelectProps={{
-                            onChange: (event) => setStatus(event.target.value),
-                            value: status,
-                        }}
-                    >
-                        <React.Fragment key=".0">
-                            <option value={-1}>{reportImgStatus[selectedReport?.status]?.text || ""}</option>
+            {!["valid", "valid0", "reject", "test"].includes(selectedReport?.status) && (
+                <>
+                    <form className="report-drawer_status fr-mt-6v">
+                        <Select
+                            label={t("report_status")}
+                            nativeSelectProps={{
+                                onChange: (event) => setStatus(event.target.value),
+                                value: status,
+                            }}
+                        >
+                            <React.Fragment key=".0">
+                                <option value={-1}>{reportImgStatus[selectedReport?.status]?.text || ""}</option>
 
-                            {Object.keys(reportImgStatus).map((key) => {
-                                const statusKey = key as StatusKey;
-                                return (
-                                    <option key={statusKey} value={key}>
-                                        {reportImgStatus[statusKey].text}
-                                    </option>
-                                );
-                            })}
-                        </React.Fragment>
-                    </Select>
-                    <Input
-                        label={t("report_content")}
-                        textArea
-                        nativeTextAreaProps={{
-                            onChange: (event) => setContent(event.target.value),
-                            value: content,
-                        }}
-                    />
-                    <Button onClick={onSubmitReply} className="fr-mt-4v">
-                        {t("report_send")}
-                    </Button>
-                </form>
-            </div>
+                                {Object.keys(reportImgStatus).map((key) => {
+                                    const statusKey = key as StatusKey;
+                                    return (
+                                        <option key={statusKey} value={key}>
+                                            {reportImgStatus[statusKey].text}
+                                        </option>
+                                    );
+                                })}
+                            </React.Fragment>
+                        </Select>
+                        <Input
+                            label={t("report_content")}
+                            textArea
+                            nativeTextAreaProps={{
+                                onChange: (event) => setContent(event.target.value),
+                                value: content,
+                            }}
+                        />
+                        <Button onClick={onSubmitReply} className="fr-mt-4v">
+                            {t("report_send")}
+                        </Button>
+                    </form>
+                </>
+            )}
         </>
     );
 };
