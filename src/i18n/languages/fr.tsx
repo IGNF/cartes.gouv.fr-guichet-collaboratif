@@ -13,6 +13,7 @@ import { ConfirmDeleteReportModalFrTranslations } from "@/features/reports/forms
 import { DrawingFormFrTranslations } from "@/features/reports/forms/locale/DrawingForm.locale";
 import { ImportSketchFileFrTranslations } from "@/features/reports/forms/locale/ImportSketchFile.locale";
 import { ReportFormFrTranslations } from "@/features/reports/forms/locale/ReportForm.locale";
+import { ThemeComponentFrTranslations } from "@/features/reports/forms/locale/ThemeComponent.locale";
 import { ThemeFormFrTranslations } from "@/features/reports/forms/locale/ThemeForm.locale";
 import { CenterMessageFrTranslations } from "@/features/reports/locale/CenterMessage.locale";
 import { CreateReportFrTranslations } from "@/features/reports/locale/CreateReport.locale";
@@ -57,6 +58,7 @@ export const translations: Translations<"fr"> = {
     DrawingForm: DrawingFormFrTranslations,
     ImportSketchFile: ImportSketchFileFrTranslations,
     ReportForm: ReportFormFrTranslations,
+    ThemeComponent: ThemeComponentFrTranslations,
     ThemeForm: ThemeFormFrTranslations,
     CenterMessage: CenterMessageFrTranslations,
     CreateReport: CreateReportFrTranslations,

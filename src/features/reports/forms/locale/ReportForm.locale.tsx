@@ -24,6 +24,8 @@ export const ReportFormFrTranslations: Translations<"fr">["ReportForm"] = {
     ),
     submit_report: "Envoyer le signalement",
     submit_theme: "Enregistrer le thème",
+    hide_themeToEdit: "Annuler",
+    show_themeToEdit: "Modifier",
     submit_sketch: "Enregistrer le croquis",
     submit_description: "Enregistrer la description",
     submit_document: "Enregistrer le document",
@@ -64,6 +66,8 @@ export const ReportFormEnTranslations: Translations<"en">["ReportForm"] = {
     ),
     submit_report: "Send the report",
     submit_theme: "Save the theme",
+    hide_themeToEdit: "Cancel",
+    show_themeToEdit: "Edit",
     submit_sketch: "Save the sketch",
     submit_description: "Save the description",
     submit_document: "Save the document",
@@ -96,6 +100,8 @@ const { i18n } = declareComponentKeys<
     | { K: "report_note"; R: JSX.Element }
     | "submit_report"
     | "submit_theme"
+    | "hide_themeToEdit"
+    | "show_themeToEdit"
     | "submit_description"
     | "submit_document"
     | "submit_sketch"

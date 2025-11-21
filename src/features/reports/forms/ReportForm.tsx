@@ -12,15 +12,14 @@ import useReportTools from "@/hooks/reports/useReportTools";
 import Accordion from "@codegouvfr/react-dsfr/Accordion";
 import Button from "@codegouvfr/react-dsfr/Button";
 import Input from "@codegouvfr/react-dsfr/Input";
-import RadioButtons from "@codegouvfr/react-dsfr/RadioButtons";
 import { Upload } from "@codegouvfr/react-dsfr/Upload";
 import LoaderComponent from "@/components/LoaderComponent";
 import ReportFiltersComponent from "@/components/ReportFiltersComponent";
-import ThemeForm from "./ThemeForm";
 import DrawingForm from "./DrawingForm";
 import ConfirmCancelModal from "./ConfirmCancelModal";
 import AttachmentList from "./AttachmentList";
 import ReportTracking from "../ReportTracking";
+import ThemeComponent from "./ThemeComponent";
 
 const allowedTypes = ["image/png", "image/jpg", "application/pdf"];
 const maxSizeMB = 3;
@@ -53,6 +52,7 @@ const ReportForm: React.FC<Props> = ({
 
     const [openSuivi, setOpenSuivi] = useState(false);
     const [committedStatus, setCommittedStatus] = useState("");
+    const [showTheme, setShowTheme] = useState<boolean>(false);
 
     const accordionRef = useRef<HTMLDivElement>(null);
 
@@ -355,38 +355,25 @@ const ReportForm: React.FC<Props> = ({
                 </Button>
                 <div className="fr-mt-12v">
                     <Accordion label={t("select_theme")} defaultExpanded={false}>
-                        <RadioButtons
-                            ref={themeRef}
-                            legend={t("select_theme")}
-                            options={community.themes.map((theme) => {
-                                return {
-                                    label: theme.theme,
-                                    nativeInputProps: {
-                                        checked: selectedTheme?.theme === theme.theme,
-                                        onClick: () => {
-                                            setSelectedTheme(theme);
-                                            setThemeAttributes(getThemeAttributes(theme));
-
-                                            setErrorTheme(() => "");
-                                        },
-                                        required: true,
-                                    },
-                                };
-                            })}
-                            state={errorTheme ? "error" : selectedTheme ? "success" : "default"}
-                            stateRelatedMessage={errorTheme ?? ""}
-                            orientation="horizontal"
-                            small
-                            className="theme-radio fr-mt-4v fr-mb-1v fr-text--md"
-                        />
-                        {selectedTheme && (
-                            <ThemeForm theme={selectedTheme} themeAttributes={themeAttributes} onChangeThemeAttributes={onChangeThemeAttributes} />
-                        )}
-
-                        {editReport && (
-                            <Button size="large" onClick={onSubmitTheme}>
-                                {t("submit_theme")}
+                        <>
+                            <p>{selectedReport?.themes.map((theme) => theme.theme).join(", ")}</p>
+                            <Button className="fr-mt-4v fr-mb-4v" onClick={() => setShowTheme(!showTheme)}>
+                                {showTheme ? t("hide_themeToEdit") : t("show_themeToEdit")}
                             </Button>
+                        </>
+
+                        {showTheme && (
+                            <ThemeComponent
+                                communityThemes={community.themes}
+                                selectedTheme={selectedTheme}
+                                setSelectedTheme={setSelectedTheme}
+                                themeAttributes={themeAttributes}
+                                onChangeThemeAttributes={onChangeThemeAttributes}
+                                errorTheme={errorTheme}
+                                editReport={editReport}
+                                onSubmitTheme={onSubmitTheme}
+                                themeRef={themeRef}
+                            />
                         )}
                     </Accordion>
 
