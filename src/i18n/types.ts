@@ -19,11 +19,14 @@ export type ComponentKey =
     | import("../pages/locale/NotConnected.locale").I18n
     | import("../pages/locale/NotFound.locale").I18n
     | import("../pages/locale/Carte.locale").I18n
+    | import("../features/contributions/locale/ContributionList.locale").I18n
+    | import("../features/contributions/locale/ContributionsConfirmReset.locale").I18n
+    | import("../features/contributions/locale/ReviewContributions.locale").I18n
     | import("../features/navigation/layers/locale/GetReportsLayer.locale").I18n
     | import("../features/navigation/layers/legends/locale/FeatureTypeLayerLegends.locale").I18n
     | import("../features/navigation/controls/locale/DrawingControl.locale").I18n
     | import("../features/navigation/controls/locale/CatalogControl.locale").I18n
-    | import("../features/navigation/controls/locale/useCenterViewToReportControl.locale").I18n
+    | import("../features/navigation/controls/cusom-controls/locale/CenterReportControl.locale").I18n
     | import("../features/navigation/controls/locale/useGetMapControls.locale").I18n
     | import("../features/navigation/controls/locale/WorkingLayerControl.locale").I18n
     | import("../features/navigation/controls/locale/WorkingLayerLabelMap.locale").I18n

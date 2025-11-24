@@ -15,7 +15,7 @@ import { transformExtent } from "ol/proj";
 import { Extent } from "ol/extent";
 import { arrayToGeoJSON, getGeoJSONProps } from "@/constants/communities/utils";
 import { getWebGLStyle } from "@/constants/styles";
-import { LAYER_FEATURE_TYPE, LAYER_SWITCHER_INFO_DIV, TILE_MAX_FEATURES, TILE_SIZE } from "@/constants";
+import { FEATURE_TYPE_SELECTED_PROPERTY, LAYER_FEATURE_TYPE, LAYER_SWITCHER_INFO_DIV, TILE_MAX_FEATURES, TILE_SIZE } from "@/constants";
 import VectorLayer from "ol/layer/Vector";
 import { Stroke, Style } from "ol/style";
 import Text from "ol/style/Text";
@@ -193,7 +193,7 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
         wfsLayer.setStyle(getWebGLStyle(geoservice, featureTypeSelectedStyle));
         wfsLayerLabels.setStyle((ft) => {
             const text = ft.get(typeLabelStyle?.label?.replace(/\${|}/g, "") as string);
-            if (ft.get("selected") || text === "null") return;
+            if (ft.get(FEATURE_TYPE_SELECTED_PROPERTY) || text === "null") return;
             return new Style({
                 text: new Text({
                     text: text,

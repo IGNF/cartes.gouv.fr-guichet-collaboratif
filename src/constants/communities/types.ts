@@ -181,11 +181,40 @@ export interface ArrayGeoJSONProps {
     cleabs: string | number;
 }
 
+export enum CommunityLayerFunctionalityType {
+    VISU = "search",
+    MEASURE_DISTANCE = "measureDistance",
+    MEASURE_AREA = "measureArea",
+    GEOREM = "georem",
+    MODIFY = "modify",
+    TRANSLATE = "translate",
+    DRAW = "draw",
+    DELETE = "delete",
+    SNAP_OBLIG = "snapOblig",
+}
+
+export enum CommunityLayerRoleType {
+    VISU = "visu",
+    EDIT = "edit",
+}
+
+export enum InteractionType {
+    SELECT = "select",
+    MODIFY = "modify",
+    REMOVE = "remove",
+    CREATE_REPORT = "create_report",
+    ADD_OBJECT = "add_object",
+}
+
 export type CustomControlItem = {
     id: number;
     title: string;
     target: string;
     icon: FrIconClassName | RiIconClassName;
     disabled: boolean;
-    interaction: string | null;
+    interaction: InteractionType | null;
+    enabled: boolean;
 };
+
+export type LonLatNumber = number | number[] | number[][] | number[][][];
+export type ObjectProps = { [key: string]: string | number | boolean | object | null | undefined };

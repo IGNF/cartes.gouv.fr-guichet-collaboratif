@@ -23,7 +23,7 @@ export const MapToolbarFrTranslations: Translations<"fr">["MapToolbar"] = {
         </>
     ),
     review: "Revoir vos objets créés et modifiés avant de les enregistrer",
-    reset: "Réinitialiser",
+    reset: "Annuler",
     manage: "Gérer le guichet",
     seismicity_zone: "Zones de sismicité",
     all_reports: "Tous les signalements",

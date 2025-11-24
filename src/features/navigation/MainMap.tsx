@@ -7,7 +7,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
 import olDefaults from "@/api/ol-defaults.json";
 import "ol/ol.css";
 import "geopf-extensions-openlayers/css/Dsfr.css";
-import { useCommunityStore, useLocalStorageStore, useMapStore } from "@/store";
+import { useCommunityStore, useContributionStore, useLocalStorageStore, useMapStore } from "@/store";
 import LayerSwitcher from "geopf-extensions-openlayers/src/packages/Controls/LayerSwitcher/LayerSwitcher";
 import layerSwitcherControl from "./controls/layerSwitcherControl";
 import useGpConfig from "@/hooks/navigation/useGpConfig";
@@ -28,6 +28,7 @@ import WorkingLayerControl from "./controls/WorkingLayerControl";
 import { APP_FOOTER_MIN_HEIGHT } from "@/constants";
 import WorkingLayerLabelMap from "./controls/WorkingLayerLabelMap";
 import CustomControls from "./controls/cusom-controls";
+import ReviewContributions from "../contributions/ReviewContributions";
 
 export default function MainMap() {
     const mapTargetRef = useRef<HTMLDivElement>(null);
@@ -38,6 +39,7 @@ export default function MainMap() {
     const { community, mapLayers } = useCommunityStore();
     const { localStorageData } = useLocalStorageStore();
     const { map, mapSwitcher, setMap } = useMapStore();
+    const { contributions, isReviewContribution } = useContributionStore();
 
     const mapControls = useGetMapControls();
 
@@ -145,6 +147,7 @@ export default function MainMap() {
             <WorkingLayerLabelMap />
 
             {map?.getAllLayers().length && <CustomControls />}
+            {contributions.length > 0 && isReviewContribution && <ReviewContributions />}
         </div>
     );
 }

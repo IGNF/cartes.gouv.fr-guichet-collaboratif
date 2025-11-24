@@ -13,6 +13,7 @@ interface MapStore {
     clickableFeatures: Feature[];
     clickedControl: CustomControlItem | null;
     showMapWorkingLayerSelect: boolean;
+    showCenterReportButtons: boolean;
     setMap: (map: Map | null, mapSwitcher: LayerSwitcher | null) => void;
     setFeatureTypeSelectedStyle: ({ layer, selectedStyle }: FeatureTypeSelectedStyle) => void;
     setClickedMapFeature: (feature: Feature | null) => void;
@@ -21,6 +22,7 @@ interface MapStore {
     setClickableFeatures: (features: Feature[]) => void;
     setClickedControl: (control: CustomControlItem | null) => void;
     setShowMapWorkingLayerSelect: (show: boolean) => void;
+    setShowCenterReportButtons: (show: boolean) => void;
 }
 
 export const useMapStore = create<MapStore>((set, get) => ({
@@ -33,6 +35,7 @@ export const useMapStore = create<MapStore>((set, get) => ({
     clickableFeatures: [],
     clickedControl: null,
     showMapWorkingLayerSelect: true,
+    showCenterReportButtons: false,
     setMap: (map, mapSwitcher) => {
         set({ map, mapSwitcher });
     },
@@ -60,4 +63,5 @@ export const useMapStore = create<MapStore>((set, get) => ({
     setClickableFeatures: (features) => set({ clickableFeatures: features }),
     setClickedControl: (control) => set({ clickedControl: control }),
     setShowMapWorkingLayerSelect: (show) => set({ showMapWorkingLayerSelect: show }),
+    setShowCenterReportButtons: (show) => set({ showCenterReportButtons: show }),
 }));

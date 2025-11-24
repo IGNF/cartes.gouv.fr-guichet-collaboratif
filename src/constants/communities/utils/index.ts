@@ -1,6 +1,7 @@
 import { ComponentKey } from "@/i18n/types";
 import { TranslationFunction } from "i18nifty/typeUtils/TranslationFunction";
-import { ArrayGeoJSONProps, CommunityGeoservice, GeoJSONProps } from "../types";
+import { ArrayGeoJSONProps, CommunityGeoservice, GeoJSONProps, LonLatNumber, ObjectProps } from "../types";
+import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_GEOSERVICE_PROPERTY } from "@/constants";
 
 export const translateLayerSwitcherControl = (t: TranslationFunction<"useGetMapControls", ComponentKey>) => {
     const switcherControl = document.querySelector('div[id^="GPlayerSwitcher-"]');
@@ -26,7 +27,7 @@ export const translateLayerSwitcherControl = (t: TranslationFunction<"useGetMapC
     if (controlPanelIcon) controlPanelIcon.setAttribute("title", t("control_layer_swticher_pannel_title"));
     if (controlPanelClose) {
         controlPanelClose.setAttribute("title", t("close_panel_title"));
-        controlPanelClose.firstElementChild!.innerHTML = t("close_panel_text");
+        if (controlPanelClose.firstElementChild) controlPanelClose.firstElementChild.innerHTML = t("close_panel_text");
     }
 
     if (constrolIconsRemove) {
@@ -57,8 +58,19 @@ export const translateSearchEngineControl = (t: TranslationFunction<"useGetMapCo
     if (searchEngineBtn) searchEngineBtn.setAttribute("title", t("control_search_engine_btn"));
 };
 
-type LonLatNumber = number | number[] | number[][] | number[][][];
-type ObjectProps = { [key: string]: string | number | boolean | object };
+export const getValideProperties = (featureTypeData: ObjectProps) => {
+    const validProperties: ObjectProps = {};
+    Object.keys(featureTypeData).forEach((key: string) => {
+        let value = featureTypeData[key];
+        if (typeof value === "boolean") {
+            value = value ? 1 : 0;
+        }
+        if (value === null) return;
+        if (isDateFormat(value as string)) value = new Date(value as string).getTime();
+        validProperties[key] = value;
+    });
+    return validProperties;
+};
 
 export const arrayToGeoJSON = (arr: ArrayGeoJSONProps[], geoservice: CommunityGeoservice) => {
     const features: GeoJSONProps = {
@@ -89,16 +101,15 @@ export const arrayToGeoJSON = (arr: ArrayGeoJSONProps[], geoservice: CommunityGe
         const featureTypeData: ObjectProps = { ...el, id: el.id ?? el.cleabs };
         delete featureTypeData.geometrie;
 
-        const validProperties: ObjectProps = {};
-        Object.keys(featureTypeData).forEach((key: string) => {
-            let value = featureTypeData[key];
-            if (typeof value === "boolean") {
-                value = value ? 1 : 0;
-            }
-            if (value === null) return;
-            if (isDateFormat(value as string)) value = new Date(value as string).getTime();
-            validProperties[key] = value;
-        });
+        const validProperties: ObjectProps = getValideProperties(featureTypeData);
+
+        const properties: { [key: string]: string | number | object | null | undefined } = {
+            featureType: geoservice.featureType,
+            ...validProperties,
+        };
+
+        properties[FEATURE_TYPE_DATA_PROPERTY] = featureTypeData;
+        properties[FEATURE_TYPE_GEOSERVICE_PROPERTY] = geoservice.featureType ? geoservice : undefined;
 
         features.features.push({
             type: "Feature",
@@ -108,12 +119,7 @@ export const arrayToGeoJSON = (arr: ArrayGeoJSONProps[], geoservice: CommunityGe
                 coordinates: lonLat,
             },
             geometry_name: "geometrie",
-            properties: {
-                featureTypeData,
-                geoservice: geoservice.featureType ? geoservice : undefined,
-                featureType: geoservice.featureType,
-                ...validProperties,
-            },
+            properties,
         });
     });
     return features;
@@ -128,25 +134,18 @@ export const getGeoJSONProps = (arr: GeoJSONProps, geoservice: CommunityGeoservi
                 id: e.id ?? e.cleabs,
             };
 
-            const validProperties: ObjectProps = {};
-            Object.keys(featureTypeData).forEach((key: string) => {
-                let value = featureTypeData[key];
-                if (typeof value === "boolean") {
-                    value = value ? 1 : 0;
-                }
-                if (value === null) return;
-                if (isDateFormat(value as string)) value = new Date(value as string).getTime();
-                validProperties[key] = value;
-            });
+            const validProperties: ObjectProps = getValideProperties(featureTypeData);
 
+            const properties: { [key: string]: string | number | object | null | undefined } = {
+                featureType: geoservice.featureType,
+                ...validProperties,
+            };
+
+            properties[FEATURE_TYPE_DATA_PROPERTY] = featureTypeData;
+            properties[FEATURE_TYPE_GEOSERVICE_PROPERTY] = geoservice.featureType ? geoservice : undefined;
             return {
                 ...e,
-                properties: {
-                    featureTypeData: featureTypeData,
-                    geoservice: geoservice.featureType ? geoservice : undefined,
-                    featureType: geoservice.featureType,
-                    ...validProperties,
-                },
+                properties,
             };
         }),
     };

@@ -7,7 +7,7 @@ type ModaleProps = {
     confirmText?: string;
     cancelText?: string;
     onConfirm?: () => void;
-    onClose: () => void;
+    onClose?: () => void;
 };
 
 const ModaleComponent: React.FC<ModaleProps> = ({ title, children, modal, onConfirm, onClose, confirmText = "Confirmer", cancelText = "Annuler" }) => {
@@ -22,7 +22,7 @@ const ModaleComponent: React.FC<ModaleProps> = ({ title, children, modal, onConf
                     children: confirmText,
                 },
                 {
-                    iconId: "ri-check-line",
+                    iconId: "ri-close-line",
                     onClick: onClose,
                     children: cancelText,
                 },

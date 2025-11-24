@@ -224,7 +224,6 @@
 .custom-button-top-right {
     position: absolute;
     right: 16px;
-    top: 50px;
     display: flex;
     flex-direction: column;
     gap: 5px;

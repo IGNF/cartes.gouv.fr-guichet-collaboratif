@@ -18,7 +18,6 @@ import LoaderComponent from "@/components/LoaderComponent";
 import ReportFiltersComponent from "@/components/ReportFiltersComponent";
 import ThemeForm from "./ThemeForm";
 import DrawingForm from "./DrawingForm";
-import CenterReport from "../CenterReport";
 import ConfirmCancelModal from "./ConfirmCancelModal";
 import AttachmentList from "./AttachmentList";
 import ReportTracking from "../ReportTracking";
@@ -502,7 +501,6 @@ const ReportForm: React.FC<Props> = ({
                         </div>
                     )}
                 </div>
-                <CenterReport />
                 <ConfirmCancelModal onClose={onClose} />
             </div>
         </>

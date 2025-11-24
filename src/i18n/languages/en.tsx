@@ -26,7 +26,7 @@ import { useGetWMTSLayerEnTranslations } from "@/hooks/navigation/layers/locale/
 import { DrawerComponentEnTranslations } from "@/components/locale/DrawerComponent.locale";
 import { DrawingControlEnTranslations } from "@/features/navigation/controls/locale/DrawingControl.locale";
 import { CatalogControlEnTranslations } from "@/features/navigation/controls/locale/CatalogControl.locale";
-import { useCenterViewToReportControlEnTranslations } from "@/features/navigation/controls/locale/useCenterViewToReportControl.locale";
+import { CenterReportControlEnTranslations } from "@/features/navigation/controls/cusom-controls/locale/CenterReportControl.locale";
 import { useGetMapControlsEnTranslations } from "@/features/navigation/controls/locale/useGetMapControls.locale";
 import { useReportToolsEnTranslations } from "@/hooks/reports/locale/useReportTools.locale";
 import { FeatureTypeLayerLegendsEnTranslations } from "@/features/navigation/layers/legends/locale/FeatureTypeLayerLegends.locale";
@@ -37,6 +37,9 @@ import { WorkingLayerControlEnTranslations } from "@/features/navigation/control
 import { WorkingLayerLabelMapEnTranslations } from "@/features/navigation/controls/locale/WorkingLayerLabelMap.locale";
 import { MesureLengthControlEnTranslations } from "@/features/navigation/controls/locale/MesureLengthControl.locale";
 import { CustomControlsEnTranslations } from "@/features/navigation/controls/cusom-controls/locale/index.locale";
+import { ContributionListEnTranslations } from "@/features/contributions/locale/ContributionList.locale";
+import { ContributionsConfirmResetEnTranslations } from "@/features/contributions/locale/ContributionsConfirmReset.locale";
+import { ReviewContributionsEnTranslations } from "@/features/contributions/locale/ReviewContributions.locale";
 
 export const translations: Translations<"en"> = {
     AppFooter: AppFooterEnTranslations,
@@ -66,7 +69,7 @@ export const translations: Translations<"en"> = {
     useGetWMTSLayer: useGetWMTSLayerEnTranslations,
     DrawingControl: DrawingControlEnTranslations,
     CatalogControl: CatalogControlEnTranslations,
-    useCenterViewToReportControl: useCenterViewToReportControlEnTranslations,
+    CenterReportControl: CenterReportControlEnTranslations,
     useGetMapControls: useGetMapControlsEnTranslations,
     useReportTools: useReportToolsEnTranslations,
     FeatureTypeLayerLegends: FeatureTypeLayerLegendsEnTranslations,
@@ -77,4 +80,7 @@ export const translations: Translations<"en"> = {
     WorkingLayerLabelMap: WorkingLayerLabelMapEnTranslations,
     MesureLengthControl: MesureLengthControlEnTranslations,
     CustomControls: CustomControlsEnTranslations,
+    ContributionList: ContributionListEnTranslations,
+    ContributionsConfirmReset: ContributionsConfirmResetEnTranslations,
+    ReviewContributions: ReviewContributionsEnTranslations,
 };

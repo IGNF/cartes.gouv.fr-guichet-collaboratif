@@ -6,6 +6,7 @@ import { useTranslation } from "@/i18n";
 import Select from "@codegouvfr/react-dsfr/Select";
 import Tooltip from "@mui/material/Tooltip";
 import Fade from "@mui/material/Fade";
+import { CommunityLayerRoleType } from "@/constants/communities/types";
 
 const WorkingLayerControl = () => {
     const { community, mapLayers, communityLayers } = useCommunityStore();
@@ -23,7 +24,7 @@ const WorkingLayerControl = () => {
                 const communityLayer = communityLayers?.find((lr) => lr.geoservice.layer === layer.name);
                 return {
                     value: layer.name,
-                    label: `${layer.title} ${communityLayer?.geoservice.readOnly ? `[${t("read_only")}]` : ""}`,
+                    label: `${layer.title} ${communityLayer?.role === CommunityLayerRoleType.VISU ? `[${t("read_only")}]` : ""}`,
                 };
             })
             .sort((l1, l2) => l1.label.localeCompare(l2.label));

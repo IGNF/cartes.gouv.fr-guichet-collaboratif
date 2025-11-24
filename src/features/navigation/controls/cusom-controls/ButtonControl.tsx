@@ -15,18 +15,11 @@ const ButtonControl: React.FC<Props> = ({ control, handleClick }) => {
 
     const onClick = useCallback(() => {
         if (control.disabled) return;
+
         handleClick(control);
         setClickedControl(control === clickedControl ? null : control);
-
-        if (control.interaction) return;
-        const controlButton = document.querySelector(`button[id^='${control?.target}'`) as HTMLButtonElement;
-        if (controlButton) {
-            controlButton.click();
-            if (controlButton.getAttribute("aria-pressed") === "false") {
-                setClickedControl(null);
-            }
-        }
     }, [clickedControl, control, setClickedControl, handleClick]);
+
     return (
         <Tooltip
             placement="left"
@@ -35,7 +28,7 @@ const ButtonControl: React.FC<Props> = ({ control, handleClick }) => {
             slots={{ transition: Fade }}
             enterDelay={0}
             leaveDelay={0}
-            slotProps={{ tooltip: { onClick: () => handleClick(control) } }}
+            slotProps={{ tooltip: { onClick } }}
             disableInteractive={control.disabled}
         >
             <Button
