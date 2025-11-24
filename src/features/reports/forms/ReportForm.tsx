@@ -53,6 +53,8 @@ const ReportForm: React.FC<Props> = ({
     const [openSuivi, setOpenSuivi] = useState(false);
     const [committedStatus, setCommittedStatus] = useState("");
     const [showTheme, setShowTheme] = useState<boolean>(false);
+    const [showDescription, setShowDescription] = useState<boolean>(false);
+    const [showDocument, setShowDocument] = useState<boolean>(false);
 
     const accordionRef = useRef<HTMLDivElement>(null);
 
@@ -356,7 +358,7 @@ const ReportForm: React.FC<Props> = ({
                 <div className="fr-mt-12v">
                     <Accordion label={t("select_theme")} defaultExpanded={false}>
                         <>
-                            <p>{selectedReport?.themes.map((theme) => theme.theme).join(", ")}</p>
+                            <h3 className="fr-text--md">{selectedReport?.themes.map((theme) => theme.theme).join(", ")}</h3>
                             <Button className="fr-mt-4v fr-mb-4v" onClick={() => setShowTheme(!showTheme)}>
                                 {showTheme ? t("hide_themeToEdit") : t("show_themeToEdit")}
                             </Button>
@@ -394,21 +396,30 @@ const ReportForm: React.FC<Props> = ({
                         }}
                         expanded={expendedDescription}
                     >
-                        <Input
-                            label={t("describe_report_label")}
-                            textArea
-                            nativeTextAreaProps={{
-                                value: description,
-                                rows: 5,
-                                onChange: (e) => {
-                                    setDescription(e.target.value);
-                                },
-                            }}
-                        />
-                        {editReport && (
-                            <Button size="large" onClick={onSubmitDescription}>
-                                {t("submit_description")}
-                            </Button>
+                        {description ? <h3 className="fr-text--md">{description}</h3> : <p> {t("no_description")} </p>}
+                        <Button className="fr-mt-4v fr-mb-4v" onClick={() => setShowDescription(!showDescription)}>
+                            {showDescription ? t("hide_themeToEdit") : t("show_themeToEdit")}
+                        </Button>
+
+                        {showDescription && (
+                            <>
+                                <Input
+                                    label={t("describe_report_label")}
+                                    textArea
+                                    nativeTextAreaProps={{
+                                        value: description,
+                                        rows: 5,
+                                        onChange: (e) => {
+                                            setDescription(e.target.value);
+                                        },
+                                    }}
+                                />
+                                {editReport && (
+                                    <Button size="large" onClick={onSubmitDescription}>
+                                        {t("submit_description")}
+                                    </Button>
+                                )}
+                            </>
                         )}
                     </Accordion>
 
@@ -419,30 +430,39 @@ const ReportForm: React.FC<Props> = ({
                         }}
                         expanded={expendedDocument}
                     >
-                        <div
-                            style={{
-                                width: "100%",
-                            }}
-                        >
-                            <Upload
-                                ref={filesRef}
-                                label={t("import_attachments_label")}
-                                hint={t("import_attachments_hint", { maxSizeMB })}
-                                state={errorFiles.length ? "error" : filesUploaded.length ? "success" : "default"}
-                                stateRelatedMessage=""
-                                multiple
-                                className="upload-file"
-                                nativeInputProps={{
-                                    value: "",
-                                    accept: ".jpg,.png,.pdf",
-                                    onChange: (e) => onUploadChange(e),
-                                }}
-                            />
-                            <AttachmentList newFiles={filesUploaded} errorFiles={errorFiles} removeFile={removeFile} />
-                            {editReport && (
-                                <Button size="large" onClick={onSubmitDocument}>
-                                    {t("submit_document")}
-                                </Button>
+                        <div>
+                            {filesUploaded ? (
+                                <AttachmentList newFiles={filesUploaded} errorFiles={errorFiles} removeFile={removeFile} />
+                            ) : (
+                                <p> {t("no_document")} </p>
+                            )}
+
+                            <Button className="fr-mt-4v fr-mb-4v" onClick={() => setShowDocument(!showDocument)}>
+                                {showDocument ? t("hide_themeToEdit") : t("show_themeToEdit")}
+                            </Button>
+
+                            {showDocument && (
+                                <>
+                                    <Upload
+                                        ref={filesRef}
+                                        label={t("import_attachments_label")}
+                                        hint={t("import_attachments_hint", { maxSizeMB })}
+                                        state={errorFiles.length ? "error" : filesUploaded.length ? "success" : "default"}
+                                        stateRelatedMessage=""
+                                        multiple
+                                        className="upload-file"
+                                        nativeInputProps={{
+                                            value: "",
+                                            accept: ".jpg,.png,.pdf",
+                                            onChange: (e) => onUploadChange(e),
+                                        }}
+                                    />
+                                    {editReport && (
+                                        <Button className="fr-mt-4v" size="large" onClick={onSubmitDocument}>
+                                            {t("submit_document")}
+                                        </Button>
+                                    )}
+                                </>
                             )}
                         </div>
                     </Accordion>

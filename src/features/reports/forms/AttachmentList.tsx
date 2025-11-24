@@ -16,7 +16,7 @@ interface Props {
 
 const AttachmentList: React.FC<Props> = ({ newFiles, errorFiles, removeFile }) => {
     const { addAlertMessage } = useCommunityStore();
-    const { reports, selectedReport, setReports, isShowReport, editReport } = useReportStore();
+    const { reports, selectedReport, setReports, editReport } = useReportStore();
 
     const [loading, setLoading] = useState(false);
 
@@ -43,7 +43,7 @@ const AttachmentList: React.FC<Props> = ({ newFiles, errorFiles, removeFile }) =
     return (
         <div className="report-attachments">
             {loading && <LoaderComponent />}
-            {isShowReport() && !report?.attachments.length && <p>{t("no_attachments")}</p>}
+            {!report?.attachments.length && <p>{t("no_attachments")}</p>}
             {report &&
                 report.attachments.map((attachment) => (
                     <div key={`attachment_${attachment.id}`}>

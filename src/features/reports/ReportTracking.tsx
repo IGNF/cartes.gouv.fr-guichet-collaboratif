@@ -59,6 +59,43 @@ const ReportTracking: React.FC<ReportTrackingProps> = ({ setCommittedStatus }) =
 
     return (
         <>
+            {!["valid", "valid0", "reject", "test"].includes(selectedReport?.status) && (
+                <>
+                    <form className="report-drawer_status fr-mt-6v">
+                        <Select
+                            label={t("report_status")}
+                            nativeSelectProps={{
+                                onChange: (event) => setStatus(event.target.value),
+                                value: status,
+                            }}
+                        >
+                            <React.Fragment key=".0">
+                                <option value={-1}>{reportImgStatus[selectedReport?.status]?.text || ""}</option>
+
+                                {Object.keys(reportImgStatus).map((key) => {
+                                    const statusKey = key as StatusKey;
+                                    return (
+                                        <option key={statusKey} value={key}>
+                                            {reportImgStatus[statusKey].text}
+                                        </option>
+                                    );
+                                })}
+                            </React.Fragment>
+                        </Select>
+                        <Input
+                            label={t("report_content")}
+                            textArea
+                            nativeTextAreaProps={{
+                                onChange: (event) => setContent(event.target.value),
+                                value: content,
+                            }}
+                        />
+                        <Button onClick={onSubmitReply} className="fr-mt-4v">
+                            {t("report_send")}
+                        </Button>
+                    </form>
+                </>
+            )}
             <div className="report-drawer_tracking fr-mx-3v">
                 {repliesRes.length > 0 ? (
                     repliesRes.map((reply) => {
@@ -100,43 +137,6 @@ const ReportTracking: React.FC<ReportTrackingProps> = ({ setCommittedStatus }) =
                     <p> {t("no_reply")}</p>
                 )}
             </div>
-            {!["valid", "valid0", "reject", "test"].includes(selectedReport?.status) && (
-                <>
-                    <form className="report-drawer_status fr-mt-6v">
-                        <Select
-                            label={t("report_status")}
-                            nativeSelectProps={{
-                                onChange: (event) => setStatus(event.target.value),
-                                value: status,
-                            }}
-                        >
-                            <React.Fragment key=".0">
-                                <option value={-1}>{reportImgStatus[selectedReport?.status]?.text || ""}</option>
-
-                                {Object.keys(reportImgStatus).map((key) => {
-                                    const statusKey = key as StatusKey;
-                                    return (
-                                        <option key={statusKey} value={key}>
-                                            {reportImgStatus[statusKey].text}
-                                        </option>
-                                    );
-                                })}
-                            </React.Fragment>
-                        </Select>
-                        <Input
-                            label={t("report_content")}
-                            textArea
-                            nativeTextAreaProps={{
-                                onChange: (event) => setContent(event.target.value),
-                                value: content,
-                            }}
-                        />
-                        <Button onClick={onSubmitReply} className="fr-mt-4v">
-                            {t("report_send")}
-                        </Button>
-                    </form>
-                </>
-            )}
         </>
     );
 };

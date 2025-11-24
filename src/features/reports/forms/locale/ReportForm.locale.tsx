@@ -11,6 +11,8 @@ export const ReportFormFrTranslations: Translations<"fr">["ReportForm"] = {
     draw_sketch: "Dessiner un croquis",
     describe_report: "Décrire le signalement",
     describe_report_label: "Explicitez votre signalement de façon la plus détaillée possible :",
+    no_description: "Aucune description ajoutée",
+    no_document: "Aucun document ajouté",
     import_attachments: "Joindre des documents",
     import_attachments_label: "Aidez nous à comprendre votre signalement. Ajouter par exemple des photos ou autres documents pour préciser votre message.",
     import_attachments_hint: ({ maxSizeMB }: { maxSizeMB: number }) => `Taille maximale : ${maxSizeMB} Mo. Formats supportés : JPG, PNG, PDF`,
@@ -53,6 +55,8 @@ export const ReportFormEnTranslations: Translations<"en">["ReportForm"] = {
     draw_sketch: "Draw a sketch",
     describe_report: "Describe the report",
     describe_report_label: "Explain your report in as much detail as possible:",
+    no_description: "No description added",
+    no_document: "No document added",
     import_attachments: "Attach documents",
     import_attachments_label: "Help us understand your report. For example, add photos or other documents to clarify your message.",
     import_attachments_hint: ({ maxSizeMB }: { maxSizeMB: number }) => `Maximum size: ${maxSizeMB} MB. Supported formats: JPG, PNG, PDF`,
@@ -94,6 +98,8 @@ const { i18n } = declareComponentKeys<
     | "draw_sketch"
     | "describe_report"
     | "describe_report_label"
+    | "no_description"
+    | "no_document"
     | "import_attachments"
     | "import_attachments_label"
     | { K: "import_attachments_hint"; P: { maxSizeMB: number }; R: string }
