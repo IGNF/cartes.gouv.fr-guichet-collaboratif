@@ -56,3 +56,55 @@
 div[id^="GPlayerInfoContent"] {
     max-height: unset !important;
 }
+
+.feature-type-form-header {
+    position: relative;
+    width: 100%;
+}
+
+.feature-type-form-title {
+    flex: 1;
+    text-align: center;
+    margin: 0;
+    padding-right: 4rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.feature-type-form-edit-button {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.feature-type-form-table {
+    width: 100%;
+    table-layout: fixed;
+}
+
+.feature-type-form-table td:first-child {
+    width: 30%;
+}
+
+.feature-type-form-table td:last-child {
+    width: 70%;
+}
+
+.feature-type-form-table td {
+    padding: 0.5rem 1rem !important;
+}
+
+.feature-type-form-table .feature-type-form-input-cell input,
+.feature-type-form-table .feature-type-form-input-cell select,
+.feature-type-form-table .feature-type-form-input-cell textarea {
+    min-height: unset !important;
+    height: auto !important;
+    padding: 0.25rem 0.5rem !important;
+    line-height: normal !important;
+}
+
+.feature-type-form-table td {
+    line-height: 1.3;
+}

@@ -5,9 +5,11 @@ import Button from "@codegouvfr/react-dsfr/Button";
 import Checkbox from "@codegouvfr/react-dsfr/Checkbox";
 import Input from "@codegouvfr/react-dsfr/Input";
 import Select from "@codegouvfr/react-dsfr/Select";
+import Table from "@codegouvfr/react-dsfr/Table";
+import Tooltip from "@codegouvfr/react-dsfr/Tooltip";
 import { Upload } from "@codegouvfr/react-dsfr/Upload";
 import { Style } from "ol/style";
-import { Fragment, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 
 interface PointDataProps {
     [key: string]: string | number | null;
@@ -21,10 +23,12 @@ const getSelectedFeatureTypeStyle = (type: string) => {
 };
 
 const EditFeatureTypeForm = () => {
-    const { clickedMapFeature, setWorkingLayerDrawerOpened, setClickedMapFeature } = useMapStore();
+    const { clickedMapFeature, setFeatureTypeMode } = useMapStore();
+
     const lastMapFeatStyle = useRef<Style | null>(null);
     const pointData: PointDataProps = clickedMapFeature?.get("featureTypeData");
     const geoserviceData: CommunityGeoservice = clickedMapFeature?.get("geoservice");
+
     useEffect(() => {
         if (clickedMapFeature) {
             lastMapFeatStyle.current = clickedMapFeature.getStyle() as Style;
@@ -38,135 +42,148 @@ const EditFeatureTypeForm = () => {
                 lastMapFeatStyle.current = null;
             }
         };
-    }, [clickedMapFeature, geoserviceData, setWorkingLayerDrawerOpened]);
-
-    const handleCancel = () => {
-        setClickedMapFeature(null);
-        setWorkingLayerDrawerOpened(false);
-    };
+    }, [clickedMapFeature, geoserviceData]);
 
     if (!pointData) return;
 
     const columns: FeatureTypeColumn[] = clickedMapFeature?.get("geoservice").columns || [];
+
+    const handleCancel = () => {
+        setFeatureTypeMode("view");
+    };
+
     return (
         <>
-            <h1 className="fr-mt-4v fr-mb-1v fr-text--md">
-                {clickedMapFeature?.get("geoservice")?.title} {pointData.id || pointData.cleabs}
-            </h1>
+            <div className="feature-type-form-header fr-flex fr-align-items--center">
+                <h1 className="feature-type-form-title fr-text--lg">
+                    {clickedMapFeature?.get("geoservice")?.title} : {pointData.id || pointData.cleabs}
+                </h1>
 
-            {columns.map((col, index) => {
-                if (col.crs) return;
-                const colDefaultValue = typeof col.default_value === "boolean" ? (col.default_value ? "true" : "false") : (col.default_value ?? undefined);
-                switch (col.type.toLocaleLowerCase()) {
-                    case "string":
-                        return (
-                            <Input
-                                key={col.name + index}
-                                label={col.title + (!col.nullable ? " *" : "")}
-                                hintText={col.description}
-                                disabled
-                                nativeInputProps={{
-                                    required: !col.nullable,
-                                    defaultValue: colDefaultValue,
-                                    value: pointData[col.name] ?? undefined,
-                                }}
-                            />
+                <Button
+                    iconId="ri-eye-fill"
+                    className="feature-type-form-edit-button fr-icon--xl"
+                    priority="tertiary no outline"
+                    onClick={() => setFeatureTypeMode("view")}
+                >
+                    Retour
+                </Button>
+            </div>
+            <>
+                <Table
+                    bordered
+                    fixed
+                    className="feature-type-form-table"
+                    data={columns.map((col) => {
+                        if (col.crs) return [];
+
+                        const titleCell = col.description ? (
+                            <Tooltip kind="hover" title={<span dangerouslySetInnerHTML={{ __html: col.description }} />}>
+                                <span>{col.title}</span>
+                            </Tooltip>
+                        ) : (
+                            <span>{col.title}</span>
                         );
 
-                    case "integer":
-                        if (col.enum) {
-                            return (
-                                <Select
-                                    key={col.name + index}
-                                    label={col.title + (!col.nullable ? " *" : "")}
-                                    hint={col.description}
-                                    disabled
-                                    nativeSelectProps={{
-                                        required: !col.nullable,
-                                        defaultValue: colDefaultValue,
-                                        value: pointData[col.name] ?? undefined,
-                                    }}
-                                >
-                                    <Fragment>
-                                        <option disabled hidden value="">
-                                            Selectionnez une option
-                                        </option>
-                                        {col.enum?.map((option, idxOption) => (
-                                            <option key={`${col.enum}_${idxOption}`} value={option}>
-                                                {option}
-                                            </option>
-                                        ))}
-                                    </Fragment>
-                                </Select>
-                            );
-                        }
-                        return (
-                            <Input
-                                key={col.name + index}
-                                label={col.title + (!col.nullable ? " *" : "")}
-                                hintText={col.description}
-                                disabled
-                                nativeInputProps={{
-                                    required: !col.nullable,
-                                    defaultValue: colDefaultValue,
-                                    value: pointData[col.name] ?? undefined,
-                                }}
-                            />
-                        );
+                        const valueCell = (() => {
+                            const colDefaultValue =
+                                typeof col.default_value === "boolean" ? (col.default_value ? "true" : "false") : (col.default_value ?? undefined);
 
-                    case "boolean":
-                        return (
-                            <Checkbox
-                                key={col.name + index}
-                                options={[
-                                    {
-                                        label: col.title,
-                                        hintText: col.description,
-                                        nativeInputProps: {
-                                            checked: pointData[col.name] === "oui" ? true : !!col.default_value,
-                                            disabled: true,
-                                        },
-                                    },
-                                ]}
-                            />
-                        );
+                            switch (col.type.toLowerCase()) {
+                                case "string":
+                                    return (
+                                        <Input
+                                            label=""
+                                            nativeInputProps={{
+                                                required: !col.nullable,
+                                                defaultValue: colDefaultValue,
+                                                value: pointData[col.name] ?? undefined,
+                                            }}
+                                        />
+                                    );
 
-                    case "date":
-                        return (
-                            <Input
-                                key={col.name + index}
-                                label={col.title + (!col.nullable ? " *" : "")}
-                                hintText={col.description}
-                                disabled
-                                nativeInputProps={{
-                                    required: !col.nullable,
-                                    type: "date",
-                                    defaultValue: colDefaultValue,
-                                    value: pointData[col.name] ?? undefined,
-                                }}
-                            />
-                        );
+                                case "integer":
+                                    if (col.enum) {
+                                        return (
+                                            <Select
+                                                label=""
+                                                nativeSelectProps={{
+                                                    required: !col.nullable,
+                                                    defaultValue: colDefaultValue,
+                                                    value: pointData[col.name] ?? undefined,
+                                                }}
+                                            >
+                                                <option disabled hidden value="">
+                                                    Sélectionnez une option
+                                                </option>
+                                                {col.enum.map((opt, idx) => (
+                                                    <option key={idx} value={opt}>
+                                                        {opt}
+                                                    </option>
+                                                ))}
+                                            </Select>
+                                        );
+                                    }
+                                    return (
+                                        <Input
+                                            label=""
+                                            nativeInputProps={{
+                                                required: !col.nullable,
+                                                defaultValue: colDefaultValue,
+                                                value: pointData[col.name] ?? undefined,
+                                            }}
+                                        />
+                                    );
 
-                    case "document":
-                        return (
-                            <Upload
-                                key={col.name + index}
-                                label={col.title}
-                                hint={col.description}
-                                multiple
-                                className="upload-file"
-                                nativeInputProps={{
-                                    defaultValue: colDefaultValue,
-                                    accept: "*",
-                                    value: pointData[col.name] ?? undefined,
-                                }}
-                            />
-                        );
+                                case "boolean":
+                                    return (
+                                        <Checkbox
+                                            options={[
+                                                {
+                                                    label: "",
+                                                    nativeInputProps: {
+                                                        checked: pointData[col.name] === "oui" ? true : !!col.default_value,
+                                                    },
+                                                },
+                                            ]}
+                                        />
+                                    );
 
-                    default:
-                        return <></>;
-                }
-            })}
+                                case "date":
+                                    return (
+                                        <Input
+                                            label=""
+                                            nativeInputProps={{
+                                                required: !col.nullable,
+                                                type: "date",
+                                                defaultValue: colDefaultValue,
+                                                value: pointData[col.name] ?? undefined,
+                                            }}
+                                        />
+                                    );
+
+                                case "document":
+                                    return (
+                                        <Upload
+                                            label=""
+                                            multiple
+                                            className="upload-file"
+                                            nativeInputProps={{
+                                                defaultValue: colDefaultValue,
+                                                accept: "*",
+                                                value: pointData[col.name] ?? undefined,
+                                            }}
+                                        />
+                                    );
+
+                                default:
+                                    return <></>;
+                            }
+                        })();
+
+                        return [titleCell, <div className="feature-type-form-input-cell">{valueCell}</div>];
+                    })}
+                />
+            </>
 
             <div className="feature-type-form-buttons">
                 <Button priority="secondary" onClick={handleCancel}>

@@ -7,6 +7,7 @@ interface MapStore {
     map: Map | null;
     mapSwitcher: LayerSwitcher | null;
     featureTypeSelectedStyle: FeatureTypeSelectedStyle[];
+    featureTypeMode: "view" | "edit";
     clickedMapFeature: Feature | null;
     workingLayerDrawerOpened: boolean;
     mapWorkingLayer: string;
@@ -21,12 +22,14 @@ interface MapStore {
     setClickableFeatures: (features: Feature[]) => void;
     setClickedControl: (control: CustomControlItem | null) => void;
     setShowMapWorkingLayerSelect: (show: boolean) => void;
+    setFeatureTypeMode: (mode: "view" | "edit") => void;
 }
 
 export const useMapStore = create<MapStore>((set, get) => ({
     map: null,
     mapSwitcher: null,
     featureTypeSelectedStyle: [],
+    featureTypeMode: "view",
     clickedMapFeature: null,
     workingLayerDrawerOpened: false,
     mapWorkingLayer: "",
@@ -60,4 +63,5 @@ export const useMapStore = create<MapStore>((set, get) => ({
     setClickableFeatures: (features) => set({ clickableFeatures: features }),
     setClickedControl: (control) => set({ clickedControl: control }),
     setShowMapWorkingLayerSelect: (show) => set({ showMapWorkingLayerSelect: show }),
+    setFeatureTypeMode: (mode) => set({ featureTypeMode: mode }),
 }));

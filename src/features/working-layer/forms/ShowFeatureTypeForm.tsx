@@ -13,7 +13,7 @@ interface PointDataProps {
 }
 
 const ShowFeatureTypeForm = () => {
-    const { map, mapSwitcher, clickedMapFeature, setWorkingLayerDrawerOpened, setClickedMapFeature } = useMapStore();
+    const { map, mapSwitcher, clickedMapFeature, setWorkingLayerDrawerOpened, setClickedMapFeature, setFeatureTypeMode } = useMapStore();
 
     const { t } = useTranslation({ ShowFeatureTypeForm });
 
@@ -106,17 +106,26 @@ const ShowFeatureTypeForm = () => {
 
     return (
         <>
-            <h1 className="feature-type-form-title fr-mt-4v fr-mb-1v fr-text--lg">
-                {clickedMapFeature?.get("geoservice")?.title} : {pointData.id || pointData.cleabs}
-            </h1>
+            <div className="feature-type-form-header fr-flex fr-align-items--center">
+                <h1 className="feature-type-form-title fr-text--lg">
+                    {clickedMapFeature?.get("geoservice")?.title} : {pointData.id || pointData.cleabs}
+                </h1>
 
-            <Table bordered fixed data={dataColumns} className="feature-type-form-table" />
-
-            <div className="feature-type-form-buttons">
-                <Button priority="secondary" onClick={handleCancel}>
-                    {t("cancel")}
+                <Button
+                    iconId="ri-edit-box-fill"
+                    className="feature-type-form-edit-button fr-icon--lg"
+                    priority="tertiary no outline"
+                    aria-hidden="true"
+                    onClick={() => {
+                        setFeatureTypeMode("edit");
+                    }}
+                >
+                    Éditer
+                    {/* {t("cancel")} */}
                 </Button>
             </div>
+
+            <Table bordered fixed data={dataColumns} className="feature-type-form-table" />
         </>
     );
 };
