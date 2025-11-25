@@ -121,7 +121,6 @@ const ShowFeatureTypeForm = () => {
                     }}
                 >
                     Éditer
-                    {/* {t("cancel")} */}
                 </Button>
             </div>
 

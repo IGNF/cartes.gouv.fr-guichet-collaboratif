@@ -127,3 +127,15 @@ export async function getFeatureTypesAll(featureTypesIds: FeatureTypeIds[]): Pro
     }
     return [];
 }
+
+export async function deleteFeatureById(featureTypesId: FeatureTypeIds, featureId: string | number) {
+    const url = `${DATABASE_API_URL}/${featureTypesId.database}/tables/${featureTypesId.table}/features/${featureId}`;
+
+    try {
+        await axiosApi.delete(url);
+        return true;
+    } catch (err) {
+        console.error("Delete failed:", err);
+        throw err;
+    }
+}

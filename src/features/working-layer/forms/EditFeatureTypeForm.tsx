@@ -1,6 +1,6 @@
-import { CommunityGeoservice, FeatureTypeColumn } from "@/constants/communities/types";
-import { featureTypeSelectedLineStyle, featureTypeSelectedPointCircleStyle, featureTypeSelectedPolygonStyle } from "@/constants/styles";
+import { CommunityGeoservice, FeatureTypeColumn, FeatureTypeIds } from "@/constants/communities/types";
 import { useMapStore } from "@/store";
+
 import Button from "@codegouvfr/react-dsfr/Button";
 import Checkbox from "@codegouvfr/react-dsfr/Checkbox";
 import Input from "@codegouvfr/react-dsfr/Input";
@@ -8,8 +8,10 @@ import Select from "@codegouvfr/react-dsfr/Select";
 import Table from "@codegouvfr/react-dsfr/Table";
 import Tooltip from "@codegouvfr/react-dsfr/Tooltip";
 import { Upload } from "@codegouvfr/react-dsfr/Upload";
-import { Style } from "ol/style";
-import { useEffect, useRef, useState, memo, useMemo } from "react";
+
+import { useEffect, useState, memo, useMemo, useCallback } from "react";
+import { EventTypes } from "ol/Observable";
+import { deleteFeatureById } from "@/api/featureTypesData";
 
 interface FeatureFormState {
     [key: string]: string | number | boolean | File[] | null;
@@ -19,27 +21,40 @@ interface PointDataProps {
     [key: string]: string | number | null;
 }
 
-const getSelectedFeatureTypeStyle = (type: string) => {
-    if (type === "point") return featureTypeSelectedPointCircleStyle();
-    if (type === "line") return featureTypeSelectedLineStyle();
-    if (type === "polygon") return featureTypeSelectedPolygonStyle();
-    return featureTypeSelectedPointCircleStyle();
-};
-
 const EditFeatureTypeForm = () => {
-    const { clickedMapFeature, setFeatureTypeMode } = useMapStore();
-
-    const lastMapFeatStyle = useRef<Style | null>(null);
+    const { map, mapSwitcher, clickedMapFeature, setClickedMapFeature, setFeatureTypeMode, setWorkingLayerDrawerOpened } = useMapStore();
 
     const pointData: PointDataProps = useMemo(() => clickedMapFeature?.get("featureTypeData"), [clickedMapFeature]);
 
     const geoserviceData: CommunityGeoservice = useMemo(() => clickedMapFeature?.get("geoservice"), [clickedMapFeature]);
 
-    const columns: FeatureTypeColumn[] = useMemo(() => clickedMapFeature?.get("geoservice")?.columns ?? [], [clickedMapFeature]);
+    const columns: FeatureTypeColumn[] = useMemo(() => geoserviceData?.columns ?? [], [geoserviceData]);
 
     const [formData, setFormData] = useState<FeatureFormState>({});
 
+    const featureLayer = useMemo(() => {
+        if (!map || !geoserviceData) return null;
+        return map
+            .getLayers()
+            .getArray()
+            .find((l) => l.get("name") === geoserviceData.layer);
+    }, [map, geoserviceData]);
+
+    const handleCancel = useCallback(() => {
+        setClickedMapFeature(null);
+        setWorkingLayerDrawerOpened(false);
+        setFeatureTypeMode("view");
+    }, [setClickedMapFeature, setWorkingLayerDrawerOpened, setFeatureTypeMode]);
+
+    const handleLayerVisibility = useCallback(() => {
+        if (featureLayer && !featureLayer?.getVisible()) {
+            handleCancel();
+        }
+    }, [featureLayer, handleCancel]);
+
     useEffect(() => {
+        if (!pointData) return;
+
         const initial: FeatureFormState = {};
         columns.forEach((col) => {
             if (!col.crs) {
@@ -47,30 +62,31 @@ const EditFeatureTypeForm = () => {
             }
         });
         setFormData(initial);
-    }, [pointData, columns]);
+    }, [pointData, columns, mapSwitcher]);
 
     const updateField = (name: string, value: string | number | boolean | File[] | null) => {
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
-
     useEffect(() => {
         if (clickedMapFeature) {
-            lastMapFeatStyle.current = clickedMapFeature.getStyle() as Style;
-            clickedMapFeature.setStyle(getSelectedFeatureTypeStyle(geoserviceData?.featureType || "point"));
+            clickedMapFeature.set("selected", true);
             clickedMapFeature.changed();
         }
-
         return () => {
-            if (clickedMapFeature && lastMapFeatStyle.current) {
-                clickedMapFeature.setStyle(lastMapFeatStyle.current);
+            if (clickedMapFeature) {
+                clickedMapFeature.unset("selected");
                 clickedMapFeature.changed();
             }
         };
-    }, [clickedMapFeature, geoserviceData]);
+    }, [clickedMapFeature, geoserviceData, featureLayer]);
 
-    const handleCancel = () => {
-        setFeatureTypeMode("view");
-    };
+    useEffect(() => {
+        mapSwitcher?.on("layerswitcher:change:visibility" as EventTypes, handleLayerVisibility);
+
+        return () => {
+            mapSwitcher?.un("layerswitcher:change:visibility" as EventTypes, handleLayerVisibility);
+        };
+    }, [mapSwitcher, handleLayerVisibility]);
 
     const handleSave = async () => {
         console.log("Saving feature type data...", formData);
@@ -78,9 +94,30 @@ const EditFeatureTypeForm = () => {
     };
 
     const handleDelete = async () => {
-        const id = pointData.id || pointData.cleabs;
-        console.log("TODO DELETE:", id);
-        setFeatureTypeMode("view");
+        try {
+            const featureData = clickedMapFeature?.get("featureTypeData");
+
+            const featureId = featureData?.id || featureData?.cleabs;
+            if (!featureId) {
+                console.error("Missing ID for deletion");
+                return;
+            }
+
+            const featureTypesId: FeatureTypeIds = {
+                database: featureLayer?.get("database") || "",
+                table: featureLayer?.get("table") || "",
+            };
+
+            await deleteFeatureById(featureTypesId, featureId);
+
+            console.log("Feature deleted:", featureId);
+
+            setClickedMapFeature(null);
+            setWorkingLayerDrawerOpened(false);
+            setFeatureTypeMode("view");
+        } catch (error) {
+            console.error("Deletion failed:", error);
+        }
     };
 
     const dataColumns = useMemo(
@@ -88,6 +125,8 @@ const EditFeatureTypeForm = () => {
             columns
                 .filter((col) => !col.crs)
                 .map((col) => {
+                    const v = formData[col.name];
+
                     const titleCell = col.description ? (
                         <Tooltip
                             kind="hover"
@@ -105,7 +144,6 @@ const EditFeatureTypeForm = () => {
                         <span>{col.title}</span>
                     );
 
-                    const v = formData[col.name];
                     let valueCell: React.ReactNode;
 
                     switch (col.type.toLowerCase()) {
@@ -122,35 +160,31 @@ const EditFeatureTypeForm = () => {
                             break;
 
                         case "integer":
-                            if (col.enum) {
-                                valueCell = (
-                                    <Select
-                                        label=""
-                                        nativeSelectProps={{
-                                            value: (v as string) ?? "",
-                                            onChange: (e) => updateField(col.name, e.target.value),
-                                        }}
-                                    >
-                                        <option value="">Sélectionnez une option</option>
-                                        {col.enum.map((opt, idx) => (
-                                            <option key={idx} value={opt}>
-                                                {opt}
-                                            </option>
-                                        ))}
-                                    </Select>
-                                );
-                            } else {
-                                valueCell = (
-                                    <Input
-                                        label=""
-                                        nativeInputProps={{
-                                            type: "number",
-                                            value: (v as number | string) ?? "",
-                                            onChange: (e) => updateField(col.name, Number(e.target.value)),
-                                        }}
-                                    />
-                                );
-                            }
+                            valueCell = col.enum ? (
+                                <Select
+                                    label=""
+                                    nativeSelectProps={{
+                                        value: (v as string) ?? "",
+                                        onChange: (e) => updateField(col.name, e.target.value),
+                                    }}
+                                >
+                                    <option value="">Sélectionnez une option</option>
+                                    {col.enum.map((opt, idx) => (
+                                        <option key={idx} value={opt}>
+                                            {opt}
+                                        </option>
+                                    ))}
+                                </Select>
+                            ) : (
+                                <Input
+                                    label=""
+                                    nativeInputProps={{
+                                        type: "number",
+                                        value: (v as number | string) ?? "",
+                                        onChange: (e) => updateField(col.name, Number(e.target.value)),
+                                    }}
+                                />
+                            );
                             break;
 
                         case "boolean":
@@ -189,7 +223,7 @@ const EditFeatureTypeForm = () => {
                                     multiple
                                     className="upload-file"
                                     nativeInputProps={{
-                                        onChange: (e) => updateField(col.name, Array.from(e.target.files || [])),
+                                        onChange: (e) => updateField(col.name, Array.from(e.target.files ?? [])),
                                     }}
                                 />
                             );
@@ -222,7 +256,9 @@ const EditFeatureTypeForm = () => {
                     iconId="ri-eye-fill"
                     className="feature-type-form-edit-button fr-icon--xl"
                     priority="tertiary no outline"
-                    onClick={() => setFeatureTypeMode("view")}
+                    onClick={() => {
+                        setFeatureTypeMode("view");
+                    }}
                 >
                     Retour
                 </Button>
