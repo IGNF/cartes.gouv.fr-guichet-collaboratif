@@ -73,6 +73,10 @@ export interface CommunityReport {
     author?: AuthorData;
     attributes?: CommunityTheme[];
 }
+export enum SortType {
+    ASC = "ASC",
+    DESC = "DESC",
+}
 
 export type Reply = {
     id?: number;

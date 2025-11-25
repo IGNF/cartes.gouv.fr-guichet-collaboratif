@@ -6,7 +6,7 @@ export const DrawingFormFrTranslations: Translations<"fr">["DrawingForm"] = {
     creation_tools: "Outils de création",
     edit_tools: "Outils de modification",
     hide_sketchToEdit: "Annuler",
-    show_sketchToEdit: "Ajouter un croquis",
+    show_sketchToEdit: "Ajouter",
     save_sketch: "Enregitrer",
 };
 
@@ -15,7 +15,7 @@ export const DrawingFormEnTranslations: Translations<"en">["DrawingForm"] = {
     creation_tools: "Creation tools",
     edit_tools: "Editing tools",
     hide_sketchToEdit: "Cancel",
-    show_sketchToEdit: "Add sketch",
+    show_sketchToEdit: "Add",
     save_sketch: "Save",
 };
 

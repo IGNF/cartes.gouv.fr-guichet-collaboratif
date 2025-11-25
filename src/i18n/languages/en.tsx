@@ -18,6 +18,7 @@ import { ThemeFormEnTranslations } from "@/features/reports/forms/locale/ThemeFo
 import { CenterMessageEnTranslations } from "@/features/reports/locale/CenterMessage.locale";
 import { CreateReportEnTranslations } from "@/features/reports/locale/CreateReport.locale";
 import { EditReportEnTranslations } from "@/features/reports/locale/EditReport.locale";
+import { ReportDrawerEnTranslations } from "@/features/reports/locale/ReportDrawer.locale";
 import { ShowReportEnTranslations } from "@/features/reports/locale/ShowReport.locale";
 import { ConfirmDeleteShareReportModalEnTranslations } from "@/features/reports/locale/ConfirmDeleteShareReportModal.locale";
 import { ReportTrackingEnTranslations } from "@/features/reports/locale/ReportTracking.locale";
@@ -64,6 +65,7 @@ export const translations: Translations<"en"> = {
     CenterMessage: CenterMessageEnTranslations,
     CreateReport: CreateReportEnTranslations,
     EditReport: EditReportEnTranslations,
+    ReportDrawer: ReportDrawerEnTranslations,
     ShowReport: ShowReportEnTranslations,
     ConfirmDeleteShareReportModal: ConfirmDeleteShareReportModalEnTranslations,
     ReportTracking: ReportTrackingEnTranslations,

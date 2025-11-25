@@ -1,6 +1,5 @@
 import React from "react";
 import RadioButtons from "@codegouvfr/react-dsfr/RadioButtons";
-import Button from "@codegouvfr/react-dsfr/Button";
 import { CommunityTheme } from "@/constants/communities/types";
 import ThemeForm from "./ThemeForm";
 import { PostThemeReport } from "@/constants/reports/types";
@@ -25,8 +24,7 @@ const ThemeComponent: React.FC<Props> = ({
     themeAttributes,
     onChangeThemeAttributes,
     errorTheme,
-    editReport,
-    onSubmitTheme,
+
     themeRef,
 }) => {
     const { t } = useTranslation({ ThemeComponent });
@@ -53,11 +51,6 @@ const ThemeComponent: React.FC<Props> = ({
                 className="theme-radio fr-mt-4v fr-mb-1v fr-text--md"
             />
             {selectedTheme && <ThemeForm theme={selectedTheme} themeAttributes={themeAttributes} onChangeThemeAttributes={onChangeThemeAttributes} />}
-            {editReport && (
-                <Button size="large" onClick={onSubmitTheme}>
-                    {t("submit_theme")}
-                </Button>
-            )}
         </>
     );
 };

@@ -6,7 +6,7 @@ export const ConfirmDeleteShareReportModalFrTranslations: Translations<"fr">["Co
     cancel_btn: "Annuler",
     delete_btn: "Supprimer",
     deleteReport_message:
-        "Êtes-vous sur.e de vouloir supprimer le signalement sélectionné ? Cette action est irréversible et les signalements ne pourront être récupérés.",
+        "Êtes-vous sûr·e de vouloir supprimer le signalement sélectionné ? Cette action est irréversible et les signalements ne pourront être récupérés.",
 };
 
 export const ConfirmDeleteShareReportModalEnTranslations: Translations<"en">["ConfirmDeleteShareReportModal"] = {

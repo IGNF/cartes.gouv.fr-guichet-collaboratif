@@ -2,6 +2,7 @@ import { Translations } from "@/i18n/types";
 import { declareComponentKeys } from "i18nifty";
 
 export const EditReportFrTranslations: Translations<"fr">["EditReport"] = {
+    report_back: "Tous les signalements",
     report_deleted_error: "Erreur dans la suppression du signalement !",
     report_deleted_success: ({ reportId }: { reportId: number }) => `Le signalement ${reportId} est supprimé avec succès.`,
     report_updated_error: "Erreur dans la mise à jour du signalement",
@@ -13,6 +14,7 @@ export const EditReportFrTranslations: Translations<"fr">["EditReport"] = {
 };
 
 export const EditReportEnTranslations: Translations<"en">["EditReport"] = {
+    report_back: "All reports",
     report_deleted_error: "Error deleting report!",
     report_deleted_success: ({ reportId }: { reportId: number }) => `Report ${reportId} is successfully deleted.`,
     report_updated_error: "Error in updating the report",
@@ -24,6 +26,7 @@ export const EditReportEnTranslations: Translations<"en">["EditReport"] = {
 };
 
 const { i18n } = declareComponentKeys<
+    | "report_back"
     | "report_deleted_error"
     | { K: "report_deleted_success"; P: { reportId: number }; R: string }
     | "report_updated_error"

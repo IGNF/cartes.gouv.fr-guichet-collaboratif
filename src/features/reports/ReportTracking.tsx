@@ -7,7 +7,7 @@ import { useGetReportReplies } from "@/api/repliesData";
 import { useCommunityStore, useReportStore, useUserStore } from "@/store";
 import { useReplyStore } from "@/store/useReplyStore";
 import { MutationReportParams, Reply, Severity, StatusKey } from "@/constants/reports/types";
-import { reportImgStatus } from "@/constants/utils";
+import { reportImgStatus, STATUS_NOT_ALLOWED } from "@/constants/utils";
 import Badge from "@codegouvfr/react-dsfr/Badge";
 import Select from "@codegouvfr/react-dsfr/Select";
 import Input from "@codegouvfr/react-dsfr/Input";
@@ -59,9 +59,9 @@ const ReportTracking: React.FC<ReportTrackingProps> = ({ setCommittedStatus }) =
 
     return (
         <>
-            {!["valid", "valid0", "reject", "test"].includes(selectedReport?.status) && (
+            {!STATUS_NOT_ALLOWED.includes(selectedReport?.status) && (
                 <>
-                    <form className="report-drawer_status fr-mt-6v">
+                    <form className="report-drawer_status">
                         <Select
                             label={t("report_status")}
                             nativeSelectProps={{
@@ -90,21 +90,34 @@ const ReportTracking: React.FC<ReportTrackingProps> = ({ setCommittedStatus }) =
                                 value: content,
                             }}
                         />
-                        <Button onClick={onSubmitReply} className="fr-mt-4v">
+                        <Button
+                            disabled={!status || reportImgStatus[status as StatusKey]?.text === reportImgStatus[selectedReport?.status as StatusKey]?.text}
+                            onClick={onSubmitReply}
+                            className="fr-mt-4v"
+                        >
                             {t("report_send")}
                         </Button>
                     </form>
                 </>
             )}
-            <div className="report-drawer_tracking fr-mx-3v">
+            <div className="report-drawer_tracking fr-mx-7v">
                 {repliesRes.length > 0 ? (
                     repliesRes.map((reply) => {
                         const hideIcon = reportImgStatus[reply.status as StatusKey].text !== "test";
-                        const formattedDate = reply.date
-                            ? new Date(reply.date).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) +
-                              ", " +
-                              new Date(reply.date).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", hour12: false }).replace(":", "H")
-                            : "-";
+                        const formatFrenchDateWithCapitalMonth = (dateStr: string) => {
+                            if (!dateStr) return "-";
+                            const d = new Date(dateStr);
+                            const day = d.getDate();
+                            const year = d.getFullYear();
+                            const month = d.toLocaleDateString("fr-FR", { month: "long" });
+                            const monthCapital = month.charAt(0).toUpperCase() + month.slice(1);
+
+                            const heure = d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", hour12: false }).replace(":", "H");
+
+                            return `${day} ${monthCapital} ${year}, ${heure}`;
+                        };
+
+                        const formattedDate = reply.date ? formatFrenchDateWithCapitalMonth(reply.date) : "-";
 
                         return (
                             <div

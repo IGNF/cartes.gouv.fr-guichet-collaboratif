@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo } from "react";
-import { useTranslation } from "@/i18n";
 import { Feature, MapBrowserEvent } from "ol";
 import Layer from "ol/layer/Layer";
 import VectorSource from "ol/source/Vector";
@@ -8,10 +7,9 @@ import { useGetUserProfileAPI } from "@/api/userData";
 import { useCommunityStore, useMapStore, useReportStore, useUserStore } from "@/store";
 import { HIT_DETECTION_TOLERENCE, FEATURE_TYPE_GEOSERVICE_PROPERTY } from "@/constants";
 import { getClickedMapReport, getReportSketchFeatures, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
-import { getCenterReportMessage, showCenterReportButtons } from "@/constants/utils";
+import { getCenterReportMessage, showCenterReportButtons, STATUS_NOT_ALLOWED } from "@/constants/utils";
 import { clearClusterStyles } from "@/constants/reports/utils/cluster";
 import { ParamsReport, toolNames } from "@/constants/reports/types";
-import Button from "@codegouvfr/react-dsfr/Button";
 import DrawerComponent from "@/components/DrawerComponent";
 import ShowReport from "./ShowReport";
 import CreateReport from "./CreateReport";
@@ -19,9 +17,10 @@ import TableReportDrawer from "./table/TableReportDrawer";
 import OpenReplyReportModal from "./forms/OpenReplyReportModal";
 import EditReport from "./EditReport";
 import { InteractionType } from "@/constants/communities/types";
+import Button from "@codegouvfr/react-dsfr/Button";
+import { useTranslation } from "@/i18n";
 
 const ReportDrawer = () => {
-    const { t } = useTranslation({ ShowReport });
     const { mapWorkingLayer } = useMapStore();
     const { user } = useUserStore();
 
@@ -53,6 +52,7 @@ const ReportDrawer = () => {
     const { community } = useCommunityStore();
 
     const { data: userData } = useGetUserProfileAPI();
+    const { t } = useTranslation({ ReportDrawer });
 
     const handleCloseDrawer = useCallback(() => {
         if (!selectedReport) {
@@ -83,20 +83,23 @@ const ReportDrawer = () => {
 
         setDrawerOpened(false);
         setEditReport(false);
-        setTableDrawerOpened(!tableDrawerOpened && true);
+        if (editReport) {
+            setTableDrawerOpened(!tableDrawerOpened && true);
+        } else setTableDrawerOpened(false);
         setSelectedReport(null);
         setSelectedFeatures([]);
     }, [
-        map,
         selectedReport,
         alertMessages,
-        removeAlertMessage,
-        setEditReport,
-        setSelectedFeatures,
-        setSelectedReport,
         setDrawerOpened,
+        setEditReport,
+        editReport,
         setTableDrawerOpened,
         tableDrawerOpened,
+        setSelectedReport,
+        setSelectedFeatures,
+        map,
+        removeAlertMessage,
     ]);
 
     const handleSingleClick = useCallback(
@@ -312,21 +315,21 @@ const ReportDrawer = () => {
                 <>
                     {drawerOpened ? (
                         <>
-                            <Button
-                                iconId="fr-icon-arrow-left-line"
-                                className="fr-icon--sm fr-mr-7v"
-                                priority="tertiary no outline"
-                                title="Afficher le signalement"
-                                onClick={() => {
-                                    setTableDrawerOpened(true);
-                                    setDrawerOpened(false);
-                                }}
-                            >
-                                {t("report_back")}
-                            </Button>
+                            <div className="drawer-close">
+                                <Button
+                                    className="fr-icon--lg"
+                                    iconId="ri-close-line"
+                                    onClick={handleCloseDrawer}
+                                    priority="tertiary no outline"
+                                    title="Fermer"
+                                    size="medium"
+                                >
+                                    {t("close")}
+                                </Button>
+                            </div>
                             {!selectedReport ? (
                                 <CreateReport handleCloseDrawer={handleCloseDrawer} />
-                            ) : (["valid", "valid0", "reject", "test"].includes(status) ? false : isAdmin || isOwner) ? (
+                            ) : !STATUS_NOT_ALLOWED.includes(selectedReport.status) && (isAdmin || isOwner) ? (
                                 <EditReport handleCloseDrawer={handleCloseDrawer} />
                             ) : (
                                 <ShowReport handleCloseDrawer={handleCloseDrawer} />

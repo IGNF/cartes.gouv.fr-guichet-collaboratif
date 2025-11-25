@@ -4,12 +4,13 @@ import { Feature } from "ol";
 import Layer from "ol/layer/Layer";
 import VectorSource, { VectorSourceEvent } from "ol/source/Vector";
 import useReportTools from "@/hooks/reports/useReportTools";
-import { useMapStore, useReportStore } from "@/store";
+import { useMapStore, useReportStore, useUserStore } from "@/store";
 import { ClickedTool, ReportTool, toolNames } from "@/constants/reports/types";
 import { getReportAllFeatures, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import Button from "@codegouvfr/react-dsfr/Button";
 import SketchList from "./SketchList";
 import ImportSketchFile from "./ImportSketchFile";
+import { STATUS_NOT_ALLOWED } from "@/constants/utils";
 
 interface Props {
     clickedTool?: ClickedTool;
@@ -28,6 +29,8 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsD
     const { t } = useTranslation({ DrawingForm });
 
     const reportTools = useReportTools();
+
+    const { user } = useUserStore();
 
     const reportLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE);
     const reportSource = reportLayer?.getSource() as VectorSource;
@@ -121,79 +124,79 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsD
         return false;
     };
 
+    const isOwner = Number(user?.id) === Number(selectedReport?.author?.id);
     return (
         <>
             <SketchList />
 
-            {!hideToolsDiv && (
-                <Button className="fr-mt-4v fr-mb-4v" onClick={() => setShowSketch(!showSketch)}>
-                    {showSketch ? t("hide_sketchToEdit") : t("show_sketchToEdit")}
+            {!hideToolsDiv && editReport && !showSketch && (
+                <Button className="fr-mt-4v" onClick={() => setShowSketch(!showSketch)}>
+                    {t("show_sketchToEdit")}
                 </Button>
             )}
 
-            <>
-                {!hideToolsDiv && showSketch && (
-                    <>
-                        <>
-                            <p className="fr-text--sm fr-mb-1v">{t("drawing_message")}</p>
-                            <div className="report-tools">
-                                <p className="fr-mt-4v fr-mb-2v fr-text--sm">{t("creation_tools")}</p>
-                                <div>
-                                    {reportTools
-                                        .filter((tool) => tool.type === "create")
-                                        .map((tool) => (
-                                            <Button
-                                                key={tool.name}
-                                                id={`${tool.name}-report-drawer-${tool.type}`}
-                                                onClick={() => {
-                                                    if (tool.name === toolNames.import) {
-                                                        importFileRef?.current?.click();
-                                                        return;
-                                                    }
-                                                    if (handleToolClick) handleToolClick(tool);
-                                                }}
-                                                priority={getToolPriority(tool)}
-                                                title={tool.title}
-                                                className="gpf-btn--tertiary drawing-tool"
-                                                disabled={isToolDisabled(tool)}
-                                            >
-                                                <></>
-                                            </Button>
-                                        ))}
-                                    <ImportSketchFile inputRef={importFileRef} />
-                                </div>
-                            </div>
+            {((!hideToolsDiv && showSketch) || (!editReport && !STATUS_NOT_ALLOWED.includes(selectedReport?.status ?? "") && isOwner)) && (
+                <>
+                    <p className="fr-text--sm fr-mb-1v">{t("drawing_message")}</p>
+                    <div className="report-tools">
+                        <p className="fr-mt-4v fr-mb-2v fr-text--sm">{t("creation_tools")}</p>
+                        <div>
+                            {reportTools
+                                .filter((tool) => tool.type === "create")
+                                .map((tool) => (
+                                    <Button
+                                        key={tool.name}
+                                        id={`${tool.name}-report-drawer-${tool.type}`}
+                                        onClick={() => {
+                                            if (tool.name === toolNames.import) {
+                                                importFileRef?.current?.click();
+                                                return;
+                                            }
+                                            if (handleToolClick) handleToolClick(tool);
+                                        }}
+                                        priority={getToolPriority(tool)}
+                                        title={tool.title}
+                                        className="gpf-btn--tertiary drawing-tool"
+                                        disabled={isToolDisabled(tool)}
+                                    >
+                                        <></>
+                                    </Button>
+                                ))}
+                            <ImportSketchFile inputRef={importFileRef} />
+                        </div>
+                    </div>
 
-                            <div className="report-tools">
-                                <p className="fr-mt-4v fr-mb-2v fr-text--sm">{t("edit_tools")}</p>
-                                <div>
-                                    {reportTools
-                                        .filter((tool) => tool.type === "edit")
-                                        .map((tool) => (
-                                            <Button
-                                                key={tool.name}
-                                                id={`${tool.name}-report-drawer-${tool.type}`}
-                                                onClick={() => {
-                                                    if (handleToolClick) handleToolClick(tool);
-                                                }}
-                                                priority={clickedTool?.name === tool.name && clickedTool.clicked ? "secondary" : "tertiary"}
-                                                title={tool.title}
-                                                className="gpf-btn--tertiary drawing-tool"
-                                            >
-                                                <></>
-                                            </Button>
-                                        ))}
-                                </div>
-                            </div>
-                        </>
-                        {editReport && (
-                            <Button className="fr-mt-4v fr-mb-4v" onClick={onSubmitSketch}>
-                                {t("save_sketch")}
-                            </Button>
-                        )}
-                    </>
-                )}
-            </>
+                    <div className="report-tools">
+                        <p className="fr-mt-4v fr-mb-2v fr-text--sm">{t("edit_tools")}</p>
+                        <div>
+                            {reportTools
+                                .filter((tool) => tool.type === "edit")
+                                .map((tool) => (
+                                    <Button
+                                        key={tool.name}
+                                        id={`${tool.name}-report-drawer-${tool.type}`}
+                                        onClick={() => {
+                                            if (handleToolClick) handleToolClick(tool);
+                                        }}
+                                        priority={clickedTool?.name === tool.name && clickedTool.clicked ? "secondary" : "tertiary"}
+                                        title={tool.title}
+                                        className="gpf-btn--tertiary drawing-tool"
+                                    >
+                                        <></>
+                                    </Button>
+                                ))}
+                        </div>
+                    </div>
+                </>
+            )}
+            {showSketch && (
+                <div className="report__actions">
+                    {editReport && <Button onClick={onSubmitSketch}>{t("save_sketch")}</Button>}
+                    <Button priority="secondary" onClick={() => setShowSketch(!showSketch)}>
+                        {t("hide_sketchToEdit")}
+                    </Button>
+                </div>
+            )}
         </>
     );
 };

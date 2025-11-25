@@ -77,6 +77,7 @@ export const reportImgStatus: ReportImgStatusType = {
     test: { img: imgTest, text: "En mode test", colorType: "new" },
 };
 
+export const STATUS_NOT_ALLOWED = ["valid", "valid0", "reject", "test"];
 type LonLatCoordinate = Coordinate | Coordinate[] | Coordinate[][] | Coordinate[][][];
 type FeatureTypeData = { geometrie: string; capacite: number | null; type_amenagement: string | null };
 

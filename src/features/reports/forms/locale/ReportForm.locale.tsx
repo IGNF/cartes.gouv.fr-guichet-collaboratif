@@ -24,13 +24,11 @@ export const ReportFormFrTranslations: Translations<"fr">["ReportForm"] = {
             </a>
         </div>
     ),
-    submit_report: "Envoyer le signalement",
-    submit_theme: "Enregistrer le thème",
-    hide_themeToEdit: "Annuler",
-    show_themeToEdit: "Modifier",
-    submit_sketch: "Enregistrer le croquis",
-    submit_description: "Enregistrer la description",
-    submit_document: "Enregistrer le document",
+    send_report: "Envoyer le signalement",
+    submit_report: "Enregistrer",
+    hide_toEdit: "Annuler",
+    show_toEdit: "Modifier",
+    show_toCreate: "Ajouter",
     cancel_report: "Annuler",
     delete_report: "Supprimer",
     save_report: "Enregistrer",
@@ -68,13 +66,11 @@ export const ReportFormEnTranslations: Translations<"en">["ReportForm"] = {
             </a>
         </div>
     ),
-    submit_report: "Send the report",
-    submit_theme: "Save the theme",
-    hide_themeToEdit: "Cancel",
-    show_themeToEdit: "Edit",
-    submit_sketch: "Save the sketch",
-    submit_description: "Save the description",
-    submit_document: "Save the document",
+    send_report: "Send the report",
+    submit_report: "Save",
+    hide_toEdit: "Cancel",
+    show_toEdit: "Edit",
+    show_toCreate: "Add",
     cancel_report: "Cancel",
     delete_report: "Delete",
     save_report: "Save",
@@ -105,12 +101,10 @@ const { i18n } = declareComponentKeys<
     | { K: "import_attachments_hint"; P: { maxSizeMB: number }; R: string }
     | { K: "report_note"; R: JSX.Element }
     | "submit_report"
-    | "submit_theme"
-    | "hide_themeToEdit"
-    | "show_themeToEdit"
-    | "submit_description"
-    | "submit_document"
-    | "submit_sketch"
+    | "send_report"
+    | "hide_toEdit"
+    | "show_toEdit"
+    | "show_toCreate"
     | "cancel_report"
     | "delete_report"
     | "save_report"

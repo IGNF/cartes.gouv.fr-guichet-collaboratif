@@ -36,7 +36,7 @@ const OpenReplyReportModal: React.FC<Props> = ({ onClose }) => {
     }, [tableData, isChecked]);
 
     const CheckedIdStatus = React.useMemo(() => {
-        return tableData.filter((res) => !!isChecked[String(res.id)]).map((checkedStatus) => checkedStatus.exportData.statusText);
+        return tableData.filter((res) => !!isChecked[String(res.id)]).map((checkedStatus) => checkedStatus.exportData.status);
     }, [tableData, isChecked]);
 
     type MutationParams = {
@@ -105,7 +105,7 @@ const OpenReplyReportModal: React.FC<Props> = ({ onClose }) => {
                         const statusKey = key as StatusKey;
                         return (
                             <option key={statusKey} value={key}>
-                                {CheckedIdStatus}
+                                {reportImgStatus[statusKey].text}
                             </option>
                         );
                     })}

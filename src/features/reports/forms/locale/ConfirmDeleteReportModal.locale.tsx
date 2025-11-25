@@ -5,9 +5,9 @@ export const ConfirmDeleteReportModalFrTranslations: Translations<"fr">["Confirm
     deleteReport_title: "Supprimer le signalement",
     deleteReports_title: "Supprimer les signalements",
     deleteReport_message:
-        "Êtes-vous sur·e de vouloir supprimer le  signalement sélectionné ? Cette action est irréversible et les signalements ne pourront être récupérés.",
+        "Êtes-vous sûr·e de vouloir supprimer le  signalement sélectionné ? Cette action est irréversible et les signalements ne pourront être récupérés.",
     deleteReports_message: ({ reportIdCount }: { reportIdCount: number | null }) =>
-        `Êtes-vous sur·e de vouloir supprimer les ${reportIdCount} signalements sélectionnés ? Cette action est irréversible et les signalements ne pourront être récupérés.`,
+        `Êtes-vous sûr·e de vouloir supprimer les ${reportIdCount} signalements sélectionnés ? Cette action est irréversible et les signalements ne pourront être récupérés.`,
     cancel_btn: "Annuler",
     delete_btn: "Supprimer",
 };

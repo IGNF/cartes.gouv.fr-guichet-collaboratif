@@ -10,6 +10,7 @@ import { clearDrawingLayer, getFeatureGeometryWKT } from "@/constants/utils";
 import { getReportSketch, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import ReportForm from "./forms/ReportForm";
 import { useCallback } from "react";
+import Button from "@codegouvfr/react-dsfr/Button";
 
 interface Props {
     handleCloseDrawer: () => void;
@@ -17,7 +18,7 @@ interface Props {
 
 const EditReport: React.FC<Props> = ({ handleCloseDrawer }) => {
     const { community, addAlertMessage } = useCommunityStore();
-    const { reports, selectedReport, setReports, setTableDrawerOpened } = useReportStore();
+    const { reports, selectedReport, setReports, setTableDrawerOpened, setDrawerOpened } = useReportStore();
 
     const { map } = useMapStore();
 
@@ -167,6 +168,18 @@ const EditReport: React.FC<Props> = ({ handleCloseDrawer }) => {
 
     return (
         <>
+            <Button
+                iconId="fr-icon-arrow-left-line"
+                className="fr-icon--sm fr-mr-7v"
+                priority="tertiary no outline"
+                title="Afficher le signalement"
+                onClick={() => {
+                    setTableDrawerOpened(true);
+                    setDrawerOpened(false);
+                }}
+            >
+                {t("report_back")}
+            </Button>
             <ReportForm
                 handleClose={handleCloseEditReportDrawer}
                 handleDelete={handleDeleteReport}
