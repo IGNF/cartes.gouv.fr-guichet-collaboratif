@@ -108,3 +108,20 @@ div[id^="GPlayerInfoContent"] {
 .feature-type-form-table td {
     line-height: 1.3;
 }
+
+.feature-type-form-buttons {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.feature-type-form-actions-left {
+    display: flex;
+}
+
+.feature-type-form-actions-right {
+    display: flex;
+    margin-left: auto;
+    gap: 16px;
+    align-items: center;
+}

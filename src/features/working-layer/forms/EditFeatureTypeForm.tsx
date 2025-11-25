@@ -9,7 +9,11 @@ import Table from "@codegouvfr/react-dsfr/Table";
 import Tooltip from "@codegouvfr/react-dsfr/Tooltip";
 import { Upload } from "@codegouvfr/react-dsfr/Upload";
 import { Style } from "ol/style";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, memo, useMemo } from "react";
+
+interface FeatureFormState {
+    [key: string]: string | number | boolean | File[] | null;
+}
 
 interface PointDataProps {
     [key: string]: string | number | null;
@@ -26,8 +30,28 @@ const EditFeatureTypeForm = () => {
     const { clickedMapFeature, setFeatureTypeMode } = useMapStore();
 
     const lastMapFeatStyle = useRef<Style | null>(null);
-    const pointData: PointDataProps = clickedMapFeature?.get("featureTypeData");
-    const geoserviceData: CommunityGeoservice = clickedMapFeature?.get("geoservice");
+
+    const pointData: PointDataProps = useMemo(() => clickedMapFeature?.get("featureTypeData"), [clickedMapFeature]);
+
+    const geoserviceData: CommunityGeoservice = useMemo(() => clickedMapFeature?.get("geoservice"), [clickedMapFeature]);
+
+    const columns: FeatureTypeColumn[] = useMemo(() => clickedMapFeature?.get("geoservice")?.columns ?? [], [clickedMapFeature]);
+
+    const [formData, setFormData] = useState<FeatureFormState>({});
+
+    useEffect(() => {
+        const initial: FeatureFormState = {};
+        columns.forEach((col) => {
+            if (!col.crs) {
+                initial[col.name] = pointData[col.name] ?? col.default_value ?? "";
+            }
+        });
+        setFormData(initial);
+    }, [pointData, columns]);
+
+    const updateField = (name: string, value: string | number | boolean | File[] | null) => {
+        setFormData((prev) => ({ ...prev, [name]: value }));
+    };
 
     useEffect(() => {
         if (clickedMapFeature) {
@@ -35,28 +59,163 @@ const EditFeatureTypeForm = () => {
             clickedMapFeature.setStyle(getSelectedFeatureTypeStyle(geoserviceData?.featureType || "point"));
             clickedMapFeature.changed();
         }
+
         return () => {
             if (clickedMapFeature && lastMapFeatStyle.current) {
                 clickedMapFeature.setStyle(lastMapFeatStyle.current);
                 clickedMapFeature.changed();
-                lastMapFeatStyle.current = null;
             }
         };
     }, [clickedMapFeature, geoserviceData]);
-
-    if (!pointData) return;
-
-    const columns: FeatureTypeColumn[] = clickedMapFeature?.get("geoservice").columns || [];
 
     const handleCancel = () => {
         setFeatureTypeMode("view");
     };
 
+    const handleSave = async () => {
+        console.log("Saving feature type data...", formData);
+        setFeatureTypeMode("view");
+    };
+
+    const handleDelete = async () => {
+        const id = pointData.id || pointData.cleabs;
+        console.log("TODO DELETE:", id);
+        setFeatureTypeMode("view");
+    };
+
+    const dataColumns = useMemo(
+        () =>
+            columns
+                .filter((col) => !col.crs)
+                .map((col) => {
+                    const titleCell = col.description ? (
+                        <Tooltip
+                            kind="hover"
+                            title={
+                                <span
+                                    dangerouslySetInnerHTML={{
+                                        __html: col.description,
+                                    }}
+                                />
+                            }
+                        >
+                            <span>{col.title}</span>
+                        </Tooltip>
+                    ) : (
+                        <span>{col.title}</span>
+                    );
+
+                    const v = formData[col.name];
+                    let valueCell: React.ReactNode;
+
+                    switch (col.type.toLowerCase()) {
+                        case "string":
+                            valueCell = (
+                                <Input
+                                    label=""
+                                    nativeInputProps={{
+                                        value: (v as string) ?? "",
+                                        onChange: (e) => updateField(col.name, e.target.value),
+                                    }}
+                                />
+                            );
+                            break;
+
+                        case "integer":
+                            if (col.enum) {
+                                valueCell = (
+                                    <Select
+                                        label=""
+                                        nativeSelectProps={{
+                                            value: (v as string) ?? "",
+                                            onChange: (e) => updateField(col.name, e.target.value),
+                                        }}
+                                    >
+                                        <option value="">Sélectionnez une option</option>
+                                        {col.enum.map((opt, idx) => (
+                                            <option key={idx} value={opt}>
+                                                {opt}
+                                            </option>
+                                        ))}
+                                    </Select>
+                                );
+                            } else {
+                                valueCell = (
+                                    <Input
+                                        label=""
+                                        nativeInputProps={{
+                                            type: "number",
+                                            value: (v as number | string) ?? "",
+                                            onChange: (e) => updateField(col.name, Number(e.target.value)),
+                                        }}
+                                    />
+                                );
+                            }
+                            break;
+
+                        case "boolean":
+                            valueCell = (
+                                <Checkbox
+                                    options={[
+                                        {
+                                            label: "",
+                                            nativeInputProps: {
+                                                checked: Boolean(v),
+                                                onChange: (e) => updateField(col.name, e.target.checked),
+                                            },
+                                        },
+                                    ]}
+                                />
+                            );
+                            break;
+
+                        case "date":
+                            valueCell = (
+                                <Input
+                                    label=""
+                                    nativeInputProps={{
+                                        type: "date",
+                                        value: (v as string) ?? "",
+                                        onChange: (e) => updateField(col.name, e.target.value),
+                                    }}
+                                />
+                            );
+                            break;
+
+                        case "document":
+                            valueCell = (
+                                <Upload
+                                    label=""
+                                    multiple
+                                    className="upload-file"
+                                    nativeInputProps={{
+                                        onChange: (e) => updateField(col.name, Array.from(e.target.files || [])),
+                                    }}
+                                />
+                            );
+                            break;
+
+                        default:
+                            valueCell = <></>;
+                    }
+
+                    return [
+                        titleCell,
+                        <div className="feature-type-form-input-cell" key={col.name}>
+                            {valueCell}
+                        </div>,
+                    ];
+                }),
+        [columns, formData]
+    );
+
+    if (!pointData) return null;
+
     return (
         <>
             <div className="feature-type-form-header fr-flex fr-align-items--center">
                 <h1 className="feature-type-form-title fr-text--lg">
-                    {clickedMapFeature?.get("geoservice")?.title} : {pointData.id || pointData.cleabs}
+                    {geoserviceData?.title} : {pointData.id || pointData.cleabs}
                 </h1>
 
                 <Button
@@ -68,130 +227,28 @@ const EditFeatureTypeForm = () => {
                     Retour
                 </Button>
             </div>
-            <>
-                <Table
-                    bordered
-                    fixed
-                    className="feature-type-form-table"
-                    data={columns.map((col) => {
-                        if (col.crs) return [];
 
-                        const titleCell = col.description ? (
-                            <Tooltip kind="hover" title={<span dangerouslySetInnerHTML={{ __html: col.description }} />}>
-                                <span>{col.title}</span>
-                            </Tooltip>
-                        ) : (
-                            <span>{col.title}</span>
-                        );
-
-                        const valueCell = (() => {
-                            const colDefaultValue =
-                                typeof col.default_value === "boolean" ? (col.default_value ? "true" : "false") : (col.default_value ?? undefined);
-
-                            switch (col.type.toLowerCase()) {
-                                case "string":
-                                    return (
-                                        <Input
-                                            label=""
-                                            nativeInputProps={{
-                                                required: !col.nullable,
-                                                defaultValue: colDefaultValue,
-                                                value: pointData[col.name] ?? undefined,
-                                            }}
-                                        />
-                                    );
-
-                                case "integer":
-                                    if (col.enum) {
-                                        return (
-                                            <Select
-                                                label=""
-                                                nativeSelectProps={{
-                                                    required: !col.nullable,
-                                                    defaultValue: colDefaultValue,
-                                                    value: pointData[col.name] ?? undefined,
-                                                }}
-                                            >
-                                                <option disabled hidden value="">
-                                                    Sélectionnez une option
-                                                </option>
-                                                {col.enum.map((opt, idx) => (
-                                                    <option key={idx} value={opt}>
-                                                        {opt}
-                                                    </option>
-                                                ))}
-                                            </Select>
-                                        );
-                                    }
-                                    return (
-                                        <Input
-                                            label=""
-                                            nativeInputProps={{
-                                                required: !col.nullable,
-                                                defaultValue: colDefaultValue,
-                                                value: pointData[col.name] ?? undefined,
-                                            }}
-                                        />
-                                    );
-
-                                case "boolean":
-                                    return (
-                                        <Checkbox
-                                            options={[
-                                                {
-                                                    label: "",
-                                                    nativeInputProps: {
-                                                        checked: pointData[col.name] === "oui" ? true : !!col.default_value,
-                                                    },
-                                                },
-                                            ]}
-                                        />
-                                    );
-
-                                case "date":
-                                    return (
-                                        <Input
-                                            label=""
-                                            nativeInputProps={{
-                                                required: !col.nullable,
-                                                type: "date",
-                                                defaultValue: colDefaultValue,
-                                                value: pointData[col.name] ?? undefined,
-                                            }}
-                                        />
-                                    );
-
-                                case "document":
-                                    return (
-                                        <Upload
-                                            label=""
-                                            multiple
-                                            className="upload-file"
-                                            nativeInputProps={{
-                                                defaultValue: colDefaultValue,
-                                                accept: "*",
-                                                value: pointData[col.name] ?? undefined,
-                                            }}
-                                        />
-                                    );
-
-                                default:
-                                    return <></>;
-                            }
-                        })();
-
-                        return [titleCell, <div className="feature-type-form-input-cell">{valueCell}</div>];
-                    })}
-                />
-            </>
+            <Table bordered fixed className="feature-type-form-table" data={dataColumns} />
 
             <div className="feature-type-form-buttons">
-                <Button priority="secondary" onClick={handleCancel}>
-                    Annuler
-                </Button>
+                <div className="feature-type-form-actions-left">
+                    <Button onClick={handleDelete} priority="primary" iconId="ri-delete-bin-line" iconPosition="right">
+                        Supprimer
+                    </Button>
+                </div>
+
+                <div className="feature-type-form-actions-right">
+                    <Button priority="secondary" onClick={handleCancel}>
+                        Annuler
+                    </Button>
+
+                    <Button priority="primary" onClick={handleSave} iconId="ri-save-line" iconPosition="right">
+                        Sauvegarder
+                    </Button>
+                </div>
             </div>
         </>
     );
 };
 
-export default EditFeatureTypeForm;
+export default memo(EditFeatureTypeForm);
