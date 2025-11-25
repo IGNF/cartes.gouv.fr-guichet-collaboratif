@@ -20,6 +20,8 @@ import ConfirmCancelModal from "./ConfirmCancelModal";
 import AttachmentList from "./AttachmentList";
 import ReportTracking from "../ReportTracking";
 import ThemeComponent from "./ThemeComponent";
+import DeleteShareReportComponent from "../DeleteShareReportComponent";
+import { useGetUserProfileAPI } from "@/api/userData";
 
 const allowedTypes = ["image/png", "image/jpg", "application/pdf"];
 const maxSizeMB = 3;
@@ -53,11 +55,14 @@ const ReportForm: React.FC<Props> = ({
     const [openSuivi, setOpenSuivi] = useState(false);
     const [committedStatus, setCommittedStatus] = useState("");
     const [showTheme, setShowTheme] = useState<boolean>(false);
+    const [themeInitial, setThemeInitial] = useState<CommunityTheme | null>(null);
     const [showDescription, setShowDescription] = useState<boolean>(false);
+    const [descriptionInitiale, setDescriptionInitiale] = useState<string>("");
     const [showDocument, setShowDocument] = useState<boolean>(false);
 
     const accordionRef = useRef<HTMLDivElement>(null);
 
+    const [expendedTheme, setExpendedTheme] = useState<boolean>(false);
     const [expendedDrawing, setExpendedDrawing] = useState<boolean>(false);
     const [expendedDescription, setExpendedDescription] = useState<boolean>(false);
     const [expendedDocument, setExpendedDocument] = useState<boolean>(false);
@@ -71,6 +76,8 @@ const ReportForm: React.FC<Props> = ({
     const [loading, setLoading] = useState<boolean>(false);
 
     const { community } = useCommunityStore();
+    const { data: userData } = useGetUserProfileAPI();
+
     const { setSelectedReport, reports, editReport, selectedReport, selectedFeatures, setSelectedFeatures, setTableDrawerOpened, setDrawerOpened } =
         useReportStore();
 
@@ -291,6 +298,7 @@ const ReportForm: React.FC<Props> = ({
         setSelectedTheme(null);
         setDescription("");
         setFilesUploaded([]);
+        setExpendedTheme(false);
         setExpendedDescription(false);
         setExpendedDocument(false);
         setErrorTheme(() => "");
@@ -303,6 +311,39 @@ const ReportForm: React.FC<Props> = ({
         setTableDrawerOpened(true);
         setDrawerOpened(false);
         setClickedControl(null);
+    };
+
+    const onToggleTheme = () => {
+        if (!showTheme) {
+            setShowTheme(true);
+            setThemeInitial(selectedTheme);
+        } else {
+            setSelectedTheme(themeInitial);
+            setShowTheme(false);
+            setExpendedTheme(false);
+            setErrorTheme(() => "");
+        }
+    };
+    const onToggleDescription = () => {
+        if (!showDescription) {
+            setDescriptionInitiale(description);
+            setShowDescription(true);
+        } else {
+            setDescription(descriptionInitiale);
+            setShowDescription(false);
+            setExpendedDescription(false);
+        }
+    };
+
+    const onToggleDocument = () => {
+        if (!showDocument) {
+            setShowDocument(true);
+        } else {
+            setExpendedDocument(false);
+            setShowDocument(false);
+            setFilesUploaded([]);
+            setErrorFiles([]);
+        }
     };
 
     const removeFile = (file: File) => {
@@ -330,14 +371,23 @@ const ReportForm: React.FC<Props> = ({
         setThemeAttributes(attributes);
     };
 
+    const isAdmin = useMemo(() => {
+        const currentUser = userData?.communitiesMember?.filter((cm) => cm.communityId === community?.id);
+        return Array.isArray(currentUser) ? currentUser.some((role) => role.role === "admin") : false;
+    }, [userData, community?.id]);
+
     if (!community) return;
+
     return (
         <>
             <div className="report-drawer">
                 {loading && <LoaderComponent />}
-                <h2 className="ri-map-pin-add-line fr-mt-4v fr-mb-1v fr-text--md">
-                    {selectedReport ? t("edit_report_title", { reportId: selectedReport.id }) : t("create_report_title")}
-                </h2>
+                <div className="report-drawer__container">
+                    <h2 className="ri-map-pin-add-line fr-mt-4v fr-mb-1v fr-text--md">
+                        {selectedReport ? t("edit_report_title", { reportId: selectedReport.id }) : t("create_report_title")}
+                    </h2>
+                    {isAdmin && <DeleteShareReportComponent handleDelete={onDelete} />}
+                </div>
                 {selectedReport && <ReportFiltersComponent reportStatus={committedStatus} />}
                 {!selectedReport && (
                     <p className={`fr-text--sm fr-mb-1v ${selectedFeatures && !selectedFeatures.length ? "fr-message--error" : ""}`}>
@@ -356,10 +406,16 @@ const ReportForm: React.FC<Props> = ({
                     {t("report_reply")}
                 </Button>
                 <div className="fr-mt-12v">
-                    <Accordion label={t("select_theme")} defaultExpanded={false}>
+                    <Accordion
+                        label={t("select_theme")}
+                        onExpandedChange={() => {
+                            setExpendedTheme(!expendedTheme);
+                        }}
+                        expanded={expendedTheme}
+                    >
                         <>
                             <h3 className="fr-text--md">{selectedReport?.themes.map((theme) => theme.theme).join(", ")}</h3>
-                            <Button className="fr-mt-4v fr-mb-4v" onClick={() => setShowTheme(!showTheme)}>
+                            <Button className="fr-mt-4v fr-mb-4v" onClick={() => onToggleTheme()}>
                                 {showTheme ? t("hide_themeToEdit") : t("show_themeToEdit")}
                             </Button>
                         </>
@@ -397,7 +453,7 @@ const ReportForm: React.FC<Props> = ({
                         expanded={expendedDescription}
                     >
                         {description ? <h3 className="fr-text--md">{description}</h3> : <p> {t("no_description")} </p>}
-                        <Button className="fr-mt-4v fr-mb-4v" onClick={() => setShowDescription(!showDescription)}>
+                        <Button className="fr-mt-4v fr-mb-4v" onClick={() => onToggleDescription()}>
                             {showDescription ? t("hide_themeToEdit") : t("show_themeToEdit")}
                         </Button>
 
@@ -437,7 +493,7 @@ const ReportForm: React.FC<Props> = ({
                                 <p> {t("no_document")} </p>
                             )}
 
-                            <Button className="fr-mt-4v fr-mb-4v" onClick={() => setShowDocument(!showDocument)}>
+                            <Button className="fr-mt-4v fr-mb-4v" onClick={() => onToggleDocument()}>
                                 {showDocument ? t("hide_themeToEdit") : t("show_themeToEdit")}
                             </Button>
 
@@ -483,7 +539,7 @@ const ReportForm: React.FC<Props> = ({
 
                     {!selectedReport && t("report_note")}
 
-                    {!selectedReport ? (
+                    {!selectedReport && (
                         <div className="submit">
                             <Button size="large" onClick={onSubmit}>
                                 {t("submit_report")}
@@ -491,16 +547,6 @@ const ReportForm: React.FC<Props> = ({
                             <Button nativeButtonProps={confirmCancelModal.buttonProps} priority="tertiary" title="Annuler">
                                 {t("cancel_report")}
                             </Button>
-                        </div>
-                    ) : (
-                        <div className="buttons">
-                            <Button priority="secondary" onClick={onDelete}>
-                                {t("delete_report")}
-                            </Button>
-                            <Button priority="secondary" onClick={onClose}>
-                                {t("cancel_report")}
-                            </Button>
-                            <Button onClick={onSubmit}>{t("save_report")}</Button>
                         </div>
                     )}
                 </div>

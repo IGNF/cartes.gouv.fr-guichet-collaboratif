@@ -45,6 +45,7 @@ export type ComponentKey =
     | import("../features/reports/locale/CreateReport.locale").I18n
     | import("../features/reports/locale/EditReport.locale").I18n
     | import("../features/reports/locale/ShowReport.locale").I18n
+    | import("../features/reports/locale/ConfirmDeleteShareReportModal.locale").I18n
     | import("../features/reports/locale/ReportTracking.locale").I18n
     | import("../features/working-layer/forms/locale/ShowFeatureTypeForm.locale").I18n
     | import("../features/working-layer/modal/locale/ClickableFeaturesModal.locale").I18n

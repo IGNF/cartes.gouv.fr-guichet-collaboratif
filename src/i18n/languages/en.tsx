@@ -19,6 +19,7 @@ import { CenterMessageEnTranslations } from "@/features/reports/locale/CenterMes
 import { CreateReportEnTranslations } from "@/features/reports/locale/CreateReport.locale";
 import { EditReportEnTranslations } from "@/features/reports/locale/EditReport.locale";
 import { ShowReportEnTranslations } from "@/features/reports/locale/ShowReport.locale";
+import { ConfirmDeleteShareReportModalEnTranslations } from "@/features/reports/locale/ConfirmDeleteShareReportModal.locale";
 import { ReportTrackingEnTranslations } from "@/features/reports/locale/ReportTracking.locale";
 import { useGetReportsLayerEnTranslations } from "@/hooks/navigation/layers/locale/useGetReportsLayer.locale";
 import { useGetWFSLayerEnTranslations } from "@/hooks/navigation/layers/locale/useGetWFSLayer.locale";
@@ -64,6 +65,7 @@ export const translations: Translations<"en"> = {
     CreateReport: CreateReportEnTranslations,
     EditReport: EditReportEnTranslations,
     ShowReport: ShowReportEnTranslations,
+    ConfirmDeleteShareReportModal: ConfirmDeleteShareReportModalEnTranslations,
     ReportTracking: ReportTrackingEnTranslations,
     useGetReportsLayer: useGetReportsLayerEnTranslations,
     useGetWFSLayer: useGetWFSLayerEnTranslations,

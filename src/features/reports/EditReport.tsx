@@ -112,7 +112,13 @@ const EditReport: React.FC<Props> = ({ handleCloseDrawer }) => {
             addAlertMessage(StatusMessage.success, t("report_deleted_success", { reportId: selectedReport.id }));
             const reportLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE);
             const reportSource = reportLayer?.getSource() as VectorSource;
-            reportSource.removeFeatures(reportSource.getFeatures().filter((f) => f.get("reportData").id === selectedReport.id));
+
+            const filteredFeatures = reportSource.getFeatures().filter((f) => {
+                const reportData = f.get("reportData");
+                return reportData?.id === selectedReport.id;
+            });
+
+            reportSource.removeFeatures(filteredFeatures);
             setReports([...reports.filter((report) => report.id !== selectedReport.id)], true);
             handleCloseDrawer();
             clearDrawingLayer(map);

@@ -147,8 +147,14 @@
 }
 
 .report-drawer {
+    position: relative;
     width: 588px;
     padding: 10px 16px;
+}
+
+.report-drawer__container {
+    position: relative;
+    display: flex;
 }
 
 .report-drawer .note {

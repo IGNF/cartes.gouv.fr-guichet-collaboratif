@@ -14,17 +14,14 @@ const ModaleComponent: React.FC<ModaleProps> = ({ title, children, modal, onConf
     return (
         <modal.Component
             title={title}
-            iconId="fr-icon-info-fill"
             buttons={[
                 {
-                    iconId: "ri-check-line",
-                    onClick: onConfirm,
-                    children: confirmText,
-                },
-                {
-                    iconId: "ri-close-line",
                     onClick: onClose,
                     children: cancelText,
+                },
+                {
+                    onClick: onConfirm,
+                    children: confirmText,
                 },
             ]}
         >

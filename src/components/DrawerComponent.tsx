@@ -15,7 +15,7 @@ interface Props {
     onClose: () => void;
 }
 
-const DrawerComponent: React.FC<Props> = ({ anchor, isOpen, children, create, onClose }) => {
+const DrawerComponent: React.FC<Props> = ({ anchor, isOpen, children, onClose }) => {
     const mapToolbarHeader = document.getElementById("map-toolbar-header");
     const headerHeight = (mapToolbarHeader?.clientHeight || 0) + APP_FOOTER_MIN_HEIGHT;
 
@@ -37,7 +37,16 @@ const DrawerComponent: React.FC<Props> = ({ anchor, isOpen, children, create, on
                 }}
             >
                 <div className="drawer-close">
-                    {!create && <Button iconId="ri-close-line" onClick={onClose} priority="tertiary no outline" title={t("button_title")} />}
+                    <Button
+                        className="fr-icon--lg"
+                        iconId="ri-close-line"
+                        onClick={onClose}
+                        priority="tertiary no outline"
+                        title={t("button_title")}
+                        size="medium"
+                    >
+                        {t("button_title")}
+                    </Button>
                 </div>
                 <div className="drawer-content" style={{ height: `calc(100vh - 40px - ${headerHeight}px)`, overflow: "auto" }}>
                     {children}
