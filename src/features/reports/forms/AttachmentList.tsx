@@ -12,11 +12,12 @@ interface Props {
     newFiles?: File[] | null;
     errorFiles?: ErrorFile[];
     removeFile?: (file: File) => void;
+    showDocument?: boolean;
 }
 
-const AttachmentList: React.FC<Props> = ({ newFiles, errorFiles, removeFile }) => {
+const AttachmentList: React.FC<Props> = ({ newFiles, errorFiles, removeFile, showDocument }) => {
     const { addAlertMessage } = useCommunityStore();
-    const { reports, selectedReport, setReports, isShowReport, editReport } = useReportStore();
+    const { reports, selectedReport, setReports, editReport } = useReportStore();
 
     const [loading, setLoading] = useState(false);
 
@@ -43,7 +44,7 @@ const AttachmentList: React.FC<Props> = ({ newFiles, errorFiles, removeFile }) =
     return (
         <div className="report-attachments">
             {loading && <LoaderComponent />}
-            {isShowReport() && !report?.attachments.length && <p>{t("no_attachments")}</p>}
+            {!report?.attachments?.length && <p>{t("no_attachments")}</p>}
             {report &&
                 report.attachments.map((attachment) => (
                     <div key={`attachment_${attachment.id}`}>
@@ -52,7 +53,7 @@ const AttachmentList: React.FC<Props> = ({ newFiles, errorFiles, removeFile }) =
                             {attachment.name}
                         </a>
 
-                        {editReport && (
+                        {editReport && showDocument && (
                             <Button
                                 iconId="ri-delete-bin-2-fill"
                                 title={t("delete_file", { fileName: attachment.name })}

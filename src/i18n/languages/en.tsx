@@ -13,11 +13,14 @@ import { ConfirmDeleteReportModalEnTranslations } from "@/features/reports/forms
 import { DrawingFormEnTranslations } from "@/features/reports/forms/locale/DrawingForm.locale";
 import { ImportSketchFileEnTranslations } from "@/features/reports/forms/locale/ImportSketchFile.locale";
 import { ReportFormEnTranslations } from "@/features/reports/forms/locale/ReportForm.locale";
+import { ThemeComponentEnTranslations } from "@/features/reports/forms/locale/ThemeComponent.locale";
 import { ThemeFormEnTranslations } from "@/features/reports/forms/locale/ThemeForm.locale";
 import { CenterMessageEnTranslations } from "@/features/reports/locale/CenterMessage.locale";
 import { CreateReportEnTranslations } from "@/features/reports/locale/CreateReport.locale";
 import { EditReportEnTranslations } from "@/features/reports/locale/EditReport.locale";
+import { ReportDrawerEnTranslations } from "@/features/reports/locale/ReportDrawer.locale";
 import { ShowReportEnTranslations } from "@/features/reports/locale/ShowReport.locale";
+import { ConfirmDeleteShareReportModalEnTranslations } from "@/features/reports/locale/ConfirmDeleteShareReportModal.locale";
 import { ReportTrackingEnTranslations } from "@/features/reports/locale/ReportTracking.locale";
 import { useGetReportsLayerEnTranslations } from "@/hooks/navigation/layers/locale/useGetReportsLayer.locale";
 import { useGetWFSLayerEnTranslations } from "@/hooks/navigation/layers/locale/useGetWFSLayer.locale";
@@ -57,11 +60,14 @@ export const translations: Translations<"en"> = {
     DrawingForm: DrawingFormEnTranslations,
     ImportSketchFile: ImportSketchFileEnTranslations,
     ReportForm: ReportFormEnTranslations,
+    ThemeComponent: ThemeComponentEnTranslations,
     ThemeForm: ThemeFormEnTranslations,
     CenterMessage: CenterMessageEnTranslations,
     CreateReport: CreateReportEnTranslations,
     EditReport: EditReportEnTranslations,
+    ReportDrawer: ReportDrawerEnTranslations,
     ShowReport: ShowReportEnTranslations,
+    ConfirmDeleteShareReportModal: ConfirmDeleteShareReportModalEnTranslations,
     ReportTracking: ReportTrackingEnTranslations,
     useGetReportsLayer: useGetReportsLayerEnTranslations,
     useGetWFSLayer: useGetWFSLayerEnTranslations,

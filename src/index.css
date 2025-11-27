@@ -70,6 +70,11 @@
     display: flex;
     justify-content: end;
 }
+.drawer-close > button.ri-close-line {
+    flex-direction: row-reverse;
+    align-items: center;
+    gap: 8px;
+}
 
 .loader {
     position: absolute;

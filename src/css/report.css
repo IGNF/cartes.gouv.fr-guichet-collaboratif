@@ -147,8 +147,14 @@
 }
 
 .report-drawer {
+    position: relative;
     width: 588px;
     padding: 10px 16px;
+}
+
+.report-drawer__container {
+    position: relative;
+    display: flex;
 }
 
 .report-drawer .note {
@@ -182,7 +188,6 @@
 
 .report-attachments {
     margin-top: 10px;
-    margin-bottom: 25px;
 }
 .report-attachments div {
     display: flex;
@@ -238,7 +243,6 @@
     display: flex;
     flex-direction: column;
     margin-top: 25px;
-    margin-bottom: 25px;
     gap: 5px;
 }
 

@@ -1,31 +1,36 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "@/i18n";
 import { Feature } from "ol";
 import Layer from "ol/layer/Layer";
 import VectorSource, { VectorSourceEvent } from "ol/source/Vector";
 import useReportTools from "@/hooks/reports/useReportTools";
-import { useMapStore, useReportStore } from "@/store";
+import { useMapStore, useReportStore, useUserStore } from "@/store";
 import { ClickedTool, ReportTool, toolNames } from "@/constants/reports/types";
 import { getReportAllFeatures, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import Button from "@codegouvfr/react-dsfr/Button";
 import SketchList from "./SketchList";
 import ImportSketchFile from "./ImportSketchFile";
+import { STATUS_NOT_ALLOWED } from "@/constants/utils";
 
 interface Props {
     clickedTool?: ClickedTool;
     handleToolClick?: (tool: ReportTool | undefined) => void;
     hideToolsDiv?: boolean;
+    onSubmitSketch?: () => void;
 }
 
-const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsDiv }) => {
+const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsDiv, onSubmitSketch }) => {
+    const [showSketch, setShowSketch] = useState<boolean>(false);
     const { map } = useMapStore();
-    const { selectedReport, selectedFeatures, setSelectedFeatures } = useReportStore();
+    const { selectedReport, selectedFeatures, setSelectedFeatures, editReport } = useReportStore();
 
     const importFileRef = useRef<HTMLInputElement>(null);
 
     const { t } = useTranslation({ DrawingForm });
 
     const reportTools = useReportTools();
+
+    const { user } = useUserStore();
 
     const reportLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE);
     const reportSource = reportLayer?.getSource() as VectorSource;
@@ -119,9 +124,18 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsD
         return false;
     };
 
+    const isOwner = Number(user?.id) === Number(selectedReport?.author?.id);
     return (
         <>
-            {!hideToolsDiv && (
+            <SketchList />
+
+            {!hideToolsDiv && editReport && !showSketch && (
+                <Button className="fr-mt-4v" onClick={() => setShowSketch(!showSketch)}>
+                    {t("show_sketchToEdit")}
+                </Button>
+            )}
+
+            {((!hideToolsDiv && showSketch) || (!editReport && !STATUS_NOT_ALLOWED.includes(selectedReport?.status ?? "") && isOwner)) && (
                 <>
                     <p className="fr-text--sm fr-mb-1v">{t("drawing_message")}</p>
                     <div className="report-tools">
@@ -175,8 +189,14 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsD
                     </div>
                 </>
             )}
-
-            <SketchList />
+            {showSketch && (
+                <div className="report__actions">
+                    {editReport && <Button onClick={onSubmitSketch}>{t("save_sketch")}</Button>}
+                    <Button priority="secondary" onClick={() => setShowSketch(!showSketch)}>
+                        {t("hide_sketchToEdit")}
+                    </Button>
+                </div>
+            )}
         </>
     );
 };

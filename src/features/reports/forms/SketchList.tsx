@@ -13,7 +13,7 @@ import { StatusMessage } from "@/constants/communities/types";
 import { SketchFeatureType, toolNames } from "@/constants/reports/types";
 import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import { selectionCircleStyle } from "@/constants/styles";
-import { getFeatureDiam, handleCenterToFeature, mainMarker, markersStyles, otherMarkers } from "@/constants/utils";
+import { getFeatureDiam, handleCenterToFeature, mainMarker, markersStyles, otherMarkers, STATUS_NOT_ALLOWED } from "@/constants/utils";
 import Button from "@codegouvfr/react-dsfr/Button";
 
 const hoveredFeatureStyle: { strockWidth: number; imageScale: number | Size } = { strockWidth: 1, imageScale: 1 };
@@ -21,7 +21,7 @@ const hoveredFeatureStyle: { strockWidth: number; imageScale: number | Size } = 
 const SketchList = () => {
     const { map } = useMapStore();
     const { addAlertMessage } = useCommunityStore();
-    const { selectedFeatures, setSelectedFeatures, editReport } = useReportStore();
+    const { selectedFeatures, setSelectedFeatures, editReport, selectedReport } = useReportStore();
 
     const clusterLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE);
     const clusterSource = clusterLayer?.getSource() as VectorSource;
@@ -122,7 +122,7 @@ const SketchList = () => {
 
     return (
         <div className="report-features">
-            {!sketchFeatures.length && <p>Aucun croquis associé</p>}
+            {!sketchFeatures.length && editReport && <p>Aucun croquis associé</p>}
             {sketchFeatures.map((feature, index) => {
                 const featureType = feature.getGeometry()?.getType();
                 const featureStyle = feature.getStyle() as Style;
@@ -156,7 +156,7 @@ const SketchList = () => {
                             <span>{text}</span>
                         </div>
 
-                        {editReport && (
+                        {editReport && selectedReport?.status && !STATUS_NOT_ALLOWED.includes(selectedReport.status) && (
                             <Button
                                 iconId="ri-delete-bin-2-fill"
                                 priority={"tertiary"}

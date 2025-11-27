@@ -39,11 +39,14 @@ export type ComponentKey =
     | import("../features/reports/forms/locale/DrawingForm.locale").I18n
     | import("../features/reports/forms/locale/ImportSketchFile.locale").I18n
     | import("../features/reports/forms/locale/ReportForm.locale").I18n
+    | import("../features/reports/forms/locale/ThemeComponent.locale").I18n
     | import("../features/reports/forms/locale/ThemeForm.locale").I18n
     | import("../features/reports/locale/CenterMessage.locale").I18n
     | import("../features/reports/locale/CreateReport.locale").I18n
     | import("../features/reports/locale/EditReport.locale").I18n
     | import("../features/reports/locale/ShowReport.locale").I18n
+    | import("../features/reports/locale/ReportDrawer.locale").I18n
+    | import("../features/reports/locale/ConfirmDeleteShareReportModal.locale").I18n
     | import("../features/reports/locale/ReportTracking.locale").I18n
     | import("../features/working-layer/forms/locale/ShowFeatureTypeForm.locale").I18n
     | import("../features/working-layer/modal/locale/ClickableFeaturesModal.locale").I18n

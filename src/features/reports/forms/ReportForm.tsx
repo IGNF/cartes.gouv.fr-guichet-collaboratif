@@ -12,17 +12,18 @@ import useReportTools from "@/hooks/reports/useReportTools";
 import Accordion from "@codegouvfr/react-dsfr/Accordion";
 import Button from "@codegouvfr/react-dsfr/Button";
 import Input from "@codegouvfr/react-dsfr/Input";
-import RadioButtons from "@codegouvfr/react-dsfr/RadioButtons";
 import { Upload } from "@codegouvfr/react-dsfr/Upload";
 import LoaderComponent from "@/components/LoaderComponent";
 import ReportFiltersComponent from "@/components/ReportFiltersComponent";
-import ThemeForm from "./ThemeForm";
 import DrawingForm from "./DrawingForm";
 import ConfirmCancelModal from "./ConfirmCancelModal";
 import AttachmentList from "./AttachmentList";
 import ReportTracking from "../ReportTracking";
+import ThemeComponent from "./ThemeComponent";
+import DeleteShareReportComponent from "../DeleteShareReportComponent";
+import { useGetUserProfileAPI } from "@/api/userData";
 
-const allowedTypes = ["image/png", "image/jpg", "application/pdf"];
+const allowedTypes = ["image/png", "image/jpg", "image/jpeg", "application/pdf"];
 const maxSizeMB = 3;
 const maxSizeBytes = maxSizeMB * 1024 * 1024;
 
@@ -53,9 +54,15 @@ const ReportForm: React.FC<Props> = ({
 
     const [openSuivi, setOpenSuivi] = useState(false);
     const [committedStatus, setCommittedStatus] = useState("");
+    const [showTheme, setShowTheme] = useState<boolean>(false);
+    const [themeInitial, setThemeInitial] = useState<CommunityTheme | null>(null);
+    const [showDescription, setShowDescription] = useState<boolean>(false);
+    const [descriptionInitiale, setDescriptionInitiale] = useState<string>("");
+    const [showDocument, setShowDocument] = useState<boolean>(false);
 
     const accordionRef = useRef<HTMLDivElement>(null);
 
+    const [expendedTheme, setExpendedTheme] = useState<boolean>(true);
     const [expendedDrawing, setExpendedDrawing] = useState<boolean>(false);
     const [expendedDescription, setExpendedDescription] = useState<boolean>(false);
     const [expendedDocument, setExpendedDocument] = useState<boolean>(false);
@@ -69,7 +76,19 @@ const ReportForm: React.FC<Props> = ({
     const [loading, setLoading] = useState<boolean>(false);
 
     const { community } = useCommunityStore();
-    const { setSelectedReport, reports, editReport, selectedReport, selectedFeatures, setSelectedFeatures, setTableDrawerOpened } = useReportStore();
+    const { data: userData } = useGetUserProfileAPI();
+
+    const {
+        setSelectedReport,
+        reports,
+        editReport,
+        selectedReport,
+        selectedFeatures,
+        setSelectedFeatures,
+        setTableDrawerOpened,
+        setDrawerOpened,
+        toggleSortByDateCreation,
+    } = useReportStore();
 
     const reportTools = useReportTools();
     const { confirmCancelModal } = useModalStore();
@@ -186,6 +205,7 @@ const ReportForm: React.FC<Props> = ({
     }, [editReport, themeAttributes, validateThemeAttributes]);
 
     const onSubmit = async () => {
+        toggleSortByDateCreation("DESC");
         if (clickedTool.clicked) handleToolClick(reportTools.find((tool) => tool.name === clickedTool.name));
 
         if (!validateTheme() || !validateFiles(filesUploaded)) {
@@ -288,6 +308,7 @@ const ReportForm: React.FC<Props> = ({
         setSelectedTheme(null);
         setDescription("");
         setFilesUploaded([]);
+        setExpendedTheme(false);
         setExpendedDescription(false);
         setExpendedDocument(false);
         setErrorTheme(() => "");
@@ -298,7 +319,41 @@ const ReportForm: React.FC<Props> = ({
         if (handleClose) handleClose();
 
         setTableDrawerOpened(true);
+        setDrawerOpened(false);
         setClickedControl(null);
+    };
+
+    const onToggleTheme = () => {
+        if (!showTheme) {
+            setShowTheme(true);
+            setThemeInitial(selectedTheme);
+        } else {
+            setSelectedTheme(themeInitial);
+            setShowTheme(false);
+            setExpendedTheme(false);
+            setErrorTheme(() => "");
+        }
+    };
+    const onToggleDescription = () => {
+        if (!showDescription) {
+            setDescriptionInitiale(description);
+            setShowDescription(true);
+        } else {
+            setDescription(descriptionInitiale);
+            setShowDescription(false);
+            setExpendedDescription(false);
+        }
+    };
+
+    const onToggleDocument = () => {
+        if (!showDocument) {
+            setShowDocument(true);
+        } else {
+            setExpendedDocument(false);
+            setShowDocument(false);
+            setFilesUploaded([]);
+            setErrorFiles([]);
+        }
     };
 
     const removeFile = (file: File) => {
@@ -326,14 +381,23 @@ const ReportForm: React.FC<Props> = ({
         setThemeAttributes(attributes);
     };
 
+    const isAdmin = useMemo(() => {
+        const currentUser = userData?.communitiesMember?.filter((cm) => cm.communityId === community?.id);
+        return Array.isArray(currentUser) ? currentUser.some((role) => role.role === "admin") : false;
+    }, [userData, community?.id]);
+
     if (!community) return;
+
     return (
         <>
             <div className="report-drawer">
                 {loading && <LoaderComponent />}
-                <h2 className="ri-map-pin-add-line fr-mt-4v fr-mb-1v fr-text--md">
-                    {selectedReport ? t("edit_report_title", { reportId: selectedReport.id }) : t("create_report_title")}
-                </h2>
+                <div className="report-drawer__container">
+                    <h2 className="ri-map-pin-add-line fr-mt-4v fr-mb-1v fr-text--md">
+                        {selectedReport ? t("edit_report_title", { reportId: selectedReport.id }) : t("create_report_title")}
+                    </h2>
+                    {editReport && isAdmin && <DeleteShareReportComponent handleDelete={onDelete} />}
+                </div>
                 {selectedReport && <ReportFiltersComponent reportStatus={committedStatus} />}
                 {!selectedReport && (
                     <p className={`fr-text--sm fr-mb-1v ${selectedFeatures && !selectedFeatures.length ? "fr-message--error" : ""}`}>
@@ -341,50 +405,54 @@ const ReportForm: React.FC<Props> = ({
                     </p>
                 )}
 
-                <Button
-                    onClick={() => {
-                        setOpenSuivi(true);
-                        setTimeout(() => {
-                            accordionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-                        }, 100);
-                    }}
-                >
-                    {t("report_reply")}
-                </Button>
+                {editReport && (
+                    <Button
+                        onClick={() => {
+                            setOpenSuivi(true);
+                            setTimeout(() => {
+                                accordionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                            }, 100);
+                        }}
+                    >
+                        {t("report_reply")}
+                    </Button>
+                )}
                 <div className="fr-mt-12v">
-                    <Accordion label={t("select_theme")} defaultExpanded={false}>
-                        <RadioButtons
-                            ref={themeRef}
-                            legend={t("select_theme")}
-                            options={community.themes.map((theme) => {
-                                return {
-                                    label: theme.theme,
-                                    nativeInputProps: {
-                                        checked: selectedTheme?.theme === theme.theme,
-                                        onClick: () => {
-                                            setSelectedTheme(theme);
-                                            setThemeAttributes(getThemeAttributes(theme));
-
-                                            setErrorTheme(() => "");
-                                        },
-                                        required: true,
-                                    },
-                                };
-                            })}
-                            state={errorTheme ? "error" : selectedTheme ? "success" : "default"}
-                            stateRelatedMessage={errorTheme ?? ""}
-                            orientation="horizontal"
-                            small
-                            className="theme-radio fr-mt-4v fr-mb-1v fr-text--md"
-                        />
-                        {selectedTheme && (
-                            <ThemeForm theme={selectedTheme} themeAttributes={themeAttributes} onChangeThemeAttributes={onChangeThemeAttributes} />
+                    <Accordion
+                        label={t("select_theme")}
+                        onExpandedChange={() => {
+                            setExpendedTheme(!expendedTheme);
+                        }}
+                        expanded={expendedTheme}
+                    >
+                        <>
+                            <h3 className="fr-text--md fr-mb-1v">{selectedReport?.themes.map((theme) => theme.theme).join(", ")}</h3>
+                            {editReport && !showTheme && (
+                                <Button className="fr-mt-4v" onClick={() => onToggleTheme()}>
+                                    {t("show_toEdit")}
+                                </Button>
+                            )}
+                        </>
+                        {(showTheme || !editReport) && (
+                            <ThemeComponent
+                                communityThemes={community.themes}
+                                selectedTheme={selectedTheme}
+                                setSelectedTheme={setSelectedTheme}
+                                themeAttributes={themeAttributes}
+                                onChangeThemeAttributes={onChangeThemeAttributes}
+                                errorTheme={errorTheme}
+                                editReport={editReport}
+                                onSubmitTheme={onSubmitTheme}
+                                themeRef={themeRef}
+                            />
                         )}
-
-                        {editReport && (
-                            <Button size="large" onClick={onSubmitTheme}>
-                                {t("submit_theme")}
-                            </Button>
+                        {showTheme && (
+                            <div className="report__actions">
+                                {editReport && <Button onClick={onSubmitTheme}>{t("save_report")}</Button>}
+                                <Button priority="secondary" onClick={() => onToggleTheme()}>
+                                    {showTheme ? t("hide_toEdit") : editReport ? t("show_toEdit") : t("show_toCreate")}
+                                </Button>
+                            </div>
                         )}
                     </Accordion>
 
@@ -395,13 +463,7 @@ const ReportForm: React.FC<Props> = ({
                         }}
                         expanded={expendedDrawing}
                     >
-                        <DrawingForm clickedTool={clickedTool} handleToolClick={handleToolClick} />
-
-                        {editReport && (
-                            <Button size="large" onClick={onSubmitSketch}>
-                                {t("submit_sketch")}
-                            </Button>
-                        )}
+                        <DrawingForm clickedTool={clickedTool} handleToolClick={handleToolClick} onSubmitSketch={onSubmitSketch} />
                     </Accordion>
 
                     <Accordion
@@ -411,21 +473,33 @@ const ReportForm: React.FC<Props> = ({
                         }}
                         expanded={expendedDescription}
                     >
-                        <Input
-                            label={t("describe_report_label")}
-                            textArea
-                            nativeTextAreaProps={{
-                                value: description,
-                                rows: 5,
-                                onChange: (e) => {
-                                    setDescription(e.target.value);
-                                },
-                            }}
-                        />
-                        {editReport && (
-                            <Button size="large" onClick={onSubmitDescription}>
-                                {t("submit_description")}
+                        {description && editReport ? <h3 className="fr-text--md fr-mb-1v">{description}</h3> : <p> {t("no_description")} </p>}
+                        {editReport && !showDescription && (
+                            <Button className="fr-mt-4v" onClick={() => onToggleDescription()}>
+                                {showDescription ? t("hide_toEdit") : editReport ? t("show_toEdit") : t("show_toCreate")}
                             </Button>
+                        )}
+
+                        {(showDescription || !editReport) && (
+                            <Input
+                                label={t("describe_report_label")}
+                                textArea
+                                nativeTextAreaProps={{
+                                    value: description,
+                                    rows: 5,
+                                    onChange: (e) => {
+                                        setDescription(e.target.value);
+                                    },
+                                }}
+                            />
+                        )}
+                        {showDescription && (
+                            <div className="report__actions">
+                                {editReport && <Button onClick={onSubmitDescription}>{t("submit_report")}</Button>}
+                                <Button priority="secondary" onClick={() => onToggleDescription()}>
+                                    {showDescription ? t("hide_toEdit") : editReport ? t("show_toEdit") : t("show_toCreate")}
+                                </Button>
+                            </div>
                         )}
                     </Accordion>
 
@@ -436,30 +510,43 @@ const ReportForm: React.FC<Props> = ({
                         }}
                         expanded={expendedDocument}
                     >
-                        <div
-                            style={{
-                                width: "100%",
-                            }}
-                        >
-                            <Upload
-                                ref={filesRef}
-                                label={t("import_attachments_label")}
-                                hint={t("import_attachments_hint", { maxSizeMB })}
-                                state={errorFiles.length ? "error" : filesUploaded.length ? "success" : "default"}
-                                stateRelatedMessage=""
-                                multiple
-                                className="upload-file"
-                                nativeInputProps={{
-                                    value: "",
-                                    accept: ".jpg,.png,.pdf",
-                                    onChange: (e) => onUploadChange(e),
-                                }}
-                            />
-                            <AttachmentList newFiles={filesUploaded} errorFiles={errorFiles} removeFile={removeFile} />
-                            {editReport && (
-                                <Button size="large" onClick={onSubmitDocument}>
-                                    {t("submit_document")}
+                        <div>
+                            <AttachmentList newFiles={filesUploaded} errorFiles={errorFiles} removeFile={removeFile} showDocument={showDocument} />
+
+                            {editReport && !showDocument && (
+                                <Button className="fr-mt-4v" onClick={() => onToggleDocument()}>
+                                    {showDocument
+                                        ? t("hide_toEdit")
+                                        : editReport && selectedReport && selectedReport.attachments.length > 0
+                                          ? t("show_toEdit")
+                                          : t("show_toCreate")}
                                 </Button>
+                            )}
+                            {(showDocument || !editReport) && (
+                                <Upload
+                                    ref={filesRef}
+                                    label={t("import_attachments_label")}
+                                    hint={t("import_attachments_hint", { maxSizeMB })}
+                                    state={errorFiles.length ? "error" : filesUploaded.length ? "success" : "default"}
+                                    stateRelatedMessage=""
+                                    multiple
+                                    className="upload-file"
+                                    nativeInputProps={{
+                                        value: "",
+                                        accept: ".jpg,.png,.pdf",
+                                        onChange: (e) => onUploadChange(e),
+                                    }}
+                                />
+                            )}
+                            {showDocument && (
+                                <>
+                                    <div className="report__actions">
+                                        {editReport && <Button onClick={onSubmitDocument}>{t("submit_report")}</Button>}
+                                        <Button priority="secondary" onClick={() => onToggleDocument()}>
+                                            {showDocument ? t("hide_toEdit") : editReport ? t("show_toEdit") : t("show_toCreate")}
+                                        </Button>
+                                    </div>
+                                </>
                             )}
                         </div>
                     </Accordion>
@@ -480,24 +567,12 @@ const ReportForm: React.FC<Props> = ({
 
                     {!selectedReport && t("report_note")}
 
-                    {!selectedReport ? (
+                    {!selectedReport && (
                         <div className="submit">
-                            <Button size="large" onClick={onSubmit}>
-                                {t("submit_report")}
-                            </Button>
+                            <Button onClick={onSubmit}>{t("submit_report")}</Button>
                             <Button nativeButtonProps={confirmCancelModal.buttonProps} priority="tertiary" title="Annuler">
                                 {t("cancel_report")}
                             </Button>
-                        </div>
-                    ) : (
-                        <div className="buttons">
-                            <Button priority="secondary" onClick={onDelete}>
-                                {t("delete_report")}
-                            </Button>
-                            <Button priority="secondary" onClick={onClose}>
-                                {t("cancel_report")}
-                            </Button>
-                            <Button onClick={onSubmit}>{t("save_report")}</Button>
                         </div>
                     )}
                 </div>

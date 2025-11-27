@@ -11,6 +11,7 @@ import ReportFiltersComponent from "@/components/ReportFiltersComponent";
 import AttachmentList from "./forms/AttachmentList";
 import ReportTracking from "./ReportTracking";
 import DrawingForm from "./forms/DrawingForm";
+import { STATUS_NOT_ALLOWED } from "@/constants/utils";
 interface Props {
     handleCloseDrawer: () => void;
 }
@@ -61,16 +62,18 @@ const ShowReport: React.FC<Props> = () => {
                     {t("report_title", { reportId: selectedReport.id })}
                 </h2>
                 <ReportFiltersComponent reportStatus={committedStatus} />
-                <Button
-                    onClick={() => {
-                        setOpenSuivi(true);
-                        setTimeout(() => {
-                            accordionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-                        }, 100);
-                    }}
-                >
-                    {t("report_reply")}
-                </Button>
+                {!STATUS_NOT_ALLOWED.includes(selectedReport.status) && (
+                    <Button
+                        onClick={() => {
+                            setOpenSuivi(true);
+                            setTimeout(() => {
+                                accordionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                            }, 100);
+                        }}
+                    >
+                        {t("report_reply")}
+                    </Button>
+                )}
                 <div className="fr-mt-12v">
                     <Accordion label={t("report_theme")} defaultExpanded={false}>
                         <RadioButtons
