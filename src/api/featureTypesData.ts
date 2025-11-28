@@ -128,14 +128,53 @@ export async function getFeatureTypesAll(featureTypesIds: FeatureTypeIds[]): Pro
     return [];
 }
 
-export async function deleteFeatureById(featureTypesId: FeatureTypeIds, featureId: string | number) {
-    const url = `${DATABASE_API_URL}/${featureTypesId.database}/tables/${featureTypesId.table}/features/${featureId}`;
-
+export async function deleteFeatureById(ids: FeatureTypeIds, featureId: number | string): Promise<boolean> {
     try {
-        await axiosApi.delete(url);
-        return true;
+        const body = {
+            comment: "Commentaire automatique (Transaction WFS, suppression)",
+            actions: [
+                {
+                    table: ids.table,
+                    state: "Delete",
+                    data: {
+                        gid: featureId,
+                    },
+                },
+            ],
+            geometry: "",
+        };
+
+        const res = await axiosApi.post(`/databases/${ids.database}/transactions`, body);
+
+        return res.status === 202;
     } catch (err) {
-        console.error("Delete failed:", err);
-        throw err;
+        console.log(err);
+        return false;
+    }
+}
+
+export async function editFeatureById(ids: FeatureTypeIds, featureId: number | string, newData: Record<string, unknown>, geometry?: string): Promise<boolean> {
+    try {
+        const body = {
+            comment: "Commentaire automatique (Transaction WFS, modification)",
+            actions: [
+                {
+                    table: ids.table,
+                    state: "Update",
+                    data: {
+                        gid: featureId,
+                        ...newData,
+                    },
+                },
+            ],
+            geometry: geometry ?? "",
+        };
+
+        const res = await axiosApi.post(`/databases/${ids.database}/transactions`, body);
+
+        return res.status === 201;
+    } catch (err) {
+        console.log(err);
+        return false;
     }
 }

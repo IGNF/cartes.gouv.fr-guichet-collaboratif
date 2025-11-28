@@ -11,7 +11,8 @@ import { Upload } from "@codegouvfr/react-dsfr/Upload";
 
 import { useEffect, useState, memo, useMemo, useCallback } from "react";
 import { EventTypes } from "ol/Observable";
-import { deleteFeatureById } from "@/api/featureTypesData";
+// import WKT from "ol/format/WKT";
+import { deleteFeatureById, editFeatureById } from "@/api/featureTypesData";
 
 interface FeatureFormState {
     [key: string]: string | number | boolean | File[] | null;
@@ -89,39 +90,63 @@ const EditFeatureTypeForm = () => {
     }, [mapSwitcher, handleLayerVisibility]);
 
     const handleSave = async () => {
-        console.log("Saving feature type data...", formData);
-        setFeatureTypeMode("view");
+        try {
+            const featureId = pointData?.id || pointData?.cleabs;
+            if (!featureId) return;
+
+            const database = featureLayer?.get("database");
+            const table = featureLayer?.get("table");
+            if (!database || !table) return;
+
+            const featureTypesId: FeatureTypeIds = {
+                database,
+                table,
+            };
+
+            const geom = clickedMapFeature?.getGeometry()?.clone().transform("EPSG:3857", "EPSG:4326").toString();
+
+            const updated = await editFeatureById(featureTypesId, featureId, formData, geom);
+
+            if (updated) {
+                setClickedMapFeature(null);
+                setWorkingLayerDrawerOpened(false);
+                setFeatureTypeMode("view");
+            } else {
+                console.error("Retour code erreur éronné");
+            }
+        } catch (error) {
+            console.error("Update échouée", error);
+        }
     };
 
     const handleDelete = async () => {
         try {
-            const featureData = clickedMapFeature?.get("featureTypeData");
-            const featureId = featureData?.id || featureData?.cleabs;
-
-            if (!featureId) {
-                console.error("Missing ID for deletion");
-                return;
-            }
+            const featureId = pointData?.id || pointData?.cleabs;
+            if (!featureId) return;
 
             const database = featureLayer?.get("database");
             const table = featureLayer?.get("table");
+            if (!database || !table) return;
 
-            if (!database || !table) {
-                return;
-            }
             const featureTypesId: FeatureTypeIds = {
-                database: database,
-                table: table,
+                database,
+                table,
             };
 
-            await deleteFeatureById(featureTypesId, featureId);
-            setClickedMapFeature(null);
-            setWorkingLayerDrawerOpened(false);
-            setFeatureTypeMode("view");
+            const deleted = await deleteFeatureById(featureTypesId, featureId);
+
+            if (deleted) {
+                setClickedMapFeature(null);
+                setWorkingLayerDrawerOpened(false);
+                setFeatureTypeMode("view");
+            } else {
+                console.error("Retour code erreur, éronné");
+            }
         } catch (error) {
-            console.error("Deletion failed:", error);
+            console.error("Suppression échouée", error);
         }
     };
+
     const dataColumns = useMemo(
         () =>
             columns
