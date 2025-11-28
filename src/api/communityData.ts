@@ -64,6 +64,8 @@ async function getCommunityLayers(communityId: string): Promise<CommunityLayer[]
             opacity: layer.opacity,
             visibility: layer.visibility,
             role: layer.role,
+            database: layer.database,
+            table: layer.table,
         };
     });
 }

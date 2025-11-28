@@ -96,22 +96,25 @@ const EditFeatureTypeForm = () => {
     const handleDelete = async () => {
         try {
             const featureData = clickedMapFeature?.get("featureTypeData");
-
             const featureId = featureData?.id || featureData?.cleabs;
+
             if (!featureId) {
                 console.error("Missing ID for deletion");
                 return;
             }
 
+            const database = featureLayer?.get("database");
+            const table = featureLayer?.get("table");
+
+            if (!database || !table) {
+                return;
+            }
             const featureTypesId: FeatureTypeIds = {
-                database: featureLayer?.get("database") || "",
-                table: featureLayer?.get("table") || "",
+                database: database,
+                table: table,
             };
 
             await deleteFeatureById(featureTypesId, featureId);
-
-            console.log("Feature deleted:", featureId);
-
             setClickedMapFeature(null);
             setWorkingLayerDrawerOpened(false);
             setFeatureTypeMode("view");
@@ -119,7 +122,6 @@ const EditFeatureTypeForm = () => {
             console.error("Deletion failed:", error);
         }
     };
-
     const dataColumns = useMemo(
         () =>
             columns

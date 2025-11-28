@@ -14,7 +14,6 @@ const GetWMSLayer: React.FC<Props> = ({ layer }) => {
     const { localStorageData } = useLocalStorageStore();
     const geoservice = layer.geoservice;
     const localLayer: LocalLayer | undefined = localStorageData?.layers.find((l) => l.name === geoservice.title);
-
     const wmsLayerSource = useGetWMSLayer(geoservice);
     useEffect(() => {
         wmsLayerSource?.setOpacity(localLayer ? localLayer.opacity : layer.opacity);

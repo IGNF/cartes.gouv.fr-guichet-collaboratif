@@ -124,6 +124,8 @@ export interface CommunityLayer {
     opacity: number;
     visibility: boolean;
     role: string;
+    database: number;
+    table: number;
 }
 
 export interface ThemeItem {
