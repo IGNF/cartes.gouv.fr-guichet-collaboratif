@@ -11,7 +11,7 @@ import { Upload } from "@codegouvfr/react-dsfr/Upload";
 
 import { useEffect, useState, memo, useMemo, useCallback } from "react";
 import { EventTypes } from "ol/Observable";
-// import WKT from "ol/format/WKT";
+import WKT from "ol/format/WKT";
 import { deleteFeatureById, editFeatureById } from "@/api/featureTypesData";
 
 interface FeatureFormState {
@@ -98,24 +98,34 @@ const EditFeatureTypeForm = () => {
             const table = featureLayer?.get("table");
             if (!database || !table) return;
 
-            const featureTypesId: FeatureTypeIds = {
-                database,
-                table,
-            };
+            const featureTypesId: FeatureTypeIds = { database, table };
 
-            const geom = clickedMapFeature?.getGeometry()?.clone().transform("EPSG:3857", "EPSG:4326").toString();
+            const geometry = clickedMapFeature?.getGeometry();
+            let wkt = "";
 
-            const updated = await editFeatureById(featureTypesId, featureId, formData, geom);
+            if (geometry) {
+                wkt = new WKT().writeGeometry(geometry.clone().transform("EPSG:3857", "EPSG:4326"));
+            }
+
+            const updated = await editFeatureById(
+                featureTypesId,
+                featureId,
+                {
+                    ...formData,
+                    geometrie: wkt,
+                },
+                wkt
+            );
 
             if (updated) {
                 setClickedMapFeature(null);
                 setWorkingLayerDrawerOpened(false);
                 setFeatureTypeMode("view");
             } else {
-                console.error("Retour code erreur éronné");
+                console.error("Save failed: update transaction failed.");
             }
         } catch (error) {
-            console.error("Update échouée", error);
+            console.error("Save failed:", error);
         }
     };
 
