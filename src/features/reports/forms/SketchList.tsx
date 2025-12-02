@@ -13,15 +13,20 @@ import { StatusMessage } from "@/constants/communities/types";
 import { SketchFeatureType, toolNames } from "@/constants/reports/types";
 import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import { selectionCircleStyle } from "@/constants/styles";
-import { getFeatureDiam, handleCenterToFeature, mainMarker, markersStyles, otherMarkers, STATUS_NOT_ALLOWED } from "@/constants/utils";
+import { getFeatureDiam, handleCenterToFeature, mainMarker, markersStyles, otherMarkers } from "@/constants/utils";
 import Button from "@codegouvfr/react-dsfr/Button";
 
 const hoveredFeatureStyle: { strockWidth: number; imageScale: number | Size } = { strockWidth: 1, imageScale: 1 };
 
-const SketchList = () => {
+interface Props {
+    showSketch: boolean;
+    expendedDrawing?: boolean;
+}
+
+const SketchList = ({ showSketch, expendedDrawing }: Props) => {
     const { map } = useMapStore();
     const { addAlertMessage } = useCommunityStore();
-    const { selectedFeatures, setSelectedFeatures, editReport, selectedReport } = useReportStore();
+    const { selectedFeatures, setSelectedFeatures, editReport } = useReportStore();
 
     const clusterLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE);
     const clusterSource = clusterLayer?.getSource() as VectorSource;
@@ -119,7 +124,6 @@ const SketchList = () => {
         },
         [map, addAlertMessage]
     );
-
     return (
         <div className="report-features">
             {!sketchFeatures.length && editReport && <p>Aucun croquis associé</p>}
@@ -156,7 +160,7 @@ const SketchList = () => {
                             <span>{text}</span>
                         </div>
 
-                        {editReport && selectedReport?.status && !STATUS_NOT_ALLOWED.includes(selectedReport.status) && (
+                        {(expendedDrawing || showSketch) && (
                             <Button
                                 iconId="ri-delete-bin-2-fill"
                                 priority={"tertiary"}

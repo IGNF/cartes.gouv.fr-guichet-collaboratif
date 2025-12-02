@@ -9,8 +9,8 @@ export const FormAttachmentsFrTranslations: Translations<"fr">["FormAttachments"
     report_updated_success: ({ reportId }: { reportId: number }) => `Le signalement ${reportId} a été mis à jour avec succès.`,
     report_updated_error: "Erreur dans la mise à jour du signalement",
     import_attachments_label: "Aidez nous à comprendre votre signalement. Ajouter par exemple des photos ou autres documents pour préciser votre message.",
-    import_attachments_hint: ({ maxSizeMB }: { maxSizeMB: number }) => `Taille maximale : ${maxSizeMB} Mo. Formats supportés : JPG, PNG, PDF`,
-    import_file_error_message_type: `Formats supportés : JPG, PNG, PDF`,
+    import_attachments_hint: ({ maxSizeMB }: { maxSizeMB: number }) => `Taille maximale : ${maxSizeMB} Mo. Formats supportés : JPG, JPEG, PNG, PDF`,
+    import_file_error_message_type: `Formats supportés : JPG, JPEG, PNG, PDF`,
     import_file_error_message_size: ({ maxSizeMB }: { maxSizeMB: number }) => `Taille maximale : ${maxSizeMB} Mo.`,
 };
 

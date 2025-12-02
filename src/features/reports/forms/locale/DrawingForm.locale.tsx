@@ -7,6 +7,7 @@ export const DrawingFormFrTranslations: Translations<"fr">["DrawingForm"] = {
     edit_tools: "Outils de modification",
     hide_sketchToEdit: "Annuler",
     show_sketchToEdit: "Ajouter",
+    edit_sketchToEdit: "Modifier",
     save_sketch: "Enregitrer",
 };
 
@@ -16,10 +17,11 @@ export const DrawingFormEnTranslations: Translations<"en">["DrawingForm"] = {
     edit_tools: "Editing tools",
     hide_sketchToEdit: "Cancel",
     show_sketchToEdit: "Add",
+    edit_sketchToEdit: "Edit",
     save_sketch: "Save",
 };
 
-const { i18n } = declareComponentKeys<"drawing_message" | "creation_tools" | "edit_tools" | "hide_sketchToEdit" | "show_sketchToEdit" | "save_sketch">()(
-    "DrawingForm"
-);
+const { i18n } = declareComponentKeys<
+    "drawing_message" | "creation_tools" | "edit_tools" | "hide_sketchToEdit" | "show_sketchToEdit" | "save_sketch" | "edit_sketchToEdit"
+>()("DrawingForm");
 export type I18n = typeof i18n;

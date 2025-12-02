@@ -307,7 +307,7 @@ const ReportDrawer = () => {
         } else {
             setEditReport(false);
         }
-    }, [drawerOpened, selectedReport, isAdmin, isOwner, setEditReport]);
+    }, [drawerOpened, selectedReport, isAdmin, isOwner, editReport]);
 
     return (
         <>

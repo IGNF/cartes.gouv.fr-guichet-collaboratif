@@ -6,7 +6,7 @@ import { useGetReportReplies } from "@/api/repliesData";
 import { useCommunityStore, useMapStore, useModalStore, useReportStore } from "@/store";
 import { useReplyStore } from "@/store/useReplyStore";
 import { CommunityTheme } from "@/constants/communities/types";
-import { ClickedTool, ErrorFile, PostThemeReport, ReportTool } from "@/constants/reports/types";
+import { ErrorFile, PostThemeReport, ReportTool } from "@/constants/reports/types";
 import { getThemeAttributes } from "@/constants/utils";
 import useReportTools from "@/hooks/reports/useReportTools";
 import Accordion from "@codegouvfr/react-dsfr/Accordion";
@@ -50,7 +50,6 @@ const ReportForm: React.FC<Props> = ({
     const [themeAttributes, setThemeAttributes] = useState<PostThemeReport>({});
     const [description, setDescription] = useState<string>("");
     const [filesUploaded, setFilesUploaded] = useState<File[]>([]);
-    const [clickedTool, setClickedTool] = useState<ClickedTool>({ name: "", clicked: false });
 
     const [openSuivi, setOpenSuivi] = useState(false);
     const [committedStatus, setCommittedStatus] = useState("");
@@ -92,7 +91,7 @@ const ReportForm: React.FC<Props> = ({
 
     const reportTools = useReportTools();
     const { confirmCancelModal } = useModalStore();
-    const { setClickedControl } = useMapStore();
+    const { setClickedControl, clickedTool, setClickedTool } = useMapStore();
     const { setReplies } = useReplyStore();
 
     const { t } = useTranslation({ ReportForm });
@@ -106,17 +105,20 @@ const ReportForm: React.FC<Props> = ({
         setSelectedReport(selectedReport);
     }, [reports, selectedReport, setSelectedReport]);
 
-    const handleToolClick = useCallback((tool: ReportTool | undefined) => {
-        if (!tool) return;
-        const toolButton = document.querySelector(`button[id*="${tool.name}"]`) as HTMLButtonElement | null;
-        if (toolButton) {
-            toolButton.click();
-            setClickedTool((prev) => {
-                return { name: tool.name, clicked: prev.name === tool.name ? !prev.clicked : true };
-            });
-        }
-    }, []);
-
+    const handleToolClick = useCallback(
+        (tool: ReportTool | undefined) => {
+            if (!tool) return;
+            const toolButton = document.querySelector(`button[id*="${tool.name}"]`) as HTMLButtonElement | null;
+            if (toolButton) {
+                toolButton.click();
+                setClickedTool({
+                    name: tool.name,
+                    clicked: clickedTool.name === tool.name ? !clickedTool.clicked : true,
+                });
+            }
+        },
+        [clickedTool.clicked, clickedTool.name, setClickedTool]
+    );
     const validateThemeAttributes = useCallback(
         (attributes: PostThemeReport) => {
             const communityTheme = community?.themes.find((t) => t.theme === selectedTheme?.theme);
@@ -217,11 +219,13 @@ const ReportForm: React.FC<Props> = ({
             if (handleSubmit) {
                 await handleSubmit(selectedTheme, themeAttributes, description, filesUploaded, selectedFeatures);
             }
+
             onClose();
         } catch {
             setLoading(false);
         }
     };
+
     const onSubmitTheme = async () => {
         if (clickedTool.clicked) handleToolClick(reportTools.find((tool) => tool.name === clickedTool.name));
 
@@ -229,12 +233,12 @@ const ReportForm: React.FC<Props> = ({
             return;
         }
         if (!community || !selectedTheme) return;
+        setLoading(true);
         try {
-            setLoading(true);
             if (handleSubmitTheme) {
                 await handleSubmitTheme(selectedTheme, themeAttributes, selectedFeatures);
+                setLoading(false);
             }
-            onClose();
         } catch {
             setLoading(false);
         }
@@ -244,10 +248,11 @@ const ReportForm: React.FC<Props> = ({
         if (clickedTool.clicked) handleToolClick(reportTools.find((tool) => tool.name === clickedTool.name));
 
         if (!community || !selectedTheme) return;
+        setLoading(true);
         try {
-            setLoading(true);
             if (handleSubmitSketch) {
                 await handleSubmitSketch(selectedTheme, themeAttributes, selectedFeatures);
+                setLoading(false);
             }
             onClose();
         } catch {
@@ -262,12 +267,12 @@ const ReportForm: React.FC<Props> = ({
             return;
         }
         if (!community || !selectedTheme) return;
+        setLoading(true);
         try {
-            setLoading(true);
             if (handleSubmitDescription) {
                 await handleSubmitDescription(selectedTheme, themeAttributes, description, selectedFeatures);
+                setLoading(false);
             }
-            onClose();
         } catch {
             setLoading(false);
         }
@@ -280,12 +285,12 @@ const ReportForm: React.FC<Props> = ({
             return;
         }
         if (!community || !selectedTheme) return;
+        setLoading(true);
         try {
-            setLoading(true);
             if (handleSubmitDocument) {
                 await handleSubmitDocument(selectedTheme, themeAttributes, description, filesUploaded, selectedFeatures);
+                setLoading(false);
             }
-            onClose();
         } catch {
             setLoading(false);
         }
@@ -318,7 +323,7 @@ const ReportForm: React.FC<Props> = ({
 
         if (handleClose) handleClose();
 
-        setTableDrawerOpened(true);
+        if (editReport) setTableDrawerOpened(true);
         setDrawerOpened(false);
         setClickedControl(null);
     };
@@ -463,7 +468,12 @@ const ReportForm: React.FC<Props> = ({
                         }}
                         expanded={expendedDrawing}
                     >
-                        <DrawingForm clickedTool={clickedTool} handleToolClick={handleToolClick} onSubmitSketch={onSubmitSketch} />
+                        <DrawingForm
+                            clickedTool={clickedTool}
+                            handleToolClick={handleToolClick}
+                            onSubmitSketch={onSubmitSketch}
+                            expendedDrawing={expendedDrawing}
+                        />
                     </Accordion>
 
                     <Accordion
@@ -476,7 +486,11 @@ const ReportForm: React.FC<Props> = ({
                         {description && editReport ? <h3 className="fr-text--md fr-mb-1v">{description}</h3> : <p> {t("no_description")} </p>}
                         {editReport && !showDescription && (
                             <Button className="fr-mt-4v" onClick={() => onToggleDescription()}>
-                                {showDescription ? t("hide_toEdit") : editReport ? t("show_toEdit") : t("show_toCreate")}
+                                {showDescription
+                                    ? t("hide_toEdit")
+                                    : editReport && selectedReport && selectedReport.comment
+                                      ? t("show_toEdit")
+                                      : t("show_toCreate")}
                             </Button>
                         )}
 
