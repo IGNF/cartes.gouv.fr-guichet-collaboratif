@@ -1,9 +1,9 @@
 import React, { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "@/i18n";
 import { useGetReportReplies } from "@/api/repliesData";
-import { useCommunityStore, useReportStore } from "@/store";
+import { useCommunityStore, useMapStore, useReportStore } from "@/store";
 import { useReplyStore } from "@/store/useReplyStore";
-import { ClickedTool, ReportTool } from "@/constants/reports/types";
+import { ReportTool } from "@/constants/reports/types";
 import RadioButtons from "@codegouvfr/react-dsfr/RadioButtons";
 import Accordion from "@codegouvfr/react-dsfr/Accordion";
 import Button from "@codegouvfr/react-dsfr/Button";
@@ -19,9 +19,9 @@ interface Props {
 const ShowReport: React.FC<Props> = () => {
     const [openSuivi, setOpenSuivi] = useState(false);
     const [committedStatus, setCommittedStatus] = useState("");
-    const [, setClickedTool] = useState<ClickedTool>({ name: "", clicked: false });
 
-    const { setSelectedReport, reports, selectedReport } = useReportStore();
+    const { setSelectedReport, reports, selectedReport, setTableDrawerOpened, setDrawerOpened } = useReportStore();
+    const { clickedTool, setClickedTool } = useMapStore();
     const { community } = useCommunityStore();
     const { setReplies } = useReplyStore();
 
@@ -42,8 +42,9 @@ const ShowReport: React.FC<Props> = () => {
         const toolButton = document.querySelector(`button[id*="${tool.name}"]`) as HTMLButtonElement | null;
         if (toolButton) {
             toolButton.click();
-            setClickedTool((prev) => {
-                return { name: tool.name, clicked: prev.name === tool.name ? !prev.clicked : true };
+            setClickedTool({
+                name: tool.name,
+                clicked: clickedTool.name === tool.name ? !clickedTool.clicked : true,
             });
         }
     }, []);
@@ -56,6 +57,18 @@ const ShowReport: React.FC<Props> = () => {
 
     return (
         <>
+            <Button
+                iconId="fr-icon-arrow-left-line"
+                className="fr-icon--sm fr-mr-7v"
+                priority="tertiary no outline"
+                title={t("report_back")}
+                onClick={() => {
+                    setTableDrawerOpened(true);
+                    setDrawerOpened(false);
+                }}
+            >
+                {t("report_back")}
+            </Button>
             <div className="report-drawer">
                 <h2 className="fr-mt-4v fr-mb-1v fr-text--md">
                     <span className="ri-map-pin-add-line fr-pr-1v" />

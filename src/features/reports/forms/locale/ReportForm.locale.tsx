@@ -15,7 +15,7 @@ export const ReportFormFrTranslations: Translations<"fr">["ReportForm"] = {
     no_document: "Aucun document ajouté",
     import_attachments: "Joindre des documents",
     import_attachments_label: "Aidez nous à comprendre votre signalement. Ajouter par exemple des photos ou autres documents pour préciser votre message.",
-    import_attachments_hint: ({ maxSizeMB }: { maxSizeMB: number }) => `Taille maximale : ${maxSizeMB} Mo. Formats supportés : JPG, PNG, PDF`,
+    import_attachments_hint: ({ maxSizeMB }: { maxSizeMB: number }) => `Taille maximale : ${maxSizeMB} Mo. Formats supportés : JPG, JPEG, PNG, PDF`,
     report_note: (
         <div className="note">
             <p>Si votre signalement ne concerne pas les thèmes ou données de ce guichet :</p>
@@ -35,7 +35,7 @@ export const ReportFormFrTranslations: Translations<"fr">["ReportForm"] = {
     all_fields_error: "Tous les champs",
     all_fields_error_message: "Merci de remplir tous les champs obligatoire",
     select_theme_error_message: "Vous devez obligatoirement choisir un thème et ses attributs pour envoyer un signalement",
-    import_file_error_message_type: `Formats supportés : JPG, PNG, PDF`,
+    import_file_error_message_type: `Formats supportés : JPG, JPEG, PNG, PDF`,
     import_file_error_message_size: ({ maxSizeMB }: { maxSizeMB: number }) => `Taille maximale : ${maxSizeMB} Mo.`,
     report_tracking: "Suivi",
     report_status: "Statut",

@@ -1,4 +1,5 @@
 import { CustomControlItem, FeatureTypeSelectedStyle } from "@/constants/communities/types";
+import { ClickedTool } from "@/constants/reports/types";
 import LayerSwitcher from "geopf-extensions-openlayers/src/packages/Controls/LayerSwitcher/LayerSwitcher";
 import { Feature, Map } from "ol";
 import { create } from "zustand";
@@ -23,6 +24,8 @@ interface MapStore {
     setClickedControl: (control: CustomControlItem | null) => void;
     setShowMapWorkingLayerSelect: (show: boolean) => void;
     setShowCenterReportButtons: (show: boolean) => void;
+    clickedTool: ClickedTool;
+    setClickedTool: (tool: ClickedTool) => void;
 }
 
 export const useMapStore = create<MapStore>((set, get) => ({
@@ -64,4 +67,6 @@ export const useMapStore = create<MapStore>((set, get) => ({
     setClickedControl: (control) => set({ clickedControl: control }),
     setShowMapWorkingLayerSelect: (show) => set({ showMapWorkingLayerSelect: show }),
     setShowCenterReportButtons: (show) => set({ showCenterReportButtons: show }),
+    clickedTool: { name: "", clicked: false },
+    setClickedTool: (tool) => set({ clickedTool: tool }),
 }));

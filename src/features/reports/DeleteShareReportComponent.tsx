@@ -2,7 +2,6 @@ import Button from "@codegouvfr/react-dsfr/Button";
 import { useState } from "react";
 import ConfirmDeleteShareReportModal from "./ConfirmDeleteShareReportModal";
 import { useModalStore } from "@/store";
-// import "../../css/report-deleteShare.css";
 interface Props {
     handleDelete: () => void;
 }
