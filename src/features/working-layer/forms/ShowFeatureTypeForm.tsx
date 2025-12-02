@@ -87,16 +87,14 @@ const ShowFeatureTypeForm = () => {
                 }
                 return [
                     col.description ? (
-                        <Tooltip kind="hover" title={<span dangerouslySetInnerHTML={{ __html: col.description }} />}>
+                        <Tooltip kind="hover" title={<span>{col.description}</span>}>
                             <span>{title}</span>
                         </Tooltip>
                     ) : (
                         <span>{title}</span>
                     ),
-                    <span
-                        className={typeof value === "string" && value.includes("vide") ? "feature-type-form-table_null_value" : ""}
-                        dangerouslySetInnerHTML={{ __html: value ?? "" }}
-                    />,
+
+                    <span className={typeof value === "string" && value.includes("vide") ? "feature-type-form-table_null_value" : ""}>{value ?? ""}</span>,
                 ];
             }),
         [columns, pointData, t]
