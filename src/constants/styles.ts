@@ -19,7 +19,7 @@ import {
 import { FlatStyle } from "ol/style/flat";
 import { getRawWellKnownNames } from "./wellKnownNames";
 import { symbolComparator } from "./mongo_parser";
-import { DEFAULT_STYLE_NAME } from ".";
+import { DEFAULT_STYLE_NAME, FEATURE_TYPE_SELECTED_PROPERTY } from ".";
 import { isDateFormat } from "./communities/utils";
 
 export const clusterReportCircleStyle = (coord: Coordinate) =>
@@ -463,7 +463,7 @@ export const getFilterStyleByCondition = (newTypes: FeatureTypeStyleItem[]) => {
             const orCondition = getConditionsByType(type.condition?.$or);
             filters.push({
                 else: true,
-                filter: ["all", ["!", ["has", "selected"]], ["any", ...getConditionedFiltersByType(orCondition)]],
+                filter: ["all", ["!", ["has", FEATURE_TYPE_SELECTED_PROPERTY]], ["any", ...getConditionedFiltersByType(orCondition)]],
                 style: getStyleWebGLDefault(newTypes![index + 1]),
             });
         }
@@ -471,7 +471,7 @@ export const getFilterStyleByCondition = (newTypes: FeatureTypeStyleItem[]) => {
             const andCondition = getConditionsByType(type.condition?.$and);
             filters.push({
                 else: true,
-                filter: ["all", ["!", ["has", "selected"]], ...getConditionedFiltersByType(andCondition)],
+                filter: ["all", ["!", ["has", FEATURE_TYPE_SELECTED_PROPERTY]], ...getConditionedFiltersByType(andCondition)],
                 style: getStyleWebGLDefault(newTypes![index + 1]),
             });
         }
@@ -487,14 +487,14 @@ export const getWebGLStyle = (geoservice: CommunityGeoservice, selectedStyle?: F
     const isDefault = newStyle.name === DEFAULT_STYLE_NAME;
     let filterSelected = [
         {
-            filter: ["all", ["==", ["get", "featureType"], "point"], ["has", "selected"]],
+            filter: ["all", ["==", ["get", "featureType"], "point"], ["has", FEATURE_TYPE_SELECTED_PROPERTY]],
             style: getStyleWebGLPoint(isDefault),
         },
     ];
     if (geoservice.featureType === "polygon") {
         filterSelected = [
             {
-                filter: ["all", ["==", ["get", "featureType"], "polygon"], ["has", "selected"]],
+                filter: ["all", ["==", ["get", "featureType"], "polygon"], ["has", FEATURE_TYPE_SELECTED_PROPERTY]],
                 style: getStyleWebGLPolygon(isDefault),
             },
         ];
@@ -502,7 +502,7 @@ export const getWebGLStyle = (geoservice: CommunityGeoservice, selectedStyle?: F
     if (geoservice.featureType === "line") {
         filterSelected = [
             {
-                filter: ["all", ["==", ["get", "featureType"], "line"], ["has", "selected"]],
+                filter: ["all", ["==", ["get", "featureType"], "line"], ["has", FEATURE_TYPE_SELECTED_PROPERTY]],
                 style: getStyleWebGLLine(isDefault),
             },
         ];
@@ -511,7 +511,7 @@ export const getWebGLStyle = (geoservice: CommunityGeoservice, selectedStyle?: F
         ...filterStyleByCondition,
         {
             else: true,
-            filter: ["!", ["has", "selected"]],
+            filter: ["!", ["has", FEATURE_TYPE_SELECTED_PROPERTY]],
             style: getStyleWebGLDefault(newTypes![0]),
         },
         ...filterSelected,

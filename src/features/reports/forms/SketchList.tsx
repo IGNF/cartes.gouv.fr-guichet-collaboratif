@@ -1,12 +1,4 @@
 import { useCallback, useEffect, useMemo } from "react";
-import { StatusMessage } from "@/constants/communities/types";
-import { SketchFeatureType, toolNames } from "@/constants/reports/types";
-import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
-import { selectionCircleStyle } from "@/constants/styles";
-import { getFeatureDiam, handleCenterToFeature, mainMarker, markersStyles, otherMarkers } from "@/constants/utils";
-import { useCommunityStore, useMapStore, useReportStore } from "@/store";
-import Button from "@codegouvfr/react-dsfr/Button";
-import Drawing from "geopf-extensions-openlayers/src/packages/Controls/Drawing/Drawing";
 import { Feature } from "ol";
 import { Control } from "ol/control";
 import Layer from "ol/layer/Layer";
@@ -14,14 +6,27 @@ import { Size } from "ol/size";
 import VectorSource from "ol/source/Vector";
 import { Style } from "ol/style";
 import ImageStyle from "ol/style/Image";
+import Drawing from "geopf-extensions-openlayers/src/packages/Controls/Drawing/Drawing";
 import useReportTools from "@/hooks/reports/useReportTools";
+import { useCommunityStore, useMapStore, useReportStore } from "@/store";
+import { StatusMessage } from "@/constants/communities/types";
+import { SketchFeatureType, toolNames } from "@/constants/reports/types";
+import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
+import { selectionCircleStyle } from "@/constants/styles";
+import { getFeatureDiam, handleCenterToFeature, mainMarker, markersStyles, otherMarkers } from "@/constants/utils";
+import Button from "@codegouvfr/react-dsfr/Button";
 
 const hoveredFeatureStyle: { strockWidth: number; imageScale: number | Size } = { strockWidth: 1, imageScale: 1 };
 
-const SketchList = () => {
+interface Props {
+    showSketch: boolean;
+    expendedDrawing?: boolean;
+}
+
+const SketchList = ({ showSketch, expendedDrawing }: Props) => {
     const { map } = useMapStore();
     const { addAlertMessage } = useCommunityStore();
-    const { selectedFeatures, isShowReport, setSelectedFeatures } = useReportStore();
+    const { selectedFeatures, setSelectedFeatures, editReport } = useReportStore();
 
     const clusterLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE);
     const clusterSource = clusterLayer?.getSource() as VectorSource;
@@ -119,10 +124,9 @@ const SketchList = () => {
         },
         [map, addAlertMessage]
     );
-
     return (
         <div className="report-features">
-            {isShowReport() && !sketchFeatures.length && <p>Aucun croquis associé</p>}
+            {!sketchFeatures.length && editReport && <p>Aucun croquis associé</p>}
             {sketchFeatures.map((feature, index) => {
                 const featureType = feature.getGeometry()?.getType();
                 const featureStyle = feature.getStyle() as Style;
@@ -156,7 +160,7 @@ const SketchList = () => {
                             <span>{text}</span>
                         </div>
 
-                        {!isShowReport() && (
+                        {(expendedDrawing || showSketch) && (
                             <Button
                                 iconId="ri-delete-bin-2-fill"
                                 priority={"tertiary"}

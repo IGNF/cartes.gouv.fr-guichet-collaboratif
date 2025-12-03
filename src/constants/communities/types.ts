@@ -93,9 +93,11 @@ export type FeatureTypeColumn = {
     min_value: number;
     max_value: number;
     pattern: string;
+    is3d: boolean;
 };
 export type FeatureTypeSelectedStyle = { layer: string; selectedStyle: FeatureTypeStyle };
 export interface CommunityGeoservice extends LayerGeoservice {
+    idName?: string;
     type: string;
     version: number;
     url: string;
@@ -112,6 +114,8 @@ export interface CommunityGeoservice extends LayerGeoservice {
     readOnly?: boolean;
     styles?: FeatureTypeStyle[];
     columns: FeatureTypeColumn[];
+    table?: number;
+    database?: number;
 }
 
 export type MapLayerSource = BaseLayer | TileLayer | VectorLayer;
@@ -181,13 +185,37 @@ export type AlertMessageType = {
 
 export interface GeoJSONProps {
     type: string;
-    features: { [key: string]: string | number | boolean | object }[];
+    features: { [key: string]: string | number | boolean | object | undefined }[];
 }
 
 export interface ArrayGeoJSONProps {
     geometrie?: string;
-    id: string | number;
-    cleabs: string | number;
+    [key: string]: string | number | undefined;
+}
+
+export enum CommunityLayerFunctionalityType {
+    VISU = "search",
+    MEASURE_DISTANCE = "measureDistance",
+    MEASURE_AREA = "measureArea",
+    GEOREM = "georem",
+    MODIFY = "modify",
+    TRANSLATE = "translate",
+    DRAW = "draw",
+    DELETE = "delete",
+    SNAP_OBLIG = "snapOblig",
+}
+
+export enum CommunityLayerRoleType {
+    VISU = "visu",
+    EDIT = "edit",
+}
+
+export enum InteractionType {
+    SELECT = "select",
+    MODIFY = "modify",
+    REMOVE = "remove",
+    CREATE_REPORT = "create_report",
+    ADD_OBJECT = "add_object",
 }
 
 export type CustomControlItem = {
@@ -196,5 +224,9 @@ export type CustomControlItem = {
     target: string;
     icon: FrIconClassName | RiIconClassName;
     disabled: boolean;
-    interaction: string | null;
+    interaction: InteractionType | null;
+    enabled: boolean;
 };
+
+export type LonLatNumber = number | number[] | number[][] | number[][][];
+export type ObjectProps = { [key: string]: string | number | boolean | object | null | undefined };

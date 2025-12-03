@@ -1,3 +1,4 @@
+import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_GEOSERVICE_PROPERTY, FEATURE_TYPE_NEW_PROPERTY, FEATURE_TYPE_SELECTED_PROPERTY } from "@/constants";
 import { CommunityGeoservice, FeatureTypeColumn } from "@/constants/communities/types";
 import { jsonToHtmlList } from "@/constants/communities/utils";
 import { useTranslation } from "@/i18n";
@@ -17,8 +18,8 @@ const ShowFeatureTypeForm = () => {
 
     const { t } = useTranslation({ ShowFeatureTypeForm });
 
-    const pointData: PointDataProps = useMemo(() => clickedMapFeature?.get("featureTypeData"), [clickedMapFeature]);
-    const geoserviceData: CommunityGeoservice = useMemo(() => clickedMapFeature?.get("geoservice"), [clickedMapFeature]);
+    const pointData: PointDataProps = useMemo(() => clickedMapFeature?.get(FEATURE_TYPE_DATA_PROPERTY), [clickedMapFeature]);
+    const geoserviceData: CommunityGeoservice = useMemo(() => clickedMapFeature?.get(FEATURE_TYPE_GEOSERVICE_PROPERTY), [clickedMapFeature]);
     const featureLayer = useMemo(
         () =>
             geoserviceData &&
@@ -28,6 +29,8 @@ const ShowFeatureTypeForm = () => {
                 .find((l) => l.get("name") === geoserviceData.layer),
         [map, geoserviceData]
     );
+
+    const isNewFeature = useMemo(() => clickedMapFeature && clickedMapFeature?.get(FEATURE_TYPE_NEW_PROPERTY), [clickedMapFeature]);
 
     const handleCancel = useCallback(() => {
         setClickedMapFeature(null);
@@ -42,12 +45,12 @@ const ShowFeatureTypeForm = () => {
 
     useEffect(() => {
         if (clickedMapFeature) {
-            clickedMapFeature.set("selected", true);
+            clickedMapFeature.set(FEATURE_TYPE_SELECTED_PROPERTY, true);
             clickedMapFeature.changed();
         }
         return () => {
             if (clickedMapFeature) {
-                clickedMapFeature.unset("selected");
+                clickedMapFeature.unset(FEATURE_TYPE_SELECTED_PROPERTY);
                 clickedMapFeature.changed();
             }
         };
@@ -61,7 +64,7 @@ const ShowFeatureTypeForm = () => {
         };
     }, [mapSwitcher, handleLayerVisibility]);
 
-    const columns: FeatureTypeColumn[] = useMemo(() => clickedMapFeature?.get("geoservice").columns || [], [clickedMapFeature]);
+    const columns: FeatureTypeColumn[] = useMemo(() => geoserviceData?.columns || [], [geoserviceData]);
     const dataColumns = useMemo(
         () =>
             columns.map((col) => {
@@ -104,24 +107,21 @@ const ShowFeatureTypeForm = () => {
 
     return (
         <>
-            <div className="feature-type-form-header fr-flex fr-align-items--center">
-                <h1 className="feature-type-form-title fr-text--lg">
-                    {clickedMapFeature?.get("geoservice")?.title} : {pointData.id || pointData.cleabs}
-                </h1>
+            <h1 className="feature-type-form-title fr-mt-4v fr-mb-1v fr-text--lg">
+                {isNewFeature ? "Nouveau" : ""} {geoserviceData?.title} : {pointData[`${geoserviceData?.idName}`]}
+            </h1>
 
-                <Button
-                    iconId="ri-edit-box-fill"
-                    className="feature-type-form-edit-button fr-icon--lg"
-                    priority="tertiary no outline"
-                    aria-hidden="true"
-                    onClick={() => {
-                        setFeatureTypeMode("edit");
-                    }}
-                >
-                    Éditer
-                </Button>
-            </div>
-
+            <Button
+                iconId="ri-edit-box-fill"
+                className="feature-type-form-edit-button fr-icon--lg"
+                priority="tertiary no outline"
+                aria-hidden="true"
+                onClick={() => {
+                    setFeatureTypeMode("edit");
+                }}
+            >
+                Éditer
+            </Button>
             <Table bordered fixed data={dataColumns} className="feature-type-form-table" />
         </>
     );

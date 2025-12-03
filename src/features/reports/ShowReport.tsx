@@ -1,35 +1,31 @@
-import React, { useMemo, useRef } from "react";
-import { useState } from "react";
+import React, { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "@/i18n";
-
 import { useGetReportReplies } from "@/api/repliesData";
-import { useCommunityStore, useReportStore } from "@/store";
+import { useCommunityStore, useMapStore, useReportStore } from "@/store";
 import { useReplyStore } from "@/store/useReplyStore";
-
+import { ReportTool } from "@/constants/reports/types";
 import RadioButtons from "@codegouvfr/react-dsfr/RadioButtons";
-
 import Accordion from "@codegouvfr/react-dsfr/Accordion";
 import Button from "@codegouvfr/react-dsfr/Button";
 import ReportFiltersComponent from "@/components/ReportFiltersComponent";
 import AttachmentList from "./forms/AttachmentList";
-import EditReport from "./EditReport";
-import SketchList from "./forms/SketchList";
 import ReportTracking from "./ReportTracking";
-
+import DrawingForm from "./forms/DrawingForm";
+import { STATUS_NOT_ALLOWED } from "@/constants/utils";
 interface Props {
     handleCloseDrawer: () => void;
 }
 
-const ShowReport: React.FC<Props> = ({ handleCloseDrawer }) => {
+const ShowReport: React.FC<Props> = () => {
     const [openSuivi, setOpenSuivi] = useState(false);
     const [committedStatus, setCommittedStatus] = useState("");
 
-    const accordionRef = useRef<HTMLDivElement>(null);
-
-    const { selectedReport, editReport } = useReportStore();
+    const { setSelectedReport, reports, selectedReport, setTableDrawerOpened, setDrawerOpened } = useReportStore();
+    const { clickedTool, setClickedTool } = useMapStore();
+    const { community } = useCommunityStore();
     const { setReplies } = useReplyStore();
 
-    const { community } = useCommunityStore();
+    const accordionRef = useRef<HTMLDivElement>(null);
 
     const { t } = useTranslation({ ShowReport });
 
@@ -37,8 +33,23 @@ const ShowReport: React.FC<Props> = ({ handleCloseDrawer }) => {
     const { data: repliesData } = useGetReportReplies(reportId);
     const repliesRes = useMemo(() => repliesData?.replies ?? [], [repliesData]);
 
+    useEffect(() => {
+        setSelectedReport(selectedReport);
+    }, [reports, selectedReport, setSelectedReport]);
+
+    const handleToolClick = useCallback((tool: ReportTool | undefined) => {
+        if (!tool) return;
+        const toolButton = document.querySelector(`button[id*="${tool.name}"]`) as HTMLButtonElement | null;
+        if (toolButton) {
+            toolButton.click();
+            setClickedTool({
+                name: tool.name,
+                clicked: clickedTool.name === tool.name ? !clickedTool.clicked : true,
+            });
+        }
+    }, []);
+
     if (!community || !selectedReport) return;
-    if (editReport) return <EditReport handleCloseDrawer={handleCloseDrawer} />;
 
     const selectedTheme = selectedReport.themes[0];
     const description = selectedReport.comment || "";
@@ -46,22 +57,36 @@ const ShowReport: React.FC<Props> = ({ handleCloseDrawer }) => {
 
     return (
         <>
+            <Button
+                iconId="fr-icon-arrow-left-line"
+                className="fr-icon--sm fr-mr-7v"
+                priority="tertiary no outline"
+                title={t("report_back")}
+                onClick={() => {
+                    setTableDrawerOpened(true);
+                    setDrawerOpened(false);
+                }}
+            >
+                {t("report_back")}
+            </Button>
             <div className="report-drawer">
                 <h2 className="fr-mt-4v fr-mb-1v fr-text--md">
                     <span className="ri-map-pin-add-line fr-pr-1v" />
                     {t("report_title", { reportId: selectedReport.id })}
                 </h2>
                 <ReportFiltersComponent reportStatus={committedStatus} />
-                <Button
-                    onClick={() => {
-                        setOpenSuivi(true);
-                        setTimeout(() => {
-                            accordionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-                        }, 100);
-                    }}
-                >
-                    {t("report_reply")}
-                </Button>
+                {!STATUS_NOT_ALLOWED.includes(selectedReport.status) && (
+                    <Button
+                        onClick={() => {
+                            setOpenSuivi(true);
+                            setTimeout(() => {
+                                accordionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                            }, 100);
+                        }}
+                    >
+                        {t("report_reply")}
+                    </Button>
+                )}
                 <div className="fr-mt-12v">
                     <Accordion label={t("report_theme")} defaultExpanded={false}>
                         <RadioButtons
@@ -83,7 +108,7 @@ const ShowReport: React.FC<Props> = ({ handleCloseDrawer }) => {
                         />
                     </Accordion>
                     <Accordion label={t("report_sketch_list")} defaultExpanded={false}>
-                        <SketchList />
+                        <DrawingForm handleToolClick={handleToolClick} hideToolsDiv />
                     </Accordion>
                     {description && (
                         <Accordion label={t("report_description")} defaultExpanded={false}>

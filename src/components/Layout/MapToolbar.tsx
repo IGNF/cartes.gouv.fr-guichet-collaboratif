@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import { useCommunityStore, useUserStore } from "@/store";
 import { useTranslation } from "@/i18n";
 import { ADMIN_ROLE } from "@/constants";
-import ContributionsCount from "./ContributionsCount";
+import ContributionsCount from "../../features/contributions/ContributionsCount";
 
 const MapToolbar: React.FC = () => {
     const { community } = useCommunityStore();

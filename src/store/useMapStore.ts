@@ -1,4 +1,5 @@
 import { CustomControlItem, FeatureTypeSelectedStyle } from "@/constants/communities/types";
+import { ClickedTool } from "@/constants/reports/types";
 import LayerSwitcher from "geopf-extensions-openlayers/src/packages/Controls/LayerSwitcher/LayerSwitcher";
 import { Feature, Map } from "ol";
 import { create } from "zustand";
@@ -14,6 +15,7 @@ interface MapStore {
     clickableFeatures: Feature[];
     clickedControl: CustomControlItem | null;
     showMapWorkingLayerSelect: boolean;
+    showCenterReportButtons: boolean;
     setMap: (map: Map | null, mapSwitcher: LayerSwitcher | null) => void;
     setFeatureTypeSelectedStyle: ({ layer, selectedStyle }: FeatureTypeSelectedStyle) => void;
     setClickedMapFeature: (feature: Feature | null) => void;
@@ -23,6 +25,9 @@ interface MapStore {
     setClickedControl: (control: CustomControlItem | null) => void;
     setShowMapWorkingLayerSelect: (show: boolean) => void;
     setFeatureTypeMode: (mode: "view" | "edit") => void;
+    setShowCenterReportButtons: (show: boolean) => void;
+    clickedTool: ClickedTool;
+    setClickedTool: (tool: ClickedTool) => void;
 }
 
 export const useMapStore = create<MapStore>((set, get) => ({
@@ -36,6 +41,7 @@ export const useMapStore = create<MapStore>((set, get) => ({
     clickableFeatures: [],
     clickedControl: null,
     showMapWorkingLayerSelect: true,
+    showCenterReportButtons: false,
     setMap: (map, mapSwitcher) => {
         set({ map, mapSwitcher });
     },
@@ -64,4 +70,7 @@ export const useMapStore = create<MapStore>((set, get) => ({
     setClickedControl: (control) => set({ clickedControl: control }),
     setShowMapWorkingLayerSelect: (show) => set({ showMapWorkingLayerSelect: show }),
     setFeatureTypeMode: (mode) => set({ featureTypeMode: mode }),
+    setShowCenterReportButtons: (show) => set({ showCenterReportButtons: show }),
+    clickedTool: { name: "", clicked: false },
+    setClickedTool: (tool) => set({ clickedTool: tool }),
 }));

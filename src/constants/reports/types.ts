@@ -46,8 +46,9 @@ type DepartementData = {
     title: string;
 };
 
+export type CoordinateType = number[] | number[][] | number[][][];
 export type GeometryFeatueParams =
-    | (Geometry & { getCoordinates: () => Coordinate | Coordinate[] | Coordinate[][] | Coordinate[][][]; setCoordinates: (center: number[]) => void })
+    | (Geometry & { getCoordinates: () => Coordinate | Coordinate[] | Coordinate[][] | Coordinate[][][]; setCoordinates: (coords: CoordinateType) => void })
     | undefined;
 
 export interface ReportAttachment {
@@ -72,6 +73,10 @@ export interface CommunityReport {
     departement?: DepartementData;
     author?: AuthorData;
     attributes?: CommunityTheme[];
+}
+export enum SortType {
+    ASC = "ASC",
+    DESC = "DESC",
 }
 
 export type Reply = {

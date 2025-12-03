@@ -11,9 +11,11 @@ export const ReportFormFrTranslations: Translations<"fr">["ReportForm"] = {
     draw_sketch: "Dessiner un croquis",
     describe_report: "Décrire le signalement",
     describe_report_label: "Explicitez votre signalement de façon la plus détaillée possible :",
+    no_description: "Aucune description ajoutée",
+    no_document: "Aucun document ajouté",
     import_attachments: "Joindre des documents",
     import_attachments_label: "Aidez nous à comprendre votre signalement. Ajouter par exemple des photos ou autres documents pour préciser votre message.",
-    import_attachments_hint: ({ maxSizeMB }: { maxSizeMB: number }) => `Taille maximale : ${maxSizeMB} Mo. Formats supportés : JPG, PNG, PDF`,
+    import_attachments_hint: ({ maxSizeMB }: { maxSizeMB: number }) => `Taille maximale : ${maxSizeMB} Mo. Formats supportés : JPG, JPEG, PNG, PDF`,
     report_note: (
         <div className="note">
             <p>Si votre signalement ne concerne pas les thèmes ou données de ce guichet :</p>
@@ -22,14 +24,18 @@ export const ReportFormFrTranslations: Translations<"fr">["ReportForm"] = {
             </a>
         </div>
     ),
-    submit_report: "Envoyer le signalement",
+    send_report: "Envoyer le signalement",
+    submit_report: "Enregistrer",
+    hide_toEdit: "Annuler",
+    show_toEdit: "Modifier",
+    show_toCreate: "Ajouter",
     cancel_report: "Annuler",
     delete_report: "Supprimer",
     save_report: "Enregistrer",
     all_fields_error: "Tous les champs",
     all_fields_error_message: "Merci de remplir tous les champs obligatoire",
     select_theme_error_message: "Vous devez obligatoirement choisir un thème et ses attributs pour envoyer un signalement",
-    import_file_error_message_type: `Formats supportés : JPG, PNG, PDF`,
+    import_file_error_message_type: `Formats supportés : JPG, JPEG, PNG, PDF`,
     import_file_error_message_size: ({ maxSizeMB }: { maxSizeMB: number }) => `Taille maximale : ${maxSizeMB} Mo.`,
     report_tracking: "Suivi",
     report_status: "Statut",
@@ -47,6 +53,8 @@ export const ReportFormEnTranslations: Translations<"en">["ReportForm"] = {
     draw_sketch: "Draw a sketch",
     describe_report: "Describe the report",
     describe_report_label: "Explain your report in as much detail as possible:",
+    no_description: "No description added",
+    no_document: "No document added",
     import_attachments: "Attach documents",
     import_attachments_label: "Help us understand your report. For example, add photos or other documents to clarify your message.",
     import_attachments_hint: ({ maxSizeMB }: { maxSizeMB: number }) => `Maximum size: ${maxSizeMB} MB. Supported formats: JPG, PNG, PDF`,
@@ -58,7 +66,11 @@ export const ReportFormEnTranslations: Translations<"en">["ReportForm"] = {
             </a>
         </div>
     ),
-    submit_report: "Send the report",
+    send_report: "Send the report",
+    submit_report: "Save",
+    hide_toEdit: "Cancel",
+    show_toEdit: "Edit",
+    show_toCreate: "Add",
     cancel_report: "Cancel",
     delete_report: "Delete",
     save_report: "Save",
@@ -82,11 +94,17 @@ const { i18n } = declareComponentKeys<
     | "draw_sketch"
     | "describe_report"
     | "describe_report_label"
+    | "no_description"
+    | "no_document"
     | "import_attachments"
     | "import_attachments_label"
     | { K: "import_attachments_hint"; P: { maxSizeMB: number }; R: string }
     | { K: "report_note"; R: JSX.Element }
     | "submit_report"
+    | "send_report"
+    | "hide_toEdit"
+    | "show_toEdit"
+    | "show_toCreate"
     | "cancel_report"
     | "delete_report"
     | "save_report"

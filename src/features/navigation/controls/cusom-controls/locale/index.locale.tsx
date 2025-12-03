@@ -8,6 +8,7 @@ export const CustomControlsFrTranslations: Translations<"fr">["CustomControls"] 
     cut_object: "Couper un objet",
     delete_object: "Supprimer un objet",
     measure_distance: "Mesurer la distance",
+    please_select_object: "Veuillez sélectionner un objet",
 };
 
 export const CustomControlsEnTranslations: Translations<"en">["CustomControls"] = {
@@ -17,7 +18,10 @@ export const CustomControlsEnTranslations: Translations<"en">["CustomControls"] 
     cut_object: "Cut an object",
     delete_object: "Delete an object",
     measure_distance: "Measure distance",
+    please_select_object: "Please select an object",
 };
 
-const { i18n } = declareComponentKeys<"selector" | "create_report" | "add_object" | "cut_object" | "delete_object" | "measure_distance">()("CustomControls");
+const { i18n } = declareComponentKeys<
+    "selector" | "create_report" | "add_object" | "cut_object" | "delete_object" | "measure_distance" | "please_select_object"
+>()("CustomControls");
 export type I18n = typeof i18n;

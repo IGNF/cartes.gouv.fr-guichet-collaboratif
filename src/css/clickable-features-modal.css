@@ -1,12 +1,16 @@
 .clickable-features-modal {
     display: block;
-    position: absolute;
-    width: 100%;
     height: 0;
     background: unset;
 }
 
-.clickable-features-modal div.fr-grid-row--center {
+.clickable-features-modal .fr-container {
+    margin: 0;
+    position: absolute;
+    right: 0;
+}
+
+.clickable-features-modal .fr-container > div {
     justify-content: flex-end;
 }
 

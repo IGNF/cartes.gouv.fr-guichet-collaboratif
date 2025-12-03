@@ -31,7 +31,8 @@ const CreateTableData = (
                 opening_date: date,
                 departement,
                 theme: themes,
-                statusText,
+                status: statusText,
+                statusCode: report.status || "-",
             },
             row: [
                 <Checkbox

@@ -7,24 +7,21 @@ type ModaleProps = {
     confirmText?: string;
     cancelText?: string;
     onConfirm?: () => void;
-    onClose: () => void;
+    onClose?: () => void;
 };
 
 const ModaleComponent: React.FC<ModaleProps> = ({ title, children, modal, onConfirm, onClose, confirmText = "Confirmer", cancelText = "Annuler" }) => {
     return (
         <modal.Component
             title={title}
-            iconId="fr-icon-info-fill"
             buttons={[
                 {
-                    iconId: "ri-check-line",
-                    onClick: onConfirm,
-                    children: confirmText,
-                },
-                {
-                    iconId: "ri-check-line",
                     onClick: onClose,
                     children: cancelText,
+                },
+                {
+                    onClick: onConfirm,
+                    children: confirmText,
                 },
             ]}
         >

@@ -4,13 +4,19 @@ import { create } from "zustand";
 interface ModalState {
     replyReportModal: ReturnType<typeof createModal>;
     deleteReportModal: ReturnType<typeof createModal>;
+    deleteShareReportModal: ReturnType<typeof createModal>;
     confirmCancelModal: ReturnType<typeof createModal>;
+    confirmResetContributionModal: ReturnType<typeof createModal>;
+    confirmSaveContributionModal: ReturnType<typeof createModal>;
 }
 
 const modalConfigs = [
     { key: "replyReportModal", id: "answerreport-modal" },
     { key: "deleteReportModal", id: "deletereport-modal" },
+    { key: "deleteShareReportModal", id: "deletesharereport-modal" },
     { key: "confirmCancelModal", id: "cancelreport-modal" },
+    { key: "confirmResetContributionModal", id: "confirm-reset-contribution-modal" },
+    { key: "confirmSaveContributionModal", id: "confirm-save-contribution-modal" },
 ];
 
 const modals = modalConfigs.reduce((acc, { key, id }) => {

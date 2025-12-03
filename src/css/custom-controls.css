@@ -1,0 +1,71 @@
+.custom-controls {
+    position: absolute;
+    right: 2px;
+    top: 54px;
+    width: 54px;
+    padding-right: 14px;
+}
+
+.custom-controls div {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--background-default-grey);
+    border: 1px solid var(--border-default-grey);
+    border-radius: 4px;
+}
+
+.custom-controls div button {
+    width: 38.5px;
+}
+
+.custom-controls div button:not([aria-pressed="true"]) {
+    --hover-tint: var(--background-alt-blue-france-hover);
+}
+
+.custom-controls .control-btns button:first-child {
+    border-radius: 4px 4px 0px 0px;
+}
+
+.custom-controls .control-btns button:last-child {
+    border-radius: 0px 0px 4px 4px;
+}
+.custom-controls .center-to-report-btns {
+    margin-top: 8px;
+}
+
+.custom-controls .all-reports-btn {
+    margin-top: 8px;
+    border-radius: 4px;
+    display: flex;
+    gap: 8px;
+}
+
+.custom-controls .all-reports-btn button {
+    border-radius: 4px;
+}
+
+.btn-show-drawer {
+    border: unset;
+}
+
+.MuiTooltip-tooltipPlacementLeft.MuiTooltip-tooltipPlacementLeft {
+    height: 40px;
+    background-color: var(--text-inverted-grey);
+    border-radius: 0px;
+    white-space: normal;
+    color: var(--text-default-grey);
+    align-items: center;
+    display: flex;
+    font-family: "Marianne";
+    font-size: 0.75rem;
+    font-style: normal;
+    font-weight: 600;
+    transition: none;
+    transform: none;
+    width: calc(100% - 10px);
+    cursor: pointer;
+}
+
+.MuiTooltip-arrow.MuiTooltip-arrow {
+    color: var(--text-inverted-grey);
+}

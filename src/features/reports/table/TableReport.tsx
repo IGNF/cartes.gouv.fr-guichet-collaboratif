@@ -6,7 +6,7 @@ import VectorSource from "ol/source/Vector";
 import { getTableReports } from "@/api/reportsData";
 import { useReportStore, useModalStore, useMapStore, useLocalStorageStore } from "@/store";
 import { useCommunityStore } from "@/store/useCommunityStore";
-import { handleShowOnMap } from "@/constants/utils";
+import { handleShowOnMap, STATUS_NOT_ALLOWED } from "@/constants/utils";
 import { REPORT_TABLE_LIMIT_OPTIONS, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import GetReportsLayer from "@/features/navigation/layers/GetReportsLayer";
 import { StatusMessage } from "@/constants/communities/types";
@@ -50,6 +50,7 @@ const TableReport = () => {
         setCurrentPage,
         setSelectedReport,
         reportTableWidth,
+        toggleSortByDateCreation,
     } = useReportStore();
 
     const { replyReportModal, deleteReportModal } = useModalStore();
@@ -154,6 +155,8 @@ const TableReport = () => {
         return selectedLines.filter((res) => !!isChecked[String(res.id)]).map((res) => res.exportData);
     }, [selectedLines, isChecked]);
 
+    const allLinesAreAllowed = checkedLines.some((line) => STATUS_NOT_ALLOWED.includes(line.statusCode));
+
     const downloadedTable = useMemo(() => {
         if (checkedLines.length > 0) return checkedLines.map((exp) => exp);
         if (Array.isArray(selectedLines)) {
@@ -185,13 +188,7 @@ const TableReport = () => {
         });
     };
     const sortByDateCreation = () => {
-        setSortOrder((prev) => {
-            const newOrder = prev === "ASC" ? "DESC" : "ASC";
-            const sortParams = `opening_date:${newOrder}`;
-            setSortBy(sortParams);
-            setCurrentPage(1);
-            return newOrder;
-        });
+        toggleSortByDateCreation();
     };
 
     return (
@@ -220,7 +217,7 @@ const TableReport = () => {
                                 className="fr-btn fr-btn--secondary report-download__btn fr-icon-download-line fr-icon--sm"
                                 headers={tableHeader}
                                 data={downloadedTable}
-                                filename="export-filtre.csv"
+                                filename="export-reports.csv"
                             ></CSVLink>
                             <Button
                                 type="button"
@@ -234,7 +231,7 @@ const TableReport = () => {
                             <Button
                                 nativeButtonProps={replyReportModal.buttonProps}
                                 type="button"
-                                disabled={!isChecked || !Object.values(isChecked).some(Boolean)}
+                                disabled={!isChecked || !Object.values(isChecked).some(Boolean) || allLinesAreAllowed}
                             >
                                 {t("report_reply")}
                             </Button>

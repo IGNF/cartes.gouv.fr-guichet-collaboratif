@@ -1,4 +1,4 @@
-import { CommunityReport, FilterState } from "@/constants/reports/types";
+import { CommunityReport, FilterState, SortType } from "@/constants/reports/types";
 import { Feature } from "ol";
 import { create } from "zustand";
 interface ReportStore {
@@ -30,12 +30,16 @@ interface ReportStore {
     setReportTableWidth: (reportTableWidth: number) => void;
     selectedLine: number;
     setSelectedLine: (selectedLine: number) => void;
-    sortBy: string | undefined;
+    sortOrder: "ASC" | "DESC" | undefined;
+    sortBy: string;
     setSortBy: (sortBy: string) => void;
+    setSortOrder: (order: "ASC" | "DESC") => void;
+    toggleSortByDateCreation: (order?: "ASC" | "DESC") => void;
     drawerOpened: boolean;
     setDrawerOpened: (drawerOpened: boolean) => void;
     responseDrawerOpened: boolean;
     setResponseDrawerOpened: (responseDrawerOpened: boolean) => void;
+    hideToolsDiv?: boolean;
 }
 export const useReportStore = create<ReportStore>((set, get) => ({
     reports: [],
@@ -94,10 +98,20 @@ export const useReportStore = create<ReportStore>((set, get) => ({
     setReportTableWidth: (reportTableWidth: number) => set({ reportTableWidth }),
     selectedLine: 0,
     setSelectedLine: (selectedLine: number) => set({ selectedLine }),
-    sortBy: undefined,
+    sortOrder: undefined,
+    sortBy: "",
     setSortBy: (sortBy) => set({ sortBy }),
+    setSortOrder: (order) => set({ sortOrder: order }),
+    toggleSortByDateCreation: (order) => {
+        const { sortOrder, setSortBy, setCurrentPage, setSortOrder } = get();
+        const newOrder = order ?? (sortOrder === SortType.ASC ? SortType.DESC : SortType.ASC);
+        setSortBy(`opening_date:${newOrder}`);
+        setCurrentPage(1);
+        setSortOrder(newOrder);
+    },
     drawerOpened: false,
     setDrawerOpened: (drawerOpened: boolean) => set({ drawerOpened }),
     responseDrawerOpened: false,
     setResponseDrawerOpened: (responseDrawerOpened: boolean) => set({ responseDrawerOpened }),
+    hideToolsDiv: false,
 }));

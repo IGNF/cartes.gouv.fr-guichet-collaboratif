@@ -13,11 +13,14 @@ import { ConfirmDeleteReportModalEnTranslations } from "@/features/reports/forms
 import { DrawingFormEnTranslations } from "@/features/reports/forms/locale/DrawingForm.locale";
 import { ImportSketchFileEnTranslations } from "@/features/reports/forms/locale/ImportSketchFile.locale";
 import { ReportFormEnTranslations } from "@/features/reports/forms/locale/ReportForm.locale";
+import { ThemeComponentEnTranslations } from "@/features/reports/forms/locale/ThemeComponent.locale";
 import { ThemeFormEnTranslations } from "@/features/reports/forms/locale/ThemeForm.locale";
 import { CenterMessageEnTranslations } from "@/features/reports/locale/CenterMessage.locale";
 import { CreateReportEnTranslations } from "@/features/reports/locale/CreateReport.locale";
 import { EditReportEnTranslations } from "@/features/reports/locale/EditReport.locale";
+import { ReportDrawerEnTranslations } from "@/features/reports/locale/ReportDrawer.locale";
 import { ShowReportEnTranslations } from "@/features/reports/locale/ShowReport.locale";
+import { ConfirmDeleteShareReportModalEnTranslations } from "@/features/reports/locale/ConfirmDeleteShareReportModal.locale";
 import { ReportTrackingEnTranslations } from "@/features/reports/locale/ReportTracking.locale";
 import { useGetReportsLayerEnTranslations } from "@/hooks/navigation/layers/locale/useGetReportsLayer.locale";
 import { useGetWFSLayerEnTranslations } from "@/hooks/navigation/layers/locale/useGetWFSLayer.locale";
@@ -26,7 +29,7 @@ import { useGetWMTSLayerEnTranslations } from "@/hooks/navigation/layers/locale/
 import { DrawerComponentEnTranslations } from "@/components/locale/DrawerComponent.locale";
 import { DrawingControlEnTranslations } from "@/features/navigation/controls/locale/DrawingControl.locale";
 import { CatalogControlEnTranslations } from "@/features/navigation/controls/locale/CatalogControl.locale";
-import { useCenterViewToReportControlEnTranslations } from "@/features/navigation/controls/locale/useCenterViewToReportControl.locale";
+import { CenterReportControlEnTranslations } from "@/features/navigation/controls/cusom-controls/locale/CenterReportControl.locale";
 import { useGetMapControlsEnTranslations } from "@/features/navigation/controls/locale/useGetMapControls.locale";
 import { useReportToolsEnTranslations } from "@/hooks/reports/locale/useReportTools.locale";
 import { FeatureTypeLayerLegendsEnTranslations } from "@/features/navigation/layers/legends/locale/FeatureTypeLayerLegends.locale";
@@ -37,6 +40,10 @@ import { WorkingLayerControlEnTranslations } from "@/features/navigation/control
 import { WorkingLayerLabelMapEnTranslations } from "@/features/navigation/controls/locale/WorkingLayerLabelMap.locale";
 import { MesureLengthControlEnTranslations } from "@/features/navigation/controls/locale/MesureLengthControl.locale";
 import { CustomControlsEnTranslations } from "@/features/navigation/controls/cusom-controls/locale/index.locale";
+import { ContributionListEnTranslations } from "@/features/contributions/locale/ContributionList.locale";
+import { ContributionsConfirmResetEnTranslations } from "@/features/contributions/locale/ContributionsConfirmReset.locale";
+import { ReviewContributionsEnTranslations } from "@/features/contributions/locale/ReviewContributions.locale";
+import { ConfirmSaveContributionsEnTranslations } from "@/features/contributions/locale/ConfirmSaveContributions.locale";
 
 export const translations: Translations<"en"> = {
     AppFooter: AppFooterEnTranslations,
@@ -54,11 +61,14 @@ export const translations: Translations<"en"> = {
     DrawingForm: DrawingFormEnTranslations,
     ImportSketchFile: ImportSketchFileEnTranslations,
     ReportForm: ReportFormEnTranslations,
+    ThemeComponent: ThemeComponentEnTranslations,
     ThemeForm: ThemeFormEnTranslations,
     CenterMessage: CenterMessageEnTranslations,
     CreateReport: CreateReportEnTranslations,
     EditReport: EditReportEnTranslations,
+    ReportDrawer: ReportDrawerEnTranslations,
     ShowReport: ShowReportEnTranslations,
+    ConfirmDeleteShareReportModal: ConfirmDeleteShareReportModalEnTranslations,
     ReportTracking: ReportTrackingEnTranslations,
     useGetReportsLayer: useGetReportsLayerEnTranslations,
     useGetWFSLayer: useGetWFSLayerEnTranslations,
@@ -66,7 +76,7 @@ export const translations: Translations<"en"> = {
     useGetWMTSLayer: useGetWMTSLayerEnTranslations,
     DrawingControl: DrawingControlEnTranslations,
     CatalogControl: CatalogControlEnTranslations,
-    useCenterViewToReportControl: useCenterViewToReportControlEnTranslations,
+    CenterReportControl: CenterReportControlEnTranslations,
     useGetMapControls: useGetMapControlsEnTranslations,
     useReportTools: useReportToolsEnTranslations,
     FeatureTypeLayerLegends: FeatureTypeLayerLegendsEnTranslations,
@@ -77,4 +87,8 @@ export const translations: Translations<"en"> = {
     WorkingLayerLabelMap: WorkingLayerLabelMapEnTranslations,
     MesureLengthControl: MesureLengthControlEnTranslations,
     CustomControls: CustomControlsEnTranslations,
+    ContributionList: ContributionListEnTranslations,
+    ContributionsConfirmReset: ContributionsConfirmResetEnTranslations,
+    ReviewContributions: ReviewContributionsEnTranslations,
+    ConfirmSaveContributions: ConfirmSaveContributionsEnTranslations,
 };

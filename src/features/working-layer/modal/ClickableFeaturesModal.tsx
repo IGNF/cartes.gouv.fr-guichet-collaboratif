@@ -1,10 +1,11 @@
 import { createModal } from "@codegouvfr/react-dsfr/Modal";
 import { useIsModalOpen } from "@codegouvfr/react-dsfr/Modal/useIsModalOpen";
 import { useMapStore } from "@/store";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import Button from "@codegouvfr/react-dsfr/Button";
 import { Feature } from "ol";
 import { useTranslation } from "@/i18n";
+import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_GEOSERVICE_PROPERTY } from "@/constants";
 
 const modal = createModal({
     id: "clickable-features-modal",
@@ -20,6 +21,8 @@ const ClickableFeaturesModal = () => {
     });
 
     const { t } = useTranslation({ ClickableFeaturesModal });
+
+    const geoserviceData = useMemo(() => clickableFeatures[0]?.get(FEATURE_TYPE_GEOSERVICE_PROPERTY), [clickableFeatures]);
 
     useEffect(() => {
         if (clickableFeatures.length > 1) {
@@ -39,11 +42,11 @@ const ClickableFeaturesModal = () => {
     };
 
     const getButtonPriority = (f: Feature): "secondary" | "tertiary" => {
-        const data = f.get("featureTypeData");
+        const data = f.get(FEATURE_TYPE_DATA_PROPERTY);
         if (!clickedMapFeature || !data) return "tertiary";
 
         if (data.id) {
-            return clickedMapFeature?.get("featureTypeData")?.id === data?.id ? "secondary" : "tertiary";
+            return clickedMapFeature?.get(FEATURE_TYPE_DATA_PROPERTY)?.id === data?.id ? "secondary" : "tertiary";
         }
         return "tertiary";
     };
@@ -56,7 +59,7 @@ const ClickableFeaturesModal = () => {
                 <>
                     {" "}
                     {t("title")}
-                    <p className="clickable-features-modal_sub-title">{clickableFeatures[0]?.get("geoservice")?.title ?? mapWorkingLayer}</p>
+                    <p className="clickable-features-modal_sub-title">{geoserviceData?.title ?? mapWorkingLayer}</p>
                 </>
             }
             size="small"
@@ -66,7 +69,7 @@ const ClickableFeaturesModal = () => {
             <div className="clickable-features-modal_content">
                 {clickableFeatures.map((f, index) => (
                     <Button key={`clickable-features-modal_${index}`} onClick={() => handleSelectedFeature(f)} priority={getButtonPriority(f)}>
-                        {f.get("featureTypeData")?.id || f.get("featureTypeData")?.cleabs}
+                        {f.get(FEATURE_TYPE_DATA_PROPERTY)[`${geoserviceData?.idName}`]}
                     </Button>
                 ))}
             </div>
