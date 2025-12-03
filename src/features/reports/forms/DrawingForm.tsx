@@ -4,7 +4,7 @@ import { Feature } from "ol";
 import Layer from "ol/layer/Layer";
 import VectorSource, { VectorSourceEvent } from "ol/source/Vector";
 import useReportTools from "@/hooks/reports/useReportTools";
-import { useMapStore, useReportStore, useUserStore } from "@/store";
+import { useMapStore, useReportStore } from "@/store";
 import { ClickedTool, ReportTool, toolNames } from "@/constants/reports/types";
 import { getReportAllFeatures, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import Button from "@codegouvfr/react-dsfr/Button";
@@ -17,9 +17,10 @@ interface Props {
     handleToolClick?: (tool: ReportTool | undefined) => void;
     hideToolsDiv?: boolean;
     onSubmitSketch?: () => void;
+    expendedDrawing?: boolean;
 }
 
-const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsDiv, onSubmitSketch }) => {
+const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsDiv, onSubmitSketch, expendedDrawing }) => {
     const [showSketch, setShowSketch] = useState<boolean>(false);
     const { map } = useMapStore();
     const { selectedReport, selectedFeatures, setSelectedFeatures, editReport } = useReportStore();
@@ -29,9 +30,6 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsD
     const { t } = useTranslation({ DrawingForm });
 
     const reportTools = useReportTools();
-
-    const { user } = useUserStore();
-
     const reportLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE);
     const reportSource = reportLayer?.getSource() as VectorSource;
 
@@ -124,20 +122,23 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsD
         return false;
     };
 
-    const isOwner = Number(user?.id) === Number(selectedReport?.author?.id);
     return (
         <>
-            <SketchList />
+            <SketchList showSketch={showSketch} expendedDrawing={expendedDrawing} />
 
             {!hideToolsDiv && editReport && !showSketch && (
                 <Button className="fr-mt-4v" onClick={() => setShowSketch(!showSketch)}>
-                    {t("show_sketchToEdit")}
+                    {showSketch
+                        ? t("hide_sketchToEdit")
+                        : editReport && selectedReport && selectedReport.sketch
+                          ? t("edit_sketchToEdit")
+                          : t("show_sketchToEdit")}
                 </Button>
             )}
 
-            {((!hideToolsDiv && showSketch) || (!editReport && !STATUS_NOT_ALLOWED.includes(selectedReport?.status ?? "") && isOwner)) && (
+            {((!hideToolsDiv && showSketch) || !selectedFeatures.length || (!STATUS_NOT_ALLOWED.includes(selectedReport?.status ?? "") && !editReport)) && (
                 <>
-                    <p className="fr-text--sm fr-mb-1v">{t("drawing_message")}</p>
+                    <p className="fr-text--sm fr-mb-1v">{t("drawing_message")} </p>
                     <div className="report-tools">
                         <p className="fr-mt-4v fr-mb-2v fr-text--sm">{t("creation_tools")}</p>
                         <div>

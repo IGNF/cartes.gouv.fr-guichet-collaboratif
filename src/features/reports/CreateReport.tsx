@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Feature } from "ol";
 import { useTranslation } from "@/i18n";
 import { postCommunityReportAttachments } from "@/api/attachmentData";
@@ -9,6 +9,7 @@ import { clearDrawingLayer, getFeatureGeometryWKT } from "@/constants/utils";
 import { CommunityTheme, StatusMessage } from "@/constants/communities/types";
 import { getReportSketch } from "@/constants/reports/utils";
 import ReportForm from "./forms/ReportForm";
+import CreateReportModifyInteraction from "./CreateReportModifyInteraction";
 
 interface Props {
     handleCloseDrawer: () => void;
@@ -16,12 +17,14 @@ interface Props {
 
 const CreateReport: React.FC<Props> = ({ handleCloseDrawer }) => {
     const { community, addAlertMessage } = useCommunityStore();
-    const { reports, setReports } = useReportStore();
-    const { map } = useMapStore();
+    const { reports, setReports, selectedFeatures } = useReportStore();
+    const { map, clickedTool } = useMapStore();
 
     const [currentReport, setCurrentReport] = useState<CommunityReport | null>(null);
 
     const { t } = useTranslation({ CreateReport });
+
+    const mainFeature = useMemo(() => selectedFeatures.find((f) => f.get("main")), [selectedFeatures]);
 
     if (!community || !map) return;
 
@@ -70,8 +73,12 @@ const CreateReport: React.FC<Props> = ({ handleCloseDrawer }) => {
         clearDrawingLayer(map);
         handleCloseDrawer();
     };
-
-    return <ReportForm handleSubmit={handleSubmit} handleClose={handleCloseDrawer} />;
+    return (
+        <>
+            {mainFeature && !clickedTool.clicked && <CreateReportModifyInteraction />}
+            <ReportForm handleSubmit={handleSubmit} handleClose={handleCloseDrawer} />;
+        </>
+    );
 };
 
 export default CreateReport;
