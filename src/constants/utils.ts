@@ -323,8 +323,8 @@ export const getThemeAttributes = (theme: CommunityTheme) => {
         : theme?.attributes || {};
 };
 
-export const getFeatureGeometryWKT = (feature: Feature) => {
-    const geom4326 = feature.getGeometry()?.clone().transform("EPSG:3857", "EPSG:4326") as Geometry;
+export const getFeatureGeometryWKT = (feature: Feature, mapProj: string = "EPSG:3857", featProj: string = "EPSG:4326") => {
+    const geom4326 = feature.getGeometry()?.clone().transform(mapProj, featProj) as Geometry;
     return wktFormat.writeGeometry(geom4326);
 };
 

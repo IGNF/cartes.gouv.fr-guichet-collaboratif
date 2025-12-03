@@ -86,9 +86,11 @@ export type FeatureTypeColumn = {
     enum?: string[];
     crs: string;
     default_value: boolean | string | number | null;
+    is3d: boolean;
 };
 export type FeatureTypeSelectedStyle = { layer: string; selectedStyle: FeatureTypeStyle };
 export interface CommunityGeoservice extends LayerGeoservice {
+    idName?: string;
     type: string;
     version: number;
     url: string;
@@ -105,6 +107,8 @@ export interface CommunityGeoservice extends LayerGeoservice {
     readOnly?: boolean;
     styles?: FeatureTypeStyle[];
     columns: FeatureTypeColumn[];
+    table?: number;
+    database?: number;
 }
 
 export type MapLayerSource = BaseLayer | TileLayer | VectorLayer;
@@ -172,13 +176,12 @@ export type AlertMessageType = {
 
 export interface GeoJSONProps {
     type: string;
-    features: { [key: string]: string | number | boolean | object }[];
+    features: { [key: string]: string | number | boolean | object | undefined }[];
 }
 
 export interface ArrayGeoJSONProps {
     geometrie?: string;
-    id: string | number;
-    cleabs: string | number;
+    [key: string]: string | number | undefined;
 }
 
 export enum CommunityLayerFunctionalityType {
