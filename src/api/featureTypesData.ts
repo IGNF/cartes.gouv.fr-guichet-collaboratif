@@ -25,6 +25,7 @@ export async function getFeatureTypesAll(featureTypesIds: FeatureTypeIds[]): Pro
                 geomType = "point";
             }
             const data: CommunityGeoservice = {
+                idName: res.data.id_name,
                 id: res.data.id,
                 description: res.data.description,
                 title: res.data.title,
@@ -41,6 +42,8 @@ export async function getFeatureTypesAll(featureTypesIds: FeatureTypeIds[]): Pro
                 geometryName: res.data.geometry_name,
                 featureType: geomType,
                 readOnly: res.data.read_only,
+                table: res.data.id,
+                database: res.data.database_id,
                 columns: res.data.columns.map((col: FeatureTypeColumn) => {
                     return {
                         name: col.name,
@@ -51,6 +54,7 @@ export async function getFeatureTypesAll(featureTypesIds: FeatureTypeIds[]): Pro
                         description: col.description,
                         crs: col.crs,
                         default_value: col.default_value,
+                        is3d: col.is3d,
                     };
                 }),
             };

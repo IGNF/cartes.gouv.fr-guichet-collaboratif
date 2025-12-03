@@ -86,16 +86,12 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
                 const data: GeoJSONProps | ArrayGeoJSONProps[] = await queryClient.fetchQuery({
                     queryKey: queryKey,
                     queryFn: async () => {
-                        let data: { code: number } | unknown = queryClient.getQueryData(queryKey);
-                        if (!data || (typeof data === "object" && "code" in data && data.code !== 200)) {
-                            data = await fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
-                                .then((response) => response.json())
+                        return await fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
+                            .then((response) => response.json())
 
-                                .catch(() => {
-                                    throw Error;
-                                });
-                        }
-                        return data;
+                            .catch(() => {
+                                throw Error;
+                            });
                     },
                     retry: 1,
                 });

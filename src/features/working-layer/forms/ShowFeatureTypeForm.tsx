@@ -64,7 +64,7 @@ const ShowFeatureTypeForm = () => {
         };
     }, [mapSwitcher, handleLayerVisibility]);
 
-    const columns: FeatureTypeColumn[] = useMemo(() => clickedMapFeature?.get(FEATURE_TYPE_GEOSERVICE_PROPERTY).columns || [], [clickedMapFeature]);
+    const columns: FeatureTypeColumn[] = useMemo(() => geoserviceData?.columns || [], [geoserviceData]);
     const dataColumns = useMemo(
         () =>
             columns.map((col) => {
@@ -110,7 +110,7 @@ const ShowFeatureTypeForm = () => {
     return (
         <>
             <h1 className="feature-type-form-title fr-mt-4v fr-mb-1v fr-text--lg">
-                {isNewFeature ? "Nouveau" : ""} {clickedMapFeature?.get(FEATURE_TYPE_GEOSERVICE_PROPERTY)?.title} : {pointData.id || pointData.cleabs}
+                {isNewFeature ? "Nouveau" : ""} {geoserviceData?.title} : {pointData[`${geoserviceData?.idName}`]}
             </h1>
 
             <Table bordered fixed data={dataColumns} className="feature-type-form-table" />

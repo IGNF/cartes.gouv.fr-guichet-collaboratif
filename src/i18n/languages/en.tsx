@@ -43,6 +43,7 @@ import { CustomControlsEnTranslations } from "@/features/navigation/controls/cus
 import { ContributionListEnTranslations } from "@/features/contributions/locale/ContributionList.locale";
 import { ContributionsConfirmResetEnTranslations } from "@/features/contributions/locale/ContributionsConfirmReset.locale";
 import { ReviewContributionsEnTranslations } from "@/features/contributions/locale/ReviewContributions.locale";
+import { ConfirmSaveContributionsEnTranslations } from "@/features/contributions/locale/ConfirmSaveContributions.locale";
 
 export const translations: Translations<"en"> = {
     AppFooter: AppFooterEnTranslations,
@@ -89,4 +90,5 @@ export const translations: Translations<"en"> = {
     ContributionList: ContributionListEnTranslations,
     ContributionsConfirmReset: ContributionsConfirmResetEnTranslations,
     ReviewContributions: ReviewContributionsEnTranslations,
+    ConfirmSaveContributions: ConfirmSaveContributionsEnTranslations,
 };

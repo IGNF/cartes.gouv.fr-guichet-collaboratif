@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import ButtonControl from "./ButtonControl";
 import { CommunityLayerRoleType, CustomControlItem, InteractionType } from "@/constants/communities/types";
 import { useCommunityStore, useContributionStore, useMapStore } from "@/store";
-import { Modify, Select, Draw } from "ol/interaction";
+import { Modify, Select, Draw, Snap } from "ol/interaction";
 import VectorSource from "ol/source/Vector";
 import { SelectEvent } from "ol/interaction/Select";
 import { Feature } from "ol";
@@ -16,7 +16,7 @@ import { ModifyEvent } from "ol/interaction/Modify";
 import { DrawEvent } from "ol/interaction/Draw";
 import useCustomControlsList from "@/hooks/navigation/controls/useCustomControlsList";
 import { FEATURE_TYPE_NEW_PROPERTY, FEATURE_TYPE_SELECTED_PROPERTY } from "@/constants";
-import { addFeatureProperties, addInteractionToMap, removeInteractionFromMap } from "@/constants/contributions/utils";
+import { addFeatureProperties, addInteractionToMap, removeInteractionFromMap, setFeatNewCoords } from "@/constants/contributions/utils";
 import CenterReportControl from "./CenterReportControl";
 
 let isModifing = false;
@@ -47,6 +47,7 @@ const CustomControls = () => {
     const clickableSource = clickableLayer?.getSource() as VectorSource;
 
     const selectInteraction = useMemo(() => new Select({ condition: click, layers: [clickableLayer!], multi: true }), [clickableLayer]);
+    const snapInteraction = useMemo(() => new Snap({ source: clickableSource, intersection: true }), [clickableSource]);
 
     const constrolsList = useCustomControlsList(t);
 
@@ -136,6 +137,8 @@ const CustomControls = () => {
     const drawInteractionFunc = useCallback(
         (e: DrawEvent) => {
             const feature = e.feature;
+            const geoservice = currentCommunityLayer?.geoservice;
+            const geometryNameColumn = geoservice?.columns.find((col) => col.name === geoservice.geometryName);
             if (currentMapWorkingSource) {
                 addFeatureProperties(
                     feature,
@@ -143,6 +146,7 @@ const CustomControls = () => {
                     contributions.filter((contr) => contr.type === ContributionType.CREATE)
                 );
                 feature.set(FEATURE_TYPE_NEW_PROPERTY, true);
+                if (geometryNameColumn?.is3d) setFeatNewCoords(feature);
                 currentMapWorkingSource.addFeature(feature);
                 saveContributions(feature, ContributionType.CREATE);
             }
@@ -218,8 +222,10 @@ const CustomControls = () => {
     useEffect(() => {
         if (!isModifing && clickedControl && clickedControl.interaction) {
             removeInteractionFromMap(clickedControl.interaction, map!);
+            map?.removeInteraction(snapInteraction);
             const interaction = getInteractionByType(clickedControl.interaction, currentCommunityLayer?.geoservice.featureType ?? clickedControl.target);
             addInteractionToMap(interaction, map!);
+            map?.addInteraction(snapInteraction);
         }
         return () => {
             if (!isModifing && clickedControl && clickedControl.interaction) {
@@ -235,6 +241,7 @@ const CustomControls = () => {
         mapWorkingLayer,
         currentCommunityLayer?.geoservice.featureType,
         selectInteraction,
+        snapInteraction,
         getInteractionByType,
         removeInteractionFunc,
         selectInteractionFunc,

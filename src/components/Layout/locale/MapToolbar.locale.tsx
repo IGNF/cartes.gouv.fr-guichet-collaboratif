@@ -1,11 +1,16 @@
 import { declareComponentKeys } from "i18nifty";
 import type { Translations } from "../../../i18n/types";
 import { JSX } from "react";
+import { Contribution } from "@/constants/contributions/types";
+import { FEATURE_TYPE_DATA_PROPERTY } from "@/constants";
 
 export const MapToolbarFrTranslations: Translations<"fr">["MapToolbar"] = {
     community_title: ({ communityName }: { communityName: string }) => `Guichet - ${communityName || "Aucun titre"}`,
     save_contributions: ({ contributionCount }: { contributionCount: number | null }) =>
         `Enregistrer vos contributions ${contributionCount ? `(${contributionCount})` : ""}`,
+    save_contribution_success: "Toute les contributions sont enregistrées",
+    save_contribution_error: ({ notPostedContrs }: { notPostedContrs: Contribution[] }) =>
+        "Erreur de l'neregistrement des contributions : " + notPostedContrs.map((contr) => contr.feature.get(FEATURE_TYPE_DATA_PROPERTY).id).join(", "),
     show_more: "Afficher plus",
     object_created: ({ count }: { count: number }) => (
         <>
@@ -33,6 +38,9 @@ export const MapToolbarEnTranslations: Translations<"en">["MapToolbar"] = {
     community_title: ({ communityName }: { communityName: string }) => `Community - ${communityName || "No title"}`,
     save_contributions: ({ contributionCount }: { contributionCount: number | null }) =>
         `Save your contributions ${contributionCount ? `(${contributionCount})` : ""}`,
+    save_contribution_success: "All contributions have been successfully saved.",
+    save_contribution_error: ({ notPostedContrs }: { notPostedContrs: Contribution[] }) =>
+        "Error saving contributions: " + notPostedContrs.map((contr) => contr.feature.get(FEATURE_TYPE_DATA_PROPERTY).id).join(", "),
     show_more: "Show more",
     object_created: ({ count }: { count: number }) => (
         <>
@@ -59,6 +67,8 @@ export const MapToolbarEnTranslations: Translations<"en">["MapToolbar"] = {
 const { i18n } = declareComponentKeys<
     | { K: "community_title"; P: { communityName: string }; R: string }
     | { K: "save_contributions"; P: { contributionCount: number | null }; R: string }
+    | "save_contribution_success"
+    | { K: "save_contribution_error"; P: { notPostedContrs: Contribution[] }; R: string }
     | "show_more"
     | { K: "object_created"; P: { count: number }; R: JSX.Element }
     | { K: "object_modified"; P: { count: number }; R: JSX.Element }

@@ -27,15 +27,15 @@ const ContributionList = () => {
     });
 
     const getContributionTitle = useCallback(
-        (contr: Contribution) => {
+        (contr: Contribution, index: number) => {
             const featId = contr.feature.get(FEATURE_TYPE_DATA_PROPERTY)?.id;
             switch (contr.type) {
                 case ContributionType.CREATE:
-                    return t("objects_created", { featId });
+                    return t("objects_created", { featId: featId ?? index + 1 });
                 case ContributionType.MODIFY:
-                    return t("objects_modified", { featId });
+                    return t("objects_modified", { featId: featId ?? index + 1 });
                 case ContributionType.DELETE:
-                    return t("objects_deleted", { featId });
+                    return t("objects_deleted", { featId: featId ?? index + 1 });
                 default:
                     return "";
             }
@@ -124,7 +124,7 @@ const ContributionList = () => {
                                 priority={clickedMapFeature === contr.feature ? "secondary" : "tertiary no outline"}
                                 onClick={() => showContribution(contr)}
                             >
-                                {getContributionTitle(contr)}
+                                {getContributionTitle(contr, index)}
                             </Button>
                             <Checkbox
                                 options={[

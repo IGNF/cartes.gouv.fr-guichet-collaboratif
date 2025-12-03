@@ -58,7 +58,7 @@ export const translateSearchEngineControl = (t: TranslationFunction<"useGetMapCo
     if (searchEngineBtn) searchEngineBtn.setAttribute("title", t("control_search_engine_btn"));
 };
 
-export const getValideProperties = (featureTypeData: ObjectProps) => {
+export const getWebGLValidProperties = (featureTypeData: ObjectProps) => {
     const validProperties: ObjectProps = {};
     Object.keys(featureTypeData).forEach((key: string) => {
         let value = featureTypeData[key];
@@ -98,10 +98,10 @@ export const arrayToGeoJSON = (arr: ArrayGeoJSONProps[], geoservice: CommunityGe
             lonLat = (lonLat as number[])[0];
         }
 
-        const featureTypeData: ObjectProps = { ...el, id: el.id ?? el.cleabs };
+        const featureTypeData: ObjectProps = { ...el, id: el[`${geoservice.idName}`] };
         delete featureTypeData.geometrie;
 
-        const validProperties: ObjectProps = getValideProperties(featureTypeData);
+        const validProperties: ObjectProps = getWebGLValidProperties(featureTypeData);
 
         const properties: { [key: string]: string | number | object | null | undefined } = {
             featureType: geoservice.featureType,
@@ -113,7 +113,7 @@ export const arrayToGeoJSON = (arr: ArrayGeoJSONProps[], geoservice: CommunityGe
 
         features.features.push({
             type: "Feature",
-            id: el.cleabs,
+            id: el[`${geoservice.idName}`],
             geometry: {
                 type: type,
                 coordinates: lonLat,
@@ -128,13 +128,13 @@ export const arrayToGeoJSON = (arr: ArrayGeoJSONProps[], geoservice: CommunityGe
 export const getGeoJSONProps = (arr: GeoJSONProps, geoservice: CommunityGeoservice) => {
     return {
         type: arr.type,
-        features: arr.features.map((e) => {
+        features: arr.features.map((el) => {
             const featureTypeData: ObjectProps = {
-                ...(typeof e.properties === "object" && e.properties !== null ? e.properties : {}),
-                id: e.id ?? e.cleabs,
+                ...(typeof el.properties === "object" && el.properties !== null ? el.properties : {}),
+                id: el[`${geoservice.idName}`],
             };
 
-            const validProperties: ObjectProps = getValideProperties(featureTypeData);
+            const validProperties: ObjectProps = getWebGLValidProperties(featureTypeData);
 
             const properties: { [key: string]: string | number | object | null | undefined } = {
                 featureType: geoservice.featureType,
@@ -144,7 +144,7 @@ export const getGeoJSONProps = (arr: GeoJSONProps, geoservice: CommunityGeoservi
             properties[FEATURE_TYPE_DATA_PROPERTY] = featureTypeData;
             properties[FEATURE_TYPE_GEOSERVICE_PROPERTY] = geoservice.featureType ? geoservice : undefined;
             return {
-                ...e,
+                ...el,
                 properties,
             };
         }),
