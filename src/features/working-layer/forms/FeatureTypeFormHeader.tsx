@@ -12,7 +12,7 @@ export const FeatureTypeFormHeader: React.FC<FeatureTypeFormHeaderProps> = ({ ti
             <h1 className="feature-type-form-title">
                 {title} : {featureId}
             </h1>
-            <Button iconId="ri-eye-fill" className="feature-type-form-back-button" priority="tertiary no outline" onClick={onBack}>
+            <Button iconId="ri-edit-box-fill" className="feature-type-form-edit-button" priority="tertiary no outline" onClick={onBack}>
                 Retour
             </Button>
         </div>

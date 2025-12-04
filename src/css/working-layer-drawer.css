@@ -9,18 +9,17 @@
 
 .drawer-close-button {
     position: absolute;
-    top: 10px;
+    top: 17px;
     right: 10px;
-    z-index: 1001;
-    background-color: rgba(255, 255, 255, 0.1) !important;
-    color: white !important;
+    z-index: 10;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
     border-radius: 4px;
-    padding: 0.5rem !important;
-    min-width: auto !important;
+    padding: 0.5rem;
 }
 
 .drawer-close-button:hover {
-    background-color: rgba(255, 255, 255, 0.2) !important;
+    background-color: rgba(255, 255, 255, 0.2);
 }
 
 .working-layer-drawer {
@@ -47,25 +46,20 @@
 .feature-type-form-title {
     color: white;
     text-align: center;
-    font-size: 16px;
-    width: 100%;
-    margin: 0 !important;
+    font-size: 20px;
+    width: 90%;
+    margin: 0;
     font-weight: 600;
 }
 
 .feature-type-form-edit-button,
 .feature-type-form-back-button {
-    position: absolute;
-    top: 50%;
-    right: 10px;
-    transform: translateY(-50%);
-    color: white !important;
-    background-color: transparent !important;
+    right: 60px;
 }
 
 .feature-type-form-edit-button:hover,
 .feature-type-form-back-button:hover {
-    background-color: rgba(255, 255, 255, 0.1) !important;
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 .feature-type-form-scrollable {
@@ -73,15 +67,14 @@
     overflow-y: auto;
     overflow-x: hidden;
     padding: 0;
-    background-color: #1e1e1e;
 }
 
 .feature-type-form-table {
-    background-color: #1e1e1e;
-    color: white;
     border: none;
     margin-bottom: 0;
     width: 100%;
+    background-color: #1e1e1e;
+    color: white;
 }
 
 .feature-type-form-table table {
@@ -89,24 +82,24 @@
 }
 
 .feature-type-form-table tr {
-    background-color: #1e1e1e !important;
+    background-color: #1e1e1e;
     border-bottom: 1px solid #333;
 }
 
 .feature-type-form-table tr:hover {
-    background-color: #2a2a2a !important;
+    background-color: #2a2a2a;
 }
 
 .feature-type-form-table td {
-    border: none !important;
-    padding: 12px !important;
-    color: white !important;
+    border: none;
+    padding: 12px;
+    color: white;
     vertical-align: top;
 }
 
 .feature-type-form-table td:first-child {
     font-weight: 500;
-    border-right: 1px solid #333 !important;
+    border-right: 1px solid #333;
     width: 40%;
     background-color: #252525;
 }
@@ -116,27 +109,23 @@
 }
 
 .feature-type-form-table_null_value {
-    color: #999 !important;
+    color: #999;
     font-style: italic;
-}
-
-.feature-type-form-input-cell {
-    width: 100%;
 }
 
 .feature-type-form-input-cell input,
 .feature-type-form-input-cell select,
 .feature-type-form-input-cell textarea {
-    background-color: #2a2a2a !important;
-    color: white !important;
-    border: 1px solid #444 !important;
+    background-color: #2a2a2a;
+    color: white;
+    border: 1px solid #444;
 }
 
 .feature-type-form-input-cell input:focus,
 .feature-type-form-input-cell select:focus,
 .feature-type-form-input-cell textarea:focus {
-    border-color: #472ad6 !important;
-    outline: none !important;
+    border-color: #472ad6;
+    outline: none;
 }
 
 .feature-type-form-actions-fixed {
@@ -150,18 +139,10 @@
 .feature-type-form-buttons {
     display: flex;
     justify-content: space-between;
-    margin: 0;
 }
 
 .feature-type-form-actions-left,
 .feature-type-form-actions-right {
     display: flex;
     gap: 10px;
-}
-
-.drawer-close-button {
-    position: fixed !important;
-    top: 70px !important;
-    right: 420px !important;
-    z-index: 1300 !important;
 }
