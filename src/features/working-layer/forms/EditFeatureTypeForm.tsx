@@ -104,16 +104,20 @@ const EditFeatureTypeForm = () => {
     if (!pointData) return null;
 
     return (
-        <>
+        <div className="feature-type-form-container">
             <FeatureTypeFormHeader
-                title={`${isNewFeature ? "Nouveau " : ""}${geoserviceData?.title} : ${pointData[geoserviceData?.idName ?? "id"]}`}
+                title={`${isNewFeature ? "Nouveau " : ""}${geoserviceData?.title || ""}`}
+                featureId={pointData?.[geoserviceData?.idName || "id"] || ""}
                 onBack={handleBack}
-                featureId={geoserviceData?.idName ?? "id"}
             />
-            <FeatureTypeFormFields columns={columns} formData={formData} validationErrors={validationErrors} updateField={updateField} />
+            <div className="feature-type-form-scrollable">
+                <FeatureTypeFormFields columns={columns} formData={formData} validationErrors={validationErrors} updateField={updateField} />
+            </div>
 
-            <FeatureTypeFormActions onSave={handleSave} onDelete={handleDelete} onCancel={handleCancel} />
-        </>
+            <div className="feature-type-form-actions-fixed">
+                <FeatureTypeFormActions onSave={handleSave} onDelete={handleDelete} onCancel={handleCancel} />
+            </div>
+        </div>
     );
 };
 
