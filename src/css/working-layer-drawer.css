@@ -26,6 +26,7 @@
 .feature-type-form-table_null_value {
     color: var(--grey-975-75-active);
 }
+
 .feature-type-form-table tr td:first-child {
     border-right: 1px solid var(--border-default-grey);
     cursor: default;
@@ -40,4 +41,32 @@
 .feature-type-form-table_ul:has(ul) {
     list-style-type: none;
     padding-inline-start: 0.5rem;
+}
+
+.feature-type-form-header {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.feature-type-form-title {
+    background-color: #472ad6;
+    color: white;
+    padding: 10px;
+    text-align: center;
+    font-size: 16px;
+    width: 100%;
+    margin-top: unset !important;
+    margin-bottom: unset !important;
+}
+
+.feature-type-form-back-button {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    color: white !important;
+}
+
+.feature-type-form-back-button:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
 }

@@ -8,12 +8,11 @@ interface FeatureTypeFormHeaderProps {
 
 export const FeatureTypeFormHeader: React.FC<FeatureTypeFormHeaderProps> = ({ title, featureId, onBack }) => {
     return (
-        <div className="feature-type-form-header fr-flex fr-align-items--center">
-            <h1 className="feature-type-form-title fr-text--lg">
+        <div className="feature-type-form-header">
+            <h1 className="feature-type-form-title">
                 {title} : {featureId}
             </h1>
-
-            <Button iconId="ri-eye-fill" className="feature-type-form-edit-button fr-icon--xl" priority="tertiary no outline" onClick={onBack}>
+            <Button iconId="ri-eye-fill" className="feature-type-form-back-button" priority="tertiary no outline" onClick={onBack}>
                 Retour
             </Button>
         </div>

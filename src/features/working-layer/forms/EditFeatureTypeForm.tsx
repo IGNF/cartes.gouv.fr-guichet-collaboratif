@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useCallback, memo, useRef } from "react";
 import { EventTypes } from "ol/Observable";
 import { useMapStore } from "@/store";
-import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_GEOSERVICE_PROPERTY } from "@/constants";
+import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_GEOSERVICE_PROPERTY, FEATURE_TYPE_NEW_PROPERTY } from "@/constants";
 import { CommunityGeoservice, FeatureTypeColumn } from "@/constants/communities/types";
 import { useFeatureTypeValidation } from "@/hooks/working-layer/useFeatureTypeValidation";
 import { useFeatureTypeForm } from "@/hooks/working-layer/useFeatureTypeForm";
@@ -31,6 +31,7 @@ const EditFeatureTypeForm = () => {
     const lastMapFeatStyle = useRef<Style | null>(null);
 
     const columns: FeatureTypeColumn[] = clickedMapFeature?.get(FEATURE_TYPE_GEOSERVICE_PROPERTY).columns || [];
+    const isNewFeature = useMemo(() => clickedMapFeature && clickedMapFeature?.get(FEATURE_TYPE_NEW_PROPERTY), [clickedMapFeature]);
 
     const featureLayer = useMemo(() => {
         if (!map || !geoserviceData) return null;
@@ -104,8 +105,11 @@ const EditFeatureTypeForm = () => {
 
     return (
         <>
-            <FeatureTypeFormHeader title={geoserviceData?.title || ""} featureId={pointData?.id || pointData?.cleabs || ""} onBack={handleBack} />
-
+            <FeatureTypeFormHeader
+                title={`${isNewFeature ? "Nouveau " : ""}${geoserviceData?.title} : ${pointData[geoserviceData?.idName ?? "id"]}`}
+                onBack={handleBack}
+                featureId={geoserviceData?.idName ?? "id"}
+            />
             <FeatureTypeFormFields columns={columns} formData={formData} validationErrors={validationErrors} updateField={updateField} />
 
             <FeatureTypeFormActions onSave={handleSave} onDelete={handleDelete} onCancel={handleCancel} />
