@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useCallback, memo, useRef } from "react";
+import { useEffect, useMemo, useCallback, memo } from "react";
 import { EventTypes } from "ol/Observable";
 import { useMapStore } from "@/store";
-import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_GEOSERVICE_PROPERTY, FEATURE_TYPE_NEW_PROPERTY } from "@/constants";
+import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_GEOSERVICE_PROPERTY, FEATURE_TYPE_NEW_PROPERTY, FEATURE_TYPE_SELECTED_PROPERTY } from "@/constants";
 import { CommunityGeoservice, FeatureTypeColumn } from "@/constants/communities/types";
 import { useFeatureTypeValidation } from "@/hooks/working-layer/useFeatureTypeValidation";
 import { useFeatureTypeForm } from "@/hooks/working-layer/useFeatureTypeForm";
@@ -9,20 +9,11 @@ import { useFeatureTypeActions } from "@/hooks/working-layer/useFeatureTypeActio
 import { FeatureTypeFormHeader } from "./FeatureTypeFormHeader";
 import { FeatureTypeFormFields } from "./FeatureTypeFormFields";
 import { FeatureTypeFormActions } from "./FeatureTypeFormActions";
-import { featureTypeSelectedLineStyle, featureTypeSelectedPointCircleStyle, featureTypeSelectedPolygonStyle } from "@/constants/styles";
-import { Style } from "ol/style";
 import { useTranslation } from "@/i18n";
 
 interface PointDataProps {
     [key: string]: string | number | null;
 }
-
-const getSelectedFeatureTypeStyle = (type: string) => {
-    if (type === "point") return featureTypeSelectedPointCircleStyle();
-    if (type === "line") return featureTypeSelectedLineStyle();
-    if (type === "polygon") return featureTypeSelectedPolygonStyle();
-    return featureTypeSelectedPointCircleStyle();
-};
 
 const EditFeatureTypeForm = () => {
     const { map, mapSwitcher, clickedMapFeature, setClickedMapFeature, setFeatureTypeMode, setWorkingLayerDrawerOpened } = useMapStore();
@@ -31,8 +22,6 @@ const EditFeatureTypeForm = () => {
 
     const pointData: PointDataProps = clickedMapFeature?.get(FEATURE_TYPE_DATA_PROPERTY);
     const geoserviceData: CommunityGeoservice = clickedMapFeature?.get(FEATURE_TYPE_GEOSERVICE_PROPERTY);
-    const lastMapFeatStyle = useRef<Style | null>(null);
-
     const columns: FeatureTypeColumn[] = clickedMapFeature?.get(FEATURE_TYPE_GEOSERVICE_PROPERTY).columns || [];
     const isNewFeature = useMemo(() => clickedMapFeature && clickedMapFeature?.get(FEATURE_TYPE_NEW_PROPERTY), [clickedMapFeature]);
 
@@ -92,18 +81,16 @@ const EditFeatureTypeForm = () => {
 
     useEffect(() => {
         if (clickedMapFeature) {
-            lastMapFeatStyle.current = clickedMapFeature.getStyle() as Style;
-            clickedMapFeature.setStyle(getSelectedFeatureTypeStyle(geoserviceData?.featureType || "point"));
+            clickedMapFeature.set(FEATURE_TYPE_SELECTED_PROPERTY, true);
             clickedMapFeature.changed();
         }
         return () => {
-            if (clickedMapFeature && lastMapFeatStyle.current) {
-                clickedMapFeature.setStyle(lastMapFeatStyle.current);
+            if (clickedMapFeature) {
+                clickedMapFeature.unset(FEATURE_TYPE_SELECTED_PROPERTY);
                 clickedMapFeature.changed();
-                lastMapFeatStyle.current = null;
             }
         };
-    }, [clickedMapFeature, geoserviceData, setWorkingLayerDrawerOpened]);
+    }, [clickedMapFeature, geoserviceData, featureLayer, setWorkingLayerDrawerOpened]);
     if (!pointData) return null;
 
     return (
