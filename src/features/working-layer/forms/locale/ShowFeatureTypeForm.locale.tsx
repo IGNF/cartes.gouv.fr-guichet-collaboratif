@@ -6,6 +6,8 @@ export const ShowFeatureTypeFormFrTranslations: Translations<"fr">["ShowFeatureT
     value_yes: "Oui",
     value_no: "Non",
     cancel: "Annuler",
+    state: "Nouveau",
+    edit: "Éditer",
 };
 
 export const ShowFeatureTypeFormEnTranslations: Translations<"en">["ShowFeatureTypeForm"] = {
@@ -13,7 +15,9 @@ export const ShowFeatureTypeFormEnTranslations: Translations<"en">["ShowFeatureT
     value_yes: "Oui",
     value_no: "Non",
     cancel: "Cancel",
+    state: "New",
+    edit: "Edit",
 };
 
-const { i18n } = declareComponentKeys<"value_empty" | "value_yes" | "value_no" | "cancel">()("ShowFeatureTypeForm");
+const { i18n } = declareComponentKeys<"value_empty" | "value_yes" | "value_no" | "cancel" | "state" | "edit">()("ShowFeatureTypeForm");
 export type I18n = typeof i18n;

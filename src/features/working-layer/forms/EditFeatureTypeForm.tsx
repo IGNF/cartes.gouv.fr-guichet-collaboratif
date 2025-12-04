@@ -11,6 +11,7 @@ import { FeatureTypeFormFields } from "./FeatureTypeFormFields";
 import { FeatureTypeFormActions } from "./FeatureTypeFormActions";
 import { featureTypeSelectedLineStyle, featureTypeSelectedPointCircleStyle, featureTypeSelectedPolygonStyle } from "@/constants/styles";
 import { Style } from "ol/style";
+import { useTranslation } from "@/i18n";
 
 interface PointDataProps {
     [key: string]: string | number | null;
@@ -25,6 +26,8 @@ const getSelectedFeatureTypeStyle = (type: string) => {
 
 const EditFeatureTypeForm = () => {
     const { map, mapSwitcher, clickedMapFeature, setClickedMapFeature, setFeatureTypeMode, setWorkingLayerDrawerOpened } = useMapStore();
+
+    const { t } = useTranslation({ EditFeatureTypeForm });
 
     const pointData: PointDataProps = clickedMapFeature?.get(FEATURE_TYPE_DATA_PROPERTY);
     const geoserviceData: CommunityGeoservice = clickedMapFeature?.get(FEATURE_TYPE_GEOSERVICE_PROPERTY);
@@ -106,7 +109,7 @@ const EditFeatureTypeForm = () => {
     return (
         <div className="feature-type-form-container">
             <FeatureTypeFormHeader
-                title={`${isNewFeature ? "Nouveau " : ""}${geoserviceData?.title || ""}`}
+                title={`${isNewFeature ? t("state") + " " : ""}${geoserviceData?.title || ""}`}
                 featureId={pointData?.[geoserviceData?.idName || "id"] || ""}
                 onBack={handleBack}
             />

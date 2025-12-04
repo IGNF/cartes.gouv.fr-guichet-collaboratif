@@ -1,4 +1,5 @@
 import Button from "@codegouvfr/react-dsfr/Button";
+import { useTranslation } from "@/i18n";
 
 interface FeatureTypeFormActionsProps {
     onSave: () => void;
@@ -7,21 +8,22 @@ interface FeatureTypeFormActionsProps {
 }
 
 export const FeatureTypeFormActions: React.FC<FeatureTypeFormActionsProps> = ({ onSave, onDelete, onCancel }) => {
+    const { t } = useTranslation({ FeatureTypeFormActions });
     return (
         <div className="feature-type-form-buttons">
             <div className="feature-type-form-actions-left">
                 <Button onClick={onDelete} priority="primary" iconId="ri-delete-bin-line" iconPosition="right">
-                    Supprimer
+                    {t("delete")}
                 </Button>
             </div>
 
             <div className="feature-type-form-actions-right">
                 <Button priority="secondary" onClick={onCancel}>
-                    Annuler
+                    {t("cancel")}
                 </Button>
 
                 <Button priority="primary" onClick={onSave} iconId="ri-save-line" iconPosition="right">
-                    Sauvegarder
+                    {t("save")}
                 </Button>
             </div>
         </div>

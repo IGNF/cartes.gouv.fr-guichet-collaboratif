@@ -109,7 +109,8 @@ const ShowFeatureTypeForm = () => {
         <>
             <div className="feature-type-form-header">
                 <h1 className="feature-type-form-title">
-                    {isNewFeature ? "Nouveau" : ""} {geoserviceData?.title} : {pointData[`${geoserviceData?.idName}`]}
+                    {isNewFeature ? t("state") + " " : ""}
+                    {geoserviceData?.title || ""}
                 </h1>
 
                 <Button
@@ -120,7 +121,7 @@ const ShowFeatureTypeForm = () => {
                         setFeatureTypeMode("edit");
                     }}
                 >
-                    Éditer
+                    {t("edit")}
                 </Button>
             </div>
 

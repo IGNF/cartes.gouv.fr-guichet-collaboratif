@@ -26,6 +26,7 @@ import { useGetReportsLayerEnTranslations } from "@/hooks/navigation/layers/loca
 import { useGetWFSLayerEnTranslations } from "@/hooks/navigation/layers/locale/useGetWFSLayer.locale";
 import { useGetWMSLayerEnTranslations } from "@/hooks/navigation/layers/locale/useGetWMSLayer.locale";
 import { useGetWMTSLayerEnTranslations } from "@/hooks/navigation/layers/locale/useGetWMTSLayer.locale";
+import { useFeatureTypeValidationEnTranslations } from "@/hooks/working-layer/locale/useFeatureTypeValidation.locale";
 import { DrawerComponentEnTranslations } from "@/components/locale/DrawerComponent.locale";
 import { DrawingControlEnTranslations } from "@/features/navigation/controls/locale/DrawingControl.locale";
 import { CatalogControlEnTranslations } from "@/features/navigation/controls/locale/CatalogControl.locale";
@@ -34,6 +35,10 @@ import { useGetMapControlsEnTranslations } from "@/features/navigation/controls/
 import { useReportToolsEnTranslations } from "@/hooks/reports/locale/useReportTools.locale";
 import { FeatureTypeLayerLegendsEnTranslations } from "@/features/navigation/layers/legends/locale/FeatureTypeLayerLegends.locale";
 import { ShowFeatureTypeFormEnTranslations } from "@/features/working-layer/forms/locale/ShowFeatureTypeForm.locale";
+import { EditFeatureTypeFormEnTranslations } from "@/features/working-layer/forms/locale/EditFeatureTypeForm.locale";
+import { FeatureTypeFormActionsEnTranslations } from "@/features/working-layer/forms/locale/FeatureTypeFormActions.locale";
+import { FeatureTypeFormFieldsEnTranslations } from "@/features/working-layer/forms/locale/FeatureTypeFormFields.locale";
+import { FeatureTypeFormHeaderEnTranslations } from "@/features/working-layer/forms/locale/FeatureTypeFormHeader.locale";
 import { ClickableFeaturesModalEnTranslations } from "@/features/working-layer/modal/locale/ClickableFeaturesModal.locale";
 import { FormAttachmentsEnTranslations } from "@/features/reports/forms/locale/FormAttachments.locale";
 import { WorkingLayerControlEnTranslations } from "@/features/navigation/controls/locale/WorkingLayerControl.locale";
@@ -74,6 +79,7 @@ export const translations: Translations<"en"> = {
     useGetWFSLayer: useGetWFSLayerEnTranslations,
     useGetWMSLayer: useGetWMSLayerEnTranslations,
     useGetWMTSLayer: useGetWMTSLayerEnTranslations,
+    useFeatureTypeValidation: useFeatureTypeValidationEnTranslations,
     DrawingControl: DrawingControlEnTranslations,
     CatalogControl: CatalogControlEnTranslations,
     CenterReportControl: CenterReportControlEnTranslations,
@@ -81,6 +87,10 @@ export const translations: Translations<"en"> = {
     useReportTools: useReportToolsEnTranslations,
     FeatureTypeLayerLegends: FeatureTypeLayerLegendsEnTranslations,
     ShowFeatureTypeForm: ShowFeatureTypeFormEnTranslations,
+    EditFeatureTypeForm: EditFeatureTypeFormEnTranslations,
+    FeatureTypeFormActions: FeatureTypeFormActionsEnTranslations,
+    FeatureTypeFormFields: FeatureTypeFormFieldsEnTranslations,
+    FeatureTypeFormHeader: FeatureTypeFormHeaderEnTranslations,
     ClickableFeaturesModal: ClickableFeaturesModalEnTranslations,
     FormAttachments: FormAttachmentsEnTranslations,
     WorkingLayerControl: WorkingLayerControlEnTranslations,

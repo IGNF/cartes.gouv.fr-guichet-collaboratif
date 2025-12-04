@@ -6,6 +6,7 @@ import Select from "@codegouvfr/react-dsfr/Select";
 import Checkbox from "@codegouvfr/react-dsfr/Checkbox";
 import { Upload } from "@codegouvfr/react-dsfr/Upload";
 import { FeatureTypeColumn } from "@/constants/communities/types";
+import { useTranslation } from "@/i18n";
 
 interface FeatureTypeFormFieldsProps {
     columns: FeatureTypeColumn[];
@@ -13,7 +14,10 @@ interface FeatureTypeFormFieldsProps {
     validationErrors: Record<string, string | null>;
     updateField: (name: string, value: string | number | boolean | File[] | null, col: FeatureTypeColumn) => void;
 }
+
 export const FeatureTypeFormFields: React.FC<FeatureTypeFormFieldsProps> = ({ columns, formData, validationErrors, updateField }) => {
+    const { t } = useTranslation({ FeatureTypeFormFields });
+
     const dataColumns = useMemo(
         () =>
             columns
@@ -80,7 +84,7 @@ export const FeatureTypeFormFields: React.FC<FeatureTypeFormFieldsProps> = ({ co
                                             required: col.required,
                                         }}
                                     >
-                                        <option value="">Sélectionnez une option</option>
+                                        <option value="">{t("select_placeholder")}</option>
                                         {col.enum.map((opt, idx) => (
                                             <option key={idx} value={opt}>
                                                 {opt}
@@ -167,7 +171,7 @@ export const FeatureTypeFormFields: React.FC<FeatureTypeFormFieldsProps> = ({ co
                         </div>,
                     ];
                 }),
-        [columns, formData, validationErrors, updateField]
+        [columns, formData, validationErrors, updateField, t]
     );
 
     return <Table bordered fixed className="feature-type-form-table" data={dataColumns} />;

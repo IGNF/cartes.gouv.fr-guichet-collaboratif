@@ -1,52 +1,57 @@
 import { useState, useCallback } from "react";
 import { FeatureTypeColumn } from "@/constants/communities/types";
+import { useTranslation } from "@/i18n";
 
 interface ValidationErrors {
     [key: string]: string | null;
 }
 
 export const useFeatureTypeValidation = () => {
+    const { t } = useTranslation({ useFeatureTypeValidation });
     const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
 
-    const validateField = useCallback((col: FeatureTypeColumn, value: string | number | boolean | File[] | null): string | null => {
-        if (col.required && (value === null || value === "" || value === undefined)) {
-            return "Ce champ est requis";
-        }
-
-        if (!col.nullable && (value === null || value === "")) {
-            return "Ce champ ne peut pas être vide";
-        }
-
-        if (col.type.toLowerCase() === "string" && typeof value === "string") {
-            if (col.min_length !== null && col.min_length !== undefined && value.length < col.min_length) {
-                return `Minimum ${col.min_length} caractères requis`;
+    const validateField = useCallback(
+        (col: FeatureTypeColumn, value: string | number | boolean | File[] | null): string | null => {
+            if (col.required && (value === null || value === "" || value === undefined)) {
+                return t("error_required");
             }
-            if (col.max_length !== null && col.max_length !== undefined && value.length > col.max_length) {
-                return `Maximum ${col.max_length} caractères autorisés`;
+
+            if (!col.nullable && (value === null || value === "")) {
+                return t("error_required");
             }
-            if (col.pattern && value) {
-                try {
-                    const regex = new RegExp(`^${col.pattern}$`);
-                    if (!regex.test(value)) {
-                        return "Format invalide";
+
+            if (col.type.toLowerCase() === "string" && typeof value === "string") {
+                if (col.min_length !== null && col.min_length !== undefined && value.length < col.min_length) {
+                    return t("error_min_length");
+                }
+                if (col.max_length !== null && col.max_length !== undefined && value.length > col.max_length) {
+                    return t("error_max_length");
+                }
+                if (col.pattern && value) {
+                    try {
+                        const regex = new RegExp(`^${col.pattern}$`);
+                        if (!regex.test(value)) {
+                            return t("error_pattern");
+                        }
+                    } catch (e) {
+                        console.error("Invalid regex pattern:", col.pattern, e);
                     }
-                } catch (e) {
-                    console.error("Invalid regex pattern:", col.pattern, e);
                 }
             }
-        }
 
-        if (col.type.toLowerCase() === "integer" && typeof value === "number") {
-            if (col.min_value !== null && col.min_value !== undefined && value < col.min_value) {
-                return `Valeur minimum: ${col.min_value}`;
+            if (col.type.toLowerCase() === "integer" && typeof value === "number") {
+                if (col.min_value !== null && col.min_value !== undefined && value < col.min_value) {
+                    return t("error_min_value");
+                }
+                if (col.max_value !== null && col.max_value !== undefined && value > col.max_value) {
+                    return t("error_max_value");
+                }
             }
-            if (col.max_value !== null && col.max_value !== undefined && value > col.max_value) {
-                return `Valeur maximum: ${col.max_value}`;
-            }
-        }
 
-        return null;
-    }, []);
+            return null;
+        },
+        [t]
+    );
 
     const validateAll = useCallback(
         (columns: FeatureTypeColumn[], formData: Record<string, string | number | boolean | File[] | null>): boolean => {

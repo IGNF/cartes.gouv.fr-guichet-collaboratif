@@ -50,12 +50,17 @@ export type ComponentKey =
     | import("../features/reports/locale/ConfirmDeleteShareReportModal.locale").I18n
     | import("../features/reports/locale/ReportTracking.locale").I18n
     | import("../features/working-layer/forms/locale/ShowFeatureTypeForm.locale").I18n
+    | import("../features/working-layer/forms/locale/EditFeatureTypeForm.locale").I18n
+    | import("../features/working-layer/forms/locale/FeatureTypeFormActions.locale").I18n
+    | import("../features/working-layer/forms/locale/FeatureTypeFormFields.locale").I18n
+    | import("../features/working-layer/forms/locale/FeatureTypeFormHeader.locale").I18n
     | import("../features/working-layer/modal/locale/ClickableFeaturesModal.locale").I18n
     | import("../hooks/navigation/layers/locale/useGetReportsLayer.locale").I18n
     | import("../hooks/navigation/layers/locale/useGetWFSLayer.locale").I18n
     | import("../hooks/navigation/layers/locale/useGetWMSLayer.locale").I18n
     | import("../hooks/navigation/layers/locale/useGetWMTSLayer.locale").I18n
     | import("../hooks/reports/locale/useReportTools.locale").I18n
+    | import("../hooks/working-layer/locale/useFeatureTypeValidation.locale").I18n
     | import("../features/reports/forms/locale/FormAttachments.locale").I18n;
 
 export type Translations<L extends Language> = GenericTranslations<ComponentKey, Language, typeof fallbackLanguage, L>;
