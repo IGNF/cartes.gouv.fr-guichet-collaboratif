@@ -10,6 +10,9 @@ import { FeatureTypeFormHeader } from "./FeatureTypeFormHeader";
 import { FeatureTypeFormFields } from "./FeatureTypeFormFields";
 import { FeatureTypeFormActions } from "./FeatureTypeFormActions";
 import { useTranslation } from "@/i18n";
+import VectorSource from "ol/source/Vector";
+import Feature from "ol/Feature";
+import Geometry from "ol/geom/Geometry";
 
 interface PointDataProps {
     [key: string]: string | number | null;
@@ -36,6 +39,15 @@ const EditFeatureTypeForm = () => {
         );
     }, [map, geoserviceData]);
 
+    const currentMapWorkingSource = useMemo(() => {
+        if (!map || !geoserviceData) return null;
+
+        return map
+            .getAllLayers()
+            .find((l) => l.get("name") === geoserviceData.layer)
+            ?.getSource() as VectorSource<Feature<Geometry>> | null;
+    }, [map, geoserviceData]);
+
     const { validationErrors, setValidationErrors, validateField, validateAll } = useFeatureTypeValidation();
 
     const { formData, updateField } = useFeatureTypeForm(pointData, columns, validateField, setValidationErrors);
@@ -48,6 +60,7 @@ const EditFeatureTypeForm = () => {
 
     const { handleSave, handleDelete } = useFeatureTypeActions({
         clickedMapFeature,
+        currentMapWorkingSource,
         featureLayer,
         pointData,
         formData,

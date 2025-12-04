@@ -1,112 +1,108 @@
 import { useCallback } from "react";
 import WKT from "ol/format/WKT";
 import { Feature } from "ol";
-import { deleteFeatureById, editFeatureById } from "@/api/featureTypesData";
-import { FeatureTypeColumn, FeatureTypeIds } from "@/constants/communities/types";
 import BaseLayer from "ol/layer/Base";
+import VectorSource from "ol/source/Vector";
+
+import { ContributionType } from "@/constants/contributions/types";
+import { useContributionStore } from "@/store";
+import { FEATURE_TYPE_NEW_PROPERTY } from "@/constants";
+import { FeatureTypeColumn } from "@/constants/communities/types";
 
 interface UseFeatureTypeActionsProps {
     clickedMapFeature: Feature | null;
     featureLayer: BaseLayer | null;
+    currentMapWorkingSource: VectorSource | null;
     pointData: Record<string, string | number | null>;
     formData: Record<string, string | number | boolean | File[] | null>;
+    onSuccess: () => void;
     columns: FeatureTypeColumn[];
     validateAll: (columns: FeatureTypeColumn[], formData: Record<string, string | number | boolean | File[] | null>) => boolean;
-    onSuccess: () => void;
 }
 
 export const useFeatureTypeActions = ({
     clickedMapFeature,
     featureLayer,
+    currentMapWorkingSource,
     pointData,
     formData,
     columns,
     validateAll,
     onSuccess,
 }: UseFeatureTypeActionsProps) => {
+    const { contributions, setContributions } = useContributionStore();
+
     const handleSave = useCallback(async () => {
-        try {
-            if (!validateAll(columns, formData)) {
-                console.error("Validation failed");
-                return false;
-            }
+        if (!clickedMapFeature) return false;
 
-            const featureId = pointData?.id || pointData?.cleabs;
-            if (!featureId) {
-                console.error("No feature ID found");
-                return false;
-            }
-
-            const database = featureLayer?.get("database");
-            const table = featureLayer?.get("table");
-            if (!database || !table) {
-                console.error("Missing database or table");
-                return false;
-            }
-
-            const featureTypesId: FeatureTypeIds = { database, table };
-
-            const geometry = clickedMapFeature?.getGeometry();
-            let wkt = "";
-
-            if (geometry) {
-                wkt = new WKT().writeGeometry(geometry.clone().transform("EPSG:3857", "EPSG:4326"));
-            }
-
-            const updated = await editFeatureById(
-                featureTypesId,
-                featureId,
-                {
-                    ...formData,
-                    geometrie: wkt,
-                },
-                wkt
-            );
-
-            if (updated) {
-                onSuccess();
-                return true;
-            } else {
-                console.error("Save failed: update transaction failed");
-                return false;
-            }
-        } catch (error) {
-            console.error("Save failed:", error);
+        if (!validateAll(columns, formData)) {
+            console.error("Validation failed");
             return false;
         }
-    }, [clickedMapFeature, featureLayer, pointData, formData, columns, validateAll, onSuccess]);
 
-    const handleDelete = useCallback(async () => {
-        try {
-            const featureId = pointData?.id || pointData?.cleabs;
-            if (!featureId) {
-                console.error("No feature ID found");
-                return false;
-            }
-
-            const database = featureLayer?.get("database");
-            const table = featureLayer?.get("table");
-            if (!database || !table) {
-                console.error("Missing database or table");
-                return false;
-            }
-
-            const featureTypesId: FeatureTypeIds = { database, table };
-
-            const deleted = await deleteFeatureById(featureTypesId, featureId);
-
-            if (deleted) {
-                onSuccess();
-                return true;
-            } else {
-                console.error("Delete failed: transaction failed");
-                return false;
-            }
-        } catch (error) {
-            console.error("Delete failed:", error);
-            return false;
+        const geometry = clickedMapFeature.getGeometry();
+        if (geometry) {
+            const wkt = new WKT().writeGeometry(geometry.clone().transform("EPSG:3857", "EPSG:4326"));
+            clickedMapFeature.set("geometrie", wkt);
         }
-    }, [featureLayer, pointData, onSuccess]);
+        Object.entries(formData).forEach(([key, value]) => {
+            clickedMapFeature.set(key, value);
+        });
+
+        const isNew = clickedMapFeature.get(FEATURE_TYPE_NEW_PROPERTY) === true;
+        const type = isNew ? ContributionType.CREATE : ContributionType.MODIFY;
+
+        const contrExist = contributions.find((c) => c.feature === clickedMapFeature);
+
+        const newContr = {
+            feature: clickedMapFeature,
+            initialFeature: contrExist?.initialFeature ?? clickedMapFeature.clone(),
+            layer: featureLayer?.get("name"),
+            type,
+        };
+
+        let newContributions = [...contributions];
+
+        if (contrExist) {
+            newContributions = newContributions.filter((c) => c.feature !== contrExist.feature);
+        }
+        newContributions.push(newContr);
+
+        setContributions(newContributions);
+
+        onSuccess();
+        return true;
+    }, [clickedMapFeature, featureLayer, pointData, formData, validateAll, columns, contributions, setContributions, onSuccess]);
+
+    const handleDelete = useCallback(() => {
+        if (!clickedMapFeature) return false;
+
+        if (currentMapWorkingSource) {
+            currentMapWorkingSource.removeFeature(clickedMapFeature);
+        }
+
+        const contrExist = contributions.find((c) => c.feature === clickedMapFeature);
+
+        const newContr = {
+            feature: clickedMapFeature,
+            initialFeature: contrExist?.initialFeature ?? clickedMapFeature.clone(),
+            layer: featureLayer?.get("name") ?? featureLayer?.get("table"),
+            type: ContributionType.DELETE,
+        };
+
+        let newContributions = [...contributions];
+
+        if (contrExist?.type === ContributionType.CREATE) {
+            newContributions = newContributions.filter((c) => c.feature !== contrExist.feature);
+        } else {
+            newContributions = newContributions.filter((c) => c.feature !== clickedMapFeature);
+            newContributions.push(newContr);
+        }
+
+        setContributions(newContributions);
+        onSuccess();
+        return true;
+    }, [clickedMapFeature, currentMapWorkingSource, featureLayer, contributions, setContributions, onSuccess]);
 
     return {
         handleSave,
