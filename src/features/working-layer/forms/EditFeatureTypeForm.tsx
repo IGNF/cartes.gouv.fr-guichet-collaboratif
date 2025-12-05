@@ -75,14 +75,13 @@ const EditFeatureTypeForm = () => {
     const handleBack = useCallback(() => {
         setFeatureTypeMode(FeatureTypeMode.VIEW);
     }, []);
+    const handleLayerVisibility = useCallback(() => {
+        if (clickableLayer && !clickableLayer.getVisible()) {
+            handleCancel();
+        }
+    }, [clickableLayer, handleCancel]);
 
     useEffect(() => {
-        const handleLayerVisibility = () => {
-            if (clickableLayer && !clickableLayer?.getVisible()) {
-                handleCancel();
-            }
-        };
-
         mapSwitcher?.on("layerswitcher:change:visibility" as EventTypes, handleLayerVisibility);
         return () => {
             mapSwitcher?.un("layerswitcher:change:visibility" as EventTypes, handleLayerVisibility);
