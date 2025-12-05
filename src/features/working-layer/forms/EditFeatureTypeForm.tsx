@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useCallback, memo } from "react";
 
 import { EventTypes } from "ol/Observable";
-import { useMapStore } from "@/store";
+import { useContributionStore, useMapStore } from "@/store";
 import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
 import WebGLVectorLayer from "ol/layer/WebGLVector";
@@ -23,7 +23,8 @@ interface PointDataProps {
 }
 
 const EditFeatureTypeForm = () => {
-    const { map, mapSwitcher, clickedMapFeature, mapWorkingLayer, setFeatureTypeMode, setClickedMapFeature, setWorkingLayerDrawerOpened } = useMapStore();
+    const { map, mapSwitcher, clickedMapFeature, mapWorkingLayer, setClickedMapFeature, setWorkingLayerDrawerOpened } = useMapStore();
+    const { setFeatureTypeMode } = useContributionStore();
 
     const { t } = useTranslation({ EditFeatureTypeForm });
 

@@ -1,13 +1,13 @@
 import DrawerComponent from "@/components/DrawerComponent";
-import { useMapStore } from "@/store";
+import { useContributionStore, useMapStore } from "@/store";
 import { useEffect } from "react";
 import ShowFeatureTypeForm from "./forms/ShowFeatureTypeForm";
 import EditFeatureTypeForm from "./forms/EditFeatureTypeForm";
 import { FeatureTypeMode } from "@/constants/contributions/types";
 
 const WorkingLayerDrawer = () => {
-    const { clickedMapFeature, workingLayerDrawerOpened, featureTypeMode, setWorkingLayerDrawerOpened, setClickedMapFeature, setFeatureTypeMode } =
-        useMapStore();
+    const { clickedMapFeature, workingLayerDrawerOpened, setWorkingLayerDrawerOpened, setClickedMapFeature } = useMapStore();
+    const { featureTypeMode, setFeatureTypeMode } = useContributionStore();
 
     useEffect(() => {
         if (clickedMapFeature && !workingLayerDrawerOpened) {

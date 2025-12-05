@@ -3,7 +3,7 @@ import { FeatureTypeMode } from "@/constants/contributions/types";
 import { CommunityGeoservice, FeatureTypeColumn } from "@/constants/communities/types";
 import { jsonToHtmlList } from "@/constants/communities/utils";
 import { useTranslation } from "@/i18n";
-import { useMapStore } from "@/store";
+import { useContributionStore, useMapStore } from "@/store";
 import Button from "@codegouvfr/react-dsfr/Button";
 import Table from "@codegouvfr/react-dsfr/Table";
 import { Tooltip } from "@codegouvfr/react-dsfr/Tooltip";
@@ -17,7 +17,8 @@ interface PointDataProps {
 }
 
 const ShowFeatureTypeForm = () => {
-    const { map, mapSwitcher, mapWorkingLayer, clickedMapFeature, setWorkingLayerDrawerOpened, setClickedMapFeature, setFeatureTypeMode } = useMapStore();
+    const { map, mapSwitcher, mapWorkingLayer, clickedMapFeature, setWorkingLayerDrawerOpened, setClickedMapFeature } = useMapStore();
+    const { setFeatureTypeMode } = useContributionStore();
 
     const { t } = useTranslation({ ShowFeatureTypeForm });
 
