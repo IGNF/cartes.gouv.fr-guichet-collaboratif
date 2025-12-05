@@ -7,6 +7,7 @@ import VectorLayer from "ol/layer/Vector";
 import WebGLVectorLayer from "ol/layer/WebGLVector";
 
 import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_GEOSERVICE_PROPERTY, FEATURE_TYPE_NEW_PROPERTY, FEATURE_TYPE_SELECTED_PROPERTY } from "@/constants";
+import { FeatureTypeMode } from "@/constants/contributions/types";
 
 import { CommunityGeoservice, FeatureTypeColumn } from "@/constants/communities/types";
 import { useFeatureTypeValidation } from "@/hooks/working-layer/useFeatureTypeValidation";
@@ -22,7 +23,7 @@ interface PointDataProps {
 }
 
 const EditFeatureTypeForm = () => {
-    const { map, mapSwitcher, clickedMapFeature, mapWorkingLayer, setClickedMapFeature, setFeatureTypeMode, setWorkingLayerDrawerOpened } = useMapStore();
+    const { map, mapSwitcher, clickedMapFeature, mapWorkingLayer, setFeatureTypeMode, setClickedMapFeature, setWorkingLayerDrawerOpened } = useMapStore();
 
     const { t } = useTranslation({ EditFeatureTypeForm });
 
@@ -51,8 +52,8 @@ const EditFeatureTypeForm = () => {
     const handleSuccess = useCallback(() => {
         setClickedMapFeature(null);
         setWorkingLayerDrawerOpened(false);
-        setFeatureTypeMode("view");
-    }, [setClickedMapFeature, setWorkingLayerDrawerOpened, setFeatureTypeMode]);
+        setFeatureTypeMode(FeatureTypeMode.VIEW);
+    }, [setClickedMapFeature, setWorkingLayerDrawerOpened]);
 
     const { handleSave, handleDelete } = useFeatureTypeActions({
         clickedMapFeature,
@@ -68,12 +69,12 @@ const EditFeatureTypeForm = () => {
     const handleCancel = useCallback(() => {
         setClickedMapFeature(null);
         setWorkingLayerDrawerOpened(false);
-        setFeatureTypeMode("view");
-    }, [setClickedMapFeature, setWorkingLayerDrawerOpened, setFeatureTypeMode]);
+        setFeatureTypeMode(FeatureTypeMode.VIEW);
+    }, [setClickedMapFeature, setWorkingLayerDrawerOpened]);
 
     const handleBack = useCallback(() => {
-        setFeatureTypeMode("view");
-    }, [setFeatureTypeMode]);
+        setFeatureTypeMode(FeatureTypeMode.VIEW);
+    }, []);
 
     useEffect(() => {
         const handleLayerVisibility = () => {

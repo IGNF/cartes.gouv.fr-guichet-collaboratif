@@ -1,4 +1,5 @@
 import { CustomControlItem, FeatureTypeSelectedStyle } from "@/constants/communities/types";
+import { FeatureTypeMode } from "@/constants/contributions/types";
 import { ClickedTool } from "@/constants/reports/types";
 import LayerSwitcher from "geopf-extensions-openlayers/src/packages/Controls/LayerSwitcher/LayerSwitcher";
 import { Feature, Map } from "ol";
@@ -8,7 +9,7 @@ interface MapStore {
     map: Map | null;
     mapSwitcher: LayerSwitcher | null;
     featureTypeSelectedStyle: FeatureTypeSelectedStyle[];
-    featureTypeMode: "view" | "edit";
+    featureTypeMode: FeatureTypeMode;
     clickedMapFeature: Feature | null;
     workingLayerDrawerOpened: boolean;
     mapWorkingLayer: string;
@@ -18,13 +19,13 @@ interface MapStore {
     showCenterReportButtons: boolean;
     setMap: (map: Map | null, mapSwitcher: LayerSwitcher | null) => void;
     setFeatureTypeSelectedStyle: ({ layer, selectedStyle }: FeatureTypeSelectedStyle) => void;
+    setFeatureTypeMode: (mode: FeatureTypeMode) => void;
     setClickedMapFeature: (feature: Feature | null) => void;
     setWorkingLayerDrawerOpened: (open: boolean) => void;
     setMapWorkingLayer: (layerName: string) => void;
     setClickableFeatures: (features: Feature[]) => void;
     setClickedControl: (control: CustomControlItem | null) => void;
     setShowMapWorkingLayerSelect: (show: boolean) => void;
-    setFeatureTypeMode: (mode: "view" | "edit") => void;
     setShowCenterReportButtons: (show: boolean) => void;
     clickedTool: ClickedTool;
     setClickedTool: (tool: ClickedTool) => void;
@@ -34,7 +35,7 @@ export const useMapStore = create<MapStore>((set, get) => ({
     map: null,
     mapSwitcher: null,
     featureTypeSelectedStyle: [],
-    featureTypeMode: "view",
+    featureTypeMode: FeatureTypeMode.VIEW,
     clickedMapFeature: null,
     workingLayerDrawerOpened: false,
     mapWorkingLayer: "",
@@ -55,6 +56,7 @@ export const useMapStore = create<MapStore>((set, get) => ({
             set({ featureTypeSelectedStyle: [...currentFeatureTypeStyles, newStyle] });
         }
     },
+    setFeatureTypeMode: (mode) => set({ featureTypeMode: mode }),
     setClickedMapFeature: (feature) => {
         set({
             clickedMapFeature: feature,
@@ -69,7 +71,6 @@ export const useMapStore = create<MapStore>((set, get) => ({
     setClickableFeatures: (features) => set({ clickableFeatures: features }),
     setClickedControl: (control) => set({ clickedControl: control }),
     setShowMapWorkingLayerSelect: (show) => set({ showMapWorkingLayerSelect: show }),
-    setFeatureTypeMode: (mode) => set({ featureTypeMode: mode }),
     setShowCenterReportButtons: (show) => set({ showCenterReportButtons: show }),
     clickedTool: { name: "", clicked: false },
     setClickedTool: (tool) => set({ clickedTool: tool }),

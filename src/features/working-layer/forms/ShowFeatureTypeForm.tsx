@@ -1,4 +1,5 @@
 import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_GEOSERVICE_PROPERTY, FEATURE_TYPE_NEW_PROPERTY, FEATURE_TYPE_SELECTED_PROPERTY } from "@/constants";
+import { FeatureTypeMode } from "@/constants/contributions/types";
 import { CommunityGeoservice, FeatureTypeColumn } from "@/constants/communities/types";
 import { jsonToHtmlList } from "@/constants/communities/utils";
 import { useTranslation } from "@/i18n";
@@ -113,7 +114,7 @@ const ShowFeatureTypeForm = () => {
                     className="feature-type-form-edit-button"
                     priority="tertiary no outline"
                     onClick={() => {
-                        setFeatureTypeMode("edit");
+                        setFeatureTypeMode(FeatureTypeMode.EDIT);
                     }}
                 >
                     {t("edit")}
