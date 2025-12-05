@@ -1,7 +1,13 @@
 import { useEffect, useMemo, useCallback, memo } from "react";
+
 import { EventTypes } from "ol/Observable";
 import { useMapStore } from "@/store";
+import VectorSource from "ol/source/Vector";
+import VectorLayer from "ol/layer/Vector";
+import WebGLVectorLayer from "ol/layer/WebGLVector";
+
 import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_GEOSERVICE_PROPERTY, FEATURE_TYPE_NEW_PROPERTY, FEATURE_TYPE_SELECTED_PROPERTY } from "@/constants";
+
 import { CommunityGeoservice, FeatureTypeColumn } from "@/constants/communities/types";
 import { useFeatureTypeValidation } from "@/hooks/working-layer/useFeatureTypeValidation";
 import { useFeatureTypeForm } from "@/hooks/working-layer/useFeatureTypeForm";
@@ -10,16 +16,13 @@ import { FeatureTypeFormHeader } from "./FeatureTypeFormHeader";
 import { FeatureTypeFormFields } from "./FeatureTypeFormFields";
 import { FeatureTypeFormActions } from "./FeatureTypeFormActions";
 import { useTranslation } from "@/i18n";
-import VectorSource from "ol/source/Vector";
-import Feature from "ol/Feature";
-import Geometry from "ol/geom/Geometry";
 
 interface PointDataProps {
     [key: string]: string | number | null;
 }
 
 const EditFeatureTypeForm = () => {
-    const { map, mapSwitcher, clickedMapFeature, setClickedMapFeature, setFeatureTypeMode, setWorkingLayerDrawerOpened } = useMapStore();
+    const { map, mapSwitcher, clickedMapFeature, mapWorkingLayer, setClickedMapFeature, setFeatureTypeMode, setWorkingLayerDrawerOpened } = useMapStore();
 
     const { t } = useTranslation({ EditFeatureTypeForm });
 
@@ -28,25 +31,18 @@ const EditFeatureTypeForm = () => {
     const columns: FeatureTypeColumn[] = clickedMapFeature?.get(FEATURE_TYPE_GEOSERVICE_PROPERTY).columns || [];
     const isNewFeature = useMemo(() => clickedMapFeature && clickedMapFeature?.get(FEATURE_TYPE_NEW_PROPERTY), [clickedMapFeature]);
 
-    const featureLayer = useMemo(() => {
-        if (!map || !geoserviceData) return null;
-
-        return (
+    const currentMapWorkingSource = useMemo(
+        () =>
             map
-                .getLayers()
-                .getArray()
-                .find((l) => l.get("name") === geoserviceData.layer) ?? null
-        );
-    }, [map, geoserviceData]);
+                ?.getAllLayers()
+                .find((l) => l.get("name") === mapWorkingLayer)
+                ?.getSource() as VectorSource,
+        [map, mapWorkingLayer]
+    );
 
-    const currentMapWorkingSource = useMemo(() => {
-        if (!map || !geoserviceData) return null;
-
-        return map
-            .getAllLayers()
-            .find((l) => l.get("name") === geoserviceData.layer)
-            ?.getSource() as VectorSource<Feature<Geometry>> | null;
-    }, [map, geoserviceData]);
+    const clickableLayer = map
+        ?.getAllLayers()
+        .find((layer) => layer.get("name") === mapWorkingLayer && (layer instanceof VectorLayer || layer instanceof WebGLVectorLayer));
 
     const { validationErrors, setValidationErrors, validateField, validateAll } = useFeatureTypeValidation();
 
@@ -61,7 +57,7 @@ const EditFeatureTypeForm = () => {
     const { handleSave, handleDelete } = useFeatureTypeActions({
         clickedMapFeature,
         currentMapWorkingSource,
-        featureLayer,
+        clickableLayer,
         pointData,
         formData,
         columns,
@@ -81,7 +77,7 @@ const EditFeatureTypeForm = () => {
 
     useEffect(() => {
         const handleLayerVisibility = () => {
-            if (featureLayer && !featureLayer?.getVisible()) {
+            if (clickableLayer && !clickableLayer?.getVisible()) {
                 handleCancel();
             }
         };
@@ -90,7 +86,7 @@ const EditFeatureTypeForm = () => {
         return () => {
             mapSwitcher?.un("layerswitcher:change:visibility" as EventTypes, handleLayerVisibility);
         };
-    }, [mapSwitcher, featureLayer, handleCancel]);
+    }, [mapSwitcher, clickableLayer, handleCancel]);
 
     useEffect(() => {
         if (clickedMapFeature) {
@@ -103,7 +99,7 @@ const EditFeatureTypeForm = () => {
                 clickedMapFeature.changed();
             }
         };
-    }, [clickedMapFeature, geoserviceData, featureLayer, setWorkingLayerDrawerOpened]);
+    }, [clickedMapFeature, geoserviceData, clickableLayer, setWorkingLayerDrawerOpened]);
     if (!pointData) return null;
 
     return (

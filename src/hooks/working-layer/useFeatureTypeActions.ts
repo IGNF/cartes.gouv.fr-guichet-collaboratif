@@ -1,18 +1,20 @@
 import { useCallback } from "react";
 import WKT from "ol/format/WKT";
 import { Feature } from "ol";
-import BaseLayer from "ol/layer/Base";
+import WebGLVectorLayer from "ol/layer/WebGLVector";
+import VectorLayer from "ol/layer/Vector";
 import VectorSource from "ol/source/Vector";
 
 import { ContributionType } from "@/constants/contributions/types";
 import { useContributionStore } from "@/store";
 import { FEATURE_TYPE_NEW_PROPERTY } from "@/constants";
 import { FeatureTypeColumn } from "@/constants/communities/types";
+import BaseLayer from "ol/layer/Base";
 
 interface UseFeatureTypeActionsProps {
     clickedMapFeature: Feature | null;
-    featureLayer: BaseLayer | null;
     currentMapWorkingSource: VectorSource | null;
+    clickableLayer: VectorLayer<VectorSource> | WebGLVectorLayer<VectorSource> | BaseLayer | undefined;
     pointData: Record<string, string | number | null>;
     formData: Record<string, string | number | boolean | File[] | null>;
     onSuccess: () => void;
@@ -22,7 +24,7 @@ interface UseFeatureTypeActionsProps {
 
 export const useFeatureTypeActions = ({
     clickedMapFeature,
-    featureLayer,
+    clickableLayer,
     currentMapWorkingSource,
     pointData,
     formData,
@@ -57,7 +59,7 @@ export const useFeatureTypeActions = ({
         const newContr = {
             feature: clickedMapFeature,
             initialFeature: contrExist?.initialFeature ?? clickedMapFeature.clone(),
-            layer: featureLayer?.get("name"),
+            layer: clickableLayer?.get("name"),
             type,
         };
 
@@ -72,7 +74,7 @@ export const useFeatureTypeActions = ({
 
         onSuccess();
         return true;
-    }, [clickedMapFeature, featureLayer, pointData, formData, validateAll, columns, contributions, setContributions, onSuccess]);
+    }, [clickedMapFeature, clickableLayer, pointData, formData, validateAll, columns, contributions, setContributions, onSuccess]);
 
     const handleDelete = useCallback(() => {
         if (!clickedMapFeature) return false;
@@ -86,7 +88,7 @@ export const useFeatureTypeActions = ({
         const newContr = {
             feature: clickedMapFeature,
             initialFeature: contrExist?.initialFeature ?? clickedMapFeature.clone(),
-            layer: featureLayer?.get("name") ?? featureLayer?.get("table"),
+            layer: clickableLayer?.get("name") ?? clickableLayer?.get("table"),
             type: ContributionType.DELETE,
         };
 
@@ -102,7 +104,7 @@ export const useFeatureTypeActions = ({
         setContributions(newContributions);
         onSuccess();
         return true;
-    }, [clickedMapFeature, currentMapWorkingSource, featureLayer, contributions, setContributions, onSuccess]);
+    }, [clickedMapFeature, currentMapWorkingSource, clickableLayer, contributions, setContributions, onSuccess]);
 
     return {
         handleSave,
