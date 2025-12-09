@@ -1,5 +1,6 @@
 import { APP_FOOTER_MIN_HEIGHT } from "@/constants";
 import MuiDsfrThemeProvider from "@codegouvfr/react-dsfr/mui";
+import Button from "@codegouvfr/react-dsfr/Button";
 import Drawer from "@mui/material/Drawer";
 import { JSX } from "react";
 
@@ -33,6 +34,7 @@ const DrawerComponent: React.FC<Props> = ({ anchor, isOpen, children, onClose })
                     },
                 }}
             >
+                <Button iconId="ri-close-line" className="drawer-close-button" priority="tertiary no outline" onClick={onClose} title="Fermer" />
                 <div className="drawer-content" style={{ height: `calc(100vh - 40px - ${headerHeight}px)`, overflow: "auto" }}>
                     {children}
                 </div>

@@ -6,6 +6,11 @@ export enum ContributionType {
     DELETE = "Delete",
 }
 
+export enum FeatureTypeMode {
+    VIEW = "view",
+    EDIT = "edit",
+}
+
 export interface Contribution {
     feature: Feature;
     initialFeature: Feature;

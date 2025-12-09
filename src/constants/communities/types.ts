@@ -86,6 +86,13 @@ export type FeatureTypeColumn = {
     enum?: string[];
     crs: string;
     default_value: boolean | string | number | null;
+    required: boolean;
+    read_only: boolean;
+    min_length: number;
+    max_length: number;
+    min_value: number;
+    max_value: number;
+    pattern: string;
     is3d: boolean;
 };
 export type FeatureTypeSelectedStyle = { layer: string; selectedStyle: FeatureTypeStyle };
@@ -128,6 +135,8 @@ export interface CommunityLayer {
     opacity: number;
     visibility: boolean;
     role: string;
+    database: number;
+    table: number;
 }
 
 export interface ThemeItem {

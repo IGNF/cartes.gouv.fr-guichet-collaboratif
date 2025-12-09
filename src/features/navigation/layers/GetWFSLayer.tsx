@@ -23,6 +23,9 @@ const GetWFSLayer: React.FC<Props> = ({ layer }) => {
         wfsLayerSource?.setOpacity(localLayer ? localLayer.opacity : layer.opacity);
         wfsLayerSource?.setVisible(localLayer ? localLayer.visibility : layer.visibility);
         wfsLayerSource?.set("type", layer.type);
+        wfsLayerSource?.set("database", layer.database);
+        wfsLayerSource?.set("table", layer.table);
+
         if (layer.type === LAYER_FEATURE_TYPE) {
             wfsLayerSource?.set("description", LAYER_SWITCHER_INFO_DIV);
         }

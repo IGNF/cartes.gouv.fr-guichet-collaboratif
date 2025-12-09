@@ -1,11 +1,14 @@
 import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_GEOSERVICE_PROPERTY, FEATURE_TYPE_NEW_PROPERTY, FEATURE_TYPE_SELECTED_PROPERTY } from "@/constants";
+import { FeatureTypeMode } from "@/constants/contributions/types";
 import { CommunityGeoservice, FeatureTypeColumn } from "@/constants/communities/types";
 import { jsonToHtmlList } from "@/constants/communities/utils";
 import { useTranslation } from "@/i18n";
-import { useMapStore } from "@/store";
+import { useContributionStore, useMapStore } from "@/store";
 import Button from "@codegouvfr/react-dsfr/Button";
 import Table from "@codegouvfr/react-dsfr/Table";
 import { Tooltip } from "@codegouvfr/react-dsfr/Tooltip";
+import VectorLayer from "ol/layer/Vector";
+import WebGLVectorLayer from "ol/layer/WebGLVector";
 import { EventTypes } from "ol/Observable";
 import { memo, useCallback, useEffect, useMemo } from "react";
 
@@ -14,21 +17,16 @@ interface PointDataProps {
 }
 
 const ShowFeatureTypeForm = () => {
-    const { map, mapSwitcher, clickedMapFeature, setWorkingLayerDrawerOpened, setClickedMapFeature } = useMapStore();
+    const { map, mapSwitcher, mapWorkingLayer, clickedMapFeature, setWorkingLayerDrawerOpened, setClickedMapFeature } = useMapStore();
+    const { setFeatureTypeMode } = useContributionStore();
 
     const { t } = useTranslation({ ShowFeatureTypeForm });
 
     const pointData: PointDataProps = useMemo(() => clickedMapFeature?.get(FEATURE_TYPE_DATA_PROPERTY), [clickedMapFeature]);
     const geoserviceData: CommunityGeoservice = useMemo(() => clickedMapFeature?.get(FEATURE_TYPE_GEOSERVICE_PROPERTY), [clickedMapFeature]);
-    const featureLayer = useMemo(
-        () =>
-            geoserviceData &&
-            map
-                ?.getLayers()
-                ?.getArray()
-                .find((l) => l.get("name") === geoserviceData.layer),
-        [map, geoserviceData]
-    );
+    const clickableLayer = map
+        ?.getAllLayers()
+        .find((layer) => layer.get("name") === mapWorkingLayer && (layer instanceof VectorLayer || layer instanceof WebGLVectorLayer));
 
     const isNewFeature = useMemo(() => clickedMapFeature && clickedMapFeature?.get(FEATURE_TYPE_NEW_PROPERTY), [clickedMapFeature]);
 
@@ -38,10 +36,10 @@ const ShowFeatureTypeForm = () => {
     }, [setClickedMapFeature, setWorkingLayerDrawerOpened]);
 
     const handleLayerVisibility = useCallback(() => {
-        if (featureLayer && !featureLayer?.getVisible()) {
+        if (clickableLayer && !clickableLayer?.getVisible()) {
             handleCancel();
         }
-    }, [featureLayer, handleCancel]);
+    }, [clickableLayer, handleCancel]);
 
     useEffect(() => {
         if (clickedMapFeature) {
@@ -54,7 +52,7 @@ const ShowFeatureTypeForm = () => {
                 clickedMapFeature.changed();
             }
         };
-    }, [clickedMapFeature, geoserviceData, featureLayer, setWorkingLayerDrawerOpened]);
+    }, [clickedMapFeature, geoserviceData, clickableLayer, setWorkingLayerDrawerOpened]);
 
     useEffect(() => {
         mapSwitcher?.on("layerswitcher:change:visibility" as EventTypes, handleLayerVisibility);
@@ -90,16 +88,14 @@ const ShowFeatureTypeForm = () => {
                 }
                 return [
                     col.description ? (
-                        <Tooltip kind="hover" title={<span dangerouslySetInnerHTML={{ __html: col.description }} />}>
+                        <Tooltip kind="hover" title={<span>{col.description}</span>}>
                             <span>{title}</span>
                         </Tooltip>
                     ) : (
                         <span>{title}</span>
                     ),
-                    <span
-                        className={typeof value === "string" && value.includes("vide") ? "feature-type-form-table_null_value" : ""}
-                        dangerouslySetInnerHTML={{ __html: value ?? "" }}
-                    />,
+
+                    <span className={typeof value === "string" && value.includes("vide") ? "feature-type-form-table_null_value" : ""}>{value ?? ""}</span>,
                 ];
             }),
         [columns, pointData, t]
@@ -109,17 +105,24 @@ const ShowFeatureTypeForm = () => {
 
     return (
         <>
-            <h1 className="feature-type-form-title fr-mt-4v fr-mb-1v fr-text--lg">
-                {isNewFeature ? "Nouveau" : ""} {geoserviceData?.title} : {pointData[`${geoserviceData?.idName}`]}
-            </h1>
+            <div className="feature-type-form-header">
+                <h1 className="feature-type-form-title">
+                    {`${isNewFeature ? t("state") + " " : ""}${geoserviceData?.title || ""} : ${pointData?.[geoserviceData?.idName || "id"] || ""}`}
+                </h1>
 
-            <Table bordered fixed data={dataColumns} className="feature-type-form-table" />
-
-            <div className="feature-type-form-buttons">
-                <Button priority="secondary" onClick={handleCancel}>
-                    {t("cancel")}
+                <Button
+                    iconId="ri-edit-box-fill"
+                    className="feature-type-form-edit-button"
+                    priority="tertiary no outline"
+                    onClick={() => {
+                        setFeatureTypeMode(FeatureTypeMode.EDIT);
+                    }}
+                >
+                    {t("edit")}
                 </Button>
             </div>
+
+            <Table bordered fixed data={dataColumns} className="feature-type-form-table" />
         </>
     );
 };

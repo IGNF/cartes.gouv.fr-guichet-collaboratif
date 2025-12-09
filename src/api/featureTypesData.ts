@@ -54,6 +54,13 @@ export async function getFeatureTypesAll(featureTypesIds: FeatureTypeIds[]): Pro
                         description: col.description,
                         crs: col.crs,
                         default_value: col.default_value,
+                        required: col.required,
+                        read_only: col.read_only,
+                        min_length: col.min_length,
+                        max_length: col.min_length,
+                        pattern: col.pattern,
+                        min_value: col.min_value,
+                        max_value: col.max_value,
                         is3d: col.is3d,
                     };
                 }),
