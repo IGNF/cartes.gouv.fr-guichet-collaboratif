@@ -22,3 +22,26 @@ export interface TransactionApi {
     database: number;
     body: { comment: string; actions: object[] };
 }
+
+export interface TransactionStatus {
+    id: number;
+    user_id: number;
+    user_name: string;
+    numrec: number;
+    started_at: string;
+    finished_at: string | null;
+    status: "pending" | "committed" | "rollbacked" | "failed" | "conflicting" | "cancelled";
+    comment: string;
+    message: string;
+    actions: TransactionAction[];
+    groups: number[];
+}
+
+export interface TransactionAction {
+    id: number;
+    table: number;
+    state: "Insert" | "Update" | "Delete";
+    server_feature_id: string | null;
+    client_feature_id: string | null;
+    data: Record<string, unknown>;
+}

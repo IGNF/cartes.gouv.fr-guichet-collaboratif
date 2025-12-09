@@ -1,8 +1,6 @@
 import { Contribution, ContributionType } from "@/constants/contributions/types";
-import { ComponentKey } from "@/i18n/types";
 import { useCommunityStore, useContributionStore, useMapStore, useModalStore, useUserStore } from "@/store";
 import { Button } from "@codegouvfr/react-dsfr/Button";
-import { TranslationFunction } from "i18nifty/typeUtils/TranslationFunction";
 import { useState, useRef, useCallback, useMemo } from "react";
 import ContributionsConfirmReset from "./ContributionsConfirmReset";
 import ContributionList from "./ContributionList";
@@ -10,10 +8,12 @@ import { resetContributionToMap } from "@/constants/contributions/utils";
 import ConfirmSaveContributions from "./ConfirmSaveContributions";
 import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_GEOSERVICE_PROPERTY } from "@/constants";
 import { useLang } from "@/i18n";
+import { ComponentKey } from "@/i18n/types";
+import { TranslationFunction } from "i18nifty/typeUtils/TranslationFunction";
 import { CommunityGeoservice, StatusMessage } from "@/constants/communities/types";
 import { getFeatureGeometryWKT } from "@/constants/utils";
-import { postTransactions } from "@/api/transactionData";
-import { AxiosError, AxiosResponse } from "axios";
+import { pollTransactionStatus, postTransactions } from "@/api/transactionData";
+import { AxiosError } from "axios";
 import LoaderComponent from "@/components/LoaderComponent";
 
 interface Props {
@@ -25,7 +25,7 @@ const ContributionsCount: React.FC<Props> = ({ t }) => {
     const { contributions, isReviewContribution, contrToCancel, setReviewContribution, setContributions, setContrToCancel } = useContributionStore();
     const { confirmSaveContributionModal } = useModalStore();
     const { user } = useUserStore();
-    const { addAlertMessage } = useCommunityStore();
+    const { addAlertMessage, removeAlertMessage } = useCommunityStore();
 
     const { lang } = useLang();
 
@@ -55,40 +55,6 @@ const ContributionsCount: React.FC<Props> = ({ t }) => {
             }
         });
     }, []);
-
-    const handleSaveSuccess = useCallback(
-        (postResAll: AxiosResponse[] | AxiosResponse, geomContr: { contr: Contribution; geom: string }[]) => {
-            if (Array.isArray(postResAll)) {
-                const resActions = postResAll.map((res) => res.data.actions).flat();
-
-                if (resActions.length === geomContr.length) {
-                    resActions.forEach((action) => {
-                        const contr = geomContr.find((gc) => gc.geom === action.data.geom)?.contr;
-                        const feat = contr?.feature;
-                        if (feat) feat.set(FEATURE_TYPE_DATA_PROPERTY, action.data);
-                    });
-                    setContributions([]);
-                    addAlertMessage(StatusMessage.success, t("save_contribution_success"));
-                } else {
-                    const notPostedContrs = geomContr
-                        .filter((gc) =>
-                            resActions.some((action) => {
-                                const feat = gc.contr.feature;
-                                const geoservice: CommunityGeoservice = feat.get(FEATURE_TYPE_GEOSERVICE_PROPERTY);
-                                return gc.geom === action.data[`${geoservice.geometryName}`];
-                            })
-                        )
-                        .map((gc) => gc.contr);
-
-                    setContributions(notPostedContrs);
-                    addAlertMessage(StatusMessage.error, t("save_contribution_error", { notPostedContrs }));
-                }
-            } else {
-                console.error(postResAll);
-            }
-        },
-        [setContributions, addAlertMessage, t]
-    );
 
     const onSave = useCallback(async () => {
         setIsLoading(true);
@@ -139,18 +105,68 @@ const ContributionsCount: React.FC<Props> = ({ t }) => {
         });
         try {
             const postResAll = await postTransactions(apis);
+
+            const transactionPromises = postResAll.map(async (res, index) => {
+                const transactionId = res.data.id;
+                const database = apis[index].database;
+                return await pollTransactionStatus(database, transactionId);
+            });
+            const pendingId = addAlertMessage(StatusMessage.info, t("statut"));
+
+            const transactionStatuses = await Promise.all(transactionPromises);
+
+            removeAlertMessage(pendingId);
+
             setIsLoading(false);
-            handleSaveSuccess(postResAll, geomContr);
+
+            const allSuccess = transactionStatuses.every((status) => status.status === "committed");
+            const failedStatuses = transactionStatuses.filter((status) => status.status !== "committed");
+
+            if (allSuccess) {
+                transactionStatuses.forEach((status) => {
+                    status.actions.forEach((action) => {
+                        const contr = geomContr.find((gc) => {
+                            const feat = gc.contr.feature;
+                            const geoservice: CommunityGeoservice = feat.get(FEATURE_TYPE_GEOSERVICE_PROPERTY);
+                            if (!geoservice?.geometryName) return false;
+                            return gc.geom === action.data[geoservice.geometryName];
+                        })?.contr;
+
+                        if (contr) {
+                            contr.feature.set(FEATURE_TYPE_DATA_PROPERTY, action.data);
+                        }
+                    });
+                });
+
+                setContributions([]);
+                addAlertMessage(StatusMessage.success, t("success"));
+            } else {
+                const errorMessages = failedStatuses.map((status) => status.message || "Unknown error").join("; ");
+
+                addAlertMessage(StatusMessage.error, t("error") + ": " + errorMessages);
+
+                const failedGeoms = failedStatuses
+                    .flatMap((status) => status.actions.map((action) => action.data))
+                    .map((data) => {
+                        return Object.values(data).find(
+                            (val) => typeof val === "string" && (val.startsWith("POINT") || val.startsWith("LINESTRING") || val.startsWith("POLYGON"))
+                        );
+                    });
+
+                const failedContributions = geomContr.filter((gc) => failedGeoms.includes(gc.geom)).map((gc) => gc.contr);
+
+                setContributions(failedContributions);
+            }
         } catch (error) {
             setIsLoading(false);
             if (error instanceof AxiosError) {
-                addAlertMessage(StatusMessage.error, error.response?.data?.message);
+                addAlertMessage(StatusMessage.error, error.response?.data?.message || error.message);
             } else {
                 console.error(error);
+                addAlertMessage(StatusMessage.error, String(error));
             }
         }
-    }, [contributions, user, lang, mapProj, verifyFeatData, addAlertMessage, handleSaveSuccess]);
-
+    }, [contributions, user, lang, mapProj, verifyFeatData, addAlertMessage, setContributions, t]);
     return (
         <div ref={buttonGroupRef} className="map-toolbar-button-group">
             <Button
