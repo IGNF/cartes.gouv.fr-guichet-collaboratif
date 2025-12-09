@@ -17,3 +17,6 @@ export const TILE_SIZE = 2048;
 export const TILE_MAX_FEATURES = 5000;
 
 export const APP_FOOTER_MIN_HEIGHT = 40;
+
+export const DEFAULT_COMMUNITY_MIN_ZOOM = 4;
+export const DEFAULT_COMMUNITY_MAX_ZOOM = 20;
