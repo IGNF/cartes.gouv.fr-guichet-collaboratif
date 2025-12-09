@@ -1,4 +1,4 @@
-import { Contribution, ContributionType } from "@/constants/contributions/types";
+import { Contribution, ContributionType, TransactionStatus, TransactionAction } from "@/constants/contributions/types";
 import { useCommunityStore, useContributionStore, useMapStore, useModalStore, useUserStore } from "@/store";
 import { Button } from "@codegouvfr/react-dsfr/Button";
 import { useState, useRef, useCallback, useMemo } from "react";
@@ -48,13 +48,55 @@ const ContributionsCount: React.FC<Props> = ({ t }) => {
 
     const mapProj = useMemo(() => map?.getView()?.getProjection().getCode(), [map]);
 
-    const verifyFeatData = useCallback((featData: { [key: string]: string | number | boolean | null }, geoservice: CommunityGeoservice) => {
+    const verifyFeatData = useCallback((featData: Record<string, unknown>, geoservice: CommunityGeoservice) => {
         geoservice.columns.forEach((col) => {
             if (col.enum && featData[col.name]) {
                 if (!col.enum.includes(featData[col.name] as string)) featData[col.name] = col.default_value;
             }
         });
     }, []);
+
+    const handleSuccess = useCallback(
+        (transactionStatuses: TransactionStatus[], geomContr: { contr: Contribution; geom: string }[]) => {
+            transactionStatuses.forEach((status: TransactionStatus) => {
+                status.actions.forEach((action: TransactionAction) => {
+                    const contr = geomContr.find((gc) => {
+                        const feat = gc.contr.feature;
+                        const geoservice: CommunityGeoservice = feat.get(FEATURE_TYPE_GEOSERVICE_PROPERTY);
+                        if (!geoservice?.geometryName) return false;
+                        return gc.geom === action.data[geoservice.geometryName];
+                    })?.contr;
+
+                    if (contr) {
+                        contr.feature.set(FEATURE_TYPE_DATA_PROPERTY, action.data);
+                    }
+                });
+            });
+
+            setContributions([]);
+            addAlertMessage(StatusMessage.success, t("success"));
+        },
+        [setContributions, addAlertMessage, t]
+    );
+
+    const handleError = useCallback(
+        (failedStatuses: TransactionStatus[], geomContr: { contr: Contribution; geom: string }[]) => {
+            const errorMessages = failedStatuses.map((status) => status.message || "Unknown error").join("; ");
+            addAlertMessage(StatusMessage.error, t("error") + ": " + errorMessages);
+
+            const failedGeoms = failedStatuses
+                .flatMap((status) => status.actions.map((action: TransactionAction) => action.data))
+                .map((data) => {
+                    return Object.values(data).find(
+                        (val) => typeof val === "string" && (val.startsWith("POINT") || val.startsWith("LINESTRING") || val.startsWith("POLYGON"))
+                    );
+                });
+
+            const failedContributions = geomContr.filter((gc) => failedGeoms.includes(gc.geom)).map((gc) => gc.contr);
+            setContributions(failedContributions);
+        },
+        [setContributions, addAlertMessage, t]
+    );
 
     const onSave = useCallback(async () => {
         setIsLoading(true);
@@ -123,39 +165,9 @@ const ContributionsCount: React.FC<Props> = ({ t }) => {
             const failedStatuses = transactionStatuses.filter((status) => status.status !== "committed");
 
             if (allSuccess) {
-                transactionStatuses.forEach((status) => {
-                    status.actions.forEach((action) => {
-                        const contr = geomContr.find((gc) => {
-                            const feat = gc.contr.feature;
-                            const geoservice: CommunityGeoservice = feat.get(FEATURE_TYPE_GEOSERVICE_PROPERTY);
-                            if (!geoservice?.geometryName) return false;
-                            return gc.geom === action.data[geoservice.geometryName];
-                        })?.contr;
-
-                        if (contr) {
-                            contr.feature.set(FEATURE_TYPE_DATA_PROPERTY, action.data);
-                        }
-                    });
-                });
-
-                setContributions([]);
-                addAlertMessage(StatusMessage.success, t("success"));
+                handleSuccess(transactionStatuses, geomContr);
             } else {
-                const errorMessages = failedStatuses.map((status) => status.message || "Unknown error").join("; ");
-
-                addAlertMessage(StatusMessage.error, t("error") + ": " + errorMessages);
-
-                const failedGeoms = failedStatuses
-                    .flatMap((status) => status.actions.map((action) => action.data))
-                    .map((data) => {
-                        return Object.values(data).find(
-                            (val) => typeof val === "string" && (val.startsWith("POINT") || val.startsWith("LINESTRING") || val.startsWith("POLYGON"))
-                        );
-                    });
-
-                const failedContributions = geomContr.filter((gc) => failedGeoms.includes(gc.geom)).map((gc) => gc.contr);
-
-                setContributions(failedContributions);
+                handleError(failedStatuses, geomContr);
             }
         } catch (error) {
             setIsLoading(false);
@@ -166,7 +178,7 @@ const ContributionsCount: React.FC<Props> = ({ t }) => {
                 addAlertMessage(StatusMessage.error, String(error));
             }
         }
-    }, [contributions, user, lang, mapProj, verifyFeatData, addAlertMessage, setContributions, t]);
+    }, [contributions, user, lang, mapProj, verifyFeatData, addAlertMessage, removeAlertMessage, t, handleSuccess, handleError]);
     return (
         <div ref={buttonGroupRef} className="map-toolbar-button-group">
             <Button
