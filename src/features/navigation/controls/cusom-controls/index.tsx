@@ -9,6 +9,7 @@ import ConfirmCopyModal from "./ConfirmCopyModal";
 import AddOrRemoveSnapInteraction from "./interactions/AddOrRemoveSnapInteraction";
 import useGetInteractionsFuncs from "@/hooks/navigation/controls/useGetInteractionsFuncs";
 import AddOrRemoveMapControlInteraction from "./interactions/AddOrRemoveMapControlInteraction";
+import useGetInteractions from "@/hooks/navigation/controls/useGetInteractions";
 
 const CustomControls = () => {
     const { clickedControl, setClickedControl } = useMapStore();
@@ -17,7 +18,8 @@ const CustomControls = () => {
 
     const constrolsList = useCustomControlsList(t);
 
-    const { handleClick } = useGetInteractionsFuncs();
+    const interactions = useGetInteractions();
+    const interactionsFuncs = useGetInteractionsFuncs(interactions);
 
     const clickToolButton = useCallback(() => {
         if (!clickedControl || clickedControl?.interaction || clickedControl?.disabled) return;
@@ -42,7 +44,7 @@ const CustomControls = () => {
             <div className="custom-controls">
                 <div className="control-btns">
                     {constrolsList.map((control) => {
-                        return <ButtonControl key={`custom-control-${control.id}`} control={control} handleClick={handleClick} />;
+                        return <ButtonControl key={`custom-control-${control.id}`} control={control} handleClick={interactionsFuncs.handleClick} />;
                     })}
                 </div>
                 <div className="all-reports-btn">
@@ -50,8 +52,8 @@ const CustomControls = () => {
                 </div>
                 <CenterReportControl />
             </div>
-            <AddOrRemoveMapControlInteraction />
-            <AddOrRemoveSnapInteraction />
+            <AddOrRemoveMapControlInteraction {...interactionsFuncs} {...interactions} />
+            <AddOrRemoveSnapInteraction {...interactions} />
             <ConfirmCopyModal />
         </>
     );

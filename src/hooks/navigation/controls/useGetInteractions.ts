@@ -27,18 +27,25 @@ const useGetInteractions = () => {
         .map((l) => (l.getSource() as VectorSource).getFeatures())
         .flat();
 
-    const selectInteraction = useMemo(() => new Select({ condition: click, layers: [clickableLayer!], multi: true }), [clickableLayer]);
+    const selectInteraction = useMemo(
+        () => new Select({ condition: click, features: new Collection(clickableSource?.getFeatures() ?? []), multi: true }),
+        [clickableSource]
+    );
 
-    const modifyInteraction = new Modify({ features: new Collection(clickedMapFeature ? [clickedMapFeature] : []) });
-    const drawPointInteraction = new Draw({ type: "Point" });
-    const drawLineInteraction = new Draw({ type: "LineString" });
-    const drawPolygonInteraction = new Draw({ type: "Polygon" });
-    const translateInteraction = new Translate({ features: new Collection(clickedMapFeature ? [clickedMapFeature] : []) });
-    const splitInteraction = new Modify({
-        features: new Collection(clickableSource ? clickableSource?.getFeatures() : []),
-        condition: singleClick,
-        pixelTolerance: 2,
-    });
+    const modifyInteraction = useMemo(() => new Modify({ features: selectInteraction.getFeatures() }), [selectInteraction]);
+    const drawPointInteraction = useMemo(() => new Draw({ type: "Point" }), []);
+    const drawLineInteraction = useMemo(() => new Draw({ type: "LineString" }), []);
+    const drawPolygonInteraction = useMemo(() => new Draw({ type: "Polygon" }), []);
+    const translateInteraction = useMemo(() => new Translate({ features: new Collection(clickedMapFeature ? [clickedMapFeature] : []) }), [clickedMapFeature]);
+    const splitInteraction = useMemo(
+        () =>
+            new Modify({
+                features: new Collection(clickableSource ? clickableSource?.getFeatures() : []),
+                condition: singleClick,
+                pixelTolerance: 10,
+            }),
+        [clickableSource]
+    );
 
     const snapInteraction = useMemo(
         () => new Snap({ source: clickableSource, features: new Collection(snapToFeatures), intersection: true }),

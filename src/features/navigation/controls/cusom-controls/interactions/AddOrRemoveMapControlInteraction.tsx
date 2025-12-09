@@ -1,47 +1,32 @@
+import { InteractionsFuncsProps, InteractionsProps } from "@/constants/contributions/types";
 import { addInteractionToMap, removeInteractionFromMap } from "@/constants/contributions/utils";
-import useGetInteractions from "@/hooks/navigation/controls/useGetInteractions";
-import useGetInteractionsFuncs from "@/hooks/navigation/controls/useGetInteractionsFuncs";
 import { useCommunityStore, useContributionStore, useMapStore } from "@/store";
+
 import { useEffect, useMemo } from "react";
 
-const AddOrRemoveMapControlInteraction = () => {
+const AddOrRemoveMapControlInteraction = (props: InteractionsFuncsProps & InteractionsProps) => {
     const { map, clickedControl, mapWorkingLayer, clickedMapFeature } = useMapStore();
     const { communityLayers } = useCommunityStore();
     const { isModifying } = useContributionStore();
 
     const currentCommunityLayer = useMemo(() => communityLayers?.find((l) => l.geoservice.layer === mapWorkingLayer), [communityLayers, mapWorkingLayer]);
 
-    const { selectInteraction } = useGetInteractions();
-    const { selectInteractionFunc, removeInteractionFunc, splitLineInteractionFuncEnd, splitLineInteractionFuncPointer, getInteractionByType } =
-        useGetInteractionsFuncs();
-
-    const clickedInteraction = useMemo(() => {
-        if (clickedControl) {
-            return getInteractionByType(clickedControl.interaction, currentCommunityLayer?.geoservice.featureType ?? clickedControl.target);
-        }
-        return null;
-    }, [clickedControl, currentCommunityLayer?.geoservice.featureType, getInteractionByType]);
-
     useEffect(() => {
-        if (!isModifying && clickedInteraction && clickedControl) {
+        if (!isModifying && clickedControl && clickedControl.interaction) {
             removeInteractionFromMap(clickedControl.interaction, map!);
+            const clickedInteraction = props.getInteractionByType(
+                clickedControl.interaction,
+                currentCommunityLayer?.geoservice.featureType ?? clickedControl.target
+            );
             addInteractionToMap(clickedInteraction, map!);
         }
-    }, [
-        clickedControl,
-        map,
-        mapWorkingLayer,
-        currentCommunityLayer?.geoservice.featureType,
-        isModifying,
-        selectInteraction,
-        clickedMapFeature,
-        clickedInteraction,
-        getInteractionByType,
-        removeInteractionFunc,
-        selectInteractionFunc,
-        splitLineInteractionFuncEnd,
-        splitLineInteractionFuncPointer,
-    ]);
+        return () => {
+            if (!isModifying && clickedControl && clickedControl.interaction) {
+                map?.un("singleclick", props.splitLineInteractionFuncEnd);
+                map?.un("pointermove", props.splitLineInteractionFuncPointer);
+            }
+        };
+    }, [clickedControl, map, mapWorkingLayer, currentCommunityLayer?.geoservice.featureType, isModifying, clickedMapFeature, props]);
     return null;
 };
 

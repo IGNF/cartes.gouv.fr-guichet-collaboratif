@@ -1,24 +1,26 @@
-import { InteractionType } from "@/constants/communities/types";
-import useGetInteractions from "@/hooks/navigation/controls/useGetInteractions";
-import { useContributionStore, useMapStore } from "@/store";
-import { useEffect } from "react";
+import { InteractionsProps } from "@/constants/contributions/types";
+import { useCommunityStore, useMapStore } from "@/store";
+import { useEffect, useMemo } from "react";
 
-const SnapInteractionEffect = () => {
-    const { map, clickedControl } = useMapStore();
-    const { isModifying } = useContributionStore();
+const SnapInteractionEffect = (props: InteractionsProps) => {
+    const { map, clickedControl, mapWorkingLayer } = useMapStore();
+    const { communityLayers } = useCommunityStore();
 
-    const { snapInteraction } = useGetInteractions();
+    const currentCommunityLayer = useMemo(
+        () => communityLayers?.find((layer) => layer.geoservice.layer === mapWorkingLayer),
+        [communityLayers, mapWorkingLayer]
+    );
 
     useEffect(() => {
-        if (clickedControl && clickedControl.interaction === InteractionType.MODIFY) {
-            map?.addInteraction(snapInteraction);
+        if (clickedControl && currentCommunityLayer?.snapto) {
+            map?.addInteraction(props.snapInteraction);
         }
         return () => {
-            if (clickedControl && clickedControl.interaction === InteractionType.MODIFY) {
-                map?.removeInteraction(snapInteraction);
+            if (clickedControl && currentCommunityLayer?.snapto) {
+                map?.removeInteraction(props.snapInteraction);
             }
         };
-    }, [map, clickedControl, snapInteraction, isModifying]);
+    }, [map, clickedControl, props, currentCommunityLayer?.snapto]);
 
     return null;
 };
