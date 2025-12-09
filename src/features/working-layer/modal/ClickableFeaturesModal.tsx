@@ -1,7 +1,7 @@
 import { createModal } from "@codegouvfr/react-dsfr/Modal";
 import { useIsModalOpen } from "@codegouvfr/react-dsfr/Modal/useIsModalOpen";
 import { useMapStore } from "@/store";
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import Button from "@codegouvfr/react-dsfr/Button";
 import { Feature } from "ol";
 import { useTranslation } from "@/i18n";
@@ -37,19 +37,27 @@ const ClickableFeaturesModal = () => {
         }
     }, [clickableFeatures, isOpen, t]);
 
-    const handleSelectedFeature = (f: Feature) => {
-        setClickedMapFeature(f);
-    };
+    const handleSelectedFeature = useCallback(
+        (f: Feature) => {
+            setClickedMapFeature(f);
+        },
+        [setClickedMapFeature]
+    );
 
-    const getButtonPriority = (f: Feature): "secondary" | "tertiary" => {
-        const data = f.get(FEATURE_TYPE_DATA_PROPERTY);
-        if (!clickedMapFeature || !data) return "tertiary";
+    const getButtonPriority = useCallback(
+        (f: Feature): "secondary" | "tertiary" => {
+            const data = f.get(FEATURE_TYPE_DATA_PROPERTY);
+            const clickedMapData = clickedMapFeature?.get(FEATURE_TYPE_DATA_PROPERTY);
 
-        if (data.id) {
-            return clickedMapFeature?.get(FEATURE_TYPE_DATA_PROPERTY)?.id === data?.id ? "secondary" : "tertiary";
-        }
-        return "tertiary";
-    };
+            if (!clickedMapFeature || !data) return "tertiary";
+
+            if (data[`${geoserviceData?.idName}`]) {
+                return clickedMapData[`${geoserviceData?.idName}`] === data[`${geoserviceData?.idName}`] ? "secondary" : "tertiary";
+            }
+            return "tertiary";
+        },
+        [clickedMapFeature, geoserviceData]
+    );
 
     return (
         <modal.Component

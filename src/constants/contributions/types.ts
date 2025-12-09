@@ -1,4 +1,5 @@
 import { Feature } from "ol";
+import { Draw, Modify, Select, Translate } from "ol/interaction";
 
 export enum ContributionType {
     CREATE = "Insert",
@@ -22,3 +23,5 @@ export interface TransactionApi {
     database: number;
     body: { comment: string; actions: object[] };
 }
+
+export type CustomInteraction = Select | Modify | Draw | Translate | null;

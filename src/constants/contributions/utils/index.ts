@@ -16,6 +16,7 @@ export const addFeatureProperties = (feat: Feature, geoservice: CommunityGeoserv
             featureTypeData[col.name] = contributions.length + 1;
         }
     });
+    featureTypeData[`${geoservice?.idName}`] = contributions.length + 1;
     const validProperties: ObjectProps = getWebGLValidProperties(featureTypeData);
     const properties = validProperties;
     properties[FEATURE_TYPE_GEOSERVICE_PROPERTY] = geoservice;

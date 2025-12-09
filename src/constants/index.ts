@@ -12,7 +12,7 @@ export const FEATURE_TYPE_NEW_Z_COOD = -1000;
 export const ADMIN_ROLE = "admin";
 export const MEMBER_ROLE = "member";
 
-export const HIT_DETECTION_TOLERENCE = 5;
+export const HIT_DETECTION_TOLERENCE = 0;
 export const TILE_SIZE = 2048;
 export const TILE_MAX_FEATURES = 5000;
 

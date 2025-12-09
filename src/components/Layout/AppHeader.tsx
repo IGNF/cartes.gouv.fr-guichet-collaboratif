@@ -50,7 +50,7 @@ const AppHeader: React.FC = () => {
                     display: community && user ? "none" : undefined,
                 }}
             />
-            <MapToolbar />
+            {community && <MapToolbar />}
         </>
     );
 };

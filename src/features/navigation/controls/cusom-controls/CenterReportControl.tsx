@@ -4,7 +4,7 @@ import { getCenterReportMessage } from "@/constants/utils";
 import useDebounce from "@/hooks/useDebounce";
 import { useCommunityStore, useMapStore, useReportStore } from "@/store";
 import { getCenter, intersects } from "ol/extent";
-import { useCallback, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 import CenterMessage from "../../../reports/CenterMessage";
 import Tooltip from "@mui/material/Tooltip";
 import Button from "@codegouvfr/react-dsfr/Button";
@@ -126,4 +126,4 @@ const CenterReportControl = () => {
     );
 };
 
-export default CenterReportControl;
+export default memo(CenterReportControl);
