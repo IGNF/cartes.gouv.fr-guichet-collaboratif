@@ -6,7 +6,7 @@ import { getGeoserviceAll } from "./geoservicesData";
 import { Community, CommunityGeoservice, CommunityLayer, layerData } from "@/constants/communities/types";
 import { axiosApi } from ".";
 import { getFeatureTypesAll } from "./featureTypesData";
-import { LAYER_FEATURE_TYPE } from "@/constants";
+import { LAYER_FEATURE_TYPE, DEFAULT_COMMUNITY_MIN_ZOOM, DEFAULT_COMMUNITY_MAX_ZOOM } from "@/constants";
 
 let queryClient: QueryClient;
 
@@ -90,6 +90,8 @@ async function getCommunityById(communityId: string): Promise<[Community, Commun
         themes: res.data.attributes,
         position: res.data.position,
         zoom: res.data.zoom,
+        minZoom: res.data.min_zoom != null ? Number(res.data.min_zoom) : DEFAULT_COMMUNITY_MIN_ZOOM,
+        maxZoom: res.data.max_zoom != null ? Number(res.data.max_zoom) : DEFAULT_COMMUNITY_MAX_ZOOM,
     };
     const communityLayersKey = [`COMMUNITY_LAYERS_DATA_${communityId}`];
     let layers: CommunityLayer[];

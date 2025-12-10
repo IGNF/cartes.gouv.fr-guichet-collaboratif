@@ -167,6 +167,8 @@ export interface Community {
     themes: CommunityTheme[];
     position: PointString;
     zoom: number;
+    minZoom: number;
+    maxZoom: number;
 }
 
 export const enum StatusMessage {
