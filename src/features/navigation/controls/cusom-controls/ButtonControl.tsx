@@ -15,9 +15,8 @@ const ButtonControl: React.FC<Props> = ({ control, handleClick }) => {
 
     const onClick = useCallback(() => {
         if (control.disabled) return;
-
         handleClick(control);
-        setClickedControl(control === clickedControl ? null : control);
+        setClickedControl(control?.id === clickedControl?.id ? null : control);
     }, [clickedControl, control, setClickedControl, handleClick]);
 
     return (

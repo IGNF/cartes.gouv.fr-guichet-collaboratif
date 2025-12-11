@@ -21,7 +21,7 @@ interface Props {
 }
 
 const ContributionsCount: React.FC<Props> = ({ t }) => {
-    const { map, setWorkingLayerDrawerOpened, setClickedMapFeature } = useMapStore();
+    const { map, setWorkingLayerDrawerOpened, setClickedMapFeature, setClickedControl } = useMapStore();
     const { contributions, isReviewContribution, contrToCancel, setReviewContribution, setContributions, setContrToCancel } = useContributionStore();
     const { confirmSaveContributionModal } = useModalStore();
     const { user } = useUserStore();
@@ -41,10 +41,21 @@ const ContributionsCount: React.FC<Props> = ({ t }) => {
         setReviewContribution(false);
         setWorkingLayerDrawerOpened(false);
         setClickedMapFeature(null);
+        setClickedControl(null);
         setContributions(contributions.filter((c) => !contrToCancel.includes(c)));
         setContrToCancel([]);
         setIsDropdownOpen(false);
-    }, [map, contrToCancel, contributions, setContributions, setReviewContribution, setClickedMapFeature, setWorkingLayerDrawerOpened, setContrToCancel]);
+    }, [
+        map,
+        contrToCancel,
+        contributions,
+        setContributions,
+        setReviewContribution,
+        setClickedMapFeature,
+        setWorkingLayerDrawerOpened,
+        setContrToCancel,
+        setClickedControl,
+    ]);
 
     const mapProj = useMemo(() => map?.getView()?.getProjection().getCode(), [map]);
 
@@ -74,9 +85,12 @@ const ContributionsCount: React.FC<Props> = ({ t }) => {
             });
 
             setContributions([]);
+            setWorkingLayerDrawerOpened(false);
+            setClickedMapFeature(null);
+            setClickedControl(null);
             addAlertMessage(StatusMessage.success, t("success"));
         },
-        [setContributions, addAlertMessage, t]
+        [setContributions, setWorkingLayerDrawerOpened, setClickedMapFeature, setClickedControl, addAlertMessage, t]
     );
 
     const handleError = useCallback(
@@ -95,7 +109,7 @@ const ContributionsCount: React.FC<Props> = ({ t }) => {
             const failedContributions = geomContr.filter((gc) => failedGeoms.includes(gc.geom)).map((gc) => gc.contr);
             setContributions(failedContributions);
         },
-        [setContributions, addAlertMessage, t]
+        [setContributions, addAlertMessage, setWorkingLayerDrawerOpened, setClickedMapFeature, setClickedControl, t]
     );
 
     const onSave = useCallback(async () => {

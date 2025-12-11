@@ -1,4 +1,4 @@
-import { CommunityGeoservice, FeatureTypeColumn, FeatureTypeIds, FeatureTypeStyleItemData } from "@/constants/communities/types";
+import { CommunityGeoservice, FeatureTypeColumn, FeatureTypeIds, FeatureTypeStyleItemData, GeoserviceFeatureTypeProp } from "@/constants/communities/types";
 import { API_URL, DATABASE_API_URL } from "@/constants/urls";
 import { axiosApi } from ".";
 import { featureDefaultStyle } from "@/constants/styles";
@@ -15,14 +15,12 @@ export async function getFeatureTypesAll(featureTypesIds: FeatureTypeIds[]): Pro
             const styles = res.data.styles || [];
             if (res.data.style) styles.unshift(res.data.style);
             const geometryColumn = res.data.columns?.find((c: FeatureTypeColumn) => c.name === res.data.geometry_name);
-            let geomType = geometryColumn.type as string;
+            let geomType: GeoserviceFeatureTypeProp = GeoserviceFeatureTypeProp.POINT;
 
-            if (geomType.includes("Polygon")) {
-                geomType = "polygon";
-            } else if (geomType.includes("Line")) {
-                geomType = "line";
-            } else {
-                geomType = "point";
+            if (geometryColumn.type.includes("Polygon")) {
+                geomType = GeoserviceFeatureTypeProp.POLYGON;
+            } else if (geometryColumn.type.includes("Line")) {
+                geomType = GeoserviceFeatureTypeProp.LINE;
             }
             const data: CommunityGeoservice = {
                 idName: res.data.id_name,

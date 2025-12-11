@@ -2,6 +2,9 @@ import { ComponentKey } from "@/i18n/types";
 import { TranslationFunction } from "i18nifty/typeUtils/TranslationFunction";
 import { ArrayGeoJSONProps, CommunityGeoservice, GeoJSONProps, LonLatNumber, ObjectProps } from "../types";
 import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_GEOSERVICE_PROPERTY } from "@/constants";
+import { Map } from "ol";
+import VectorSource from "ol/source/Vector";
+import { Pixel } from "ol/pixel";
 
 export const translateLayerSwitcherControl = (t: TranslationFunction<"useGetMapControls", ComponentKey>) => {
     const switcherControl = document.querySelector('div[id^="GPlayerSwitcher-"]');
@@ -166,4 +169,17 @@ export const jsonToHtmlList = (data: object): string => {
 export const isDateFormat = (value: string) => {
     const regex = /^\d{4}-\d{2}-\d{2}$/;
     return typeof value === "string" && regex.test(value);
+};
+
+export const getFeaturesInPixelBySource = (map: Map | null, source: VectorSource, pixel: Pixel, hitTolerance: number = 0) => {
+    if (!map) return;
+    const coordinate = map?.getCoordinateFromPixel(pixel);
+    const resolution = map?.getView().getResolution();
+    const buffer = (resolution || 0) * hitTolerance;
+    const extent = [coordinate![0] - buffer, coordinate![1] - buffer, coordinate![0] + buffer, coordinate![1] + buffer];
+
+    if (source && "getFeaturesInExtent" in source) {
+        const featuresAt = source?.getFeaturesInExtent!(extent);
+        return featuresAt;
+    }
 };
