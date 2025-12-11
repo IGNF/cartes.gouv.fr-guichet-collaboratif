@@ -15,6 +15,14 @@ export enum FeatureTypeMode {
     VIEW = "view",
     EDIT = "edit",
 }
+export enum TransactionType {
+    PENDING = "pending",
+    COMMITTED = "committed",
+    ROLLBACKED = "rollbacked",
+    FAILED = "failed",
+    CONFLICTING = "conflicting",
+    CANCELLED = "cancelled",
+}
 
 export interface Contribution {
     feature: Feature;
@@ -52,4 +60,27 @@ export interface InteractionsProps {
     translateInteraction: Translate;
     splitInteraction: Modify;
     snapInteraction: Snap;
+}
+
+export interface TransactionStatus {
+    id: number;
+    user_id: number;
+    user_name: string;
+    numrec: number;
+    started_at: string;
+    finished_at: string | null;
+    status: TransactionType;
+    comment: string;
+    message: string;
+    actions: TransactionAction[];
+    groups: number[];
+}
+
+export interface TransactionAction {
+    id: number;
+    table: number;
+    state: ContributionType;
+    server_feature_id: string | null;
+    client_feature_id: string | null;
+    data: Record<string, unknown>;
 }

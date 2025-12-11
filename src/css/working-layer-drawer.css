@@ -1,31 +1,43 @@
 .drawer-component {
-    background-color: #1e1e1e;
+    background-color: var(--background-default-grey);
 }
 
 .drawer-content {
-    background-color: #1e1e1e;
-    color: white;
+    background-color: var(--background-default-grey);
+    color: var(--text-inverted);
 }
 
 .drawer-close-button {
     position: absolute;
     top: 17px;
-    right: 10px;
+    right: 17px;
     z-index: 10;
-    background-color: rgba(255, 255, 255, 0.1);
-    color: white;
-    border-radius: 4px;
-    padding: 0.5rem;
+    border-radius: 4px 4px 4px 4px;
+    padding: 4px 4px 4px 4px;
+    background-color: var(--background-action-high-blue-france);
+    color: var(--text-inverted-blue-france);
+    height: 100%;
+    width: 100%;
+    box-shadow: unset;
+    background-image: unset;
+    margin-top: 0px !important;
+    z-index: 1;
 }
 
 .drawer-close-button:hover {
-    background-color: rgba(255, 255, 255, 0.2);
+    color: var(--text-default-grey);
+}
+
+.drawer-close-button svg {
+    background-color: var(--text-inverted);
+    border-radius: 50%;
+    padding: 4px;
+    display: block;
 }
 
 .working-layer-drawer {
     padding: 0;
-    background-color: #1e1e1e;
-    color: white;
+    color: var(--text-inverted-blue-france);
 }
 
 .feature-type-form-container {
@@ -33,18 +45,18 @@
     flex-direction: column;
     height: 100%;
     overflow: hidden;
-    background-color: #1e1e1e;
+    background-color: var(--background-default-grey);
 }
 
 .feature-type-form-header {
     position: relative;
-    background-color: #472ad6;
+    background-color: var(--background-action-high-blue-france);
     padding: 15px 50px 15px 15px;
     flex-shrink: 0;
 }
 
 .feature-type-form-title {
-    color: white;
+    color: var(--text-inverted);
     text-align: center;
     font-size: 20px;
     width: 90%;
@@ -54,12 +66,24 @@
 
 .feature-type-form-edit-button,
 .feature-type-form-back-button {
+    position: absolute;
     right: 60px;
+    color: var(--text-inverted);
 }
 
 .feature-type-form-edit-button:hover,
 .feature-type-form-back-button:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: var(--background-default-grey);
+    color: var(--text-mention-grey);
+    border-radius: 5%;
+}
+
+.feature-type-form-edit-button svg,
+.feature-type-form-edit-button i,
+.feature-type-form-back-button svg,
+.feature-type-form-back-button i {
+    fill: currentColor;
+    color: currentColor;
 }
 
 .feature-type-form-scrollable {
@@ -73,35 +97,35 @@
     border: none;
     margin-bottom: 0;
     width: 100%;
-    background-color: #1e1e1e;
-    color: white;
+    background-color: var(--background-default-grey);
+    color: var(--text-default-grey);
 }
 
 .feature-type-form-table table {
-    background-color: #1e1e1e;
+    background-color: var(--background-default-grey);
 }
 
 .feature-type-form-table tr {
-    background-color: #1e1e1e;
-    border-bottom: 1px solid #333;
+    background-color: var(--background-default-grey);
+    border-bottom: 1px solid var(--border-default-grey);
 }
 
 .feature-type-form-table tr:hover {
-    background-color: #2a2a2a;
+    background-color: var(--background-alt-grey);
 }
 
 .feature-type-form-table td {
     border: none;
     padding: 12px;
-    color: white;
+    color: var(--text-default-grey);
     vertical-align: top;
 }
 
 .feature-type-form-table td:first-child {
     font-weight: 500;
-    border-right: 1px solid #333;
+    border-right: 1px solid var(--border-default-grey);
     width: 40%;
-    background-color: #252525;
+    background-color: var(--background-alt-grey);
 }
 
 .feature-type-form-table td:last-child {
@@ -109,31 +133,31 @@
 }
 
 .feature-type-form-table_null_value {
-    color: #999;
+    color: var(--text-mention-grey);
     font-style: italic;
 }
 
 .feature-type-form-input-cell input,
 .feature-type-form-input-cell select,
 .feature-type-form-input-cell textarea {
-    background-color: #2a2a2a;
-    color: white;
-    border: 1px solid #444;
+    background-color: var(--background-alt-grey);
+    color: var(--text-default-grey);
+    border: 1px solid var(--border-default-grey);
 }
 
 .feature-type-form-input-cell input:focus,
 .feature-type-form-input-cell select:focus,
 .feature-type-form-input-cell textarea:focus {
-    border-color: #472ad6;
+    border-color: var(--background-action-high-blue-france);
     outline: none;
 }
 
 .feature-type-form-actions-fixed {
     flex-shrink: 0;
     padding: 15px;
-    background-color: #252525;
-    border-top: 1px solid #333;
-    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.3);
+    background-color: var(--background-alt-grey);
+    border-top: 1px solid var(--border-default-grey);
+    box-shadow: 0 -2px 8px var(--overlays-shadow);
 }
 
 .feature-type-form-buttons {

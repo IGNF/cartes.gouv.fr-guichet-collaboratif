@@ -13,7 +13,7 @@ interface CommunityStore {
     isLoadingCommunity: boolean;
     setCommunity: (community: Community | null) => void;
     setCommunityLayers: (layers: CommunityLayer[] | null) => void;
-    addAlertMessage: (status: StatusMessage, message: string | NonNullable<ReactNode>, duration?: number | null) => void;
+    addAlertMessage: (status: StatusMessage, message: string | NonNullable<ReactNode>, duration?: number | null) => number;
     removeAlertMessage: (id: number) => void;
     setIsLoadingCommunity: (value: boolean) => void;
     addMapLayer: (layer: MapLayer) => void;
@@ -45,11 +45,15 @@ export const useCommunityStore = create<CommunityStore>((set, get) => ({
     },
     addAlertMessage: (status, message, duration) => {
         const messageExist = get().alertMessages.find((msg) => msg.text === message);
-        if (messageExist) return;
-        set(() => {
-            return { alertMessages: [...get().alertMessages, { id: idMessageCounter++, status, text: message, duration: duration ?? null }] };
-        });
+        if (messageExist) return messageExist.id;
+
+        const id = idMessageCounter++;
+        set(() => ({
+            alertMessages: [...get().alertMessages, { id, status, text: message, duration: duration ?? null }],
+        }));
+        return id;
     },
+
     removeAlertMessage: (id) => {
         const newMessages = get().alertMessages.filter((m) => m.id !== id);
         if (!newMessages.length) idMessageCounter = 0;

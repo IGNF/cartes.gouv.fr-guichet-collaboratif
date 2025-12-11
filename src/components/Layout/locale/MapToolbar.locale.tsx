@@ -32,6 +32,9 @@ export const MapToolbarFrTranslations: Translations<"fr">["MapToolbar"] = {
     manage: "Gérer le guichet",
     seismicity_zone: "Zones de sismicité",
     all_reports: "Tous les signalements",
+    error: "Les contributions n'ont pas pu être sauvegardées",
+    statut: "Vérification du statut en cours",
+    success: "Les contributions ont pu être sauvegardées",
 };
 
 export const MapToolbarEnTranslations: Translations<"en">["MapToolbar"] = {
@@ -62,6 +65,9 @@ export const MapToolbarEnTranslations: Translations<"en">["MapToolbar"] = {
     manage: "Manage community",
     seismicity_zone: "Seismicity zones",
     all_reports: "All reports",
+    error: "Unable to save contributions",
+    statut: "Checking contributions status",
+    success: "Contributions have been successfully saved",
 };
 
 const { i18n } = declareComponentKeys<
@@ -78,5 +84,8 @@ const { i18n } = declareComponentKeys<
     | "manage"
     | "seismicity_zone"
     | "all_reports"
+    | "error"
+    | "statut"
+    | "success"
 >()("MapToolbar");
 export type I18n = typeof i18n;

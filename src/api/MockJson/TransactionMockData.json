@@ -1,0 +1,47 @@
+{
+    "user_id": "id_user",
+    "user_name": "",
+    "groups": [],
+    "conflicts": [],
+    "numrec": null,
+    "id": 668581,
+    "started_at": "2025-12-11 15:09:55.000000",
+    "finished_at": "2025-12-11 15:09:55.000000",
+    "status": "committed",
+    "comment": "Transaction ajout\u00e9e par l\u0027utilisateur ; date et heure : 11\/12\/2025 15:09:54 (code : wfsTransactions)",
+    "message": "Transaction appliqu\u00e9e avec succ\u00e8s.",
+    "actions": [
+        {
+            "data": {
+                "gid": 4996,
+                "geom": "POLYGON((356089.6999998864 6688470.6999980295,356089.6999998863 6688465.699998028,356084.6999998863 6688465.699998028,356084.69999988645 6688470.6999980295,356089.6999998864 6688470.6999980295))",
+                "cleabs": "SURFACTI0000000327394318",
+                "id_ban": null,
+                "nature": "Autre service d\u00e9concentr\u00e9 de l\u0027Etat",
+                "commune": "NANTES",
+                "sources": null,
+                "adr_post": "17 bd gaston doumergue",
+                "etat_obj": "En service",
+                "remarque": null,
+                "toponyme": "Agence R\u00e9gionale de Sant\u00e9",
+                "acq_plani": "Calcul\u00e9",
+                "categorie": "Administratif ou militaire",
+                "insee_com": "44109",
+                "stat_tnym": "Collect\u00e9",
+                "_geometry_": null,
+                "_part_numb": 0,
+                "id_sources": null,
+                "importance": "3",
+                "nat_detail": null,
+                "nom_commer": null,
+                "prec_plani": 20
+            },
+            "table": "public.zai_44",
+            "id": 3893350,
+            "state": "Update",
+            "server_feature_id": "4996",
+            "client_feature_id": null,
+            "ancestor": null
+        }
+    ]
+}
