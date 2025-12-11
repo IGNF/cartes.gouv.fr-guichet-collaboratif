@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useMemo } from "react";
+import { useEffect, useCallback, useMemo, memo } from "react";
 import { useCommunityStore, useLocalStorageStore, useMapStore } from "@/store";
 
 import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
@@ -117,4 +117,4 @@ const WorkingLayerControl = () => {
     );
 };
 
-export default WorkingLayerControl;
+export default memo(WorkingLayerControl);

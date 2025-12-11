@@ -6,6 +6,7 @@ import { Contribution, ContributionType } from "../types";
 import { Interaction } from "ol/interaction";
 import VectorSource from "ol/source/Vector";
 import { CoordinateType, GeometryFeatueParams } from "@/constants/reports/types";
+import { Coordinate } from "ol/coordinate";
 
 export const addFeatureProperties = (feat: Feature, geoservice: CommunityGeoservice | undefined, contributions: Contribution[]) => {
     const featureTypeData: ObjectProps = {};
@@ -16,6 +17,7 @@ export const addFeatureProperties = (feat: Feature, geoservice: CommunityGeoserv
             featureTypeData[col.name] = contributions.length + 1;
         }
     });
+    featureTypeData[`${geoservice?.idName}`] = contributions.length + 1;
     const validProperties: ObjectProps = getWebGLValidProperties(featureTypeData);
     const properties = validProperties;
     properties[FEATURE_TYPE_GEOSERVICE_PROPERTY] = geoservice;
@@ -26,20 +28,21 @@ export const addFeatureProperties = (feat: Feature, geoservice: CommunityGeoserv
 
 export const removeInteractionFromMap = (type: string | null, map: Map) => {
     if (!type) return;
-    const controlInteraction = map
-        ?.getInteractions()
-        .getArray()
-        .find((inter) => inter.get("type") === type);
-    if (controlInteraction) {
-        map?.removeInteraction(controlInteraction);
-        return;
-    }
+    const mapInteractions = map?.getInteractions().getArray();
+    mapInteractions.forEach((inter) => {
+        if (inter.get("type") === type) {
+            map?.removeInteraction(inter);
+        }
+    });
 };
 
 export const addInteractionToMap = (interaction: Interaction | null, map: Map) => {
     if (interaction) {
-        map?.addInteraction(interaction);
-        return;
+        const interExist = map
+            ?.getInteractions()
+            .getArray()
+            .find((inter) => inter.get("type") === interaction.get("type"));
+        if (!interExist) map?.addInteraction(interaction);
     }
 };
 
@@ -86,4 +89,17 @@ export const setFeatNewCoords = (feat: Feature) => {
     };
 
     geometry?.setCoordinates(getNewCoord(featCoords));
+};
+
+export const isPointOnSegment = (A: Coordinate, B: Coordinate, P: Coordinate) => {
+    const cross = (P[1] - A[1]) * (B[0] - A[0]) - (P[0] - A[0]) * (B[1] - A[1]);
+    if (Math.abs(cross) > 1e-8) return false;
+
+    const dot = (P[0] - A[0]) * (B[0] - A[0]) + (P[1] - A[1]) * (B[1] - A[1]);
+    if (dot < 0) return false;
+
+    const squaredLenAB = (B[0] - A[0]) ** 2 + (B[1] - A[1]) ** 2;
+    if (dot > squaredLenAB) return false;
+
+    return true;
 };

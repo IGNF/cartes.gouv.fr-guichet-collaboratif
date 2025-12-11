@@ -1,4 +1,10 @@
-import { CommunityLayerFunctionalityType, CommunityLayerRoleType, CustomControlItem, InteractionType } from "@/constants/communities/types";
+import {
+    CommunityLayerFunctionalityType,
+    CommunityLayerRoleType,
+    CustomControlItem,
+    GeoserviceFeatureTypeProp,
+    InteractionType,
+} from "@/constants/communities/types";
 import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import { ComponentKey } from "@/i18n/types";
 import { useCommunityStore, useMapStore } from "@/store";
@@ -6,7 +12,7 @@ import { TranslationFunction } from "i18nifty/typeUtils/TranslationFunction";
 import { useMemo } from "react";
 
 const useCustomControlsList = (t: TranslationFunction<"CustomControls", ComponentKey>): CustomControlItem[] => {
-    const { mapWorkingLayer } = useMapStore();
+    const { mapWorkingLayer, clickedMapFeature } = useMapStore();
     const { community, communityLayers } = useCommunityStore();
 
     const communityEditableLayers = useMemo(() => communityLayers?.filter((l) => l.role !== CommunityLayerRoleType.VISU), [communityLayers]);
@@ -43,10 +49,10 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
             },
             {
                 id: 3,
-                title: t("cut_object"),
+                title: clickedMapFeature ? t("modify_object") : t("please_select_object"),
                 target: "drawing-tool-edit-",
-                icon: "ri-scissors-cut-line",
-                disabled: currentCommunityLayer?.role === CommunityLayerRoleType.VISU || mapWorkingLayer === REPORTS_LAYER_TYPE,
+                icon: "ri-edit-line",
+                disabled: currentCommunityLayer?.role === CommunityLayerRoleType.VISU || mapWorkingLayer === REPORTS_LAYER_TYPE || !clickedMapFeature,
                 enabled: !!communityEditableLayers?.length && !!community?.functionalities?.includes(CommunityLayerFunctionalityType.MODIFY),
                 interaction: InteractionType.MODIFY,
             },
@@ -68,8 +74,38 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
                 enabled: !!communityEditableLayers?.length && !!community?.functionalities?.includes(CommunityLayerFunctionalityType.MEASURE_DISTANCE),
                 interaction: null,
             },
+            {
+                id: 6,
+                title: "Copier un objet",
+                target: "",
+                icon: "ri-file-copy-2-fill",
+                disabled: currentCommunityLayer?.role === CommunityLayerRoleType.VISU || mapWorkingLayer === REPORTS_LAYER_TYPE || !clickedMapFeature,
+                enabled: !!communityEditableLayers?.length && !!community?.functionalities?.includes(CommunityLayerFunctionalityType.COPY_REF),
+                interaction: InteractionType.COPY_OBJECT,
+            },
+            {
+                id: 7,
+                title: "Déplacer un objet",
+                target: "",
+                icon: "ri-drag-move-2-fill",
+                disabled: currentCommunityLayer?.role === CommunityLayerRoleType.VISU || mapWorkingLayer === REPORTS_LAYER_TYPE || !clickedMapFeature,
+                enabled: !!communityEditableLayers?.length && !!community?.functionalities?.includes(CommunityLayerFunctionalityType.TRANSLATE),
+                interaction: InteractionType.TRANSLATE_OBJECT,
+            },
+            {
+                id: 8,
+                title: t("cut_object"),
+                target: "drawing-tool-edit-",
+                icon: "ri-scissors-cut-line",
+                disabled:
+                    currentCommunityLayer?.role === CommunityLayerRoleType.VISU ||
+                    mapWorkingLayer === REPORTS_LAYER_TYPE ||
+                    currentCommunityLayer?.geoservice.featureType !== GeoserviceFeatureTypeProp.LINE,
+                enabled: !!communityEditableLayers?.length && !!community?.functionalities?.includes(CommunityLayerFunctionalityType.SPLIT),
+                interaction: InteractionType.SPLIT_LINE,
+            },
         ];
-    }, [community, currentCommunityLayer?.geoservice.featureType, currentCommunityLayer?.role, mapWorkingLayer, communityEditableLayers, t]);
+    }, [community, currentCommunityLayer?.geoservice.featureType, currentCommunityLayer?.role, mapWorkingLayer, communityEditableLayers, clickedMapFeature, t]);
 
     return constrolsList.filter((c) => c.enabled);
 };

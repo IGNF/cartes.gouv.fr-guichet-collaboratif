@@ -13,6 +13,7 @@ import {
     FeatureTypeSelectedStyle,
     FeatureTypeStyle,
     FeatureTypeStyleItem,
+    GeoserviceFeatureTypeProp,
     RegularShapeStyleProps,
     WebGLFilterType,
 } from "./communities/types";
@@ -208,7 +209,7 @@ export const featureTypeSelectedPointCircleStyle = (isDefaultStyle: boolean = fa
             strokeColor: "#fff",
             strokeOpacity: 1,
             strokeWidth: 1,
-            title: "point",
+            title: GeoserviceFeatureTypeProp.POINT,
             strokeDashstyle: undefined,
             strokeLinecap: undefined,
             fillColor: "#13a7eb",
@@ -222,7 +223,7 @@ export const featureTypeSelectedPointCircleStyle = (isDefaultStyle: boolean = fa
             strokeColor: "#13a7eb",
             strokeOpacity: 1,
             strokeWidth: 2,
-            title: "point",
+            title: GeoserviceFeatureTypeProp.POINT,
             strokeDashstyle: undefined,
             strokeLinecap: undefined,
             fillColor: "#fafa00",
@@ -234,7 +235,7 @@ export const featureTypeSelectedPointCircleStyle = (isDefaultStyle: boolean = fa
             strokeColor: "#13a7eb",
             strokeOpacity: 1,
             strokeWidth: 2,
-            title: "point",
+            title: GeoserviceFeatureTypeProp.POINT,
             strokeDashstyle: undefined,
             strokeLinecap: undefined,
             fillColor: "#fafa00",
@@ -253,7 +254,7 @@ export const featureTypeSelectedLineStyle = (isDefaultStyle: boolean = false) =>
             strokeColor: isDefaultStyle ? "#fff" : "#13a7eb",
             strokeOpacity: 1,
             strokeWidth: 7,
-            title: "line",
+            title: GeoserviceFeatureTypeProp.LINE,
             strokeDashstyle: undefined,
             strokeLinecap: "round",
             zIndex: 2,
@@ -265,7 +266,7 @@ export const featureTypeSelectedLineStyle = (isDefaultStyle: boolean = false) =>
             strokeColor: isDefaultStyle ? "#13a7eb" : "#fafa00",
             strokeOpacity: 1,
             strokeWidth: 4,
-            title: "line",
+            title: GeoserviceFeatureTypeProp.LINE,
             strokeDashstyle: undefined,
             strokeLinecap: "round",
             zIndex: 2,
@@ -282,7 +283,7 @@ export const featureTypeSelectedPolygonStyle = (isDefaultStyle: boolean = false)
             strokeColor: isDefaultStyle ? "#fff" : "#13a7eb",
             strokeOpacity: 1,
             strokeWidth: 4,
-            title: "polygon",
+            title: GeoserviceFeatureTypeProp.POLYGON,
             strokeDashstyle: "",
             strokeLinecap: "butt",
             zIndex: 2,
@@ -294,7 +295,7 @@ export const featureTypeSelectedPolygonStyle = (isDefaultStyle: boolean = false)
             strokeColor: isDefaultStyle ? "#13a7eb" : "#fafa00",
             strokeOpacity: 1,
             strokeWidth: 2,
-            title: "polygon",
+            title: GeoserviceFeatureTypeProp.POLYGON,
             strokeDashstyle: "",
             strokeLinecap: "butt",
             zIndex: 2,
@@ -302,13 +303,13 @@ export const featureTypeSelectedPolygonStyle = (isDefaultStyle: boolean = false)
     ];
 };
 
-export const featureDefaultStyle = (type: string = "point"): FeatureTypeStyle => {
+export const featureDefaultStyle = (type: GeoserviceFeatureTypeProp = GeoserviceFeatureTypeProp.POINT): FeatureTypeStyle => {
     return {
         name: DEFAULT_STYLE_NAME,
         types: [
             {
                 title: "Par défaut",
-                type: type === "point" ? "circle" : type,
+                type: type === GeoserviceFeatureTypeProp.POINT ? "circle" : type,
                 featureType: type,
                 pointRadius: 6,
                 fillColor: "#ee9900",
@@ -325,9 +326,9 @@ export const featureDefaultStyle = (type: string = "point"): FeatureTypeStyle =>
 
 export const getSelectedFeatureTypeStyle = (type: string, style: FeatureTypeStyle) => {
     const isDefaultStyle = style.name === featureDefaultStyle().name;
-    if (type === "point") return featureTypeSelectedPointCircleStyle(isDefaultStyle);
-    if (type === "line") return featureTypeSelectedLineStyle(isDefaultStyle);
-    if (type === "polygon") return featureTypeSelectedPolygonStyle(isDefaultStyle);
+    if (type === GeoserviceFeatureTypeProp.POINT) return featureTypeSelectedPointCircleStyle(isDefaultStyle);
+    if (type === GeoserviceFeatureTypeProp.LINE) return featureTypeSelectedLineStyle(isDefaultStyle);
+    if (type === GeoserviceFeatureTypeProp.POLYGON) return featureTypeSelectedPolygonStyle(isDefaultStyle);
 };
 
 export const getStyleWebGLPolygon: (isDefault: boolean) => FlatStyle[] = (isDefault: boolean = false): FlatStyle[] => {
@@ -487,22 +488,22 @@ export const getWebGLStyle = (geoservice: CommunityGeoservice, selectedStyle?: F
     const isDefault = newStyle.name === DEFAULT_STYLE_NAME;
     let filterSelected = [
         {
-            filter: ["all", ["==", ["get", "featureType"], "point"], ["has", FEATURE_TYPE_SELECTED_PROPERTY]],
+            filter: ["all", ["==", ["get", "featureType"], GeoserviceFeatureTypeProp.POINT], ["has", FEATURE_TYPE_SELECTED_PROPERTY]],
             style: getStyleWebGLPoint(isDefault),
         },
     ];
-    if (geoservice.featureType === "polygon") {
+    if (geoservice.featureType === GeoserviceFeatureTypeProp.POLYGON) {
         filterSelected = [
             {
-                filter: ["all", ["==", ["get", "featureType"], "polygon"], ["has", FEATURE_TYPE_SELECTED_PROPERTY]],
+                filter: ["all", ["==", ["get", "featureType"], GeoserviceFeatureTypeProp.POLYGON], ["has", FEATURE_TYPE_SELECTED_PROPERTY]],
                 style: getStyleWebGLPolygon(isDefault),
             },
         ];
     }
-    if (geoservice.featureType === "line") {
+    if (geoservice.featureType === GeoserviceFeatureTypeProp.LINE) {
         filterSelected = [
             {
-                filter: ["all", ["==", ["get", "featureType"], "line"], ["has", FEATURE_TYPE_SELECTED_PROPERTY]],
+                filter: ["all", ["==", ["get", "featureType"], GeoserviceFeatureTypeProp.LINE], ["has", FEATURE_TYPE_SELECTED_PROPERTY]],
                 style: getStyleWebGLLine(isDefault),
             },
         ];
