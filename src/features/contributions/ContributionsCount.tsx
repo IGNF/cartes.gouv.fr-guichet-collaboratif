@@ -12,7 +12,7 @@ import { ComponentKey } from "@/i18n/types";
 import { TranslationFunction } from "i18nifty/typeUtils/TranslationFunction";
 import { CommunityGeoservice, StatusMessage } from "@/constants/communities/types";
 import { getFeatureGeometryWKT } from "@/constants/utils";
-import { pollTransactionStatus, postTransactions } from "@/api/transactionData";
+import { postTransactions } from "@/api/transactionData";
 import { AxiosError } from "axios";
 import LoaderComponent from "@/components/LoaderComponent";
 
@@ -146,20 +146,14 @@ const ContributionsCount: React.FC<Props> = ({ t }) => {
             }
         });
         try {
-            const postResAll = await postTransactions(apis);
-
-            const transactionPromises = postResAll.map(async (res, index) => {
-                const transactionId = res.data.id;
-                const database = apis[index].database;
-                return await pollTransactionStatus(database, transactionId);
-            });
             const pendingId = addAlertMessage(StatusMessage.info, t("statut"));
 
-            const transactionStatuses = await Promise.all(transactionPromises);
-
-            removeAlertMessage(pendingId);
+            const postResAll = await postTransactions(apis);
 
             setIsLoading(false);
+            removeAlertMessage(pendingId);
+
+            const transactionStatuses: TransactionStatus[] = postResAll.map((res) => res.data);
 
             const allSuccess = transactionStatuses.every((status) => status.status === TransactionType.COMMITTED);
             const failedStatuses = transactionStatuses.filter((status) => status.status !== TransactionType.COMMITTED);
