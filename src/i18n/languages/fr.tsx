@@ -10,6 +10,7 @@ import { AttachmentListFrTranslations } from "@/features/reports/forms/locale/At
 import { ConfirmCancelModalFrTranslations } from "@/features/reports/forms/locale/ConfirmCancelModal.locale";
 import { OpenReplyReportModalFrTranslations } from "@/features/reports/forms/locale/OpenReplyReportModal.locale";
 import { ConfirmDeleteReportModalFrTranslations } from "@/features/reports/forms/locale/ConfirmDeleteReportModal.locale";
+import { ShareReportModalFrTranslations } from "@/features/reports/locale/ShareReportModal.locale";
 import { DrawingFormFrTranslations } from "@/features/reports/forms/locale/DrawingForm.locale";
 import { ImportSketchFileFrTranslations } from "@/features/reports/forms/locale/ImportSketchFile.locale";
 import { ReportFormFrTranslations } from "@/features/reports/forms/locale/ReportForm.locale";
@@ -63,6 +64,7 @@ export const translations: Translations<"fr"> = {
     ConfirmCancelModal: ConfirmCancelModalFrTranslations,
     OpenReplyReportModal: OpenReplyReportModalFrTranslations,
     ConfirmDeleteReportModal: ConfirmDeleteReportModalFrTranslations,
+    ShareReportModal: ShareReportModalFrTranslations,
     DrawingForm: DrawingFormFrTranslations,
     ImportSketchFile: ImportSketchFileFrTranslations,
     ReportForm: ReportFormFrTranslations,

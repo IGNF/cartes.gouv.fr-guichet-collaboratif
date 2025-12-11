@@ -25,49 +25,18 @@ const EditReport: React.FC<Props> = ({ handleCloseDrawer }) => {
     const { t } = useTranslation({ EditReport });
 
     const updateReport = useCallback(
-        async ({
-            description,
-            selectedTheme,
-            themeAttributes,
-            filesUploaded = [],
-            features,
-            updateAttachments = false,
-        }: {
-            description?: string;
-            selectedTheme: CommunityTheme;
-            themeAttributes: PostThemeReport;
-            filesUploaded?: File[];
-            features: Feature[];
-            updateAttachments?: boolean;
-        }) => {
-            if (!community || !map || !selectedReport) return;
-            const mainFeature = features.find((f) => f.get("reportData") && f.get("main"));
-            if (!mainFeature) return;
-
-            const newReport: PostReport = {
-                community: community.id,
-                geometry: getFeatureGeometryWKT(mainFeature),
-                attributes: { community: community.id, theme: selectedTheme.theme, attributes: themeAttributes },
-            };
-
-            if (description !== undefined) {
-                newReport.comment = description;
-            }
-
-            if (features.length > 1) {
-                const sketchValue = getReportSketch(features, map, true);
-                newReport.sketch = sketchValue;
-            }
+        async (reportPatch: PostReport, filesUploaded: File[] = []) => {
+            if (!community || !selectedReport) return;
 
             try {
-                const reportUpdated = await updateCommunityReport(newReport, selectedReport.id);
+                const reportUpdated = await updateCommunityReport(reportPatch, selectedReport.id);
 
                 if (!reportUpdated) {
                     addAlertMessage(StatusMessage.error, t("report_updated_error"));
                     return;
                 }
 
-                if (updateAttachments && filesUploaded.length) {
+                if (filesUploaded.length) {
                     const attachmentsUploaded = await postCommunityReportAttachments({ ...reportUpdated, id: selectedReport.id }, filesUploaded);
                     if (!attachmentsUploaded || !attachmentsUploaded.length) {
                         addAlertMessage(StatusMessage.error, t("report_document_uploaded_error"));
@@ -78,21 +47,16 @@ const EditReport: React.FC<Props> = ({ handleCloseDrawer }) => {
 
                 addAlertMessage(StatusMessage.success, t("report_updated_success", { reportId: selectedReport.id }));
 
-                const newReports = (() => {
-                    const filtered = reports.filter((r) => r.id !== selectedReport.id);
-                    const original = reports.find((r) => r.id === selectedReport.id) || {};
-                    const mergedReport = { ...original, ...reportUpdated };
-                    return [...filtered, mergedReport];
-                })();
-
-                setReports(newReports, true);
-                clearDrawingLayer(map);
+                const filtered = reports.filter((r) => r.id !== selectedReport.id);
+                const original = reports.find((r) => r.id === selectedReport.id) || {};
+                const mergedReport = { ...original, ...reportUpdated };
+                setReports([...filtered, mergedReport], true);
             } catch {
                 addAlertMessage(StatusMessage.error, t("report_updated_error"));
                 throw new Error();
             }
         },
-        [community, map, selectedReport, reports, addAlertMessage, t, setReports]
+        [community, selectedReport, reports, addAlertMessage, t, setReports]
     );
 
     if (!community || !map || !selectedReport) return null;
@@ -136,31 +100,72 @@ const EditReport: React.FC<Props> = ({ handleCloseDrawer }) => {
         filesUploaded: File[],
         features: Feature[]
     ) => {
-        return updateReport({ selectedTheme, themeAttributes, description, filesUploaded, features });
+        if (!community || !map) return;
+
+        const mainFeature = features.find((f) => f.get("reportData") && f.get("main"));
+        if (!mainFeature) return;
+
+        const patch: PostReport = {
+            community: community.id,
+            comment: description,
+            attributes: {
+                community: community.id,
+                theme: selectedTheme.theme,
+                attributes: themeAttributes,
+            },
+            geometry: getFeatureGeometryWKT(mainFeature),
+        };
+
+        if (features.length > 1) {
+            patch.sketch = getReportSketch(features, map, true);
+        }
+
+        return updateReport(patch, filesUploaded);
     };
 
-    const handleUpdateReportSketch = async (selectedTheme: CommunityTheme, themeAttributes: PostThemeReport, features: Feature[]) => {
-        return updateReport({ selectedTheme, themeAttributes, features });
+    const handleUpdateReportSketch = async (features: Feature[]) => {
+        if (!community || !map) return;
+
+        const mainFeature = features.find((f) => f.get("reportData") && f.get("main"));
+        if (!mainFeature) return;
+
+        const patch: PostReport = {
+            community: community.id,
+            geometry: getFeatureGeometryWKT(mainFeature),
+        };
+
+        if (features.length > 1) {
+            patch.sketch = getReportSketch(features, map, true);
+        }
+
+        return updateReport(patch);
     };
 
-    const handleUpdateReportTheme = async (selectedTheme: CommunityTheme, themeAttributes: PostThemeReport, features: Feature[]) => {
-        return updateReport({ selectedTheme, themeAttributes, features });
+    const handleUpdateReportTheme = async (selectedTheme: CommunityTheme, themeAttributes?: PostThemeReport) => {
+        const patch: PostReport = {
+            community: community!.id,
+            attributes: {
+                community: community!.id,
+                theme: selectedTheme.theme,
+                attributes: themeAttributes,
+            },
+        };
+        return updateReport(patch);
     };
 
-    const handleUpdateReportDescription = async (selectedTheme: CommunityTheme, themeAttributes: PostThemeReport, description: string, features: Feature[]) => {
-        return updateReport({ selectedTheme, themeAttributes, description, features });
+    const handleUpdateReportDescription = async (description: string) => {
+        const patch: PostReport = {
+            community: community!.id,
+            comment: description,
+        };
+        return updateReport(patch);
     };
-
-    const handleUpdateReportDocument = async (
-        selectedTheme: CommunityTheme,
-        themeAttributes: PostThemeReport,
-        description: string,
-        filesUploaded: File[],
-        features: Feature[]
-    ) => {
-        return updateReport({ selectedTheme, themeAttributes, description, features, filesUploaded, updateAttachments: true });
+    const handleUpdateReportDocument = async (filesUploaded: File[]) => {
+        const patch: PostReport = {
+            community: community!.id,
+        };
+        return updateReport(patch, filesUploaded);
     };
-
     const handleCloseEditReportDrawer = () => {
         handleCloseDrawer();
         setTableDrawerOpened(true);

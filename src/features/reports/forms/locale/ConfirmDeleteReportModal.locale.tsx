@@ -10,6 +10,8 @@ export const ConfirmDeleteReportModalFrTranslations: Translations<"fr">["Confirm
         `Êtes-vous sûr·e de vouloir supprimer les ${reportIdCount} signalements sélectionnés ? Cette action est irréversible et les signalements ne pourront être récupérés.`,
     cancel_btn: "Annuler",
     delete_btn: "Supprimer",
+    delete_one_report_message: ({ checkedIds }: { checkedIds: number[] }) => `Le signalement ${checkedIds} a été bien supprimé.`,
+    delete_reports_message: "Les signalements séléctionnés ont été bien supprimés",
 };
 
 export const ConfirmDeleteReportModalEnTranslations: Translations<"en">["ConfirmDeleteReportModal"] = {
@@ -20,6 +22,8 @@ export const ConfirmDeleteReportModalEnTranslations: Translations<"en">["Confirm
         `Are you sure you want to delete the ${reportIdCount} selected reports? This action is irreversible and the reports cannot be recovered.`,
     cancel_btn: "Cancel",
     delete_btn: "Delete",
+    delete_one_report_message: ({ checkedIds }: { checkedIds: number[] }) => `The report ${checkedIds} has been successfully deleted.`,
+    delete_reports_message: "The selected reports have been successfully deleted.",
 };
 
 const { i18n } = declareComponentKeys<
@@ -27,7 +31,9 @@ const { i18n } = declareComponentKeys<
     | "deleteReports_title"
     | "deleteReport_message"
     | { K: "deleteReports_message"; P: { reportIdCount: number }; R: string }
+    | { K: "delete_one_report_message"; P: { checkedIds: number[] }; R: string }
     | "cancel_btn"
     | "delete_btn"
+    | "delete_reports_message"
 >()("ConfirmDeleteReportModal");
 export type I18n = typeof i18n;
