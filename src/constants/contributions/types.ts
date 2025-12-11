@@ -10,6 +10,14 @@ export enum FeatureTypeMode {
     VIEW = "view",
     EDIT = "edit",
 }
+export enum TransactionType {
+    PENDING = "pending",
+    COMMITTED = "commited",
+    ROLLBACKED = "rollbacked",
+    FAILED = "failed",
+    CONFLICTING = "conflicting",
+    CANCELLED = "cancelled",
+}
 
 export interface Contribution {
     feature: Feature;
@@ -30,7 +38,7 @@ export interface TransactionStatus {
     numrec: number;
     started_at: string;
     finished_at: string | null;
-    status: "pending" | "committed" | "rollbacked" | "failed" | "conflicting" | "cancelled";
+    status: TransactionType;
     comment: string;
     message: string;
     actions: TransactionAction[];
@@ -40,7 +48,7 @@ export interface TransactionStatus {
 export interface TransactionAction {
     id: number;
     table: number;
-    state: "Insert" | "Update" | "Delete";
+    state: ContributionType;
     server_feature_id: string | null;
     client_feature_id: string | null;
     data: Record<string, unknown>;

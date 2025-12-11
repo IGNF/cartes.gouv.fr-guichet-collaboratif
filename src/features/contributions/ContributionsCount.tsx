@@ -1,4 +1,4 @@
-import { Contribution, ContributionType, TransactionStatus, TransactionAction } from "@/constants/contributions/types";
+import { Contribution, ContributionType, TransactionStatus, TransactionAction, TransactionType } from "@/constants/contributions/types";
 import { useCommunityStore, useContributionStore, useMapStore, useModalStore, useUserStore } from "@/store";
 import { Button } from "@codegouvfr/react-dsfr/Button";
 import { useState, useRef, useCallback, useMemo } from "react";
@@ -161,8 +161,8 @@ const ContributionsCount: React.FC<Props> = ({ t }) => {
 
             setIsLoading(false);
 
-            const allSuccess = transactionStatuses.every((status) => status.status === "committed");
-            const failedStatuses = transactionStatuses.filter((status) => status.status !== "committed");
+            const allSuccess = transactionStatuses.every((status) => status.status === TransactionType.COMMITTED);
+            const failedStatuses = transactionStatuses.filter((status) => status.status !== TransactionType.COMMITTED);
 
             if (allSuccess) {
                 handleSuccess(transactionStatuses, geomContr);
