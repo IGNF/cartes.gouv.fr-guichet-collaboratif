@@ -34,7 +34,7 @@ const DrawerComponent: React.FC<Props> = ({ anchor, isOpen, children, onClose })
                     },
                 }}
             >
-                <Button iconId="fr-icon-error-line" className="drawer-close-button" priority="tertiary no outline" onClick={onClose} title="Fermer" />
+                <Button iconId="ri-close-fill" className="drawer-close-button" priority="tertiary no outline" onClick={onClose} title="Fermer" />
                 <div className="drawer-content" style={{ height: `calc(100vh - 40px - ${headerHeight}px)`, overflow: "auto" }}>
                     {children}
                 </div>
