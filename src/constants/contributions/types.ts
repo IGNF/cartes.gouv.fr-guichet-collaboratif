@@ -12,7 +12,7 @@ export enum FeatureTypeMode {
 }
 export enum TransactionType {
     PENDING = "pending",
-    COMMITTED = "commited",
+    COMMITTED = "committed",
     ROLLBACKED = "rollbacked",
     FAILED = "failed",
     CONFLICTING = "conflicting",
