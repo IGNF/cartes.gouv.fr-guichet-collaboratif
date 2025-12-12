@@ -8,12 +8,14 @@ interface ContributionStore {
     contrToCancel: Contribution[];
     featureTypeMode: FeatureTypeMode;
     isModifying: boolean;
+    selectedObjects: Feature[];
     setContributions: (contributions: Contribution[]) => void;
     setReviewContribution: (isReview: boolean) => void;
     setContrToCancel: (contributions: Contribution[]) => void;
     saveContribution: (feat: Feature, type: ContributionType, initialFeat: Feature | null, mapWorkingLayer: string) => void;
     setIsModifying: (isModifying: boolean) => void;
     setFeatureTypeMode: (mode: FeatureTypeMode) => void;
+    setSelectedObjects: (objects: Feature[]) => void;
 }
 
 export const useContributionStore = create<ContributionStore>((set, get) => ({
@@ -22,11 +24,13 @@ export const useContributionStore = create<ContributionStore>((set, get) => ({
     contrToCancel: [],
     featureTypeMode: FeatureTypeMode.VIEW,
     isModifying: false,
+    selectedObjects: [],
     setContributions: (contributions) => set({ contributions }),
     setReviewContribution: (isReview) => set({ isReviewContribution: isReview }),
     setContrToCancel: (contributions) => set({ contrToCancel: contributions }),
     setIsModifying: (isModifying) => set({ isModifying }),
     setFeatureTypeMode: (mode) => set({ featureTypeMode: mode }),
+    setSelectedObjects: (objects) => set({ selectedObjects: objects }),
     saveContribution: (feat, type, initialFeat, mapWorkingLayer) => {
         const { contributions, setContributions } = get();
         const contrExist = contributions.find((contr) => contr.feature === feat);

@@ -1,6 +1,6 @@
 import { memo, useCallback, useEffect } from "react";
 import ButtonControl from "./ButtonControl";
-import { useMapStore } from "@/store";
+import { useContributionStore, useMapStore, useModalStore } from "@/store";
 import AllReportsControl from "./AllReportsControl";
 import { useTranslation } from "@/i18n";
 import useCustomControlsList from "@/hooks/navigation/controls/useCustomControlsList";
@@ -10,9 +10,16 @@ import AddOrRemoveSnapInteraction from "./interactions/AddOrRemoveSnapInteractio
 import useGetInteractionsFuncs from "@/hooks/navigation/controls/useGetInteractionsFuncs";
 import AddOrRemoveMapControlInteraction from "./interactions/AddOrRemoveMapControlInteraction";
 import useGetInteractions from "@/hooks/navigation/controls/useGetInteractions";
+import ConfirmMultipleDeselection from "./ConfirmMultipleDeselection";
+import { CustomControlItem, InteractionType } from "@/constants/communities/types";
+import { FEATURE_TYPE_SELECTED_PROPERTY } from "@/constants";
+
+let prevClickedControl: CustomControlItem | null = null;
 
 const CustomControls = () => {
     const { clickedControl, setClickedControl } = useMapStore();
+    const { selectedObjects, setSelectedObjects } = useContributionStore();
+    const { confirmMultipleDeselectionModal } = useModalStore();
 
     const { t } = useTranslation({ CustomControls });
 
@@ -32,6 +39,33 @@ const CustomControls = () => {
         }
     }, [clickedControl, setClickedControl]);
 
+    const onConfirm = useCallback(
+        (control: CustomControlItem) => {
+            interactionsFuncs.handleClick(control);
+            setClickedControl(control?.id === clickedControl?.id ? null : control);
+            selectedObjects.forEach((feat) => {
+                feat.unset(FEATURE_TYPE_SELECTED_PROPERTY);
+            });
+            setSelectedObjects([]);
+            prevClickedControl = null;
+        },
+        [interactionsFuncs, selectedObjects, clickedControl, setSelectedObjects, setClickedControl]
+    );
+
+    const onClick = useCallback(
+        (control: CustomControlItem) => {
+            if (control.disabled) return;
+
+            if (clickedControl?.interaction === InteractionType.SELECT && selectedObjects.length > 1) {
+                prevClickedControl = control;
+                confirmMultipleDeselectionModal.open();
+                return;
+            }
+            onConfirm(control);
+        },
+        [clickedControl, confirmMultipleDeselectionModal, selectedObjects, onConfirm]
+    );
+
     useEffect(() => {
         clickToolButton();
         return () => {
@@ -44,7 +78,7 @@ const CustomControls = () => {
             <div className="custom-controls">
                 <div className="control-btns">
                     {constrolsList.map((control) => {
-                        return <ButtonControl key={`custom-control-${control.id}`} control={control} handleClick={interactionsFuncs.handleClick} />;
+                        return <ButtonControl key={`custom-control-${control.id}`} control={control} onClick={onClick} />;
                     })}
                 </div>
                 <div className="all-reports-btn">
@@ -55,6 +89,7 @@ const CustomControls = () => {
             <AddOrRemoveMapControlInteraction {...interactionsFuncs} {...interactions} />
             <AddOrRemoveSnapInteraction {...interactions} />
             <ConfirmCopyModal />
+            <ConfirmMultipleDeselection onConfirm={() => onConfirm(prevClickedControl!)} />
         </>
     );
 };

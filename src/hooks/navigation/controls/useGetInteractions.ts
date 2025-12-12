@@ -1,6 +1,6 @@
 import { useCommunityStore, useMapStore } from "@/store";
 import { Collection } from "ol";
-import { click, singleClick } from "ol/events/condition";
+import { singleClick, platformModifierKeyOnly, click } from "ol/events/condition";
 import { Draw, Modify, Select, Snap, Translate } from "ol/interaction";
 import VectorLayer from "ol/layer/Vector";
 import WebGLVectorLayer from "ol/layer/WebGLVector";
@@ -28,7 +28,15 @@ const useGetInteractions = () => {
         .flat();
 
     const selectInteraction = useMemo(
-        () => new Select({ condition: click, features: new Collection(clickableSource?.getFeatures() ?? []), multi: true }),
+        () =>
+            new Select({
+                condition: singleClick,
+                toggleCondition: platformModifierKeyOnly,
+                addCondition: platformModifierKeyOnly,
+                removeCondition: platformModifierKeyOnly,
+                features: new Collection(clickableSource?.getFeatures() ?? []),
+                multi: true,
+            }),
         [clickableSource]
     );
 
@@ -40,8 +48,8 @@ const useGetInteractions = () => {
     const splitInteraction = useMemo(
         () =>
             new Modify({
-                features: new Collection(clickableSource ? clickableSource?.getFeatures() : []),
-                condition: singleClick,
+                features: new Collection(clickableSource?.getFeatures() ?? []),
+                condition: click,
                 pixelTolerance: 10,
             }),
         [clickableSource]
