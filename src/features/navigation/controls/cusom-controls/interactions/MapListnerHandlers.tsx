@@ -154,9 +154,7 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
         map.on("singleclick", handleSingleClick);
         map.on("pointermove", handlePointerMove);
         map.getView()?.on("change:resolution", handleClusterChange);
-        if (selectedReport) {
-            setSelectedReport(reports.find((r) => r.id === selectedReport.id) ?? null);
-        }
+
         return () => {
             map.un("singleclick", handleSingleClick);
             map.un("pointermove", handlePointerMove);

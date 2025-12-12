@@ -7,34 +7,6 @@
     color: var(--text-inverted);
 }
 
-.drawer-close-button {
-    position: absolute;
-    top: 17px;
-    right: 17px;
-    z-index: 10;
-    border-radius: 4px 4px 4px 4px;
-    padding: 4px 4px 4px 4px;
-    background-color: var(--background-action-high-blue-france);
-    color: var(--text-inverted-blue-france);
-    height: 100%;
-    width: 100%;
-    box-shadow: unset;
-    background-image: unset;
-    margin-top: 0px !important;
-    z-index: 1;
-}
-
-.drawer-close-button:hover {
-    color: var(--text-default-grey);
-}
-
-.drawer-close-button svg {
-    background-color: var(--text-inverted);
-    border-radius: 50%;
-    padding: 4px;
-    display: block;
-}
-
 .working-layer-drawer {
     padding: 0;
     color: var(--text-inverted-blue-france);

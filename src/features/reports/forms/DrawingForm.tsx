@@ -4,7 +4,7 @@ import { Feature } from "ol";
 import Layer from "ol/layer/Layer";
 import VectorSource, { VectorSourceEvent } from "ol/source/Vector";
 import useReportTools from "@/hooks/reports/useReportTools";
-import { useMapStore, useReportStore } from "@/store";
+import { useMapStore, useReportStore, useUserStore } from "@/store";
 import { ClickedTool, ReportTool, toolNames } from "@/constants/reports/types";
 import { getReportAllFeatures, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import Button from "@codegouvfr/react-dsfr/Button";
@@ -22,6 +22,8 @@ interface Props {
 
 const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsDiv, onSubmitSketch, expendedDrawing }) => {
     const [showSketch, setShowSketch] = useState<boolean>(false);
+
+    const { user } = useUserStore();
     const { map } = useMapStore();
     const { selectedReport, selectedFeatures, setSelectedFeatures, editReport } = useReportStore();
 
@@ -121,6 +123,7 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsD
         }
         return false;
     };
+    const isOwner = Number(user?.id) === Number(selectedReport?.author?.id);
 
     return (
         <>
@@ -136,7 +139,9 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsD
                 </Button>
             )}
 
-            {((!hideToolsDiv && showSketch) || !selectedFeatures.length || (!STATUS_NOT_ALLOWED.includes(selectedReport?.status ?? "") && !editReport)) && (
+            {((!editReport && hideToolsDiv === false) ||
+                (showSketch && !STATUS_NOT_ALLOWED.includes(selectedReport?.status ?? "")) ||
+                (!STATUS_NOT_ALLOWED.includes(selectedReport?.status ?? "") && editReport === false && isOwner)) && (
                 <>
                     <p className="fr-text--sm fr-mb-1v">{t("drawing_message")} </p>
                     <div className="report-tools">

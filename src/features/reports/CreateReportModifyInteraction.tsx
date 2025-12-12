@@ -4,7 +4,7 @@ import { Modify } from "ol/interaction";
 import { useEffect, useMemo } from "react";
 
 const CreateReportModifyInteraction = () => {
-    const { map, setClickedTool } = useMapStore();
+    const { map } = useMapStore();
     const { selectedFeatures } = useReportStore();
 
     const mainFeature = useMemo(() => selectedFeatures.find((f) => f.get("main")), [selectedFeatures]);
@@ -15,7 +15,7 @@ const CreateReportModifyInteraction = () => {
         return () => {
             map?.removeInteraction(modifyInteraction);
         };
-    }, [map, modifyInteraction, setClickedTool]);
+    }, [map, modifyInteraction]);
 
     return null;
 };

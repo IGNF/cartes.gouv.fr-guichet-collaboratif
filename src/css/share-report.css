@@ -1,0 +1,19 @@
+.shareReport__container {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    flex-direction: column;
+}
+.shareReport__subTitle {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+}
+.shareReport__copiedLink {
+    position: absolute;
+    top: 20px;
+    left: 0;
+    right: 0;
+    margin: auto;
+    z-index: 99999;
+}

@@ -183,7 +183,7 @@ export async function getCommunityReports(communityId: number, extent: Extent): 
     });
 }
 
-async function getCommunityReportById(reportId: number): Promise<CommunityReport | null> {
+export async function getCommunityReportById(reportId: number): Promise<CommunityReport | null> {
     const res = await axiosApi.get(`${REPORTS_API_URL}/${reportId}`);
 
     if (!res.data || res.status !== 200) return null;
@@ -206,6 +206,7 @@ async function getCommunityReportById(reportId: number): Promise<CommunityReport
             };
         }),
         sketch: sketchReport,
+        author: report.author,
     };
 }
 
@@ -233,11 +234,12 @@ export async function postCommunityReport(report: PostReport): Promise<Community
             };
         }),
         sketch: sketchReport,
+        author: newReport.author,
     };
 }
 
 export async function updateCommunityReport(report: PostReport, reportId: number): Promise<CommunityReport | null> {
-    const res = await axiosApi.put(`${REPORTS_API_URL}/${reportId}`, report);
+    const res = await axiosApi.patch(`${REPORTS_API_URL}/${reportId}`, report);
 
     if (!res.data || res.status !== 200) return null;
 

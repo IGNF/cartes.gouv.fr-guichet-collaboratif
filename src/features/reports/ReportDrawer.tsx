@@ -2,11 +2,11 @@ import { useCallback, useEffect, useMemo } from "react";
 import Layer from "ol/layer/Layer";
 import VectorSource from "ol/source/Vector";
 import { useGetUserProfileAPI } from "@/api/userData";
-import { useCommunityStore, useMapStore, useReportStore, useUserStore } from "@/store";
+import { useCommunityStore, useLocalStorageStore, useMapStore, useReportStore, useUserStore } from "@/store";
 import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
-import { getCenterReportMessage, showCenterReportButtons, STATUS_NOT_ALLOWED } from "@/constants/utils";
+import { getCenterReportMessage, handleShowOnMap, showCenterReportButtons, STATUS_NOT_ALLOWED } from "@/constants/utils";
 import { clearClusterStyles } from "@/constants/reports/utils/cluster";
-import { ParamsReport, toolNames } from "@/constants/reports/types";
+import { CommunityReport, ParamsReport, toolNames } from "@/constants/reports/types";
 import DrawerComponent from "@/components/DrawerComponent";
 import ShowReport from "./ShowReport";
 import CreateReport from "./CreateReport";
@@ -16,11 +16,14 @@ import EditReport from "./EditReport";
 import Button from "@codegouvfr/react-dsfr/Button";
 import { useTranslation } from "@/i18n";
 import MapListnerHandlers from "../navigation/controls/cusom-controls/interactions/MapListnerHandlers";
+import { getCommunityReportById } from "@/api/reportsData";
+import { useSearchParams } from "react-router-dom";
 
 const ReportDrawer = () => {
     const { user } = useUserStore();
 
     const {
+        reports,
         selectedReport,
         editReport,
         setEditReport,
@@ -32,7 +35,10 @@ const ReportDrawer = () => {
         responseDrawerOpened,
         setTableDrawerOpened,
         setResponseDrawerOpened,
+        reportTableWidth,
     } = useReportStore();
+
+    const { localStorageData } = useLocalStorageStore();
 
     const { map, setClickedControl } = useMapStore();
     const { alertMessages, removeAlertMessage } = useCommunityStore();
@@ -157,6 +163,39 @@ const ReportDrawer = () => {
             setEditReport(false);
         }
     }, [drawerOpened, selectedReport, isAdmin, isOwner, editReport]);
+
+    const [searchParams] = useSearchParams();
+    const reportIdParam = searchParams.get("report_id");
+
+    const clusterLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE);
+    const clusterSource = clusterLayer?.getSource() as VectorSource;
+
+    const showOnMap = useCallback(
+        (report: CommunityReport) => {
+            handleShowOnMap(report, map, clusterSource, localStorageData, t, reportTableWidth);
+        },
+        [map, clusterSource, localStorageData, t, reportTableWidth]
+    );
+
+    useEffect(() => {
+        if (!reportIdParam) return;
+
+        const id = Number(reportIdParam);
+        const local = reports.find((r) => Number(r.id) === id);
+        if (local) {
+            setSelectedReport(local);
+            setDrawerOpened(true);
+            return;
+        }
+
+        (async () => {
+            const report = await getCommunityReportById(id);
+            if (report) {
+                showOnMap(report);
+                setDrawerOpened(true);
+            }
+        })();
+    }, [reportIdParam, reports, setSelectedReport, setDrawerOpened, showOnMap]);
 
     return (
         <>
