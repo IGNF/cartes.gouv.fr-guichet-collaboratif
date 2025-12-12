@@ -18,7 +18,7 @@ let initialFeat: Feature | null = null;
 let lastPointedFeat: Feature | null = null;
 
 const useGetInteractionsFuncs = (props: InteractionsProps) => {
-    const { map, mapWorkingLayer, clickedControl, setClickedControl, setClickedMapFeature } = useMapStore();
+    const { map, mapWorkingLayer, clickedControl, clickedMapFeature, setClickedControl, setClickedMapFeature } = useMapStore();
     const { contributions, selectedObjects, saveContribution, setIsModifying, setSelectedObjects } = useContributionStore();
     const { confirmCopyModal } = useModalStore();
     const { communityLayers } = useCommunityStore();
@@ -52,9 +52,13 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             deselectedFeatures.forEach((feat) => {
                 feat.unset(FEATURE_TYPE_SELECTED_PROPERTY);
             });
-            setSelectedObjects([...selectedObjects.filter((feat) => !deselectedFeatures.includes(feat)), ...selectedFeatures]);
+
+            const newSelectedObjects = [...selectedObjects.filter((feat) => !deselectedFeatures.includes(feat)), ...selectedFeatures];
+            if (newSelectedObjects.length > 1 && !clickedMapFeature) setClickedMapFeature(newSelectedObjects[0]);
+
+            setSelectedObjects(newSelectedObjects);
         },
-        [selectedObjects, setSelectedObjects]
+        [selectedObjects, clickedMapFeature, setSelectedObjects, setClickedMapFeature]
     );
 
     const removeInteractionFunc = useCallback(

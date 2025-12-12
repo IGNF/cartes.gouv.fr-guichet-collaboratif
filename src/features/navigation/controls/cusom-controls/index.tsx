@@ -10,9 +10,9 @@ import AddOrRemoveSnapInteraction from "./interactions/AddOrRemoveSnapInteractio
 import useGetInteractionsFuncs from "@/hooks/navigation/controls/useGetInteractionsFuncs";
 import AddOrRemoveMapControlInteraction from "./interactions/AddOrRemoveMapControlInteraction";
 import useGetInteractions from "@/hooks/navigation/controls/useGetInteractions";
-import ConfirmMultipleDeselection from "./ConfirmMultipleDeselection";
 import { CustomControlItem, InteractionType } from "@/constants/communities/types";
 import { FEATURE_TYPE_SELECTED_PROPERTY } from "@/constants";
+import ConfirmMultipleDeselection from "./ConfirmMultipleDeselection";
 
 let prevClickedControl: CustomControlItem | null = null;
 
@@ -63,7 +63,7 @@ const CustomControls = () => {
             }
             onConfirm(control);
         },
-        [clickedControl, confirmMultipleDeselectionModal, selectedObjects, onConfirm]
+        [clickedControl, selectedObjects, confirmMultipleDeselectionModal, onConfirm]
     );
 
     useEffect(() => {

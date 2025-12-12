@@ -1,6 +1,6 @@
 import { useCommunityStore, useMapStore } from "@/store";
 import { Collection } from "ol";
-import { singleClick, platformModifierKeyOnly, click } from "ol/events/condition";
+import { platformModifierKeyOnly, click } from "ol/events/condition";
 import { Draw, Modify, Select, Snap, Translate } from "ol/interaction";
 import VectorLayer from "ol/layer/Vector";
 import WebGLVectorLayer from "ol/layer/WebGLVector";
@@ -30,7 +30,7 @@ const useGetInteractions = () => {
     const selectInteraction = useMemo(
         () =>
             new Select({
-                condition: singleClick,
+                condition: click,
                 toggleCondition: platformModifierKeyOnly,
                 addCondition: platformModifierKeyOnly,
                 removeCondition: platformModifierKeyOnly,

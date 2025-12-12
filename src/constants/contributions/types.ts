@@ -84,3 +84,9 @@ export interface TransactionAction {
     client_feature_id: string | null;
     data: Record<string, unknown>;
 }
+
+export enum FeatureTypeFormActionMode {
+    MODIFY = "modify",
+    DELETE = "delete",
+    CANCEL = "cancel",
+}

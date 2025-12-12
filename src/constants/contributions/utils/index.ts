@@ -58,14 +58,14 @@ export const resetContributionToMap = (map: Map, contr: Contribution) => {
     if (featLayerSource) {
         switch (contr.type) {
             case ContributionType.CREATE:
-                if (featLayerSource.hasFeature(contr.feature)) featLayerSource.removeFeature(contr.feature);
+                featLayerSource.removeFeature(contr.feature);
                 break;
             case ContributionType.MODIFY:
-                if (featLayerSource.hasFeature(contr.feature)) featLayerSource.removeFeature(contr.feature);
-                if (!featLayerSource.hasFeature(contr.initialFeature)) featLayerSource.addFeature(contr.initialFeature);
+                featLayerSource.removeFeature(contr.feature);
+                featLayerSource.addFeature(contr.initialFeature);
                 break;
             case ContributionType.DELETE:
-                if (!featLayerSource.hasFeature(contr.initialFeature)) featLayerSource.addFeature(contr.initialFeature);
+                featLayerSource.addFeature(contr.initialFeature);
                 break;
         }
     }
