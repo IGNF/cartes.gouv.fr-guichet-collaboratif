@@ -9,6 +9,7 @@ interface ModalState {
     confirmResetContributionModal: ReturnType<typeof createModal>;
     confirmSaveContributionModal: ReturnType<typeof createModal>;
     confirmCopyModal: ReturnType<typeof createModal>;
+    shareReport: ReturnType<typeof createModal>;
 }
 
 const modalConfigs = [
@@ -19,6 +20,7 @@ const modalConfigs = [
     { key: "confirmResetContributionModal", id: "confirm-reset-contribution-modal" },
     { key: "confirmSaveContributionModal", id: "confirm-save-contribution-modal" },
     { key: "confirmCopyModal", id: "confirm-copy-modal" },
+    { key: "shareReport", id: "share-report-modal" },
 ];
 
 const modals = modalConfigs.reduce((acc, { key, id }) => {

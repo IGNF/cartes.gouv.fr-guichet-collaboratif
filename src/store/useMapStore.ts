@@ -68,5 +68,11 @@ export const useMapStore = create<MapStore>((set, get) => ({
     setShowMapWorkingLayerSelect: (show) => set({ showMapWorkingLayerSelect: show }),
     setShowCenterReportButtons: (show) => set({ showCenterReportButtons: show }),
     clickedTool: { name: "", clicked: false },
-    setClickedTool: (tool) => set({ clickedTool: tool }),
+    setClickedTool: (tool) =>
+        set((state) => ({
+            clickedTool: {
+                name: tool.name,
+                clicked: state.clickedTool?.name === tool.name ? !state.clickedTool.clicked : true,
+            },
+        })),
 }));

@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { CSVLink } from "react-csv";
 import { useTranslation } from "@/i18n";
 import VectorSource from "ol/source/Vector";
-import { getTableReports } from "@/api/reportsData";
+import { getCommunityReportById, getTableReports } from "@/api/reportsData";
 import { useReportStore, useModalStore, useMapStore, useLocalStorageStore } from "@/store";
 import { useCommunityStore } from "@/store/useCommunityStore";
 import { handleShowOnMap, STATUS_NOT_ALLOWED } from "@/constants/utils";
@@ -120,9 +120,12 @@ const TableReport = () => {
     );
 
     const onShowReportOnMap = useCallback(
-        (report: CommunityReport) => {
-            setSelectedReport(report);
-            handleShowOnMap(report, map, clusterSource, localStorageData, t, reportTableWidth);
+        async (report: CommunityReport) => {
+            const fullReport = await getCommunityReportById(report.id);
+            if (!fullReport) return;
+
+            setSelectedReport(fullReport);
+            handleShowOnMap(fullReport, map, clusterSource, localStorageData, t, reportTableWidth);
         },
         [setSelectedReport, map, clusterSource, localStorageData, t, reportTableWidth]
     );

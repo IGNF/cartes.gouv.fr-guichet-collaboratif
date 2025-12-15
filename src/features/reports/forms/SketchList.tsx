@@ -160,7 +160,7 @@ const SketchList = ({ showSketch, expendedDrawing }: Props) => {
                             <span>{text}</span>
                         </div>
 
-                        {(expendedDrawing || showSketch) && (
+                        {expendedDrawing && showSketch && (
                             <Button
                                 iconId="ri-delete-bin-2-fill"
                                 priority={"tertiary"}

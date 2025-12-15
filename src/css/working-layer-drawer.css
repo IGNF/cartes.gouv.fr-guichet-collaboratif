@@ -7,34 +7,6 @@
     color: var(--text-inverted);
 }
 
-.drawer-close-button {
-    position: absolute;
-    top: 17px;
-    right: 17px;
-    z-index: 10;
-    border-radius: 4px 4px 4px 4px;
-    padding: 4px 4px 4px 4px;
-    background-color: var(--background-action-high-blue-france);
-    color: var(--text-inverted-blue-france);
-    height: 100%;
-    width: 100%;
-    box-shadow: unset;
-    background-image: unset;
-    margin-top: 0px !important;
-    z-index: 1;
-}
-
-.drawer-close-button:hover {
-    color: var(--text-default-grey);
-}
-
-.drawer-close-button svg {
-    background-color: var(--text-inverted);
-    border-radius: 50%;
-    padding: 4px;
-    display: block;
-}
-
 .working-layer-drawer {
     padding: 0;
     color: var(--text-inverted-blue-france);
@@ -53,6 +25,7 @@
     background-color: var(--background-action-high-blue-france);
     padding: 15px 50px 15px 15px;
     flex-shrink: 0;
+    z-index: 10;
 }
 
 .feature-type-form-title {
@@ -86,11 +59,75 @@
     color: currentColor;
 }
 
+.drawer-close-button {
+    position: absolute;
+    top: 17px;
+    right: 17px;
+    z-index: 10;
+    border-radius: 4px 4px 4px 4px;
+    padding: 4px 4px 4px 4px;
+    background-color: var(--background-action-high-blue-france);
+    color: var(--text-inverted-blue-france);
+    height: 100%;
+    width: 100%;
+    box-shadow: unset;
+    background-image: unset;
+    margin-top: 0px !important;
+}
+
+.drawer-close-button:hover {
+    color: var(--text-default-grey);
+}
+
+.drawer-close-button svg {
+    background-color: var(--text-inverted);
+    border-radius: 50%;
+    padding: 4px;
+    display: block;
+}
+
+.working-layer-drawer {
+    padding: 0;
+    color: var(--text-inverted-blue-france);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.feature-type-form-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    background-color: var(--background-default-grey);
+}
+
+.feature-type-form-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background-color: var(--background-action-high-blue-france);
+    padding: 15px 50px 15px 15px;
+    flex-shrink: 0;
+}
+
 .feature-type-form-scrollable {
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
     padding: 0;
+    min-height: 0;
+}
+
+.feature-type-form-actions-fixed {
+    position: sticky;
+    bottom: 0;
+    z-index: 100;
+    flex-shrink: 0;
+    padding: 15px;
+    background-color: var(--background-alt-grey);
+    border-top: 1px solid var(--border-default-grey);
+    box-shadow: 0 -2px 8px var(--overlays-shadow);
 }
 
 .feature-type-form-table {
@@ -99,74 +136,4 @@
     width: 100%;
     background-color: var(--background-default-grey);
     color: var(--text-default-grey);
-}
-
-.feature-type-form-table table {
-    background-color: var(--background-default-grey);
-}
-
-.feature-type-form-table tr {
-    background-color: var(--background-default-grey);
-    border-bottom: 1px solid var(--border-default-grey);
-}
-
-.feature-type-form-table tr:hover {
-    background-color: var(--background-alt-grey);
-}
-
-.feature-type-form-table td {
-    border: none;
-    padding: 12px;
-    color: var(--text-default-grey);
-    vertical-align: top;
-}
-
-.feature-type-form-table td:first-child {
-    font-weight: 500;
-    border-right: 1px solid var(--border-default-grey);
-    width: 40%;
-    background-color: var(--background-alt-grey);
-}
-
-.feature-type-form-table td:last-child {
-    width: 60%;
-}
-
-.feature-type-form-table_null_value {
-    color: var(--text-mention-grey);
-    font-style: italic;
-}
-
-.feature-type-form-input-cell input,
-.feature-type-form-input-cell select,
-.feature-type-form-input-cell textarea {
-    background-color: var(--background-alt-grey);
-    color: var(--text-default-grey);
-    border: 1px solid var(--border-default-grey);
-}
-
-.feature-type-form-input-cell input:focus,
-.feature-type-form-input-cell select:focus,
-.feature-type-form-input-cell textarea:focus {
-    border-color: var(--background-action-high-blue-france);
-    outline: none;
-}
-
-.feature-type-form-actions-fixed {
-    flex-shrink: 0;
-    padding: 15px;
-    background-color: var(--background-alt-grey);
-    border-top: 1px solid var(--border-default-grey);
-    box-shadow: 0 -2px 8px var(--overlays-shadow);
-}
-
-.feature-type-form-buttons {
-    display: flex;
-    justify-content: space-between;
-}
-
-.feature-type-form-actions-left,
-.feature-type-form-actions-right {
-    display: flex;
-    gap: 10px;
 }

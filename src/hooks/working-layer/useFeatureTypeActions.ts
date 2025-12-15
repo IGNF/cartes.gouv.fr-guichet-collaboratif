@@ -7,7 +7,7 @@ import VectorSource from "ol/source/Vector";
 
 import { ContributionType } from "@/constants/contributions/types";
 import { useContributionStore } from "@/store";
-import { FEATURE_TYPE_NEW_PROPERTY } from "@/constants";
+import { FEATURE_TYPE_NEW_PROPERTY, FEATURE_TYPE_DATA_PROPERTY } from "@/constants";
 import { FeatureTypeColumn } from "@/constants/communities/types";
 import BaseLayer from "ol/layer/Base";
 
@@ -15,7 +15,6 @@ interface UseFeatureTypeActionsProps {
     clickedMapFeature: Feature | null;
     currentMapWorkingSource: VectorSource | null;
     clickableLayer: VectorLayer<VectorSource> | WebGLVectorLayer<VectorSource> | BaseLayer | undefined;
-    pointData: Record<string, string | number | null>;
     formData: Record<string, string | number | boolean | File[] | null>;
     onSuccess: () => void;
     columns: FeatureTypeColumn[];
@@ -26,7 +25,6 @@ export const useFeatureTypeActions = ({
     clickedMapFeature,
     clickableLayer,
     currentMapWorkingSource,
-    pointData,
     formData,
     columns,
     validateAll,
@@ -47,9 +45,9 @@ export const useFeatureTypeActions = ({
             const wkt = new WKT().writeGeometry(geometry.clone().transform("EPSG:3857", "EPSG:4326"));
             clickedMapFeature.set("geometrie", wkt);
         }
-        Object.entries(formData).forEach(([key, value]) => {
-            clickedMapFeature.set(key, value);
-        });
+        const dataProperty = clickedMapFeature.get(FEATURE_TYPE_DATA_PROPERTY) || {};
+        const updatedData = { ...dataProperty, ...formData };
+        clickedMapFeature.set(FEATURE_TYPE_DATA_PROPERTY, updatedData);
 
         const isNew = clickedMapFeature.get(FEATURE_TYPE_NEW_PROPERTY) === true;
         const type = isNew ? ContributionType.CREATE : ContributionType.MODIFY;
@@ -74,7 +72,7 @@ export const useFeatureTypeActions = ({
 
         onSuccess();
         return true;
-    }, [clickedMapFeature, clickableLayer, pointData, formData, validateAll, columns, contributions, setContributions, onSuccess]);
+    }, [clickedMapFeature, clickableLayer, formData, validateAll, columns, contributions, setContributions, onSuccess]);
 
     const handleDelete = useCallback(() => {
         if (!clickedMapFeature) return false;
