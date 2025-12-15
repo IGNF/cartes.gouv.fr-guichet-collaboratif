@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { FeatureTypeColumn } from "@/constants/communities/types";
 
 interface FeatureFormState {
@@ -12,16 +12,20 @@ export const useFeatureTypeForm = (
     setValidationErrors: (errors: Record<string, string | null> | ((prev: Record<string, string | null>) => Record<string, string | null>)) => void
 ) => {
     const [formData, setFormData] = useState<FeatureFormState>({});
+    const prevPointDataRef = useRef<Record<string, string | number | null> | null>(null);
+
     useEffect(() => {
         if (!pointData) return;
-
-        const initial: FeatureFormState = {};
-        columns.forEach((col) => {
-            if (!col.crs) {
-                initial[col.name] = pointData[col.name] ?? col.default_value ?? "";
-            }
-        });
-        setFormData(initial);
+        if (prevPointDataRef.current !== pointData) {
+            const initial: FeatureFormState = {};
+            columns.forEach((col) => {
+                if (!col.crs) {
+                    initial[col.name] = pointData[col.name] ?? col.default_value ?? "";
+                }
+            });
+            setFormData(initial);
+            prevPointDataRef.current = pointData;
+        }
     }, [pointData, columns]);
 
     const updateField = useCallback(

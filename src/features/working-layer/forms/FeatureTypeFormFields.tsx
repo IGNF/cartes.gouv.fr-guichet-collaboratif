@@ -79,8 +79,8 @@ export const FeatureTypeFormFields: React.FC<FeatureTypeFormFieldsProps> = ({ co
                                         state={error ? "error" : "default"}
                                         stateRelatedMessage={error || undefined}
                                         nativeSelectProps={{
-                                            value: (v as string) ?? "",
-                                            onChange: (e) => updateField(col.name, e.target.value, col),
+                                            value: String(v ?? ""),
+                                            onChange: (e) => updateField(col.name, e.target.value ? Number(e.target.value) : null, col),
                                             required: col.required,
                                         }}
                                     >
