@@ -58,7 +58,6 @@ export default function MainMap() {
         reportLayer.set("description", layer.get("description"));
         reportLayer.set("type", layer.get("type"));
 
-        mapRef.current?.addLayer(reportLayer);
         switcherRef.current?.addLayer(reportLayer, {
             title: layer.get("title"),
             description: layer.get("description"),
@@ -73,11 +72,9 @@ export default function MainMap() {
                 return;
             }
 
-            mapRef.current?.addLayer(layer);
             switcherRef.current?.addLayer(layer as Layer, {
                 title: layer.get("title"),
                 description: layer.get("description"),
-                //type: layer.get("type"),
             });
         },
         [addReportLayer]
@@ -122,9 +119,15 @@ export default function MainMap() {
     useEffect(() => {
         (async () => {
             if (!mapRef.current || !switcherRef.current) return;
-            mapRef.current?.getLayers().clear();
-
+            const currentLayers = mapRef.current?.getAllLayers();
             mapLayers.forEach((layer: MapLayer) => {
+                const layerExist = currentLayers.find((l) => l.get("name") === layer.source.get("name"));
+
+                if (!layerExist) mapRef.current?.addLayer(layer.source);
+                if (switcherRef.current?.getLayerInfo(layer.source as Layer)) {
+                    layer.source.setZIndex(layer.order);
+                    return;
+                }
                 addLayer(layer.source);
             });
         })();

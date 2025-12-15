@@ -13,7 +13,7 @@ interface Props {
 }
 
 const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
-    const { map, mapWorkingLayer, clickedControl, setClickableFeatures, setClickedMapFeature } = useMapStore();
+    const { map, mapWorkingLayer, setClickableFeatures, setClickedMapFeature } = useMapStore();
 
     const { reports, selectedReport, editReport, selectedFeatures, setSelectedReport, setSelectedFeatures, drawerOpened } = useReportStore();
 
@@ -25,13 +25,10 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
 
     const handleSingleClick = useCallback(
         (evt: MapBrowserEvent) => {
-            if (!map || clickedControl?.interaction === InteractionType.SELECT) return;
+            if (!map) return;
             if (selectedFeatures?.find((f) => f?.get("new"))) return;
             if (editReport) return;
             const features: { feature: Feature; zIndex: number }[] = [];
-
-            const featuresAtPixel = map?.getFeaturesAtPixel(evt.pixel);
-            if (!featuresAtPixel?.length) return;
 
             const selectInteraction = map
                 ?.getInteractions()
@@ -40,12 +37,16 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
 
             const featuresAt = getFeaturesInPixelBySource(map!, clickableSource, evt.pixel, HIT_DETECTION_TOLERENCE);
 
-            if (featuresAt && featuresAt.length && !selectInteraction) {
+            if (featuresAt && featuresAt.length) {
                 setClickableFeatures(featuresAt);
-                if (featuresAt.length > 1) return;
+                if (featuresAt.length > 1) {
+                    return;
+                }
             }
 
-            featuresAtPixel?.forEach((feature) => {
+            if (selectInteraction) return;
+
+            featuresAt?.forEach((feature) => {
                 const clickedFeature = feature as Feature;
                 if (clickedFeature.get(FEATURE_TYPE_GEOSERVICE_PROPERTY)?.layer !== mapWorkingLayer && mapWorkingLayer !== REPORTS_LAYER_TYPE) return;
                 if (mapWorkingLayer === REPORTS_LAYER_TYPE && clickedFeature.get("features")) {
@@ -88,7 +89,6 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
             editReport,
             mapWorkingLayer,
             clickableSource,
-            clickedControl,
             handleCloseDrawer,
             setSelectedReport,
             setSelectedFeatures,
@@ -99,12 +99,7 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
 
     const handlePointerMove = useCallback(
         (evt: MapBrowserEvent) => {
-            const features = map?.getFeaturesAtPixel(evt.pixel, {
-                layerFilter: (layer) => {
-                    return layer.get("name") === mapWorkingLayer;
-                },
-                hitTolerance: HIT_DETECTION_TOLERENCE,
-            });
+            const features = getFeaturesInPixelBySource(map!, clickableSource, evt.pixel, HIT_DETECTION_TOLERENCE);
 
             const feature = features?.find((f) => {
                 if (mapWorkingLayer === REPORTS_LAYER_TYPE) {

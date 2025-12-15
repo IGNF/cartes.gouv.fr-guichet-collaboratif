@@ -17,7 +17,7 @@ import ConfirmMultipleDeselection from "./ConfirmMultipleDeselection";
 let prevClickedControl: CustomControlItem | null = null;
 
 const CustomControls = () => {
-    const { clickedControl, setClickedControl } = useMapStore();
+    const { clickedControl, setClickedControl, setWorkingLayerDrawerOpened, setClickedMapFeature } = useMapStore();
     const { selectedObjects, setSelectedObjects } = useContributionStore();
     const { confirmMultipleDeselectionModal } = useModalStore();
 
@@ -42,14 +42,26 @@ const CustomControls = () => {
     const onConfirm = useCallback(
         (control: CustomControlItem) => {
             interactionsFuncs.handleClick(control);
+            interactions.selectInteraction.getFeatures().clear();
             setClickedControl(control?.id === clickedControl?.id ? null : control);
             selectedObjects.forEach((feat) => {
                 feat.unset(FEATURE_TYPE_SELECTED_PROPERTY);
             });
             setSelectedObjects([]);
+            setWorkingLayerDrawerOpened(false);
+            setClickedMapFeature(null);
             prevClickedControl = null;
         },
-        [interactionsFuncs, selectedObjects, clickedControl, setSelectedObjects, setClickedControl]
+        [
+            interactionsFuncs,
+            interactions,
+            selectedObjects,
+            clickedControl,
+            setSelectedObjects,
+            setClickedControl,
+            setClickedMapFeature,
+            setWorkingLayerDrawerOpened,
+        ]
     );
 
     const onClick = useCallback(

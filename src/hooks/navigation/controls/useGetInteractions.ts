@@ -1,7 +1,7 @@
 import { useCommunityStore, useMapStore } from "@/store";
 import { Collection } from "ol";
-import { platformModifierKeyOnly, click } from "ol/events/condition";
-import { Draw, Modify, Select, Snap, Translate } from "ol/interaction";
+import { platformModifierKeyOnly, click, shiftKeyOnly } from "ol/events/condition";
+import { Draw, Modify, Select, Snap, Translate, DragBox } from "ol/interaction";
 import VectorLayer from "ol/layer/Vector";
 import WebGLVectorLayer from "ol/layer/WebGLVector";
 import VectorSource from "ol/source/Vector";
@@ -36,9 +36,12 @@ const useGetInteractions = () => {
                 removeCondition: platformModifierKeyOnly,
                 features: new Collection(clickableSource?.getFeatures() ?? []),
                 multi: true,
+                filter: (feat) => clickableSource.hasFeature(feat),
             }),
         [clickableSource]
     );
+
+    const dragInteraction = useMemo(() => new DragBox({ condition: shiftKeyOnly }), []);
 
     const modifyInteraction = useMemo(() => new Modify({ features: selectInteraction.getFeatures() }), [selectInteraction]);
     const drawPointInteraction = useMemo(() => new Draw({ type: "Point" }), []);
@@ -62,6 +65,7 @@ const useGetInteractions = () => {
 
     return {
         selectInteraction,
+        dragInteraction,
         modifyInteraction,
         drawPointInteraction,
         drawLineInteraction,
