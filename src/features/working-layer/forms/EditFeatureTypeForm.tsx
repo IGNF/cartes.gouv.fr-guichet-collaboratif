@@ -16,6 +16,7 @@ import { useFeatureTypeActions } from "@/hooks/working-layer/useFeatureTypeActio
 import { FeatureTypeFormHeader } from "./FeatureTypeFormHeader";
 import { FeatureTypeFormFields } from "./FeatureTypeFormFields";
 import { FeatureTypeFormActions } from "./FeatureTypeFormActions";
+import { FeatureTypeFormAutomatic } from "./FeatureTypeFormAutomatic";
 import { useTranslation } from "@/i18n";
 
 interface PointDataProps {
@@ -50,6 +51,18 @@ const EditFeatureTypeForm = () => {
 
     const { formData, updateField } = useFeatureTypeForm(pointData, columns, validateField, setValidationErrors);
 
+    const handleAutomaticFieldsCalculated = useCallback(
+        (fields: Record<string, string | number | null>) => {
+            Object.entries(fields).forEach(([name, value]) => {
+                const col = columns.find((c) => c.name === name);
+                if (col) {
+                    updateField(name, value, col);
+                }
+            });
+        },
+        [columns, updateField]
+    );
+
     const handleSuccess = useCallback(() => {
         setClickedMapFeature(null);
         setWorkingLayerDrawerOpened(false);
@@ -60,7 +73,6 @@ const EditFeatureTypeForm = () => {
         clickedMapFeature,
         currentMapWorkingSource,
         clickableLayer,
-        pointData,
         formData,
         columns,
         validateAll,
@@ -73,9 +85,18 @@ const EditFeatureTypeForm = () => {
         setFeatureTypeMode(FeatureTypeMode.VIEW);
     }, [setClickedMapFeature, setWorkingLayerDrawerOpened]);
 
-    const handleBack = useCallback(() => {
-        setFeatureTypeMode(FeatureTypeMode.VIEW);
-    }, []);
+    const handleModeChange = useCallback(
+        (newMode: FeatureTypeMode) => {
+            setFeatureTypeMode(newMode);
+        },
+        [setFeatureTypeMode]
+    );
+
+    const handleClose = useCallback(() => {
+        setClickedMapFeature(null);
+        setWorkingLayerDrawerOpened(false);
+    }, [setClickedMapFeature, setWorkingLayerDrawerOpened]);
+
     const handleLayerVisibility = useCallback(() => {
         if (clickableLayer && !clickableLayer.getVisible()) {
             handleCancel();
@@ -108,9 +129,12 @@ const EditFeatureTypeForm = () => {
             <FeatureTypeFormHeader
                 title={`${isNewFeature ? t("state") + " " : ""}${geoserviceData?.title || ""}`}
                 featureId={pointData?.[geoserviceData?.idName || "id"] || ""}
-                onBack={handleBack}
+                mode={FeatureTypeMode.EDIT}
+                onModeChange={handleModeChange}
+                onClose={handleClose}
             />
             <div className="feature-type-form-scrollable">
+                <FeatureTypeFormAutomatic columns={columns} formData={formData} onAutomaticFieldsCalculated={handleAutomaticFieldsCalculated} />
                 <FeatureTypeFormFields columns={columns} formData={formData} validationErrors={validationErrors} updateField={updateField} />
             </div>
 

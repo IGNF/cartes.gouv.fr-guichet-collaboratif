@@ -4,9 +4,9 @@ import { CommunityGeoservice, FeatureTypeColumn } from "@/constants/communities/
 import { jsonToHtmlList } from "@/constants/communities/utils";
 import { useTranslation } from "@/i18n";
 import { useContributionStore, useMapStore } from "@/store";
-import Button from "@codegouvfr/react-dsfr/Button";
 import Table from "@codegouvfr/react-dsfr/Table";
 import { Tooltip } from "@codegouvfr/react-dsfr/Tooltip";
+import { FeatureTypeFormHeader } from "./FeatureTypeFormHeader";
 import VectorLayer from "ol/layer/Vector";
 import WebGLVectorLayer from "ol/layer/WebGLVector";
 import { EventTypes } from "ol/Observable";
@@ -34,6 +34,13 @@ const ShowFeatureTypeForm = () => {
         setClickedMapFeature(null);
         setWorkingLayerDrawerOpened(false);
     }, [setClickedMapFeature, setWorkingLayerDrawerOpened]);
+
+    const handleModeChange = useCallback(
+        (newMode: FeatureTypeMode) => {
+            setFeatureTypeMode(newMode);
+        },
+        [setFeatureTypeMode]
+    );
 
     const handleLayerVisibility = useCallback(() => {
         if (clickableLayer && !clickableLayer?.getVisible()) {
@@ -104,26 +111,19 @@ const ShowFeatureTypeForm = () => {
     if (!pointData) return;
 
     return (
-        <>
-            <div className="feature-type-form-header">
-                <h1 className="feature-type-form-title">
-                    {`${isNewFeature ? t("state") + " " : ""}${geoserviceData?.title || ""} : ${pointData?.[geoserviceData?.idName || "id"] || ""}`}
-                </h1>
+        <div className="feature-type-form-container">
+            <FeatureTypeFormHeader
+                title={`${isNewFeature ? t("state") + " " : ""}${geoserviceData?.title || ""}`}
+                featureId={pointData?.[geoserviceData?.idName || "id"] || ""}
+                mode={FeatureTypeMode.VIEW}
+                onModeChange={handleModeChange}
+                onClose={handleCancel}
+            />
 
-                <Button
-                    iconId="ri-edit-box-fill"
-                    className="feature-type-form-edit-button"
-                    priority="tertiary no outline"
-                    onClick={() => {
-                        setFeatureTypeMode(FeatureTypeMode.EDIT);
-                    }}
-                >
-                    {t("edit")}
-                </Button>
+            <div className="feature-type-form-scrollable">
+                <Table bordered fixed data={dataColumns} className="feature-type-form-table" />
             </div>
-
-            <Table bordered fixed data={dataColumns} className="feature-type-form-table" />
-        </>
+        </div>
     );
 };
 
