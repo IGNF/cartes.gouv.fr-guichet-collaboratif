@@ -8,6 +8,7 @@ export const ShowFeatureTypeFormFrTranslations: Translations<"fr">["ShowFeatureT
     cancel: "Annuler",
     state: "Nouveau",
     edit: "Éditer",
+    objects_count: ({ count }: { count: number }) => `${count} objets`,
 };
 
 export const ShowFeatureTypeFormEnTranslations: Translations<"en">["ShowFeatureTypeForm"] = {
@@ -17,7 +18,10 @@ export const ShowFeatureTypeFormEnTranslations: Translations<"en">["ShowFeatureT
     cancel: "Cancel",
     state: "New",
     edit: "Edit",
+    objects_count: ({ count }: { count: number }) => `${count} objects`,
 };
 
-const { i18n } = declareComponentKeys<"value_empty" | "value_yes" | "value_no" | "cancel" | "state" | "edit">()("ShowFeatureTypeForm");
+const { i18n } = declareComponentKeys<
+    "value_empty" | "value_yes" | "value_no" | "cancel" | "state" | "edit" | { K: "objects_count"; P: { count: number }; R: string }
+>()("ShowFeatureTypeForm");
 export type I18n = typeof i18n;

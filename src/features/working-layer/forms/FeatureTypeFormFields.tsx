@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import Table from "@codegouvfr/react-dsfr/Table";
 import Tooltip from "@codegouvfr/react-dsfr/Tooltip";
 import Input from "@codegouvfr/react-dsfr/Input";
@@ -7,6 +7,8 @@ import Checkbox from "@codegouvfr/react-dsfr/Checkbox";
 import { Upload } from "@codegouvfr/react-dsfr/Upload";
 import { FeatureTypeColumn } from "@/constants/communities/types";
 import { useTranslation } from "@/i18n";
+import { useContributionStore } from "@/store";
+import { FeatureTypeMode } from "@/constants/contributions/types";
 
 interface FeatureTypeFormFieldsProps {
     columns: FeatureTypeColumn[];
@@ -16,7 +18,21 @@ interface FeatureTypeFormFieldsProps {
 }
 
 export const FeatureTypeFormFields: React.FC<FeatureTypeFormFieldsProps> = ({ columns, formData, validationErrors, updateField }) => {
+    const { selectedObjects, featureTypeMode, columnsToModify, setColumnsToModify } = useContributionStore();
     const { t } = useTranslation({ FeatureTypeFormFields });
+
+    const showTitleCellCheckbox = useMemo(() => featureTypeMode === FeatureTypeMode.EDIT && selectedObjects.length > 1, [featureTypeMode, selectedObjects]);
+
+    const handleCheckboxChange = useCallback(
+        (column: FeatureTypeColumn, checked: boolean) => {
+            if (checked) {
+                setColumnsToModify([...columnsToModify, column]);
+            } else {
+                setColumnsToModify(columnsToModify.filter((col) => col.name !== column.name));
+            }
+        },
+        [columnsToModify, setColumnsToModify]
+    );
 
     const dataColumns = useMemo(
         () =>
@@ -26,20 +42,35 @@ export const FeatureTypeFormFields: React.FC<FeatureTypeFormFieldsProps> = ({ co
                     const v = formData[col.name];
                     const error = validationErrors[col.name];
 
-                    const titleCell = col.description ? (
-                        <Tooltip kind="hover" title={<span>{col.description}</span>}>
-                            <span>
-                                {col.title}
-                                {col.required && <span style={{ color: "red" }}> *</span>}
-                            </span>
-                        </Tooltip>
-                    ) : (
+                    const titleName = (
                         <span>
-                            {col.title}
+                            {showTitleCellCheckbox && col.nullable ? (
+                                <Checkbox
+                                    options={[
+                                        {
+                                            label: col.title,
+                                            nativeInputProps: {
+                                                name: `${col.name}`,
+                                                onChange: (e) => handleCheckboxChange(col, e.target.checked),
+                                            },
+                                        },
+                                    ]}
+                                    orientation="horizontal"
+                                />
+                            ) : (
+                                col.title
+                            )}
                             {col.required && <span style={{ color: "red" }}> *</span>}
                         </span>
                     );
 
+                    const titleCell = col.description ? (
+                        <Tooltip kind="hover" title={<span>{col.description}</span>}>
+                            {titleName}
+                        </Tooltip>
+                    ) : (
+                        titleName
+                    );
                     let valueCell: React.ReactNode;
 
                     if (col.read_only) {
@@ -171,7 +202,7 @@ export const FeatureTypeFormFields: React.FC<FeatureTypeFormFieldsProps> = ({ co
                         </div>,
                     ];
                 }),
-        [columns, formData, validationErrors, updateField, t]
+        [columns, formData, validationErrors, showTitleCellCheckbox, updateField, handleCheckboxChange, t]
     );
 
     return <Table bordered fixed className="feature-type-form-table" data={dataColumns} />;

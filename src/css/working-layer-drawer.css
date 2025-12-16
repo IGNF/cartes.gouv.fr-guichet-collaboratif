@@ -133,3 +133,7 @@
     background-color: var(--background-default-grey);
     color: var(--text-default-grey);
 }
+
+.modal-text {
+    color: var(--text-default-grey);
+}

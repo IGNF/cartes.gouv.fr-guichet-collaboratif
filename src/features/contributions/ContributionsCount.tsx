@@ -109,7 +109,7 @@ const ContributionsCount: React.FC<Props> = ({ t }) => {
             const failedContributions = geomContr.filter((gc) => failedGeoms.includes(gc.geom)).map((gc) => gc.contr);
             setContributions(failedContributions);
         },
-        [setContributions, addAlertMessage, setWorkingLayerDrawerOpened, setClickedMapFeature, setClickedControl, t]
+        [setContributions, addAlertMessage, t]
     );
 
     const onSave = useCallback(async () => {

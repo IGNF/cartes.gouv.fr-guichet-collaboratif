@@ -51,6 +51,8 @@ import { ContributionListEnTranslations } from "@/features/contributions/locale/
 import { ContributionsConfirmResetEnTranslations } from "@/features/contributions/locale/ContributionsConfirmReset.locale";
 import { ReviewContributionsEnTranslations } from "@/features/contributions/locale/ReviewContributions.locale";
 import { ConfirmSaveContributionsEnTranslations } from "@/features/contributions/locale/ConfirmSaveContributions.locale";
+import { ConfirmMultipleObjectsActionModalEnTranslations } from "@/features/working-layer/forms/locale/ConfirmMultipleObjectsActionModal.locale";
+import { ConfirmMultipleDeselectionEnTranslations } from "@/features/navigation/controls/cusom-controls/locale/ConfirmMultipleDeselection.locale";
 
 export const translations: Translations<"en"> = {
     AppFooter: AppFooterEnTranslations,
@@ -105,4 +107,6 @@ export const translations: Translations<"en"> = {
     ContributionsConfirmReset: ContributionsConfirmResetEnTranslations,
     ReviewContributions: ReviewContributionsEnTranslations,
     ConfirmSaveContributions: ConfirmSaveContributionsEnTranslations,
+    ConfirmMultipleObjectsActionModal: ConfirmMultipleObjectsActionModalEnTranslations,
+    ConfirmMultipleDeselection: ConfirmMultipleDeselectionEnTranslations,
 };
