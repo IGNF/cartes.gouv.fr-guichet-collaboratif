@@ -5,14 +5,14 @@ export const ConfirmMultipleDeselectionFrTranslations: Translations<"fr">["Confi
     title: "Attention",
     yes: "Oui",
     no: "Non",
-    message: ({ objectsCount }: { objectsCount: number }) => `Tous les ${objectsCount} objets seront désélectionnés, est ce vous étes sûr ?`,
+    message: ({ objectsCount }: { objectsCount: number }) => `${objectsCount} objets seront désélectionnés, êtes-vous sûr??`,
 };
 
 export const ConfirmMultipleDeselectionEnTranslations: Translations<"en">["ConfirmMultipleDeselection"] = {
     title: "Attention",
     yes: "Yes",
     no: "No",
-    message: ({ objectsCount }: { objectsCount: number }) => `All ${objectsCount} objects will be deselected, are you sure?`,
+    message: ({ objectsCount }: { objectsCount: number }) => `${objectsCount} objects will be deselected, are you sure?`,
 };
 
 const { i18n } = declareComponentKeys<"title" | "yes" | "no" | { K: "message"; P: { objectsCount: number }; R: string }>()("ConfirmMultipleDeselection");

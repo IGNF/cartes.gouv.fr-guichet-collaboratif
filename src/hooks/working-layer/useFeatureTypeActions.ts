@@ -17,7 +17,6 @@ interface UseFeatureTypeActionsProps {
     clickedMapFeature: Feature | null;
     currentMapWorkingSource: VectorSource | null;
     clickableLayer: VectorLayer<VectorSource> | WebGLVectorLayer<VectorSource> | BaseLayer | undefined;
-    // pointData: Record<string, string | number | null>;
     formData: FormData;
     onSuccess: () => void;
     columns: FeatureTypeColumn[];

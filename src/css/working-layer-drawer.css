@@ -16,14 +16,6 @@
     background-color: var(--background-default-grey);
 }
 
-.feature-type-form-header {
-    position: relative;
-    background-color: var(--background-action-high-blue-france);
-    padding: 15px 50px 15px 15px;
-    flex-shrink: 0;
-    z-index: 10;
-}
-
 .feature-type-form-title {
     color: var(--text-inverted);
     text-align: center;
@@ -88,14 +80,6 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-}
-
-.feature-type-form-container {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    overflow: hidden;
-    background-color: var(--background-default-grey);
 }
 
 .feature-type-form-header {

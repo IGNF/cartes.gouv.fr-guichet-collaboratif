@@ -8,9 +8,16 @@ export const ConfirmMultipleObjectsActionModalFrTranslations: Translations<"fr">
     no: "Non",
     message: ({ objectsCount, action }: { objectsCount: number; action: FeatureTypeFormActionMode }) => {
         let actionMessage = "désélectionnés";
-        if (action === FeatureTypeFormActionMode.MODIFY) actionMessage = "modifiés";
-        if (action === FeatureTypeFormActionMode.DELETE) actionMessage = "supprimés";
-        return `Tous les ${objectsCount} objets seront ${actionMessage}, est ce vous étes sûr ?`;
+        if (action === FeatureTypeFormActionMode.MODIFY) actionMessage = "modifié(s)";
+        if (action === FeatureTypeFormActionMode.DELETE) actionMessage = "supprimé(s)";
+
+        const isSingular = objectsCount <= 1;
+        const objectWord = isSingular ? "objet" : "objets";
+        const verbWord = isSingular ? "sera" : "seront";
+        if (isSingular) {
+            objectsCount = 1;
+        }
+        return `${objectsCount} ${objectWord} ${verbWord} ${actionMessage}, êtes-vous sûr?`;
     },
 };
 
@@ -22,7 +29,15 @@ export const ConfirmMultipleObjectsActionModalEnTranslations: Translations<"en">
         let actionMessage = "deselected";
         if (action === FeatureTypeFormActionMode.MODIFY) actionMessage = "modified";
         if (action === FeatureTypeFormActionMode.DELETE) actionMessage = "deleted";
-        return `All ${objectsCount} objects will be ${actionMessage}, are you sure?`;
+
+        const isSingular = objectsCount <= 1;
+        const objectWord = isSingular ? "object" : "objects";
+        const verbWord = isSingular ? "will be" : "will be";
+        if (isSingular) {
+            objectsCount = 1;
+        }
+
+        return `${objectsCount} ${objectWord} ${verbWord} ${actionMessage}, are you sure?`;
     },
 };
 

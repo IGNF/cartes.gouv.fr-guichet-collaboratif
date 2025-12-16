@@ -10,7 +10,14 @@ const ConfirmSaveContributions: React.FC<Props> = ({ onConfirm }) => {
     const { confirmSaveContributionModal } = useModalStore();
     const { t } = useTranslation({ ConfirmSaveContributions });
     return (
-        <ModaleComponent modal={confirmSaveContributionModal} title={t("confirm_title")} onConfirm={onConfirm} cancelText={t("no")} confirmText={t("yes")}>
+        <ModaleComponent
+            modal={confirmSaveContributionModal}
+            title={t("confirm_title")}
+            onConfirm={onConfirm}
+            onClose={() => null}
+            cancelText={t("no")}
+            confirmText={t("yes")}
+        >
             {t("confirm_description")}
         </ModaleComponent>
     );

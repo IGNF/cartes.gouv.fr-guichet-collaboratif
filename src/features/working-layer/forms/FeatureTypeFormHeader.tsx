@@ -1,6 +1,7 @@
 import Button from "@codegouvfr/react-dsfr/Button";
 import { useTranslation } from "@/i18n";
 import { FeatureTypeMode } from "@/constants/contributions/types";
+import { useContributionStore } from "@/store/useContributionStore";
 
 interface FeatureTypeFormHeaderProps {
     title: string;
@@ -12,6 +13,8 @@ interface FeatureTypeFormHeaderProps {
 
 export const FeatureTypeFormHeader: React.FC<FeatureTypeFormHeaderProps> = ({ title, featureId, mode, onModeChange, onClose }) => {
     const { t } = useTranslation({ FeatureTypeFormHeader });
+
+    const { featureTypeMode, selectedObjects } = useContributionStore();
 
     const isEditMode = mode === FeatureTypeMode.EDIT;
 
@@ -26,7 +29,8 @@ export const FeatureTypeFormHeader: React.FC<FeatureTypeFormHeaderProps> = ({ ti
                 priority="tertiary no outline"
                 onClick={() => onModeChange(isEditMode ? FeatureTypeMode.VIEW : FeatureTypeMode.EDIT)}
             >
-                {isEditMode ? t("back") : t("edit")}
+                {isEditMode ? t("back") : t("edit")}{" "}
+                {featureTypeMode === FeatureTypeMode.VIEW && selectedObjects.length > 1 ? t("objects_count", { count: selectedObjects.length }) : ""}
             </Button>
             <Button iconId="ri-close-line" className="drawer-close-button" priority="tertiary no outline" onClick={onClose} title={t("close")} />
         </div>
