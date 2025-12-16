@@ -95,6 +95,8 @@ export type FeatureTypeColumn = {
     max_value: number;
     pattern: string;
     is3d: boolean;
+    automatic: boolean;
+    formula?: string;
 };
 export type FeatureTypeSelectedStyle = { layer: string; selectedStyle: FeatureTypeStyle };
 

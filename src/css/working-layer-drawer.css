@@ -3,13 +3,9 @@
 }
 
 .drawer-content {
+    width: 100%;
     background-color: var(--background-default-grey);
     color: var(--text-inverted);
-}
-
-.working-layer-drawer {
-    padding: 0;
-    color: var(--text-inverted-blue-france);
 }
 
 .feature-type-form-container {

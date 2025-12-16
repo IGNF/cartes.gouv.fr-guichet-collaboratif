@@ -4,6 +4,9 @@ import { useUserStore, useMapStore } from "@/store";
 import { AutomaticFieldType } from "@/constants/working-layer/types";
 import { calculateAutomaticField } from "@/constants/working-layer/utils";
 import { FEATURE_TYPE_GEOSERVICE_PROPERTY } from "@/constants";
+import { useTranslation } from "@/i18n";
+import { TranslationFunction } from "i18nifty/typeUtils/TranslationFunction";
+import { ComponentKey } from "@/i18n/types";
 
 interface FeatureTypeFormAutomaticProps {
     columns: FeatureTypeColumn[];
@@ -17,6 +20,7 @@ export const FeatureTypeFormAutomatic: React.FC<FeatureTypeFormAutomaticProps> =
     const [calculatedValues, setCalculatedValues] = useState<Record<string, string | number | null>>({});
     const [isCalculating, setIsCalculating] = useState(false);
 
+    const { t } = useTranslation({ FeatureTypeFormAutomatic });
     const automaticColumns = useMemo(
         () =>
             columns.filter((col) => {
@@ -71,9 +75,9 @@ export const FeatureTypeFormAutomatic: React.FC<FeatureTypeFormAutomaticProps> =
                         <span className="feature-type-form-automatic-label">{col.title}:</span>
                         <span className="feature-type-form-automatic-value">
                             {isCalculating ? (
-                                <span className="calculating">Calcul en cours...</span>
+                                <span className="calculating">{t("wait")}</span>
                             ) : (
-                                formatValue(calculatedValues[col.name] ?? formData[col.name], col)
+                                formatValue(calculatedValues[col.name] ?? formData[col.name], col, t)
                             )}
                         </span>
                     </div>
@@ -83,16 +87,20 @@ export const FeatureTypeFormAutomatic: React.FC<FeatureTypeFormAutomaticProps> =
     );
 };
 
-const formatValue = (value: string | number | boolean | File[] | null, col: FeatureTypeColumn): string => {
+const formatValue = (
+    value: string | number | boolean | File[] | null,
+    col: FeatureTypeColumn,
+    t: TranslationFunction<"FeatureTypeFormAutomatic", ComponentKey>
+): string => {
     if (value === null || value === undefined) {
-        return "(vide)";
+        return t("empty");
     }
 
     switch (col.type.toLowerCase()) {
         case "boolean":
-            return value ? "Oui" : "Non";
+            return value ? t("yes") : t("no");
         case "date":
-            return value ? new Date(value as string).toLocaleDateString() : "(vide)";
+            return value ? new Date(value as string).toLocaleDateString() : t("empty");
         case "integer":
         case "number":
             return String(value);

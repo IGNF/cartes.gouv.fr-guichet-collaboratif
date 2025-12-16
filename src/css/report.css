@@ -4,11 +4,13 @@
     flex-direction: column;
     gap: 20px;
 }
+
 .table-report-searchFilter {
     display: flex;
     flex-direction: row;
     gap: 20px;
 }
+
 .filter-report {
     display: flex;
     flex-direction: column;
@@ -99,6 +101,7 @@
 .theme-radio {
     padding: 4px !important;
 }
+
 .theme-radio label {
     padding: 0.125rem 0.5rem !important;
     border-radius: 0.75rem;
@@ -189,6 +192,7 @@
 .report-attachments {
     margin-top: 10px;
 }
+
 .report-attachments div {
     display: flex;
     width: 100%;
