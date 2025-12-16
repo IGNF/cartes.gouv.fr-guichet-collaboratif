@@ -1,5 +1,5 @@
 import { Feature, MapBrowserEvent } from "ol";
-import { Draw, Modify, Select, Snap, Translate } from "ol/interaction";
+import { DragBox, Draw, Modify, Select, Snap, Translate } from "ol/interaction";
 import { DrawEvent } from "ol/interaction/Draw";
 import { ModifyEvent } from "ol/interaction/Modify";
 import { SelectEvent } from "ol/interaction/Select";
@@ -40,6 +40,7 @@ export type CustomInteraction = Select | Modify | Draw | Translate | null;
 
 export interface InteractionsFuncsProps {
     selectInteractionFunc: (e: SelectEvent) => void;
+    dragInteractionFunc: () => void;
     removeInteractionFunc: (e: SelectEvent) => void;
     modifyInteractionFunc: (e: ModifyEvent) => void;
     modifyInteractionFuncStart: (e: ModifyEvent) => void;
@@ -53,6 +54,7 @@ export interface InteractionsFuncsProps {
 
 export interface InteractionsProps {
     selectInteraction: Select;
+    dragInteraction: DragBox;
     modifyInteraction: Modify;
     drawPointInteraction: Draw;
     drawLineInteraction: Draw;
@@ -83,4 +85,10 @@ export interface TransactionAction {
     server_feature_id: string | null;
     client_feature_id: string | null;
     data: Record<string, unknown>;
+}
+
+export enum FeatureTypeFormActionMode {
+    MODIFY = "modify",
+    DELETE = "delete",
+    CANCEL = "cancel",
 }

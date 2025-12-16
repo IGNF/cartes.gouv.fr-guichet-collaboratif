@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { FeatureTypeColumn } from "@/constants/communities/types";
+import { useContributionStore } from "@/store";
+import { FeatureTypeMode } from "@/constants/contributions/types";
 
 interface FeatureFormState {
     [key: string]: string | number | boolean | File[] | null;
@@ -12,17 +14,22 @@ export const useFeatureTypeForm = (
     setValidationErrors: (errors: Record<string, string | null> | ((prev: Record<string, string | null>) => Record<string, string | null>)) => void
 ) => {
     const [formData, setFormData] = useState<FeatureFormState>({});
+    const { featureTypeMode, selectedObjects } = useContributionStore();
+
+    const isMultipleEdit = featureTypeMode === FeatureTypeMode.EDIT && selectedObjects.length > 1;
+
     useEffect(() => {
         if (!pointData) return;
 
         const initial: FeatureFormState = {};
         columns.forEach((col) => {
             if (!col.crs) {
-                initial[col.name] = pointData[col.name] ?? col.default_value ?? "";
+                const colValue = pointData[col.name] ?? col.default_value ?? "";
+                initial[col.name] = isMultipleEdit ? "" : colValue;
             }
         });
         setFormData(initial);
-    }, [pointData, columns]);
+    }, [pointData, columns, isMultipleEdit]);
 
     const updateField = useCallback(
         (name: string, value: string | number | boolean | File[] | null, col: FeatureTypeColumn) => {

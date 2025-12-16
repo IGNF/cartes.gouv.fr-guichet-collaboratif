@@ -10,6 +10,8 @@ interface ModalState {
     confirmSaveContributionModal: ReturnType<typeof createModal>;
     confirmCopyModal: ReturnType<typeof createModal>;
     shareReport: ReturnType<typeof createModal>;
+    confirmMultipleDeselectionModal: ReturnType<typeof createModal>;
+    confirmMultipleObjectsActionModal: ReturnType<typeof createModal>;
 }
 
 const modalConfigs = [
@@ -21,6 +23,9 @@ const modalConfigs = [
     { key: "confirmSaveContributionModal", id: "confirm-save-contribution-modal" },
     { key: "confirmCopyModal", id: "confirm-copy-modal" },
     { key: "shareReport", id: "share-report-modal" },
+    { key: "confirmMultipleDeselectionModal", id: "confirm-multiplr-deselection-modal" },
+    { key: "confirmMultipleDeselectionModal", id: "confirm-multiple-deselection-modal" },
+    { key: "confirmMultipleObjectsActionModal", id: "confirm-multiple-objects-action-modal" },
 ];
 
 const modals = modalConfigs.reduce((acc, { key, id }) => {

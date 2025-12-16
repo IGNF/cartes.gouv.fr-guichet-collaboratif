@@ -1,3 +1,4 @@
+import { InteractionType } from "@/constants/communities/types";
 import { InteractionsFuncsProps, InteractionsProps } from "@/constants/contributions/types";
 import { addInteractionToMap, removeInteractionFromMap } from "@/constants/contributions/utils";
 import { useCommunityStore, useContributionStore, useMapStore } from "@/store";
@@ -19,11 +20,19 @@ const AddOrRemoveMapControlInteraction = (props: InteractionsFuncsProps & Intera
                 currentCommunityLayer?.geoservice.featureType ?? clickedControl.target
             );
             addInteractionToMap(clickedInteraction, map!);
+            if (clickedControl.interaction === InteractionType.SELECT) {
+                map?.addInteraction(props.dragInteraction);
+                props.dragInteraction.on(["boxend"], () => props.dragInteractionFunc());
+                props.dragInteraction.setActive(true);
+            }
         }
         return () => {
             if (!isModifying && clickedControl && clickedControl.interaction) {
                 map?.un("singleclick", props.splitLineInteractionFuncEnd);
                 map?.un("pointermove", props.splitLineInteractionFuncPointer);
+                map?.removeInteraction(props.dragInteraction);
+                props.dragInteraction.un(["boxend"], () => props.dragInteractionFunc());
+                props.dragInteraction.setActive(false);
             }
         };
     }, [clickedControl, map, mapWorkingLayer, currentCommunityLayer?.geoservice.featureType, isModifying, clickedMapFeature, props]);

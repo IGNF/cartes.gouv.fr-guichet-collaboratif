@@ -1,7 +1,7 @@
 import { useCommunityStore, useMapStore } from "@/store";
 import { Collection } from "ol";
-import { click, singleClick } from "ol/events/condition";
-import { Draw, Modify, Select, Snap, Translate } from "ol/interaction";
+import { platformModifierKeyOnly, click, shiftKeyOnly } from "ol/events/condition";
+import { Draw, Modify, Select, Snap, Translate, DragBox } from "ol/interaction";
 import VectorLayer from "ol/layer/Vector";
 import WebGLVectorLayer from "ol/layer/WebGLVector";
 import VectorSource from "ol/source/Vector";
@@ -28,9 +28,20 @@ const useGetInteractions = () => {
         .flat();
 
     const selectInteraction = useMemo(
-        () => new Select({ condition: click, features: new Collection(clickableSource?.getFeatures() ?? []), multi: true }),
+        () =>
+            new Select({
+                condition: click,
+                toggleCondition: platformModifierKeyOnly,
+                addCondition: platformModifierKeyOnly,
+                removeCondition: platformModifierKeyOnly,
+                features: new Collection(clickableSource?.getFeatures() ?? []),
+                multi: true,
+                filter: (feat) => clickableSource.hasFeature(feat),
+            }),
         [clickableSource]
     );
+
+    const dragInteraction = useMemo(() => new DragBox({ condition: shiftKeyOnly }), []);
 
     const modifyInteraction = useMemo(() => new Modify({ features: selectInteraction.getFeatures() }), [selectInteraction]);
     const drawPointInteraction = useMemo(() => new Draw({ type: "Point" }), []);
@@ -40,8 +51,8 @@ const useGetInteractions = () => {
     const splitInteraction = useMemo(
         () =>
             new Modify({
-                features: new Collection(clickableSource ? clickableSource?.getFeatures() : []),
-                condition: singleClick,
+                features: new Collection(clickableSource?.getFeatures() ?? []),
+                condition: click,
                 pixelTolerance: 10,
             }),
         [clickableSource]
@@ -54,6 +65,7 @@ const useGetInteractions = () => {
 
     return {
         selectInteraction,
+        dragInteraction,
         modifyInteraction,
         drawPointInteraction,
         drawLineInteraction,

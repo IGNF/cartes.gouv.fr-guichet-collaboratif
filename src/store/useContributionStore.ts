@@ -1,3 +1,4 @@
+import { FeatureTypeColumn } from "@/constants/communities/types";
 import { Contribution, ContributionType, FeatureTypeMode } from "@/constants/contributions/types";
 import { Feature } from "ol";
 import { create } from "zustand";
@@ -8,12 +9,16 @@ interface ContributionStore {
     contrToCancel: Contribution[];
     featureTypeMode: FeatureTypeMode;
     isModifying: boolean;
+    selectedObjects: Feature[];
+    columnsToModify: FeatureTypeColumn[];
     setContributions: (contributions: Contribution[]) => void;
     setReviewContribution: (isReview: boolean) => void;
     setContrToCancel: (contributions: Contribution[]) => void;
     saveContribution: (feat: Feature, type: ContributionType, initialFeat: Feature | null, mapWorkingLayer: string) => void;
     setIsModifying: (isModifying: boolean) => void;
     setFeatureTypeMode: (mode: FeatureTypeMode) => void;
+    setSelectedObjects: (objects: Feature[]) => void;
+    setColumnsToModify: (columns: FeatureTypeColumn[]) => void;
 }
 
 export const useContributionStore = create<ContributionStore>((set, get) => ({
@@ -22,11 +27,15 @@ export const useContributionStore = create<ContributionStore>((set, get) => ({
     contrToCancel: [],
     featureTypeMode: FeatureTypeMode.VIEW,
     isModifying: false,
+    selectedObjects: [],
+    columnsToModify: [],
     setContributions: (contributions) => set({ contributions }),
     setReviewContribution: (isReview) => set({ isReviewContribution: isReview }),
     setContrToCancel: (contributions) => set({ contrToCancel: contributions }),
     setIsModifying: (isModifying) => set({ isModifying }),
     setFeatureTypeMode: (mode) => set({ featureTypeMode: mode }),
+    setSelectedObjects: (objects) => set({ selectedObjects: objects }),
+    setColumnsToModify: (columns) => set({ columnsToModify: columns }),
     saveContribution: (feat, type, initialFeat, mapWorkingLayer) => {
         const { contributions, setContributions } = get();
         const contrExist = contributions.find((contr) => contr.feature === feat);

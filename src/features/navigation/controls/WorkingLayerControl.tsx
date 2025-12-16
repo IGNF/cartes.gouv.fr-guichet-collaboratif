@@ -107,8 +107,10 @@ const WorkingLayerControl = () => {
                         onChange: (e) => handleWorkingLayerChange(e.target.value),
                     }}
                 >
-                    {workingLayers?.map((option) => (
-                        <option value={option.value}>{option.label}</option>
+                    {workingLayers?.map((option, index) => (
+                        <option key={`working-layer-${index}`} value={option.value}>
+                            {option.label}
+                        </option>
                     ))}
                 </Select>
                 <div className="separator"></div>

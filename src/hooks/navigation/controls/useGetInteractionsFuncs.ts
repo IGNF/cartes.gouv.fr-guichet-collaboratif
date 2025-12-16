@@ -11,16 +11,15 @@ import { addFeatureProperties, addInteractionToMap, isPointOnSegment, removeInte
 import { GeometryFeatueParams } from "@/constants/reports/types";
 import { Coordinate } from "ol/coordinate";
 import { useCommunityStore, useContributionStore, useMapStore, useModalStore } from "@/store";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { CustomControlItem, InteractionType } from "@/constants/communities/types";
 
 let initialFeat: Feature | null = null;
 let lastPointedFeat: Feature | null = null;
 
 const useGetInteractionsFuncs = (props: InteractionsProps) => {
-    const [selectedFeatures, setSelectedFeatures] = useState<Feature[]>([]);
     const { map, mapWorkingLayer, clickedControl, setClickedControl, setClickedMapFeature } = useMapStore();
-    const { contributions, saveContribution, setIsModifying } = useContributionStore();
+    const { contributions, selectedObjects, saveContribution, setIsModifying, setSelectedObjects } = useContributionStore();
     const { confirmCopyModal } = useModalStore();
     const { communityLayers } = useCommunityStore();
 
@@ -40,22 +39,56 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
         .find((layer) => layer.get("name") === mapWorkingLayer && (layer instanceof VectorLayer || layer instanceof WebGLVectorLayer));
     const clickableSource = clickableLayer?.getSource() as VectorSource;
 
-    const { selectInteraction, modifyInteraction, drawPointInteraction, drawLineInteraction, drawPolygonInteraction, translateInteraction, splitInteraction } =
-        props;
+    const {
+        selectInteraction,
+        dragInteraction,
+        modifyInteraction,
+        drawPointInteraction,
+        drawLineInteraction,
+        drawPolygonInteraction,
+        translateInteraction,
+        splitInteraction,
+    } = props;
 
     const selectInteractionFunc = useCallback(
         (e: SelectEvent) => {
-            const features = e.selected;
-            features.forEach((feat) => {
+            const selectedFeatures = e.selected;
+            const deselectedFeatures = e.deselected;
+            selectedFeatures.forEach((feat) => {
                 feat.set(FEATURE_TYPE_SELECTED_PROPERTY, true);
             });
-            selectedFeatures.forEach((feat) => {
+            deselectedFeatures.forEach((feat) => {
                 feat.unset(FEATURE_TYPE_SELECTED_PROPERTY);
             });
-            setSelectedFeatures(features);
+
+            const newSelectedObjects = [...selectedObjects.filter((feat) => !deselectedFeatures.includes(feat)), ...selectedFeatures];
+            if (newSelectedObjects.length > 0) {
+                setClickedMapFeature(newSelectedObjects[0]);
+            } else {
+                setClickedMapFeature(null);
+            }
+
+            setSelectedObjects(newSelectedObjects);
         },
-        [selectedFeatures]
+        [selectedObjects, setSelectedObjects, setClickedMapFeature]
     );
+
+    const dragInteractionFunc = useCallback(() => {
+        const extent = dragInteraction.getGeometry().getExtent();
+        if (!extent) return;
+        const selectInteractionFeatures = selectInteraction.getFeatures();
+        const featuresAtExtent = clickableSource?.getFeaturesInExtent(extent);
+
+        featuresAtExtent.forEach((feat) => {
+            if (selectInteractionFeatures.getArray().includes(feat)) return;
+            selectInteractionFeatures.push(feat);
+        });
+        const newSelectedObjects = selectInteractionFeatures.getArray();
+        setSelectedObjects(newSelectedObjects);
+        if (newSelectedObjects.length > 0) {
+            setClickedMapFeature(newSelectedObjects[0]);
+        }
+    }, [clickableSource, dragInteraction, selectInteraction, setClickedMapFeature, setSelectedObjects]);
 
     const removeInteractionFunc = useCallback(
         (e: SelectEvent) => {
@@ -270,7 +303,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                 selectInteraction.getFeatures().clear();
             }
             if (control.interaction !== InteractionType.MODIFY) {
-                selectedFeatures.forEach((feat) => {
+                selectedObjects.forEach((feat) => {
                     feat.unset(FEATURE_TYPE_SELECTED_PROPERTY);
                 });
             }
@@ -278,7 +311,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                 copyInteractionFunc();
             }
             if (control?.id === clickedControl?.id) {
-                setSelectedFeatures([]);
+                setSelectedObjects([]);
                 removeInteractionFromMap(control.interaction, map!);
             } else {
                 removeInteractionFromMap(clickedControl?.interaction ?? null, map!);
@@ -286,11 +319,26 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                 addInteractionToMap(interaction, map!);
             }
         },
-        [map, clickedControl, selectedFeatures, selectInteraction, getInteractionByType, copyInteractionFunc]
+        [map, clickedControl, selectedObjects, selectInteraction, getInteractionByType, copyInteractionFunc, setSelectedObjects]
     );
+
+    useEffect(() => {
+        selectedObjects.forEach((feat) => {
+            feat.set(FEATURE_TYPE_SELECTED_PROPERTY, true);
+            feat.changed();
+        });
+
+        return () => {
+            selectedObjects.forEach((feat) => {
+                feat.unset(FEATURE_TYPE_SELECTED_PROPERTY);
+                feat.changed();
+            });
+        };
+    }, [selectedObjects]);
 
     return {
         selectInteractionFunc,
+        dragInteractionFunc,
         removeInteractionFunc,
         modifyInteractionFunc,
         modifyInteractionFuncStart,

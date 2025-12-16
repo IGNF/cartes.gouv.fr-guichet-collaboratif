@@ -135,10 +135,15 @@
 .feature-type-form-buttons {
     display: flex;
     justify-content: space-between;
+    gap: 8px;
 }
 
 .feature-type-form-actions-left,
 .feature-type-form-actions-right {
     display: flex;
     gap: 10px;
+}
+
+.modal-text {
+    color: var(--text-default-grey);
 }
