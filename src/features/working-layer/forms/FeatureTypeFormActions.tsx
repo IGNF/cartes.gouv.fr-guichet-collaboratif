@@ -15,8 +15,8 @@ export const FeatureTypeFormActions: React.FC<FeatureTypeFormActionsProps> = ({ 
     const { t } = useTranslation({ FeatureTypeFormActions });
 
     const selectedObjectsText = useMemo(
-        () => (featureTypeMode === FeatureTypeMode.EDIT && selectedObjects.length > 1 ? `les ${selectedObjects.length} objets` : ""),
-        [featureTypeMode, selectedObjects]
+        () => (featureTypeMode === FeatureTypeMode.EDIT && selectedObjects.length > 1 ? t("all_objects", { count: selectedObjects.length }) : ""),
+        [featureTypeMode, selectedObjects, t]
     );
 
     const disableSave = selectedObjects.length > 1 && !columnsToModify.length;
@@ -24,13 +24,7 @@ export const FeatureTypeFormActions: React.FC<FeatureTypeFormActionsProps> = ({ 
     return (
         <div className="feature-type-form-buttons">
             <div className="feature-type-form-actions-left">
-                <Button
-                    onClick={onDelete}
-                    priority="primary"
-                    size={selectedObjects.length > 1 ? "small" : "medium"}
-                    iconId="ri-delete-bin-line"
-                    iconPosition="right"
-                >
+                <Button onClick={onDelete} priority="primary" iconId="ri-delete-bin-line" iconPosition="right">
                     {t("delete")} {selectedObjectsText}
                 </Button>
             </div>
@@ -40,14 +34,7 @@ export const FeatureTypeFormActions: React.FC<FeatureTypeFormActionsProps> = ({ 
                     {t("cancel")}
                 </Button>
 
-                <Button
-                    priority="primary"
-                    size={selectedObjects.length > 1 ? "small" : "medium"}
-                    onClick={onSave}
-                    iconId="ri-save-line"
-                    iconPosition="right"
-                    disabled={disableSave}
-                >
+                <Button priority="primary" onClick={onSave} iconId="ri-save-line" iconPosition="right" disabled={disableSave}>
                     {t("save")} {selectedObjectsText}
                 </Button>
             </div>

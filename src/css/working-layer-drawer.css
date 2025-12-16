@@ -135,6 +135,7 @@
 .feature-type-form-buttons {
     display: flex;
     justify-content: space-between;
+    gap: 8px;
 }
 
 .feature-type-form-actions-left,

@@ -1,7 +1,8 @@
 import ModaleComponent from "@/components/ModaleComponent";
 import { FeatureTypeFormActionMode } from "@/constants/contributions/types";
+import { useTranslation } from "@/i18n";
 import { useContributionStore, useModalStore } from "@/store";
-import { useMemo } from "react";
+import { useCallback } from "react";
 
 interface Props {
     action: FeatureTypeFormActionMode;
@@ -12,22 +13,22 @@ const ConfirmMultipleObjectsActionModal: React.FC<Props> = ({ action, onConfirm 
     const { confirmMultipleObjectsActionModal } = useModalStore();
     const { selectedObjects } = useContributionStore();
 
-    const actionMessage = useMemo(() => {
-        switch (action) {
-            case FeatureTypeFormActionMode.CANCEL:
-                return "désélectionnés";
+    const { t } = useTranslation({ ConfirmMultipleObjectsActionModal });
 
-            case FeatureTypeFormActionMode.MODIFY:
-                return "modifiés";
-            case FeatureTypeFormActionMode.DELETE:
-                return "supprimés";
-        }
-    }, [action]);
+    const onClose = useCallback(() => {
+        confirmMultipleObjectsActionModal.close();
+    }, [confirmMultipleObjectsActionModal]);
+
     return (
-        <ModaleComponent modal={confirmMultipleObjectsActionModal} title={"Attentions"} onConfirm={onConfirm} cancelText={"Non"} confirmText={"Oui"}>
-            <p className="modal-text">
-                Tous les {selectedObjects.length} objets seront {actionMessage}, est ce vous étes sûr ?
-            </p>
+        <ModaleComponent
+            modal={confirmMultipleObjectsActionModal}
+            title={t("title")}
+            onConfirm={onConfirm}
+            onClose={onClose}
+            cancelText={t("no")}
+            confirmText={t("yes")}
+        >
+            <p className="modal-text">{t("message", { objectsCount: selectedObjects.length, action })}</p>
         </ModaleComponent>
     );
 };

@@ -118,7 +118,8 @@ const ShowFeatureTypeForm = () => {
                         setFeatureTypeMode(FeatureTypeMode.EDIT);
                     }}
                 >
-                    {t("edit")} {featureTypeMode === FeatureTypeMode.VIEW && selectedObjects.length > 1 ? `${selectedObjects.length} objets` : ""}
+                    {t("edit")}{" "}
+                    {featureTypeMode === FeatureTypeMode.VIEW && selectedObjects.length > 1 ? t("objects_count", { count: selectedObjects.length }) : ""}
                 </Button>
             </div>
 
