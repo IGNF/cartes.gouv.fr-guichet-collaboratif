@@ -4,7 +4,7 @@ import { Feature } from "ol";
 import Layer from "ol/layer/Layer";
 import VectorSource, { VectorSourceEvent } from "ol/source/Vector";
 import useReportTools from "@/hooks/reports/useReportTools";
-import { useMapStore, useReportStore } from "@/store";
+import { useMapStore, useReportStore, useUserStore } from "@/store";
 import { ClickedTool, ReportTool, toolNames } from "@/constants/reports/types";
 import { getReportAllFeatures, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import Button from "@codegouvfr/react-dsfr/Button";
@@ -22,6 +22,8 @@ interface Props {
 
 const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsDiv, onSubmitSketch, expendedDrawing }) => {
     const [showSketch, setShowSketch] = useState<boolean>(false);
+
+    const { user } = useUserStore();
     const { map } = useMapStore();
     const { selectedReport, selectedFeatures, setSelectedFeatures, editReport } = useReportStore();
 
@@ -73,11 +75,13 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsD
         let reportMainFeature: Feature | undefined;
 
         if (selectedReport) {
-            const editTool = reportTools.find((t) => t.name === toolNames.edit);
-            if (handleToolClick) handleToolClick(editTool);
             selectedReportFeatures = getReportAllFeatures(selectedReport);
-            if (handleToolClick) handleToolClick(editTool);
-            drawingSource?.addFeatures(selectedReportFeatures);
+            if (drawingSource) drawingSource.addFeatures(selectedReportFeatures);
+            setSelectedFeatures(selectedReportFeatures);
+            const editTool = reportTools.find((t) => t.name === toolNames.edit);
+            if (handleToolClick) {
+                handleToolClick(editTool);
+            }
             const clusterFeatures = reportSource
                 ?.getFeatures()
                 .map((f) => {
@@ -91,20 +95,18 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsD
 
         if (drawingSource) setSelectedFeatures(drawingSource.getFeatures());
         return () => {
-            if (selectedReport) {
-                drawingSource?.removeFeatures(selectedReportFeatures);
+            if (selectedReport && drawingSource) {
+                drawingSource.removeFeatures(selectedReportFeatures);
                 const clusterFeatures = reportSource
                     ?.getFeatures()
-                    .map((f) => {
-                        if (f.get("features")) return f.get("features");
-                        return f;
-                    })
+                    .map((f) => (f.get("features") ? f.get("features") : f))
                     .flat();
-                const reportMainFeatureUpdated = clusterFeatures.find((f) => f.get("reportData")?.id === selectedReport?.id && f.get("main"));
+                const reportMainFeatureUpdated = clusterFeatures.find((f) => f.get("reportData")?.id === selectedReport.id && f.get("main"));
                 if (reportMainFeature && !reportMainFeatureUpdated) {
                     reportSource?.addFeature(reportMainFeature);
                 }
                 setSelectedFeatures([]);
+                drawingSource.clear();
             }
         };
     }, [selectedReport, drawingSource, reportSource, reportTools, handleToolClick, setSelectedFeatures]);
@@ -114,13 +116,17 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsD
         if (clickedTool?.name === tool.name && clickedTool.clicked) return "secondary";
         return "tertiary";
     };
-
     const isToolDisabled = (tool: ReportTool): boolean => {
+        if (!selectedReport && tool.type === "create") {
+            return false;
+        }
+
         if (!selectedFeatures.length && tool.name !== toolNames.point) {
             return true;
         }
         return false;
     };
+    const isOwner = Number(user?.id) === Number(selectedReport?.author?.id);
 
     return (
         <>
@@ -136,7 +142,9 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsD
                 </Button>
             )}
 
-            {((!hideToolsDiv && showSketch) || !selectedFeatures.length || (!STATUS_NOT_ALLOWED.includes(selectedReport?.status ?? "") && !editReport)) && (
+            {((!editReport && hideToolsDiv === false) ||
+                (showSketch && !STATUS_NOT_ALLOWED.includes(selectedReport?.status ?? "")) ||
+                (!STATUS_NOT_ALLOWED.includes(selectedReport?.status ?? "") && editReport === false && isOwner)) && (
                 <>
                     <p className="fr-text--sm fr-mb-1v">{t("drawing_message")} </p>
                     <div className="report-tools">
@@ -192,7 +200,20 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsD
             )}
             {showSketch && (
                 <div className="report__actions">
-                    {editReport && <Button onClick={onSubmitSketch}>{t("save_sketch")}</Button>}
+                    {editReport && (
+                        <Button
+                            onClick={() => {
+                                if (drawingSource) {
+                                    setSelectedFeatures(drawingSource.getFeatures());
+                                }
+                                if (onSubmitSketch) {
+                                    onSubmitSketch();
+                                }
+                            }}
+                        >
+                            {t("save_sketch")}
+                        </Button>
+                    )}
                     <Button priority="secondary" onClick={() => setShowSketch(!showSketch)}>
                         {t("hide_sketchToEdit")}
                     </Button>

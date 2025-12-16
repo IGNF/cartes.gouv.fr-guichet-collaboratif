@@ -6,7 +6,7 @@ import { useGetReportReplies } from "@/api/repliesData";
 import { useCommunityStore, useMapStore, useModalStore, useReportStore } from "@/store";
 import { useReplyStore } from "@/store/useReplyStore";
 import { CommunityTheme } from "@/constants/communities/types";
-import { ErrorFile, PostThemeReport, ReportTool } from "@/constants/reports/types";
+import { ClickedTool, ErrorFile, PostThemeReport, ReportTool } from "@/constants/reports/types";
 import { getThemeAttributes } from "@/constants/utils";
 import useReportTools from "@/hooks/reports/useReportTools";
 import Accordion from "@codegouvfr/react-dsfr/Accordion";
@@ -29,10 +29,10 @@ const maxSizeBytes = maxSizeMB * 1024 * 1024;
 
 interface Props {
     handleSubmit?: (theme: CommunityTheme, themeAttributes: PostThemeReport, description: string, files: File[], features: Feature[]) => Promise<void>;
-    handleSubmitSketch?: (theme: CommunityTheme, themeAttributes: PostThemeReport, features: Feature[]) => Promise<void>;
-    handleSubmitTheme?: (theme: CommunityTheme, themeAttributes: PostThemeReport, features: Feature[]) => Promise<void>;
-    handleSubmitDescription?: (theme: CommunityTheme, themeAttributes: PostThemeReport, description: string, features: Feature[]) => Promise<void>;
-    handleSubmitDocument?: (theme: CommunityTheme, themeAttributes: PostThemeReport, description: string, files: File[], features: Feature[]) => Promise<void>;
+    handleSubmitSketch?: (features: Feature[]) => Promise<void>;
+    handleSubmitTheme?: (theme: CommunityTheme, themeAttributes: PostThemeReport) => Promise<void>;
+    handleSubmitDescription?: (description: string) => Promise<void>;
+    handleSubmitDocument?: (files: File[]) => Promise<void>;
     handleDelete?: () => void;
     handleClose?: () => void;
 }
@@ -56,7 +56,7 @@ const ReportForm: React.FC<Props> = ({
     const [showTheme, setShowTheme] = useState<boolean>(false);
     const [themeInitial, setThemeInitial] = useState<CommunityTheme | null>(null);
     const [showDescription, setShowDescription] = useState<boolean>(false);
-    const [descriptionInitiale, setDescriptionInitiale] = useState<string>("");
+    const [, setDescriptionInitiale] = useState<string>("");
     const [showDocument, setShowDocument] = useState<boolean>(false);
 
     const accordionRef = useRef<HTMLDivElement>(null);
@@ -66,6 +66,8 @@ const ReportForm: React.FC<Props> = ({
     const [expendedDescription, setExpendedDescription] = useState<boolean>(false);
     const [expendedDocument, setExpendedDocument] = useState<boolean>(false);
 
+    const [hasInitialized, setHasInitialized] = useState(false);
+
     const [errorTheme, setErrorTheme] = useState<string>("");
     const [errorFiles, setErrorFiles] = useState<ErrorFile[]>([]);
 
@@ -74,20 +76,13 @@ const ReportForm: React.FC<Props> = ({
 
     const [loading, setLoading] = useState<boolean>(false);
 
+    const handleToolClickRef = useRef<((tool: ReportTool | undefined) => void) | null>(null);
+
     const { community } = useCommunityStore();
     const { data: userData } = useGetUserProfileAPI();
 
-    const {
-        setSelectedReport,
-        reports,
-        editReport,
-        selectedReport,
-        selectedFeatures,
-        setSelectedFeatures,
-        setTableDrawerOpened,
-        setDrawerOpened,
-        toggleSortByDateCreation,
-    } = useReportStore();
+    const { editReport, selectedReport, selectedFeatures, setSelectedFeatures, setTableDrawerOpened, setDrawerOpened, toggleSortByDateCreation } =
+        useReportStore();
 
     const reportTools = useReportTools();
     const { confirmCancelModal } = useModalStore();
@@ -101,24 +96,27 @@ const ReportForm: React.FC<Props> = ({
     const { data: repliesData } = useGetReportReplies(reportId);
     const repliesRes = useMemo(() => repliesData?.replies ?? [], [repliesData]);
 
-    useEffect(() => {
-        setSelectedReport(selectedReport);
-    }, [reports, selectedReport, setSelectedReport]);
-
-    const handleToolClick = useCallback(
+    handleToolClickRef.current = useCallback(
         (tool: ReportTool | undefined) => {
             if (!tool) return;
+
             const toolButton = document.querySelector(`button[id*="${tool.name}"]`) as HTMLButtonElement | null;
             if (toolButton) {
                 toolButton.click();
-                setClickedTool({
-                    name: tool.name,
-                    clicked: clickedTool.name === tool.name ? !clickedTool.clicked : true,
-                });
             }
+
+            const nextClicked: ClickedTool = {
+                name: tool.name,
+                clicked: clickedTool?.name === tool.name ? !clickedTool.clicked : true,
+            };
+
+            setClickedTool(nextClicked);
         },
-        [clickedTool.clicked, clickedTool.name, setClickedTool]
+        [setClickedTool, clickedTool]
     );
+
+    const handleToolClick = useCallback((tool: ReportTool | undefined) => handleToolClickRef.current?.(tool), []);
+
     const validateThemeAttributes = useCallback(
         (attributes: PostThemeReport) => {
             const communityTheme = community?.themes.find((t) => t.theme === selectedTheme?.theme);
@@ -193,12 +191,14 @@ const ReportForm: React.FC<Props> = ({
     );
 
     useEffect(() => {
-        if (selectedReport) {
-            setSelectedTheme(selectedReport?.themes[0]);
-            setThemeAttributes(getThemeAttributes(selectedReport?.themes[0]));
-            setDescription(selectedReport.comment ?? "");
-        }
-    }, [selectedReport]);
+        if (!selectedReport || hasInitialized) return;
+
+        const theme = selectedReport.themes[0];
+        setSelectedTheme(theme);
+        setThemeAttributes(getThemeAttributes(theme));
+        setDescription(selectedReport.comment ?? "");
+        setHasInitialized(true);
+    }, [selectedReport, hasInitialized]);
 
     useEffect(() => {
         if (editReport) {
@@ -227,8 +227,6 @@ const ReportForm: React.FC<Props> = ({
     };
 
     const onSubmitTheme = async () => {
-        if (clickedTool.clicked) handleToolClick(reportTools.find((tool) => tool.name === clickedTool.name));
-
         if (!validateTheme()) {
             return;
         }
@@ -236,7 +234,7 @@ const ReportForm: React.FC<Props> = ({
         setLoading(true);
         try {
             if (handleSubmitTheme) {
-                await handleSubmitTheme(selectedTheme, themeAttributes, selectedFeatures);
+                await handleSubmitTheme(selectedTheme, themeAttributes);
                 setLoading(false);
             }
         } catch {
@@ -245,24 +243,19 @@ const ReportForm: React.FC<Props> = ({
     };
 
     const onSubmitSketch = async () => {
-        if (clickedTool.clicked) handleToolClick(reportTools.find((tool) => tool.name === clickedTool.name));
-
         if (!community || !selectedTheme) return;
         setLoading(true);
         try {
             if (handleSubmitSketch) {
-                await handleSubmitSketch(selectedTheme, themeAttributes, selectedFeatures);
+                await handleSubmitSketch(selectedFeatures);
                 setLoading(false);
             }
-            onClose();
         } catch {
             setLoading(false);
         }
     };
 
     const onSubmitDescription = async () => {
-        if (clickedTool.clicked) handleToolClick(reportTools.find((tool) => tool.name === clickedTool.name));
-
         if (!validateTheme()) {
             return;
         }
@@ -270,7 +263,7 @@ const ReportForm: React.FC<Props> = ({
         setLoading(true);
         try {
             if (handleSubmitDescription) {
-                await handleSubmitDescription(selectedTheme, themeAttributes, description, selectedFeatures);
+                await handleSubmitDescription(description);
                 setLoading(false);
             }
         } catch {
@@ -279,8 +272,6 @@ const ReportForm: React.FC<Props> = ({
     };
 
     const onSubmitDocument = async () => {
-        if (clickedTool.clicked) handleToolClick(reportTools.find((tool) => tool.name === clickedTool.name));
-
         if (!validateTheme() || !validateFiles(filesUploaded)) {
             return;
         }
@@ -288,7 +279,7 @@ const ReportForm: React.FC<Props> = ({
         setLoading(true);
         try {
             if (handleSubmitDocument) {
-                await handleSubmitDocument(selectedTheme, themeAttributes, description, filesUploaded, selectedFeatures);
+                await handleSubmitDocument(filesUploaded);
                 setLoading(false);
             }
         } catch {
@@ -309,7 +300,6 @@ const ReportForm: React.FC<Props> = ({
     };
 
     const onClose = () => {
-        if (clickedTool.clicked) handleToolClick(reportTools.find((tool) => tool.name === clickedTool.name));
         setSelectedTheme(null);
         setDescription("");
         setFilesUploaded([]);
@@ -344,7 +334,6 @@ const ReportForm: React.FC<Props> = ({
             setDescriptionInitiale(description);
             setShowDescription(true);
         } else {
-            setDescription(descriptionInitiale);
             setShowDescription(false);
             setExpendedDescription(false);
         }
@@ -356,7 +345,6 @@ const ReportForm: React.FC<Props> = ({
         } else {
             setExpendedDocument(false);
             setShowDocument(false);
-            setFilesUploaded([]);
             setErrorFiles([]);
         }
     };
@@ -431,7 +419,9 @@ const ReportForm: React.FC<Props> = ({
                         expanded={expendedTheme}
                     >
                         <>
-                            <h3 className="fr-text--md fr-mb-1v">{selectedReport?.themes.map((theme) => theme.theme).join(", ")}</h3>
+                            <h3 className="fr-text--md fr-mb-1v">
+                                {selectedTheme ? selectedTheme.theme : selectedReport?.themes.map((theme) => theme.theme).join(", ")}
+                            </h3>
                             {editReport && !showTheme && (
                                 <Button className="fr-mt-4v" onClick={() => onToggleTheme()}>
                                     {t("show_toEdit")}
@@ -473,6 +463,7 @@ const ReportForm: React.FC<Props> = ({
                             handleToolClick={handleToolClick}
                             onSubmitSketch={onSubmitSketch}
                             expendedDrawing={expendedDrawing}
+                            hideToolsDiv={false}
                         />
                     </Accordion>
 

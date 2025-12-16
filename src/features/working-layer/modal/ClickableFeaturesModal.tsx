@@ -1,11 +1,12 @@
 import { createModal } from "@codegouvfr/react-dsfr/Modal";
 import { useIsModalOpen } from "@codegouvfr/react-dsfr/Modal/useIsModalOpen";
-import { useMapStore } from "@/store";
-import { useEffect, useMemo } from "react";
+import { useContributionStore, useMapStore } from "@/store";
+import { useCallback, useEffect, useMemo } from "react";
 import Button from "@codegouvfr/react-dsfr/Button";
 import { Feature } from "ol";
 import { useTranslation } from "@/i18n";
-import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_GEOSERVICE_PROPERTY } from "@/constants";
+import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_GEOSERVICE_PROPERTY, FEATURE_TYPE_SELECTED_PROPERTY } from "@/constants";
+import { InteractionType } from "@/constants/communities/types";
 
 const modal = createModal({
     id: "clickable-features-modal",
@@ -13,7 +14,8 @@ const modal = createModal({
 });
 
 const ClickableFeaturesModal = () => {
-    const { clickableFeatures, clickedMapFeature, mapWorkingLayer, setClickedMapFeature, setClickableFeatures } = useMapStore();
+    const { clickableFeatures, clickedMapFeature, clickedControl, mapWorkingLayer, setClickedMapFeature, setClickableFeatures } = useMapStore();
+    const { selectedObjects, setSelectedObjects } = useContributionStore();
     const isOpen = useIsModalOpen(modal, {
         onConceal: () => {
             setClickableFeatures([]);
@@ -37,19 +39,49 @@ const ClickableFeaturesModal = () => {
         }
     }, [clickableFeatures, isOpen, t]);
 
-    const handleSelectedFeature = (f: Feature) => {
-        setClickedMapFeature(f);
-    };
+    const handleSelectedFeature = useCallback(
+        (f: Feature) => {
+            if (clickedControl?.interaction !== InteractionType.SELECT) {
+                setClickedMapFeature(f);
+                return;
+            }
+            const isMultiSelectedFeature = selectedObjects.find(
+                (feat) => feat.get(FEATURE_TYPE_DATA_PROPERTY)[`${geoserviceData?.idName}`] === f.get(FEATURE_TYPE_DATA_PROPERTY)[`${geoserviceData?.idName}`]
+            );
+            if (isMultiSelectedFeature) {
+                isMultiSelectedFeature.unset(FEATURE_TYPE_SELECTED_PROPERTY);
+                isMultiSelectedFeature.changed();
+                setSelectedObjects(selectedObjects.filter((feat) => feat !== isMultiSelectedFeature));
+            } else {
+                f.set(FEATURE_TYPE_SELECTED_PROPERTY, true);
+                f.changed();
+                setSelectedObjects([...selectedObjects, f]);
+            }
+        },
+        [selectedObjects, clickedControl?.interaction, geoserviceData?.idName, setSelectedObjects, setClickedMapFeature]
+    );
 
-    const getButtonPriority = (f: Feature): "secondary" | "tertiary" => {
-        const data = f.get(FEATURE_TYPE_DATA_PROPERTY);
-        if (!clickedMapFeature || !data) return "tertiary";
+    const getButtonPriority = useCallback(
+        (f: Feature): "secondary" | "tertiary" => {
+            const data = f.get(FEATURE_TYPE_DATA_PROPERTY);
+            const clickedMapData = clickedMapFeature?.get(FEATURE_TYPE_DATA_PROPERTY);
 
-        if (data.id) {
-            return clickedMapFeature?.get(FEATURE_TYPE_DATA_PROPERTY)?.id === data?.id ? "secondary" : "tertiary";
-        }
-        return "tertiary";
-    };
+            if (!clickedMapFeature || !data) return "tertiary";
+
+            if (clickedControl?.interaction === InteractionType.SELECT) {
+                const isMultiSelectedFeature = selectedObjects.find(
+                    (feat) => feat.get(FEATURE_TYPE_DATA_PROPERTY)[`${geoserviceData?.idName}`] === data[`${geoserviceData?.idName}`]
+                );
+                return isMultiSelectedFeature ? "secondary" : "tertiary";
+            }
+
+            if (data[`${geoserviceData?.idName}`]) {
+                return clickedMapData[`${geoserviceData?.idName}`] === data[`${geoserviceData?.idName}`] ? "secondary" : "tertiary";
+            }
+            return "tertiary";
+        },
+        [clickedMapFeature, geoserviceData, clickedControl?.interaction, selectedObjects]
+    );
 
     return (
         <modal.Component

@@ -1,5 +1,8 @@
 import Button from "@codegouvfr/react-dsfr/Button";
 import { useTranslation } from "@/i18n";
+import { useMemo } from "react";
+import { useContributionStore } from "@/store";
+import { FeatureTypeMode } from "@/constants/contributions/types";
 
 interface FeatureTypeFormActionsProps {
     onSave: () => void;
@@ -8,12 +11,21 @@ interface FeatureTypeFormActionsProps {
 }
 
 export const FeatureTypeFormActions: React.FC<FeatureTypeFormActionsProps> = ({ onSave, onDelete, onCancel }) => {
+    const { selectedObjects, featureTypeMode, columnsToModify } = useContributionStore();
     const { t } = useTranslation({ FeatureTypeFormActions });
+
+    const selectedObjectsText = useMemo(
+        () => (featureTypeMode === FeatureTypeMode.EDIT && selectedObjects.length > 1 ? t("all_objects", { count: selectedObjects.length }) : ""),
+        [featureTypeMode, selectedObjects, t]
+    );
+
+    const disableSave = selectedObjects.length > 1 && !columnsToModify.length;
+
     return (
         <div className="feature-type-form-buttons">
             <div className="feature-type-form-actions-left">
                 <Button onClick={onDelete} priority="primary" iconId="ri-delete-bin-line" iconPosition="right">
-                    {t("delete")}
+                    {t("delete")} {selectedObjectsText}
                 </Button>
             </div>
 
@@ -22,8 +34,8 @@ export const FeatureTypeFormActions: React.FC<FeatureTypeFormActionsProps> = ({ 
                     {t("cancel")}
                 </Button>
 
-                <Button priority="primary" onClick={onSave} iconId="ri-save-line" iconPosition="right">
-                    {t("save")}
+                <Button priority="primary" onClick={onSave} iconId="ri-save-line" iconPosition="right" disabled={disableSave}>
+                    {t("save")} {selectedObjectsText}
                 </Button>
             </div>
         </div>

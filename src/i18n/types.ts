@@ -28,6 +28,7 @@ export type ComponentKey =
     | import("../features/navigation/controls/locale/DrawingControl.locale").I18n
     | import("../features/navigation/controls/locale/CatalogControl.locale").I18n
     | import("../features/navigation/controls/cusom-controls/locale/CenterReportControl.locale").I18n
+    | import("../features/navigation/controls/cusom-controls/locale/ConfirmMultipleDeselection.locale").I18n
     | import("../features/navigation/controls/locale/useGetMapControls.locale").I18n
     | import("../features/navigation/controls/locale/WorkingLayerControl.locale").I18n
     | import("../features/navigation/controls/locale/WorkingLayerLabelMap.locale").I18n
@@ -37,6 +38,7 @@ export type ComponentKey =
     | import("../features/reports/forms/locale/ConfirmCancelModal.locale").I18n
     | import("../features/reports/forms/locale/OpenReplyReportModal.locale").I18n
     | import("../features/reports/forms/locale/ConfirmDeleteReportModal.locale").I18n
+    | import("../features/reports/locale/ShareReportModal.locale").I18n
     | import("../features/reports/forms/locale/DrawingForm.locale").I18n
     | import("../features/reports/forms/locale/ImportSketchFile.locale").I18n
     | import("../features/reports/forms/locale/ReportForm.locale").I18n
@@ -54,6 +56,7 @@ export type ComponentKey =
     | import("../features/working-layer/forms/locale/FeatureTypeFormActions.locale").I18n
     | import("../features/working-layer/forms/locale/FeatureTypeFormFields.locale").I18n
     | import("../features/working-layer/forms/locale/FeatureTypeFormHeader.locale").I18n
+    | import("../features/working-layer/forms/locale/ConfirmMultipleObjectsActionModal.locale").I18n
     | import("../features/working-layer/modal/locale/ClickableFeaturesModal.locale").I18n
     | import("../hooks/navigation/layers/locale/useGetReportsLayer.locale").I18n
     | import("../hooks/navigation/layers/locale/useGetWFSLayer.locale").I18n

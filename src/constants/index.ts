@@ -13,7 +13,12 @@ export const ADMIN_ROLE = "admin";
 export const MEMBER_ROLE = "member";
 
 export const HIT_DETECTION_TOLERENCE = 5;
+export const POINTER_HIT_DETECTION_TOLERENCE = 10;
+
 export const TILE_SIZE = 2048;
 export const TILE_MAX_FEATURES = 5000;
 
 export const APP_FOOTER_MIN_HEIGHT = 40;
+
+export const DEFAULT_COMMUNITY_MIN_ZOOM = 4;
+export const DEFAULT_COMMUNITY_MAX_ZOOM = 20;

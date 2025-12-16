@@ -18,7 +18,7 @@ interface PointDataProps {
 
 const ShowFeatureTypeForm = () => {
     const { map, mapSwitcher, mapWorkingLayer, clickedMapFeature, setWorkingLayerDrawerOpened, setClickedMapFeature } = useMapStore();
-    const { setFeatureTypeMode } = useContributionStore();
+    const { featureTypeMode, selectedObjects, setFeatureTypeMode } = useContributionStore();
 
     const { t } = useTranslation({ ShowFeatureTypeForm });
 
@@ -118,7 +118,8 @@ const ShowFeatureTypeForm = () => {
                         setFeatureTypeMode(FeatureTypeMode.EDIT);
                     }}
                 >
-                    {t("edit")}
+                    {t("edit")}{" "}
+                    {featureTypeMode === FeatureTypeMode.VIEW && selectedObjects.length > 1 ? t("objects_count", { count: selectedObjects.length }) : ""}
                 </Button>
             </div>
 

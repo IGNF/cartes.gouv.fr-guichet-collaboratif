@@ -1,4 +1,5 @@
-import { FEATURE_TYPE_DATA_PROPERTY } from "@/constants";
+import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_GEOSERVICE_PROPERTY } from "@/constants";
+import { CommunityGeoservice } from "@/constants/communities/types";
 import { Contribution, ContributionType } from "@/constants/contributions/types";
 import { useTranslation } from "@/i18n";
 import { useContributionStore, useMapStore, useModalStore } from "@/store";
@@ -28,7 +29,9 @@ const ContributionList = () => {
 
     const getContributionTitle = useCallback(
         (contr: Contribution, index: number) => {
-            const featId = contr.feature.get(FEATURE_TYPE_DATA_PROPERTY)?.id;
+            const featData = contr.feature.get(FEATURE_TYPE_DATA_PROPERTY);
+            const featGeoservice: CommunityGeoservice = contr.feature.get(FEATURE_TYPE_GEOSERVICE_PROPERTY);
+            const featId = featData ? featData[`${featGeoservice?.idName}`] : null;
             switch (contr.type) {
                 case ContributionType.CREATE:
                     return t("objects_created", { featId: featId ?? index + 1 });
@@ -102,7 +105,7 @@ const ContributionList = () => {
                 },
             ]}
         >
-            {isReviewContribution && (
+            {isReviewContribution && contributions.length > 0 && (
                 <div className="content">
                     <div className="line">
                         <Checkbox

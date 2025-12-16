@@ -1,12 +1,13 @@
 import React, { useMemo } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "@/i18n";
-import { useCommunityStore, useModalStore, useReportStore } from "@/store";
+import { useCommunityStore, useMapStore, useModalStore, useReportStore } from "@/store";
 import { deleteCommunityReportAPI } from "@/api/reportsData";
 import { CommunityReport } from "@/constants/reports/types";
 import { StatusMessage } from "@/constants/communities/types";
 import ModaleComponent from "@/components/ModaleComponent";
 import CreateTableData from "../table/CreateTableData";
+import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 
 const ConfirmDeleteReportModal = () => {
     const { t } = useTranslation({ ConfirmDeleteReportModal });
@@ -16,6 +17,7 @@ const ConfirmDeleteReportModal = () => {
     const { filteredReports, isChecked, reports, setIsChecked } = useReportStore();
 
     const { deleteReportModal } = useModalStore();
+    const { map } = useMapStore();
 
     const reportsToUse = useMemo(() => {
         return filteredReports.length > 0 ? filteredReports : (reports ?? []);
@@ -32,9 +34,16 @@ const ConfirmDeleteReportModal = () => {
             setIsChecked({});
             addAlertMessage(
                 StatusMessage.success,
-                checkedIds.length === 1 ? `Le signalement ${checkedIds} a été bien supprimé` : "Les signalements séléctionnés ont été bien supprimés",
+                checkedIds.length === 1 ? t("delete_one_report_message", { checkedIds: checkedIds }) : t("delete_reports_message"),
                 3000
             );
+
+            if (!map) return;
+            const mapCurrentLayers = map?.getAllLayers();
+            const reportLayer = mapCurrentLayers?.find((l) => l.get("type") === REPORTS_LAYER_TYPE);
+            if (reportLayer) {
+                reportLayer.getSource()?.refresh();
+            }
         },
     });
 

@@ -10,6 +10,7 @@ import { AttachmentListEnTranslations } from "@/features/reports/forms/locale/At
 import { ConfirmCancelModalEnTranslations } from "@/features/reports/forms/locale/ConfirmCancelModal.locale";
 import { OpenReplyReportModalEnTranslations } from "@/features/reports/forms/locale/OpenReplyReportModal.locale";
 import { ConfirmDeleteReportModalEnTranslations } from "@/features/reports/forms/locale/ConfirmDeleteReportModal.locale";
+import { ShareReportModalEnTranslations } from "@/features/reports/locale/ShareReportModal.locale";
 import { DrawingFormEnTranslations } from "@/features/reports/forms/locale/DrawingForm.locale";
 import { ImportSketchFileEnTranslations } from "@/features/reports/forms/locale/ImportSketchFile.locale";
 import { ReportFormEnTranslations } from "@/features/reports/forms/locale/ReportForm.locale";
@@ -49,6 +50,8 @@ import { ContributionListEnTranslations } from "@/features/contributions/locale/
 import { ContributionsConfirmResetEnTranslations } from "@/features/contributions/locale/ContributionsConfirmReset.locale";
 import { ReviewContributionsEnTranslations } from "@/features/contributions/locale/ReviewContributions.locale";
 import { ConfirmSaveContributionsEnTranslations } from "@/features/contributions/locale/ConfirmSaveContributions.locale";
+import { ConfirmMultipleObjectsActionModalEnTranslations } from "@/features/working-layer/forms/locale/ConfirmMultipleObjectsActionModal.locale";
+import { ConfirmMultipleDeselectionEnTranslations } from "@/features/navigation/controls/cusom-controls/locale/ConfirmMultipleDeselection.locale";
 
 export const translations: Translations<"en"> = {
     AppFooter: AppFooterEnTranslations,
@@ -63,6 +66,7 @@ export const translations: Translations<"en"> = {
     ConfirmCancelModal: ConfirmCancelModalEnTranslations,
     OpenReplyReportModal: OpenReplyReportModalEnTranslations,
     ConfirmDeleteReportModal: ConfirmDeleteReportModalEnTranslations,
+    ShareReportModal: ShareReportModalEnTranslations,
     DrawingForm: DrawingFormEnTranslations,
     ImportSketchFile: ImportSketchFileEnTranslations,
     ReportForm: ReportFormEnTranslations,
@@ -101,4 +105,6 @@ export const translations: Translations<"en"> = {
     ContributionsConfirmReset: ContributionsConfirmResetEnTranslations,
     ReviewContributions: ReviewContributionsEnTranslations,
     ConfirmSaveContributions: ConfirmSaveContributionsEnTranslations,
+    ConfirmMultipleObjectsActionModal: ConfirmMultipleObjectsActionModalEnTranslations,
+    ConfirmMultipleDeselection: ConfirmMultipleDeselectionEnTranslations,
 };

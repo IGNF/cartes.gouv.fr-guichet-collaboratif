@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useMemo } from "react";
+import { useEffect, useCallback, useMemo, memo } from "react";
 import { useCommunityStore, useLocalStorageStore, useMapStore } from "@/store";
 
 import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
@@ -107,8 +107,10 @@ const WorkingLayerControl = () => {
                         onChange: (e) => handleWorkingLayerChange(e.target.value),
                     }}
                 >
-                    {workingLayers?.map((option) => (
-                        <option value={option.value}>{option.label}</option>
+                    {workingLayers?.map((option, index) => (
+                        <option key={`working-layer-${index}`} value={option.value}>
+                            {option.label}
+                        </option>
                     ))}
                 </Select>
                 <div className="separator"></div>
@@ -117,4 +119,4 @@ const WorkingLayerControl = () => {
     );
 };
 
-export default WorkingLayerControl;
+export default memo(WorkingLayerControl);

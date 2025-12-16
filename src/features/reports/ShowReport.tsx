@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useMemo, useRef } from "react";
+import React, { useState, useCallback, useMemo, useRef } from "react";
 import { useTranslation } from "@/i18n";
 import { useGetReportReplies } from "@/api/repliesData";
 import { useCommunityStore, useMapStore, useReportStore } from "@/store";
@@ -20,7 +20,7 @@ const ShowReport: React.FC<Props> = () => {
     const [openSuivi, setOpenSuivi] = useState(false);
     const [committedStatus, setCommittedStatus] = useState("");
 
-    const { setSelectedReport, reports, selectedReport, setTableDrawerOpened, setDrawerOpened } = useReportStore();
+    const { selectedReport, setTableDrawerOpened, setDrawerOpened } = useReportStore();
     const { clickedTool, setClickedTool } = useMapStore();
     const { community } = useCommunityStore();
     const { setReplies } = useReplyStore();
@@ -33,10 +33,6 @@ const ShowReport: React.FC<Props> = () => {
     const { data: repliesData } = useGetReportReplies(reportId);
     const repliesRes = useMemo(() => repliesData?.replies ?? [], [repliesData]);
 
-    useEffect(() => {
-        setSelectedReport(selectedReport);
-    }, [reports, selectedReport, setSelectedReport]);
-
     const handleToolClick = useCallback((tool: ReportTool | undefined) => {
         if (!tool) return;
         const toolButton = document.querySelector(`button[id*="${tool.name}"]`) as HTMLButtonElement | null;
@@ -44,12 +40,12 @@ const ShowReport: React.FC<Props> = () => {
             toolButton.click();
             setClickedTool({
                 name: tool.name,
-                clicked: clickedTool.name === tool.name ? !clickedTool.clicked : true,
+                clicked: clickedTool?.name === tool.name ? !clickedTool.clicked : true,
             });
         }
     }, []);
 
-    if (!community || !selectedReport) return;
+    if (!community || !selectedReport) return null;
 
     const selectedTheme = selectedReport.themes[0];
     const description = selectedReport.comment || "";
@@ -108,7 +104,7 @@ const ShowReport: React.FC<Props> = () => {
                         />
                     </Accordion>
                     <Accordion label={t("report_sketch_list")} defaultExpanded={false}>
-                        <DrawingForm handleToolClick={handleToolClick} hideToolsDiv />
+                        <DrawingForm handleToolClick={handleToolClick} hideToolsDiv={true} />
                     </Accordion>
                     {description && (
                         <Accordion label={t("report_description")} defaultExpanded={false}>

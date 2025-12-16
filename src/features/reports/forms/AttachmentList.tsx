@@ -36,33 +36,30 @@ const AttachmentList: React.FC<Props> = ({ newFiles, errorFiles, removeFile, sho
             return;
         }
         report.attachments = report.attachments.filter((doc) => doc.id !== attachment.id);
-        addAlertMessage(StatusMessage.success, t("attchment_deleted_success", { fileName: attachment.name }));
         setReports([...reports.filter((r) => r.id !== report.id), report], true);
         setLoading(false);
     };
-
     return (
         <div className="report-attachments">
             {loading && <LoaderComponent />}
-            {!report?.attachments?.length && <p>{t("no_attachments")}</p>}
-            {report &&
-                report.attachments.map((attachment) => (
-                    <div key={`attachment_${attachment.id}`}>
-                        <img src={fileUploadIcon} alt={t("alt_img_uploaded_file")} />
-                        <a href={attachment.url} target="_blank">
-                            {attachment.name}
-                        </a>
+            {!((report?.attachments?.length ?? 0) > 0 || (newFiles?.length ?? 0) > 0) && <p>{t("no_attachments")}</p>}
+            {report?.attachments?.map((attachment) => (
+                <div key={`attachment_${attachment.id}`}>
+                    <img src={fileUploadIcon} alt={t("alt_img_uploaded_file")} />
+                    <a href={attachment.url} target="_blank">
+                        {attachment.name}
+                    </a>
 
-                        {editReport && showDocument && (
-                            <Button
-                                iconId="ri-delete-bin-2-fill"
-                                title={t("delete_file", { fileName: attachment.name })}
-                                priority="tertiary"
-                                onClick={() => deleteAttachment(attachment)}
-                            ></Button>
-                        )}
-                    </div>
-                ))}
+                    {editReport && showDocument && (
+                        <Button
+                            iconId="ri-delete-bin-2-fill"
+                            title={t("delete_file", { fileName: attachment.name })}
+                            priority="tertiary"
+                            onClick={() => deleteAttachment(attachment)}
+                        ></Button>
+                    )}
+                </div>
+            ))}
             {newFiles &&
                 newFiles.map((file, index) => {
                     const errorFile = errorFiles?.find((error) => error.file === file);

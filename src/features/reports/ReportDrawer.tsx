@@ -1,34 +1,31 @@
 import { useCallback, useEffect, useMemo } from "react";
-import { Feature, MapBrowserEvent } from "ol";
 import Layer from "ol/layer/Layer";
 import VectorSource from "ol/source/Vector";
-import { Style } from "ol/style";
 import { useGetUserProfileAPI } from "@/api/userData";
-import { useCommunityStore, useMapStore, useReportStore, useUserStore } from "@/store";
-import { HIT_DETECTION_TOLERENCE, FEATURE_TYPE_GEOSERVICE_PROPERTY } from "@/constants";
-import { getClickedMapReport, getReportSketchFeatures, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
-import { getCenterReportMessage, showCenterReportButtons, STATUS_NOT_ALLOWED } from "@/constants/utils";
+import { useCommunityStore, useLocalStorageStore, useMapStore, useReportStore, useUserStore } from "@/store";
+import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
+import { getCenterReportMessage, handleShowOnMap, showCenterReportButtons, STATUS_NOT_ALLOWED } from "@/constants/utils";
 import { clearClusterStyles } from "@/constants/reports/utils/cluster";
-import { ParamsReport, toolNames } from "@/constants/reports/types";
+import { CommunityReport, ParamsReport, toolNames } from "@/constants/reports/types";
 import DrawerComponent from "@/components/DrawerComponent";
 import ShowReport from "./ShowReport";
 import CreateReport from "./CreateReport";
 import TableReportDrawer from "./table/TableReportDrawer";
 import OpenReplyReportModal from "./forms/OpenReplyReportModal";
 import EditReport from "./EditReport";
-import { InteractionType } from "@/constants/communities/types";
 import Button from "@codegouvfr/react-dsfr/Button";
 import { useTranslation } from "@/i18n";
+import MapListnerHandlers from "../navigation/controls/cusom-controls/interactions/MapListnerHandlers";
+import { getCommunityReportById } from "@/api/reportsData";
+import { useSearchParams } from "react-router-dom";
 
 const ReportDrawer = () => {
-    const { mapWorkingLayer } = useMapStore();
     const { user } = useUserStore();
 
     const {
         reports,
         selectedReport,
         editReport,
-        selectedFeatures,
         setEditReport,
         setSelectedReport,
         setSelectedFeatures,
@@ -38,16 +35,16 @@ const ReportDrawer = () => {
         responseDrawerOpened,
         setTableDrawerOpened,
         setResponseDrawerOpened,
+        reportTableWidth,
     } = useReportStore();
 
-    const { map, setClickedMapFeature, setClickableFeatures, setClickedControl } = useMapStore();
+    const { localStorageData } = useLocalStorageStore();
+
+    const { map, setClickedControl } = useMapStore();
     const { alertMessages, removeAlertMessage } = useCommunityStore();
 
     const reportClusterLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE && layer.getSource() instanceof VectorSource);
     const reportClusterSource = reportClusterLayer?.getSource() as VectorSource;
-
-    const clickableLayer = map?.getAllLayers().find((layer) => layer.get("name") === mapWorkingLayer && layer.getSource() instanceof VectorSource);
-    const clickableSource = clickableLayer?.getSource() as VectorSource;
 
     const { community } = useCommunityStore();
 
@@ -101,148 +98,6 @@ const ReportDrawer = () => {
         map,
         removeAlertMessage,
     ]);
-
-    const handleSingleClick = useCallback(
-        (evt: MapBrowserEvent) => {
-            if (!map) return;
-            if (selectedFeatures?.find((f) => f?.get("new"))) return;
-            if (editReport) return;
-            const features: { feature: Feature; zIndex: number }[] = [];
-
-            const coordinate = map?.getCoordinateFromPixel(evt.pixel);
-            const resolution = map?.getView().getResolution();
-            const buffer = (resolution || 0) * HIT_DETECTION_TOLERENCE;
-            const extent = [coordinate![0] - buffer, coordinate![1] - buffer, coordinate![0] + buffer, coordinate![1] + buffer];
-
-            const featuresAtPixel = map?.getFeaturesAtPixel(evt.pixel);
-            if (!featuresAtPixel?.length) return;
-
-            const selectInteraction = map
-                ?.getInteractions()
-                .getArray()
-                .find((i) => i.get("type") === InteractionType.SELECT || i.get("type") === InteractionType.REMOVE);
-
-            if (clickableSource && "getFeaturesInExtent" in clickableSource) {
-                const featuresAt = clickableSource?.getFeaturesInExtent!(extent);
-
-                if (featuresAt && featuresAt.length && !selectInteraction) {
-                    setClickableFeatures(featuresAt);
-                    if (featuresAt.length > 1) return;
-                }
-            }
-
-            featuresAtPixel?.forEach((feature) => {
-                const clickedFeature = feature as Feature;
-                if (clickedFeature.get(FEATURE_TYPE_GEOSERVICE_PROPERTY)?.layer !== mapWorkingLayer && mapWorkingLayer !== REPORTS_LAYER_TYPE) return;
-                if (mapWorkingLayer === REPORTS_LAYER_TYPE && clickedFeature.get("features")) {
-                    getClickedMapReport({ feature: clickedFeature, map, pixel: evt.pixel, clusterSource: reportClusterSource, features, handleCloseDrawer });
-                } else {
-                    const currentFeatureStyle = clickedFeature.getStyle() as Style;
-                    const currentZIndex = currentFeatureStyle && "getStyle" in currentFeatureStyle ? (currentFeatureStyle?.getZIndex() ?? 1) : 1;
-
-                    features.push({
-                        feature: clickedFeature,
-                        zIndex: currentZIndex,
-                    });
-                }
-            });
-
-            const topFeature = features[0];
-            if (topFeature) {
-                if (mapWorkingLayer === REPORTS_LAYER_TYPE) {
-                    if (selectedReport) {
-                        const reportFeatures = reportClusterSource.getFeatures().filter((f) => f.get("reportData")?.id === selectedReport.id);
-                        reportClusterSource.removeFeatures(reportFeatures?.filter((f) => !f.get("main")));
-                    }
-                    const report = topFeature.feature.get("reportData");
-                    if (report) {
-                        const selectedReportFeatures = getReportSketchFeatures(report);
-                        reportClusterSource?.addFeatures(selectedReportFeatures);
-                        setSelectedFeatures([topFeature.feature, ...selectedReportFeatures]);
-                        setSelectedReport(report);
-                    }
-                } else {
-                    if (!selectInteraction) setClickedMapFeature(topFeature.feature);
-                }
-            }
-        },
-        [
-            map,
-            reportClusterSource,
-            selectedReport,
-            selectedFeatures,
-            editReport,
-            mapWorkingLayer,
-            clickableSource,
-            setSelectedReport,
-            setSelectedFeatures,
-            handleCloseDrawer,
-            setClickedMapFeature,
-            setClickableFeatures,
-        ]
-    );
-
-    const handlePointerMove = useCallback(
-        (evt: MapBrowserEvent) => {
-            const features = map?.getFeaturesAtPixel(evt.pixel);
-
-            const feature = features?.find((f) => {
-                if (mapWorkingLayer === REPORTS_LAYER_TYPE) {
-                    const fCluster = f.get("features");
-                    if (fCluster?.length > 1) return fCluster[0];
-                    return fCluster?.find((fc: Feature) => fc.get("reportData") || fc.get("new"));
-                } else if (clickableSource?.hasFeature(f as Feature)) {
-                    return f;
-                }
-                return null;
-            }) as Feature;
-
-            const targetElement = map?.getTargetElement();
-            if (targetElement) {
-                if (feature) {
-                    if (selectedFeatures.length && !selectedFeatures.includes(feature) && selectedFeatures.find((f) => f.get("new"))) {
-                        targetElement.style.cursor = "";
-                        return;
-                    }
-                    targetElement.style.cursor = "pointer";
-                    return;
-                } else {
-                    targetElement.style.cursor = "";
-                    return;
-                }
-            }
-        },
-        [map, selectedFeatures, mapWorkingLayer, clickableSource]
-    );
-
-    const handleClusterChange = useCallback(() => {
-        if (!selectedReport || !drawerOpened) return;
-        const clusterFeatures = reportClusterSource?.getFeatures();
-        if (clusterFeatures) {
-            const allFeatures = clusterFeatures.map((fc) => fc.get("features") || fc).flat();
-            if (selectedFeatures.length > 1) {
-                const sketchExist = allFeatures.find((fc) => fc.get("reportData")?.id === selectedReport?.id && !fc.get("main"));
-                if (!sketchExist) {
-                    reportClusterSource.addFeatures(selectedFeatures.filter((f) => !f.get("main")));
-                }
-            }
-        }
-    }, [reportClusterSource, selectedReport, selectedFeatures, drawerOpened]);
-
-    useEffect(() => {
-        if (!map) return;
-        map.on("singleclick", handleSingleClick);
-        map.on("pointermove", handlePointerMove);
-        map.getView()?.on("change:resolution", handleClusterChange);
-        if (selectedReport) {
-            setSelectedReport(reports.find((r) => r.id === selectedReport.id) ?? null);
-        }
-        return () => {
-            map.un("singleclick", handleSingleClick);
-            map.un("pointermove", handlePointerMove);
-            map.getView().un("change:resolution", handleClusterChange);
-        };
-    }, [map, reports, selectedReport, drawerOpened, handleSingleClick, handlePointerMove, setSelectedReport, handleClusterChange]);
 
     const handleDrawingAdd = useCallback(
         (e: Event) => {
@@ -309,6 +164,39 @@ const ReportDrawer = () => {
         }
     }, [drawerOpened, selectedReport, isAdmin, isOwner, editReport]);
 
+    const [searchParams] = useSearchParams();
+    const reportIdParam = searchParams.get("report_id");
+
+    const clusterLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE);
+    const clusterSource = clusterLayer?.getSource() as VectorSource;
+
+    const showOnMap = useCallback(
+        (report: CommunityReport) => {
+            handleShowOnMap(report, map, clusterSource, localStorageData, t, reportTableWidth);
+        },
+        [map, clusterSource, localStorageData, t, reportTableWidth]
+    );
+
+    useEffect(() => {
+        if (!reportIdParam) return;
+
+        const id = Number(reportIdParam);
+        const local = reports.find((r) => Number(r.id) === id);
+        if (local) {
+            setSelectedReport(local);
+            setDrawerOpened(true);
+            return;
+        }
+
+        (async () => {
+            const report = await getCommunityReportById(id);
+            if (report) {
+                showOnMap(report);
+                setDrawerOpened(true);
+            }
+        })();
+    }, [reportIdParam, reports, setSelectedReport, setDrawerOpened, showOnMap]);
+
     return (
         <>
             <DrawerComponent anchor="left" isOpen={drawerOpened || tableDrawerOpened} create={!selectedReport} onClose={handleCloseDrawer}>
@@ -341,6 +229,7 @@ const ReportDrawer = () => {
                 </>
             </DrawerComponent>
             <OpenReplyReportModal onClose={() => setResponseDrawerOpened(false)} />
+            <MapListnerHandlers handleCloseDrawer={handleCloseDrawer} />
         </>
     );
 };

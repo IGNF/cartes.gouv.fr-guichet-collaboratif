@@ -31,6 +31,8 @@ const SaveViewHandler: React.FC = () => {
                 };
             }),
             zoom: view.getZoom() || 0,
+            minZoom: community.minZoom,
+            maxZoom: community.maxZoom,
             projection: view.getProjection().getCode(),
         };
         if (isEqual(newLocalStorageData, localStorageData)) return;

@@ -17,6 +17,7 @@ export type layerData = {
     role: string;
     database: number;
     table: number;
+    snapto: string | null;
 };
 
 export interface LayerGeoservice {
@@ -39,7 +40,7 @@ export type WebGLFilterType = (string | number | (string | number | string[])[] 
 export type FeatureTypeStyleItem = {
     title: string;
     type?: string;
-    featureType?: string;
+    featureType?: GeoserviceFeatureTypeProp;
     pointRadius: number;
     fillColor: string;
     fillOpacity: number;
@@ -96,6 +97,13 @@ export type FeatureTypeColumn = {
     is3d: boolean;
 };
 export type FeatureTypeSelectedStyle = { layer: string; selectedStyle: FeatureTypeStyle };
+
+export enum GeoserviceFeatureTypeProp {
+    POINT = "point",
+    LINE = "line",
+    POLYGON = "polygon",
+}
+
 export interface CommunityGeoservice extends LayerGeoservice {
     idName?: string;
     type: string;
@@ -110,7 +118,7 @@ export interface CommunityGeoservice extends LayerGeoservice {
     boxSrid: string;
     logo?: string;
     geometryName?: string;
-    featureType?: string;
+    featureType?: GeoserviceFeatureTypeProp;
     readOnly?: boolean;
     styles?: FeatureTypeStyle[];
     columns: FeatureTypeColumn[];
@@ -137,6 +145,7 @@ export interface CommunityLayer {
     role: string;
     database: number;
     table: number;
+    snapto: string | null;
 }
 
 export interface ThemeItem {
@@ -167,6 +176,8 @@ export interface Community {
     themes: CommunityTheme[];
     position: PointString;
     zoom: number;
+    minZoom: number;
+    maxZoom: number;
 }
 
 export const enum StatusMessage {
@@ -203,6 +214,18 @@ export enum CommunityLayerFunctionalityType {
     DRAW = "draw",
     DELETE = "delete",
     SNAP_OBLIG = "snapOblig",
+    SEARCH_LON_LAT = "searchLonlat",
+    PRINT = "print",
+    DISABLE_GEOREM_LAYER = "disableGeoremLayer",
+    DISABLE_ZONES_LAYER = "disableZonesLayer",
+    SPLIT = "split",
+    ADRESSE = "adresse",
+    ROUTIER = "routier",
+    LINEAIRE = "lineaire",
+    ITINERAIRE = "itineraire",
+    SHORTEST_PATH = "shortestpath",
+    COPY_REF = "copyRef",
+    TOOLTIP = "tooltip",
 }
 
 export enum CommunityLayerRoleType {
@@ -216,6 +239,9 @@ export enum InteractionType {
     REMOVE = "remove",
     CREATE_REPORT = "create_report",
     ADD_OBJECT = "add_object",
+    COPY_OBJECT = "copy_object",
+    TRANSLATE_OBJECT = "translate_object",
+    SPLIT_LINE = "split_line",
 }
 
 export type CustomControlItem = {

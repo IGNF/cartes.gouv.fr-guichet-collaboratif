@@ -1,13 +1,14 @@
 import DrawerComponent from "@/components/DrawerComponent";
 import { useContributionStore, useMapStore } from "@/store";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import ShowFeatureTypeForm from "./forms/ShowFeatureTypeForm";
 import EditFeatureTypeForm from "./forms/EditFeatureTypeForm";
 import { FeatureTypeMode } from "@/constants/contributions/types";
+import { FEATURE_TYPE_SELECTED_PROPERTY } from "@/constants";
 
 const WorkingLayerDrawer = () => {
     const { clickedMapFeature, workingLayerDrawerOpened, setWorkingLayerDrawerOpened, setClickedMapFeature } = useMapStore();
-    const { featureTypeMode, setFeatureTypeMode } = useContributionStore();
+    const { featureTypeMode, selectedObjects, setSelectedObjects, setFeatureTypeMode, setColumnsToModify } = useContributionStore();
 
     useEffect(() => {
         if (clickedMapFeature && !workingLayerDrawerOpened) {
@@ -15,11 +16,17 @@ const WorkingLayerDrawer = () => {
         }
     }, [clickedMapFeature, workingLayerDrawerOpened, setWorkingLayerDrawerOpened]);
 
-    const handleCloseDrawer = () => {
+    const handleCloseDrawer = useCallback(() => {
+        selectedObjects.forEach((feat) => {
+            feat.unset(FEATURE_TYPE_SELECTED_PROPERTY);
+            feat.changed();
+        });
+        setSelectedObjects([]);
+        setColumnsToModify([]);
         setClickedMapFeature(null);
         setWorkingLayerDrawerOpened(false);
         setFeatureTypeMode(FeatureTypeMode.VIEW);
-    };
+    }, [selectedObjects, setClickedMapFeature, setFeatureTypeMode, setSelectedObjects, setWorkingLayerDrawerOpened, setColumnsToModify]);
 
     const drawerWidth = window.innerWidth * (1.2 / 3);
     return (

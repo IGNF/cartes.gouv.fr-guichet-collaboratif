@@ -3,22 +3,14 @@ import { CustomControlItem } from "@/constants/communities/types";
 import Tooltip from "@mui/material/Tooltip";
 import Fade from "@mui/material/Fade";
 import { useMapStore } from "@/store";
-import { useCallback } from "react";
 
 interface Props {
     control: CustomControlItem;
-    handleClick: (control: CustomControlItem) => void;
+    onClick: (control: CustomControlItem) => void;
 }
 
-const ButtonControl: React.FC<Props> = ({ control, handleClick }) => {
-    const { clickedControl, showMapWorkingLayerSelect, setClickedControl } = useMapStore();
-
-    const onClick = useCallback(() => {
-        if (control.disabled) return;
-
-        handleClick(control);
-        setClickedControl(control === clickedControl ? null : control);
-    }, [clickedControl, control, setClickedControl, handleClick]);
+const ButtonControl: React.FC<Props> = ({ control, onClick }) => {
+    const { clickedControl, showMapWorkingLayerSelect } = useMapStore();
 
     return (
         <Tooltip
@@ -28,14 +20,14 @@ const ButtonControl: React.FC<Props> = ({ control, handleClick }) => {
             slots={{ transition: Fade }}
             enterDelay={0}
             leaveDelay={0}
-            slotProps={{ tooltip: { onClick } }}
+            slotProps={{ tooltip: { onClick: () => onClick(control) } }}
             disableInteractive={control.disabled}
         >
             <Button
                 iconId={control.icon}
                 title=""
                 priority={clickedControl?.id === control.id ? "primary" : "tertiary no outline"}
-                onClick={onClick}
+                onClick={() => onClick(control)}
                 nativeButtonProps={{
                     "aria-label": control.title,
                     "data-fr-js-button-actionee": "true",

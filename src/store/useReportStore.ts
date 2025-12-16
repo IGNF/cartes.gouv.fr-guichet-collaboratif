@@ -1,4 +1,6 @@
-import { CommunityReport, FilterState, SortType } from "@/constants/reports/types";
+import { CommunityTheme } from "@/constants/communities/types";
+import { CommunityReport, FilterState, PostThemeReport, SortType } from "@/constants/reports/types";
+import { getThemeAttributes } from "@/constants/utils";
 import { Feature } from "ol";
 import { create } from "zustand";
 interface ReportStore {
@@ -40,6 +42,18 @@ interface ReportStore {
     responseDrawerOpened: boolean;
     setResponseDrawerOpened: (responseDrawerOpened: boolean) => void;
     hideToolsDiv?: boolean;
+
+    formData: {
+        theme: CommunityTheme | null;
+        themeAttributes: PostThemeReport;
+        description: string;
+        files: File[];
+    };
+    resetForm: (report?: CommunityReport) => void;
+    updateTheme: (theme: CommunityTheme | null, attributes: PostThemeReport) => void;
+    updateDescription: (description: string) => void;
+    updateFiles: (files: File[]) => void;
+    clearFiles: () => void;
 }
 export const useReportStore = create<ReportStore>((set, get) => ({
     reports: [],
@@ -114,4 +128,29 @@ export const useReportStore = create<ReportStore>((set, get) => ({
     responseDrawerOpened: false,
     setResponseDrawerOpened: (responseDrawerOpened: boolean) => set({ responseDrawerOpened }),
     hideToolsDiv: false,
+
+    formData: { theme: null, themeAttributes: {}, description: "", files: [] },
+
+    resetForm: (report) => {
+        if (report) {
+            set({
+                formData: {
+                    theme: report.themes[0] || null,
+                    themeAttributes: getThemeAttributes(report.themes[0]),
+                    description: report.comment || "",
+                    files: [],
+                },
+            });
+        } else {
+            set({ formData: { theme: null, themeAttributes: {}, description: "", files: [] } });
+        }
+    },
+
+    updateTheme: (theme, attributes) => set({ formData: { ...get().formData, theme, themeAttributes: attributes } }),
+
+    updateDescription: (description: string) => set({ formData: { ...get().formData, description } }),
+
+    updateFiles: (files: File[]) => set({ formData: { ...get().formData, files } }),
+
+    clearFiles: () => set({ formData: { ...get().formData, files: [] } }),
 }));
