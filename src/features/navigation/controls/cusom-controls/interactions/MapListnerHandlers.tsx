@@ -2,6 +2,7 @@ import { FEATURE_TYPE_GEOSERVICE_PROPERTY, HIT_DETECTION_TOLERENCE } from "@/con
 import { InteractionType } from "@/constants/communities/types";
 import { getFeaturesInPixelBySource } from "@/constants/communities/utils";
 import { getClickedMapReport, getReportSketchFeatures, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
+import { showClusterFeatures } from "@/constants/reports/utils/cluster";
 import { useMapStore, useReportStore } from "@/store";
 import { Feature, MapBrowserEvent } from "ol";
 import VectorSource from "ol/source/Vector";
@@ -42,14 +43,23 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
         });
 
         const atMaxZoom = view.getZoom() === view.getMaxZoom();
-        const extentSmallerThanResolution = getWidth(extent) < resolution && getHeight(extent) < resolution;
+        const width = getWidth(extent);
+        const height = getHeight(extent);
+        const extentSmallerThanResolution = width < resolution && height < resolution;
 
         if (atMaxZoom || extentSmallerThanResolution) {
             return false;
         }
 
+        const center = view.getCenter();
+        if (!center) return false;
+        const dx = (extent[2] + extent[0]) / 2 - center[0];
+        const dy = (extent[3] + extent[1]) / 2 - center[1];
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        const duration = Math.min(Math.max(distance * 2, 300), 1000);
+
         view.fit(extent, {
-            duration: 300,
+            duration,
             padding: [50, 50, 50, 50],
         });
         return true;
@@ -88,9 +98,16 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
 
                 if (mapWorkingLayer === REPORTS_LAYER_TYPE && clickedFeature.get("features")) {
                     const didZoom = zoomInCluster(clickedFeature);
-                    if (didZoom) {
-                        return;
+                    if (didZoom) return;
+
+                    const clusterMembers = clickedFeature.get("features");
+                    const allSameClass = clusterMembers?.every((f: Feature) => f.get("reportData")?.class === clusterMembers[0].get("reportData")?.class);
+                    if (allSameClass) {
+                        const didZoomAgain = zoomInCluster(clickedFeature);
+                        if (didZoomAgain) return;
+                        showClusterFeatures(clickedFeature, map.getView().getResolution(), reportClusterSource);
                     }
+
                     getClickedMapReport({
                         feature: clickedFeature,
                         map,
