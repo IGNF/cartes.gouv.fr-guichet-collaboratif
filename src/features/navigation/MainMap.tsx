@@ -52,16 +52,20 @@ export default function MainMap() {
         const reportLayer = new VectorLayer({
             source: reportCluster,
             style: clusterStyle,
+            visible: layer.getVisible(),
+            opacity: layer.getOpacity(),
         });
 
         reportLayer.set("title", layer.get("title"));
         reportLayer.set("description", layer.get("description"));
         reportLayer.set("type", layer.get("type"));
+        reportLayer.set("name", layer.get("name"));
+
+        mapRef.current?.addLayer(reportLayer);
 
         switcherRef.current?.addLayer(reportLayer, {
             title: layer.get("title"),
             description: layer.get("description"),
-            //type: layer.get("type"),
         });
     }, []);
 
@@ -71,7 +75,7 @@ export default function MainMap() {
                 addReportLayer(layer as VectorLayer);
                 return;
             }
-
+            mapRef.current?.addLayer(layer);
             switcherRef.current?.addLayer(layer as Layer, {
                 title: layer.get("title"),
                 description: layer.get("description"),
@@ -121,10 +125,9 @@ export default function MainMap() {
             if (!mapRef.current || !switcherRef.current) return;
             const currentLayers = mapRef.current?.getAllLayers();
             mapLayers.forEach((layer: MapLayer) => {
-                const layerExist = currentLayers.find((l) => l.get("name") === layer.source.get("name"));
+                const layerExist = currentLayers.find((l) => l.get("name") === layer.source.get("name") || l.get("type") === REPORTS_LAYER_TYPE);
 
-                if (!layerExist) mapRef.current?.addLayer(layer.source);
-                if (switcherRef.current?.getLayerInfo(layer.source as Layer)) {
+                if (switcherRef.current?.getLayerInfo(layer.source as Layer) && layerExist) {
                     layer.source.setZIndex(layer.order);
                     return;
                 }
