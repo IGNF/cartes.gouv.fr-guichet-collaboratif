@@ -6,7 +6,9 @@ import { useMapStore, useReportStore } from "@/store";
 import { Feature, MapBrowserEvent } from "ol";
 import VectorSource from "ol/source/Vector";
 import { Style } from "ol/style";
+
 import { useCallback, useEffect } from "react";
+import { createEmpty, extend, getHeight, getWidth } from "ol/extent";
 
 interface Props {
     handleCloseDrawer: () => void;
@@ -14,30 +16,63 @@ interface Props {
 
 const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
     const { map, mapWorkingLayer, setClickableFeatures, setClickedMapFeature } = useMapStore();
-
     const { reports, selectedReport, editReport, selectedFeatures, setSelectedReport, setSelectedFeatures, drawerOpened } = useReportStore();
 
     const reportClusterLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE && layer.getSource() instanceof VectorSource);
     const reportClusterSource = reportClusterLayer?.getSource() as VectorSource;
 
     const clickableLayer = map?.getAllLayers().find((layer) => layer.get("name") === mapWorkingLayer && layer.getSource() instanceof VectorSource);
-    const clickableSource = clickableLayer?.getSource() as VectorSource;
+    const clickableSource = mapWorkingLayer === REPORTS_LAYER_TYPE ? reportClusterSource : (clickableLayer?.getSource() as VectorSource);
+
+    const zoomInCluster = (clusterFeature: Feature) => {
+        if (!map) return;
+        const clusterMembers = clusterFeature.get("features");
+        if (!clusterMembers || clusterMembers.length <= 1) return;
+
+        const view = map.getView();
+        const resolution = view.getResolution();
+        if (!resolution) return;
+
+        const extent = createEmpty();
+        clusterMembers.forEach((feature: Feature) => {
+            const geom = feature.getGeometry();
+            if (geom) {
+                extend(extent, geom.getExtent());
+            }
+        });
+
+        const atMaxZoom = view.getZoom() === view.getMaxZoom();
+        const extentSmallerThanResolution = getWidth(extent) < resolution && getHeight(extent) < resolution;
+
+        if (atMaxZoom || extentSmallerThanResolution) {
+            return false;
+        }
+
+        view.fit(extent, {
+            duration: 300,
+            padding: [50, 50, 50, 50],
+        });
+        return true;
+    };
 
     const handleSingleClick = useCallback(
         (evt: MapBrowserEvent) => {
             if (!map) return;
             if (selectedFeatures?.find((f) => f?.get("new"))) return;
             if (editReport) return;
-            const features: { feature: Feature; zIndex: number }[] = [];
 
+            const features: { feature: Feature; zIndex: number }[] = [];
             const selectInteraction = map
                 ?.getInteractions()
                 .getArray()
                 .find((i) => i.get("type") === InteractionType.SELECT || i.get("type") === InteractionType.REMOVE);
 
+            const featuresAtPixel = map?.getFeaturesAtPixel(evt.pixel);
+            if (!featuresAtPixel?.length) return;
+
             const featuresAt = getFeaturesInPixelBySource(map!, clickableSource, evt.pixel, HIT_DETECTION_TOLERENCE);
 
-            if (featuresAt && featuresAt.length) {
+            if (featuresAt && featuresAt.length && mapWorkingLayer !== REPORTS_LAYER_TYPE) {
                 setClickableFeatures(featuresAt);
                 if (featuresAt.length > 1) {
                     return;
@@ -46,15 +81,27 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
 
             if (selectInteraction) return;
 
-            featuresAt?.forEach((feature) => {
+            featuresAtPixel?.forEach((feature) => {
                 const clickedFeature = feature as Feature;
+
                 if (clickedFeature.get(FEATURE_TYPE_GEOSERVICE_PROPERTY)?.layer !== mapWorkingLayer && mapWorkingLayer !== REPORTS_LAYER_TYPE) return;
+
                 if (mapWorkingLayer === REPORTS_LAYER_TYPE && clickedFeature.get("features")) {
-                    getClickedMapReport({ feature: clickedFeature, map, pixel: evt.pixel, clusterSource: reportClusterSource, features, handleCloseDrawer });
+                    const didZoom = zoomInCluster(clickedFeature);
+                    if (didZoom) {
+                        return;
+                    }
+                    getClickedMapReport({
+                        feature: clickedFeature,
+                        map,
+                        pixel: evt.pixel,
+                        clusterSource: reportClusterSource,
+                        features,
+                        handleCloseDrawer,
+                    });
                 } else {
                     const currentFeatureStyle = clickedFeature.getStyle() as Style;
                     const currentZIndex = currentFeatureStyle && "getStyle" in currentFeatureStyle ? (currentFeatureStyle?.getZIndex() ?? 1) : 1;
-
                     features.push({
                         feature: clickedFeature,
                         zIndex: currentZIndex,
@@ -99,7 +146,12 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
 
     const handlePointerMove = useCallback(
         (evt: MapBrowserEvent) => {
-            const features = getFeaturesInPixelBySource(map!, clickableSource, evt.pixel, HIT_DETECTION_TOLERENCE);
+            const features = map?.getFeaturesAtPixel(evt.pixel, {
+                layerFilter: (layer) => {
+                    return layer.get("name") === mapWorkingLayer || layer.get("type") === mapWorkingLayer;
+                },
+                hitTolerance: HIT_DETECTION_TOLERENCE,
+            });
 
             const feature = features?.find((f) => {
                 if (mapWorkingLayer === REPORTS_LAYER_TYPE) {
