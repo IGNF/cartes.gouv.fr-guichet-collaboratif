@@ -11,16 +11,16 @@ const GetReportsLayer: React.FC = () => {
     const { community, mapLayers, addMapLayer } = useCommunityStore();
     const { localStorageData } = useLocalStorageStore();
     const reportLayerSource = useGetReportsLayer(community?.id || 0);
-
     const { t } = useTranslation({ GetReportsLayer });
 
-    const localLayer: LocalLayer | undefined = localStorageData?.layers.find((l) => l.name === t("reports_title"));
-
+    const localLayer: LocalLayer | undefined = localStorageData?.layers.find((l) => l.type === REPORTS_LAYER_TYPE);
     useEffect(() => {
         reportLayerSource?.setOpacity(localLayer ? localLayer.opacity : 1);
         reportLayerSource?.setVisible(localLayer ? localLayer.visibility : true);
+
         reportLayerSource?.set("title", t("reports_title"));
         reportLayerSource?.set("type", REPORTS_LAYER_TYPE);
+        reportLayerSource?.set("name", REPORTS_LAYER_TYPE);
         reportLayerSource?.set("legends", t("reports_legend"));
         reportLayerSource?.set("description", ReportLegendsHTML);
         if (reportLayerSource) {

@@ -21,7 +21,7 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
     const reportClusterSource = reportClusterLayer?.getSource() as VectorSource;
 
     const clickableLayer = map?.getAllLayers().find((layer) => layer.get("name") === mapWorkingLayer && layer.getSource() instanceof VectorSource);
-    const clickableSource = clickableLayer?.getSource() as VectorSource;
+    const clickableSource = mapWorkingLayer === REPORTS_LAYER_TYPE ? reportClusterSource : (clickableLayer?.getSource() as VectorSource);
 
     const handleSingleClick = useCallback(
         (evt: MapBrowserEvent) => {
@@ -35,9 +35,11 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
                 .getArray()
                 .find((i) => i.get("type") === InteractionType.SELECT || i.get("type") === InteractionType.REMOVE);
 
-            const featuresAt = getFeaturesInPixelBySource(map!, clickableSource, evt.pixel, HIT_DETECTION_TOLERENCE);
+            const featuresAtPixel = map?.getFeaturesAtPixel(evt.pixel);
+            if (!featuresAtPixel?.length) return;
 
-            if (featuresAt && featuresAt.length) {
+            const featuresAt = getFeaturesInPixelBySource(map!, clickableSource, evt.pixel, HIT_DETECTION_TOLERENCE);
+            if (featuresAt && featuresAt.length && mapWorkingLayer !== REPORTS_LAYER_TYPE) {
                 setClickableFeatures(featuresAt);
                 if (featuresAt.length > 1) {
                     return;
@@ -46,7 +48,7 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
 
             if (selectInteraction) return;
 
-            featuresAt?.forEach((feature) => {
+            featuresAtPixel?.forEach((feature) => {
                 const clickedFeature = feature as Feature;
                 if (clickedFeature.get(FEATURE_TYPE_GEOSERVICE_PROPERTY)?.layer !== mapWorkingLayer && mapWorkingLayer !== REPORTS_LAYER_TYPE) return;
                 if (mapWorkingLayer === REPORTS_LAYER_TYPE && clickedFeature.get("features")) {
@@ -99,8 +101,12 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
 
     const handlePointerMove = useCallback(
         (evt: MapBrowserEvent) => {
-            const features = getFeaturesInPixelBySource(map!, clickableSource, evt.pixel, HIT_DETECTION_TOLERENCE);
-
+            const features = map?.getFeaturesAtPixel(evt.pixel, {
+                layerFilter: (layer) => {
+                    return layer.get("name") === mapWorkingLayer || layer.get("type") === mapWorkingLayer;
+                },
+                hitTolerance: HIT_DETECTION_TOLERENCE,
+            });
             const feature = features?.find((f) => {
                 if (mapWorkingLayer === REPORTS_LAYER_TYPE) {
                     const fCluster = f.get("features");
