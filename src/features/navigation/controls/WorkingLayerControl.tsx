@@ -10,7 +10,7 @@ import { CommunityLayerRoleType } from "@/constants/communities/types";
 
 const WorkingLayerControl = () => {
     const { community, mapLayers, communityLayers } = useCommunityStore();
-    const { mapWorkingLayer, showMapWorkingLayerSelect, setMapWorkingLayer, setShowMapWorkingLayerSelect } = useMapStore();
+    const { map, mapWorkingLayer, showMapWorkingLayerSelect, setMapWorkingLayer, setShowMapWorkingLayerSelect } = useMapStore();
     const { localStorageData, setLocalStorage } = useLocalStorageStore();
 
     const { t } = useTranslation({ WorkingLayerControl });
@@ -85,14 +85,17 @@ const WorkingLayerControl = () => {
                 setLocalStorage(community?.name, newLocalData);
             }
 
-            const mapLayer = mapLayers.find((layer) => layer.name === value);
-            if (mapLayer && !mapLayer.source.getVisible()) {
-                mapLayer.source.setVisible(true);
+            const mapLayer = map
+                ?.getLayers()
+                .getArray()
+                .find((layer) => layer.get("name") === value || layer.get("type") === value);
+            if (mapLayer && !mapLayer.getVisible()) {
+                mapLayer.setVisible(true);
             }
 
             setMapWorkingLayer(value);
         },
-        [community, localStorageData, mapLayers, setLocalStorage, setMapWorkingLayer]
+        [community, localStorageData, map, setLocalStorage, setMapWorkingLayer]
     );
 
     if (!showMapWorkingLayerSelect) return null;

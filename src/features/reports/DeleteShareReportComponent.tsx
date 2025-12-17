@@ -1,5 +1,5 @@
 import Button from "@codegouvfr/react-dsfr/Button";
-import { Activity, useState } from "react";
+import { useState } from "react";
 import ConfirmDeleteShareReportModal from "./ConfirmDeleteShareReportModal";
 import { useModalStore } from "@/store";
 import ShareReportModal from "./ShareReportModal";
@@ -18,7 +18,7 @@ const DeleteShareReportComponent = ({ handleDelete }: Props) => {
                 onClick={() => setShowActions(!showActions)}
             />
 
-            <Activity mode={showActions ? "visible" : "hidden"}>
+            {showActions && (
                 <div className="report-deleteShare__container">
                     <Button priority="tertiary no outline" nativeButtonProps={deleteShareReportModal.buttonProps}>
                         Supprimer
@@ -27,7 +27,7 @@ const DeleteShareReportComponent = ({ handleDelete }: Props) => {
                         Partager
                     </Button>
                 </div>
-            </Activity>
+            )}
 
             <ConfirmDeleteShareReportModal handleDelete={handleDelete} />
             <ShareReportModal />
