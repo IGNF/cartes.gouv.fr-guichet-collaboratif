@@ -3,7 +3,6 @@
 }
 
 .drawer-content {
-    width: 100%;
     background-color: var(--background-default-grey);
     color: var(--text-inverted);
 }

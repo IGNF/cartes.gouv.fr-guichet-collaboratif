@@ -11,9 +11,10 @@ interface Props {
     children: JSX.Element;
     create?: boolean;
     onClose: () => void;
+    isListingReports?: boolean;
 }
 
-const DrawerComponent: React.FC<Props> = ({ anchor, isOpen, children, onClose }) => {
+const DrawerComponent: React.FC<Props> = ({ anchor, isOpen, children, onClose, isListingReports = false }) => {
     const mapToolbarHeader = document.getElementById("map-toolbar-header");
     const headerHeight = (mapToolbarHeader?.clientHeight || 0) + APP_FOOTER_MIN_HEIGHT;
 
@@ -27,16 +28,14 @@ const DrawerComponent: React.FC<Props> = ({ anchor, isOpen, children, onClose })
                 variant="persistent"
                 sx={{
                     "& .MuiDrawer-paper,.MuiBackdrop-root": {
-                        width: "calc(37vw)",
-                        maxWidth: 1200,
-                        minWidth: 300,
+                        width: isListingReports ? undefined : "calc(37vw)",
                         height: `calc(100vh - ${headerHeight}px)`,
                         top: mapToolbarHeader?.clientHeight || 0,
                         overflow: "unset",
                     },
                 }}
             >
-                <div className="drawer-content" style={{ height: `calc(100vh - 40px - ${headerHeight}px)`, overflow: "auto" }}>
+                <div className="drawer-content" style={{ height: `100%`, overflow: "auto" }}>
                     {children}
                 </div>
             </Drawer>

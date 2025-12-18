@@ -199,7 +199,13 @@ const ReportDrawer = () => {
 
     return (
         <>
-            <DrawerComponent anchor="left" isOpen={drawerOpened || tableDrawerOpened} create={!selectedReport} onClose={handleCloseDrawer}>
+            <DrawerComponent
+                anchor="left"
+                isOpen={drawerOpened || tableDrawerOpened}
+                create={!selectedReport}
+                onClose={handleCloseDrawer}
+                isListingReports={tableDrawerOpened}
+            >
                 <>
                     {drawerOpened ? (
                         <>

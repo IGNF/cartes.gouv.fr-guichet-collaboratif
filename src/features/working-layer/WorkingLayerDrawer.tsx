@@ -32,7 +32,7 @@ const WorkingLayerDrawer = () => {
 
     return (
         <DrawerComponent anchor="left" isOpen={workingLayerDrawerOpened} onClose={handleCloseDrawer}>
-            <div className="working-layer-drawer" style={{ maxWidth: drawerWidth, height: "100%" }}>
+            <div className="working-layer-drawer" style={{ maxWidth: drawerWidth }}>
                 {featureTypeMode === FeatureTypeMode.VIEW ? <ShowFeatureTypeForm /> : <EditFeatureTypeForm />}
             </div>
         </DrawerComponent>
