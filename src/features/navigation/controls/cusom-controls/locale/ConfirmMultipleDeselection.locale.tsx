@@ -5,7 +5,7 @@ export const ConfirmMultipleDeselectionFrTranslations: Translations<"fr">["Confi
     title: "Attention",
     yes: "Oui",
     no: "Non",
-    message: ({ objectsCount }: { objectsCount: number }) => `${objectsCount} objets seront désélectionnés, êtes-vous sûr??`,
+    message: ({ objectsCount }: { objectsCount: number }) => `${objectsCount} objets seront désélectionnés, êtes-vous sûr?`,
 };
 
 export const ConfirmMultipleDeselectionEnTranslations: Translations<"en">["ConfirmMultipleDeselection"] = {
