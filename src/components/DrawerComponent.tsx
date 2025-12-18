@@ -28,7 +28,7 @@ const DrawerComponent: React.FC<Props> = ({ anchor, isOpen, children, onClose, i
                 variant="persistent"
                 sx={{
                     "& .MuiDrawer-paper,.MuiBackdrop-root": {
-                        width: isListingReports ? undefined : "calc(37vw)",
+                        width: isListingReports ? undefined : "calc(35vw)",
                         height: `calc(100vh - ${headerHeight}px)`,
                         top: mapToolbarHeader?.clientHeight || 0,
                         overflow: "unset",

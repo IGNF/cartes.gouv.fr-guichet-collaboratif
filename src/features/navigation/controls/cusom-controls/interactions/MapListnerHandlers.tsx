@@ -43,7 +43,6 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
                 showClusterFeatures(clusterFeature, resolution, reportClusterSource);
                 return true;
             }
-
             const extent = createEmpty();
             clusterMembers.forEach((feature: Feature) => {
                 const geom = feature.getGeometry();
@@ -79,7 +78,6 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
         (evt: MapBrowserEvent) => {
             if (!map) return;
             if (selectedFeatures?.find((f) => f?.get("new"))) return;
-            if (editReport) return;
 
             const features: { feature: Feature; zIndex: number }[] = [];
             const selectInteraction = map

@@ -77,12 +77,9 @@ const ReportDrawer = () => {
         }
 
         showCenterReportButtons(false);
-
         setDrawerOpened(false);
         setEditReport(false);
-        if (editReport) {
-            setTableDrawerOpened(!tableDrawerOpened && true);
-        } else setTableDrawerOpened(false);
+        setTableDrawerOpened(false);
         setSelectedReport(null);
         setSelectedFeatures([]);
     }, [
