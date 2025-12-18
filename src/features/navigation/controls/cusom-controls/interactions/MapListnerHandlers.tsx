@@ -107,11 +107,26 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
                 if (clickedFeature.get(FEATURE_TYPE_GEOSERVICE_PROPERTY)?.layer !== mapWorkingLayer && mapWorkingLayer !== REPORTS_LAYER_TYPE) return;
 
                 if (mapWorkingLayer === REPORTS_LAYER_TYPE && clickedFeature.get("features")) {
+                    const featureStyle = clickedFeature.getStyle();
+
+                    const isPopOut = Array.isArray(featureStyle) && featureStyle.length > 1;
+
+                    if (isPopOut) {
+                        getClickedMapReport({
+                            feature: clickedFeature,
+                            map,
+                            pixel: evt.pixel,
+                            clusterSource: reportClusterSource,
+                            features,
+                            handleCloseDrawer,
+                        });
+                        return;
+                    }
+
                     const handled = handleClusterClick(clickedFeature);
                     if (handled) {
                         return;
                     }
-
                     getClickedMapReport({
                         feature: clickedFeature,
                         map,
