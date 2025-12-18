@@ -9,7 +9,7 @@ import VectorSource from "ol/source/Vector";
 import { Style } from "ol/style";
 
 import { useCallback, useEffect } from "react";
-import { createEmpty, extend, getHeight, getWidth } from "ol/extent";
+import { createEmpty, extend } from "ol/extent";
 
 interface Props {
     handleCloseDrawer: () => void;
@@ -25,45 +25,55 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
     const clickableLayer = map?.getAllLayers().find((layer) => layer.get("name") === mapWorkingLayer && layer.getSource() instanceof VectorSource);
     const clickableSource = mapWorkingLayer === REPORTS_LAYER_TYPE ? reportClusterSource : (clickableLayer?.getSource() as VectorSource);
 
-    const zoomInCluster = (clusterFeature: Feature) => {
-        if (!map) return;
-        const clusterMembers = clusterFeature.get("features");
-        if (!clusterMembers || clusterMembers.length <= 1) return;
+    const handleClusterClick = useCallback(
+        (clusterFeature: Feature): boolean => {
+            if (!map) return false;
 
-        const view = map.getView();
-        const resolution = view.getResolution();
-        if (!resolution) return;
+            const clusterMembers = clusterFeature.get("features");
+            if (!clusterMembers || clusterMembers.length <= 1) return false;
 
-        const extent = createEmpty();
-        clusterMembers.forEach((feature: Feature) => {
-            const geom = feature.getGeometry();
-            if (geom) {
-                extend(extent, geom.getExtent());
+            const view = map.getView();
+            const currentZoom = view.getZoom();
+            const maxZoom = view.getMaxZoom();
+            const resolution = view.getResolution();
+
+            if (!currentZoom || !maxZoom || !resolution) return false;
+
+            if (currentZoom >= maxZoom) {
+                showClusterFeatures(clusterFeature, resolution, reportClusterSource);
+                return true;
             }
-        });
 
-        const atMaxZoom = view.getZoom() === view.getMaxZoom();
-        const width = getWidth(extent);
-        const height = getHeight(extent);
-        const extentSmallerThanResolution = width < resolution && height < resolution;
+            const extent = createEmpty();
+            clusterMembers.forEach((feature: Feature) => {
+                const geom = feature.getGeometry();
+                if (geom) {
+                    extend(extent, geom.getExtent());
+                }
+            });
 
-        if (atMaxZoom || extentSmallerThanResolution) {
-            return false;
-        }
+            const center = view.getCenter();
+            if (!center) return false;
 
-        const center = view.getCenter();
-        if (!center) return false;
-        const dx = (extent[2] + extent[0]) / 2 - center[0];
-        const dy = (extent[3] + extent[1]) / 2 - center[1];
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        const duration = Math.min(Math.max(distance * 2, 300), 1000);
+            const extentCenter = [(extent[2] + extent[0]) / 2, (extent[3] + extent[1]) / 2];
+            const dx = extentCenter[0] - center[0];
+            const dy = extentCenter[1] - center[1];
+            const distance = Math.sqrt(dx * dx + dy * dy);
 
-        view.fit(extent, {
-            duration,
-            padding: [50, 50, 50, 50],
-        });
-        return true;
-    };
+            const duration = Math.min(Math.max(distance * 2, 300), 1000);
+
+            const targetZoom = Math.min(currentZoom + 2, maxZoom);
+
+            view.animate({
+                center: extentCenter,
+                zoom: targetZoom,
+                duration,
+            });
+
+            return true;
+        },
+        [map, reportClusterSource]
+    );
 
     const handleSingleClick = useCallback(
         (evt: MapBrowserEvent) => {
@@ -97,15 +107,9 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
                 if (clickedFeature.get(FEATURE_TYPE_GEOSERVICE_PROPERTY)?.layer !== mapWorkingLayer && mapWorkingLayer !== REPORTS_LAYER_TYPE) return;
 
                 if (mapWorkingLayer === REPORTS_LAYER_TYPE && clickedFeature.get("features")) {
-                    const didZoom = zoomInCluster(clickedFeature);
-                    if (didZoom) return;
-
-                    const clusterMembers = clickedFeature.get("features");
-                    const allSameClass = clusterMembers?.every((f: Feature) => f.get("reportData")?.class === clusterMembers[0].get("reportData")?.class);
-                    if (allSameClass) {
-                        const didZoomAgain = zoomInCluster(clickedFeature);
-                        if (didZoomAgain) return;
-                        showClusterFeatures(clickedFeature, map.getView().getResolution(), reportClusterSource);
+                    const handled = handleClusterClick(clickedFeature);
+                    if (handled) {
+                        return;
                     }
 
                     getClickedMapReport({
@@ -154,6 +158,7 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
             mapWorkingLayer,
             clickableSource,
             handleCloseDrawer,
+            handleClusterClick,
             setSelectedReport,
             setSelectedFeatures,
             setClickedMapFeature,
