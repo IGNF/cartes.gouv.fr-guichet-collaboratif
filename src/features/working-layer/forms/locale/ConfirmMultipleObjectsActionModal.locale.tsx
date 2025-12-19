@@ -32,7 +32,7 @@ export const ConfirmMultipleObjectsActionModalEnTranslations: Translations<"en">
 
         const isSingular = objectsCount <= 1;
         const objectWord = isSingular ? "object" : "objects";
-        const verbWord = isSingular ? "will be" : "will be";
+        const verbWord = "will be";
         if (isSingular) {
             objectsCount = 1;
         }
