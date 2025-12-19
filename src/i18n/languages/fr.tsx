@@ -40,6 +40,7 @@ import { EditFeatureTypeFormFrTranslations } from "@/features/working-layer/form
 import { FeatureTypeFormActionsFrTranslations } from "@/features/working-layer/forms/locale/FeatureTypeFormActions.locale";
 import { FeatureTypeFormFieldsFrTranslations } from "@/features/working-layer/forms/locale/FeatureTypeFormFields.locale";
 import { FeatureTypeFormHeaderFrTranslations } from "@/features/working-layer/forms/locale/FeatureTypeFormHeader.locale";
+import { FeatureTypeFormAutomaticFrTranslations } from "@/features/working-layer/forms/locale/FeatureTypeFormAutomatic.locale";
 import { ClickableFeaturesModalFrTranslations } from "@/features/working-layer/modal/locale/ClickableFeaturesModal.locale";
 import { FormAttachmentsFrTranslations } from "@/features/reports/forms/locale/FormAttachments.locale";
 import { WorkingLayerControlFrTranslations } from "@/features/navigation/controls/locale/WorkingLayerControl.locale";
@@ -95,6 +96,7 @@ export const translations: Translations<"fr"> = {
     FeatureTypeFormActions: FeatureTypeFormActionsFrTranslations,
     FeatureTypeFormFields: FeatureTypeFormFieldsFrTranslations,
     FeatureTypeFormHeader: FeatureTypeFormHeaderFrTranslations,
+    FeatureTypeFormAutomatic: FeatureTypeFormAutomaticFrTranslations,
     ClickableFeaturesModal: ClickableFeaturesModalFrTranslations,
     FormAttachments: FormAttachmentsFrTranslations,
     WorkingLayerControl: WorkingLayerControlFrTranslations,

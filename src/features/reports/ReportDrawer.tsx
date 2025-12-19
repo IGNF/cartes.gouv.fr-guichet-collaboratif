@@ -77,12 +77,9 @@ const ReportDrawer = () => {
         }
 
         showCenterReportButtons(false);
-
         setDrawerOpened(false);
         setEditReport(false);
-        if (editReport) {
-            setTableDrawerOpened(!tableDrawerOpened && true);
-        } else setTableDrawerOpened(false);
+        setTableDrawerOpened(false);
         setSelectedReport(null);
         setSelectedFeatures([]);
     }, [
@@ -199,7 +196,13 @@ const ReportDrawer = () => {
 
     return (
         <>
-            <DrawerComponent anchor="left" isOpen={drawerOpened || tableDrawerOpened} create={!selectedReport} onClose={handleCloseDrawer}>
+            <DrawerComponent
+                anchor="left"
+                isOpen={drawerOpened || tableDrawerOpened}
+                create={!selectedReport}
+                onClose={handleCloseDrawer}
+                isListingReports={tableDrawerOpened}
+            >
                 <>
                     {drawerOpened ? (
                         <>

@@ -11,10 +11,7 @@
     align-items: center;
 }
 
-.feature-type-legends div:first-child label {
-    flex: 1;
-}
-
+.feature-type-legends div:first-child label,
 .feature-type-legends div:first-child select {
     flex: 1;
 }
@@ -50,7 +47,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-bottom: 0px;
+    margin-bottom: 0;
 }
 
 div[id^="GPlayerInfoContent"] {
@@ -84,16 +81,17 @@ div[id^="GPlayerInfoContent"] {
     table-layout: fixed;
 }
 
+.feature-type-form-table td {
+    padding: 0.5rem 1rem !important;
+    line-height: 1.3;
+}
+
 .feature-type-form-table td:first-child {
     width: 30%;
 }
 
 .feature-type-form-table td:last-child {
     width: 70%;
-}
-
-.feature-type-form-table td {
-    padding: 0.5rem 1rem !important;
 }
 
 .feature-type-form-table .feature-type-form-input-cell input,
@@ -103,10 +101,6 @@ div[id^="GPlayerInfoContent"] {
     height: auto !important;
     padding: 0.25rem 0.5rem !important;
     line-height: normal !important;
-}
-
-.feature-type-form-table td {
-    line-height: 1.3;
 }
 
 .feature-type-form-buttons {
@@ -122,6 +116,6 @@ div[id^="GPlayerInfoContent"] {
 .feature-type-form-actions-right {
     display: flex;
     margin-left: auto;
-    gap: 16px;
     align-items: center;
+    gap: 10px;
 }

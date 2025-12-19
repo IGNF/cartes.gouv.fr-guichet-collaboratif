@@ -29,6 +29,7 @@ const WorkingLayerDrawer = () => {
     }, [selectedObjects, setClickedMapFeature, setFeatureTypeMode, setSelectedObjects, setWorkingLayerDrawerOpened, setColumnsToModify]);
 
     const drawerWidth = window.innerWidth * (1.2 / 3);
+
     return (
         <DrawerComponent anchor="left" isOpen={workingLayerDrawerOpened} onClose={handleCloseDrawer}>
             <div className="working-layer-drawer" style={{ maxWidth: drawerWidth }}>
