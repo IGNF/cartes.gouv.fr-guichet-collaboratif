@@ -16,6 +16,7 @@ import { useFeatureTypeActions } from "@/hooks/working-layer/useFeatureTypeActio
 import { FeatureTypeFormHeader } from "./FeatureTypeFormHeader";
 import { FeatureTypeFormFields } from "./FeatureTypeFormFields";
 import { FeatureTypeFormActions } from "./FeatureTypeFormActions";
+import { FeatureTypeFormAutomatic } from "./FeatureTypeFormAutomatic";
 import { useTranslation } from "@/i18n";
 import ConfirmMultipleObjectsActionModal from "./ConfirmMultipleObjectsActionModal";
 
@@ -33,7 +34,7 @@ const EditFeatureTypeForm = () => {
 
     const pointData: PointDataProps = clickedMapFeature?.get(FEATURE_TYPE_DATA_PROPERTY);
     const geoserviceData: CommunityGeoservice = clickedMapFeature?.get(FEATURE_TYPE_GEOSERVICE_PROPERTY);
-    const columns: FeatureTypeColumn[] = clickedMapFeature?.get(FEATURE_TYPE_GEOSERVICE_PROPERTY).columns || [];
+    const columns: FeatureTypeColumn[] = useMemo(() => clickedMapFeature?.get(FEATURE_TYPE_GEOSERVICE_PROPERTY).columns || [], [clickedMapFeature]);
     const isNewFeature = useMemo(() => clickedMapFeature && clickedMapFeature?.get(FEATURE_TYPE_NEW_PROPERTY), [clickedMapFeature]);
 
     const currentMapWorkingSource = useMemo(
@@ -53,6 +54,18 @@ const EditFeatureTypeForm = () => {
 
     const { formData, updateField } = useFeatureTypeForm(pointData, columns, validateField, setValidationErrors);
 
+    const handleAutomaticFieldsCalculated = useCallback(
+        (fields: Record<string, string | number | null>) => {
+            Object.entries(fields).forEach(([name, value]) => {
+                const col = columns.find((c) => c.name === name);
+                if (col) {
+                    updateField(name, value, col);
+                }
+            });
+        },
+        [columns, updateField]
+    );
+
     const handleCancel = useCallback(() => {
         selectedObjects.forEach((feat) => {
             feat.unset(FEATURE_TYPE_SELECTED_PROPERTY);
@@ -65,23 +78,32 @@ const EditFeatureTypeForm = () => {
     }, [selectedObjects, setClickedMapFeature, setWorkingLayerDrawerOpened, setFeatureTypeMode, setSelectedObjects]);
 
     const handleSuccess = useCallback(() => {
-        handleCancel();
-    }, [handleCancel]);
+        setClickedMapFeature(null);
+        setWorkingLayerDrawerOpened(false);
+        setFeatureTypeMode(FeatureTypeMode.VIEW);
+    }, [setClickedMapFeature, setWorkingLayerDrawerOpened, setFeatureTypeMode]);
 
     const { handleSave, handleDelete } = useFeatureTypeActions({
         clickedMapFeature,
         currentMapWorkingSource,
         clickableLayer,
-        pointData,
         formData,
         columns,
         validateAll,
         onSuccess: handleSuccess,
     });
 
-    const handleBack = useCallback(() => {
-        setFeatureTypeMode(FeatureTypeMode.VIEW);
-    }, [setFeatureTypeMode]);
+    const handleModeChange = useCallback(
+        (newMode: FeatureTypeMode) => {
+            setFeatureTypeMode(newMode);
+        },
+        [setFeatureTypeMode]
+    );
+
+    const handleClose = useCallback(() => {
+        setClickedMapFeature(null);
+        setWorkingLayerDrawerOpened(false);
+    }, [setClickedMapFeature, setWorkingLayerDrawerOpened]);
 
     const handleLayerVisibility = useCallback(() => {
         if (clickableLayer && !clickableLayer.getVisible()) {
@@ -125,36 +147,37 @@ const EditFeatureTypeForm = () => {
     if (!pointData) return null;
 
     return (
-        <>
-            <div className="feature-type-form-container">
-                <FeatureTypeFormHeader
-                    title={`${isNewFeature ? t("state") + " " : ""}${geoserviceData?.title || ""}`}
-                    featureId={pointData?.[geoserviceData?.idName || "id"] || ""}
-                    onBack={handleBack}
-                />
-                <div className="feature-type-form-scrollable">
-                    <FeatureTypeFormFields columns={columns} formData={formData} validationErrors={validationErrors} updateField={updateField} />
-                </div>
+        <div className="feature-type-form-container">
+            <FeatureTypeFormHeader
+                title={`${isNewFeature ? t("state") + " " : ""}${geoserviceData?.title || ""}`}
+                featureId={pointData?.[geoserviceData?.idName || "id"] || ""}
+                mode={FeatureTypeMode.EDIT}
+                onModeChange={handleModeChange}
+                onClose={handleClose}
+            />
+            <div className="feature-type-form-scrollable">
+                <FeatureTypeFormAutomatic columns={columns} formData={formData} onAutomaticFieldsCalculated={handleAutomaticFieldsCalculated} />
+                <FeatureTypeFormFields columns={columns} formData={formData} validationErrors={validationErrors} updateField={updateField} />
+            </div>
 
-                <div className="feature-type-form-actions-fixed">
-                    <FeatureTypeFormActions
-                        onSave={() => {
-                            setAction(FeatureTypeFormActionMode.MODIFY);
-                            confirmMultipleObjectsActionModal.open();
-                        }}
-                        onDelete={() => {
-                            setAction(FeatureTypeFormActionMode.DELETE);
-                            confirmMultipleObjectsActionModal.open();
-                        }}
-                        onCancel={() => {
-                            setAction(FeatureTypeFormActionMode.CANCEL);
-                            confirmMultipleObjectsActionModal.open();
-                        }}
-                    />
-                </div>
+            <div className="feature-type-form-actions-fixed">
+                <FeatureTypeFormActions
+                    onSave={() => {
+                        setAction(FeatureTypeFormActionMode.MODIFY);
+                        confirmMultipleObjectsActionModal.open();
+                    }}
+                    onDelete={() => {
+                        setAction(FeatureTypeFormActionMode.DELETE);
+                        confirmMultipleObjectsActionModal.open();
+                    }}
+                    onCancel={() => {
+                        setAction(FeatureTypeFormActionMode.CANCEL);
+                        confirmMultipleObjectsActionModal.open();
+                    }}
+                />
             </div>
             <ConfirmMultipleObjectsActionModal action={action} onConfirm={onConfirmModal} />
-        </>
+        </div>
     );
 };
 

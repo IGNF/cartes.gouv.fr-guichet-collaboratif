@@ -56,6 +56,7 @@ export type ComponentKey =
     | import("../features/working-layer/forms/locale/FeatureTypeFormActions.locale").I18n
     | import("../features/working-layer/forms/locale/FeatureTypeFormFields.locale").I18n
     | import("../features/working-layer/forms/locale/FeatureTypeFormHeader.locale").I18n
+    | import("../features/working-layer/forms/locale/FeatureTypeFormAutomatic.locale").I18n
     | import("../features/working-layer/forms/locale/ConfirmMultipleObjectsActionModal.locale").I18n
     | import("../features/working-layer/modal/locale/ClickableFeaturesModal.locale").I18n
     | import("../hooks/navigation/layers/locale/useGetReportsLayer.locale").I18n

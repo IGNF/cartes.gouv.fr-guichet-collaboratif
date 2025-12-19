@@ -3,7 +3,7 @@ import { declareComponentKeys } from "i18nifty";
 
 export const ConfirmSaveContributionsFrTranslations: Translations<"fr">["ConfirmSaveContributions"] = {
     confirm_title: "Confirmation",
-    confirm_description: "Etes vous sûr de vouloir enregistrer ces modifications ?",
+    confirm_description: "Êtes vous sûr de vouloir enregistrer ces modifications ?",
     yes: "Oui",
     no: "Non",
 };
