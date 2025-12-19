@@ -24,10 +24,17 @@ function useGetWMSLayer(geoservice: CommunityGeoservice) {
         if (error) {
             addAlertMessage(StatusMessage.error, t("loading_layer_error", { layerTitle: geoservice.title }));
         }
-    }, [error, geoservice, addAlertMessage, t]);
+        if (capabilities && !capabilities?.Capability?.Layer) {
+            addAlertMessage(StatusMessage.error, t("loading_layer_error", { layerTitle: geoservice.title }));
+        }
+    }, [error, capabilities, geoservice, addAlertMessage, t]);
 
     const wmsLayer = useMemo(() => {
         if (!capabilities) return;
+
+        if (!capabilities?.Capability?.Layer) {
+            return undefined;
+        }
         const wmsLayer: TileLayer = new TileLayer({
             source: undefined,
             visible: false,
