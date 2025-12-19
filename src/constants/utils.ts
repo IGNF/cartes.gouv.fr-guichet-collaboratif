@@ -630,3 +630,14 @@ export const handleShowOnMap = (
 
     map.on("postrender", applyOffset);
 };
+
+export const extractPointCoords = (wkt: string): { x: number; y: number } | null => {
+    const match = wkt.match(/POINT\(([^ ]+) ([^)]+)\)/);
+    if (match) {
+        return {
+            x: parseFloat(match[1]),
+            y: parseFloat(match[2]),
+        };
+    }
+    return null;
+};

@@ -22,7 +22,20 @@ import PaginationReport from "./PaginationReport";
 import ConfirmDeleteReportModal from "../forms/ConfirmDeleteReportModal";
 import CreateTableData from "./CreateTableData";
 
-type FilterHeaderKey = "status" | "author" | "opening_date" | "departement" | "theme";
+type FilterHeaderKey =
+    | "x"
+    | "y"
+    | "id"
+    | "status"
+    | "comment"
+    | "author"
+    | "id_author"
+    | "opening_date"
+    | "updating_date"
+    | "closing_date"
+    | "attributs"
+    | "document"
+    | "departement";
 
 const TableReport = () => {
     const [sortOrder, setSortOrder] = useState<"ASC" | "DESC" | undefined>(undefined);
@@ -169,11 +182,19 @@ const TableReport = () => {
     }, [checkedLines, selectedLines]);
 
     const tableHeaderToLabel: Record<FilterHeaderKey, string> = {
-        author: "Auteur",
-        opening_date: "Date de création",
-        departement: "Département",
-        theme: "Thème",
+        x: "X",
+        y: "Y",
+        id: "identifiant",
         status: "Statut",
+        comment: "Commentaire",
+        author: "Pseudo",
+        id_author: "identifiant de l'autheur",
+        opening_date: "Date de création",
+        updating_date: "Date de mise à jour",
+        closing_date: "Date de fermeture",
+        attributs: "attributes",
+        departement: "Département",
+        document: "Document",
     };
 
     const tableHeader = (Object.entries(tableHeaderToLabel) as [FilterHeaderKey, string][]).map(([key, label]) => ({

@@ -1,8 +1,8 @@
 import { REPORTS_API_URL } from "@/constants/urls";
 import { axiosApi } from ".";
-import { attachmentData, CommunityReport, ReportAttachment } from "@/constants/reports/types";
+import { CommunityReport, attachmentData } from "@/constants/reports/types";
 
-export async function postCommunityReportAttachments(report: CommunityReport, files: File[]): Promise<ReportAttachment[] | null> {
+export async function postCommunityReportAttachments(report: CommunityReport, files: File[]): Promise<attachmentData[] | null> {
     const formData = new FormData();
     files.forEach((file, index) => {
         formData.append(`document${index}`, file);
@@ -14,10 +14,10 @@ export async function postCommunityReportAttachments(report: CommunityReport, fi
     if (!Array.isArray(newAttachments)) return null;
     return newAttachments.map((attachment) => ({
         id: attachment.id,
-        name: attachment.short_fileName,
-        type: attachment.mime_type,
+        short_fileName: attachment.short_fileName,
+        mime_type: attachment.mime_type,
         size: attachment.size,
-        url: attachment.uri,
+        uri: attachment.uri,
     }));
 }
 
