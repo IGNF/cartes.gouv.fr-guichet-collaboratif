@@ -481,6 +481,11 @@ export const getFilterStyleByCondition = (newTypes: FeatureTypeStyleItem[]) => {
 };
 
 export const getWebGLStyle = (geoservice: CommunityGeoservice, selectedStyle?: FeatureTypeSelectedStyle[]) => {
+    if (!geoservice.styles || geoservice.styles.length === 0) {
+        const defaultStyle = featureDefaultStyle(geoservice.featureType);
+        geoservice.styles = [defaultStyle];
+        console.log(`No styles defined for geoservice ${geoservice.title}, applying default style.`);
+    }
     const layerStyle = selectedStyle?.find((type) => type.layer === geoservice.layer);
     const newStyle = layerStyle ? layerStyle.selectedStyle : geoservice.styles![0];
     const newTypes = newStyle.types;

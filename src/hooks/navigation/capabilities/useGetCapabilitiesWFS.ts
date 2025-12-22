@@ -1,23 +1,16 @@
 import { CommunityGeoservice } from "@/constants/communities/types";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import GeoJSON from "ol/format/GeoJSON";
-import { transformExtent } from "ol/proj";
 import { useCallback, useMemo } from "react";
 
 export default function useGetFeaturesWFS(geoservice: CommunityGeoservice) {
     const getFeatURL = useMemo(() => {
-        let extent = geoservice.extent.split(",")?.map((extent) => parseFloat(extent));
-        extent = transformExtent(extent, "EPSG:4326", "EPSG:3857");
         return (
-            `${geoservice.url}${geoservice.url.includes("?") ? "" : "?"}service=WFS` +
-            `&version=${geoservice.version}` +
-            `&request=GetFeature` +
-            `&typename=${geoservice.layer}` +
-            `&outputFormat=application/json` +
-            `&srsname=${geoservice.boxSrid}` +
-            "&bbox=" +
-            extent +
-            `,${geoservice.boxSrid}`
+            `${geoservice.url}${geoservice.url.includes("?") ? "&" : "?"}SERVICE=WFS` +
+            `&VERSION=${geoservice.version}` +
+            `&REQUEST=GetFeature` +
+            `&TYPENAME=${geoservice.layer}` +
+            `&OUTPUTFORMAT=application/json`
         );
     }, [geoservice]);
 
@@ -27,6 +20,7 @@ export default function useGetFeaturesWFS(geoservice: CommunityGeoservice) {
     );
 
     const queryFunc = useCallback(async () => {
+        console.log("fetch WFS", getFeatURL);
         const response = await fetch(getFeatURL);
 
         if (!response.ok) {

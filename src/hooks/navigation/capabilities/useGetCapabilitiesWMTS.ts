@@ -2,22 +2,13 @@ import { CommunityGeoservice } from "@/constants/communities/types";
 import { useMapStore } from "@/store";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import WMTSCapabilities from "ol/format/WMTSCapabilities";
-import { transformExtent } from "ol/proj";
 import { useCallback, useMemo } from "react";
 
 export default function useGetCapabilitiesWMTS(geoservice: CommunityGeoservice) {
     const { map } = useMapStore();
     const getCapURL = useMemo(() => {
         if (!map) return "";
-        const extent = map?.getView().calculateExtent(map?.getSize());
-        const bbox4326 = transformExtent(extent, "EPSG:3857", "EPSG:4326");
-        return (
-            `${geoservice.url}${geoservice.url.includes("?") ? "&" : "?"}` +
-            `SERVICE=WMTS` +
-            `&VERSION=${geoservice.version}` +
-            `&REQUEST=GetCapabilities` +
-            `&bbox=${bbox4326},${geoservice.boxSrid}`
-        );
+        return `${geoservice.url}${geoservice.url.includes("?") ? "&" : "?"}` + `SERVICE=WMTS` + `&VERSION=${geoservice.version}` + `&REQUEST=GetCapabilities`;
     }, [geoservice, map]);
 
     const queryKey = useMemo(() => [`GP_WMTS_GET_CAPABILITIES_${geoservice.url}_${geoservice.version}`], [geoservice]);

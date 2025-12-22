@@ -16,7 +16,6 @@ export default function useGetCapabilitiesWMS(geoservice: CommunityGeoservice) {
 
     const queryFunc = useCallback(async () => {
         const response = await fetch(getCapURL);
-
         if (!response.ok) {
             throw new Error(`Bad response from server : ${response.status}`);
         }
