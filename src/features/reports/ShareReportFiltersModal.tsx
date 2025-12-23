@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "@/i18n";
 import { useCommunityStore, useModalStore, useReportStore } from "@/store";
 import Button from "@codegouvfr/react-dsfr/Button";
@@ -6,33 +6,24 @@ import Input from "@codegouvfr/react-dsfr/Input";
 import ModaleComponent from "@/components/ModaleComponent";
 import Tag from "@codegouvfr/react-dsfr/Tag";
 import { StatusMessage } from "@/constants/communities/types";
+import ShareReportModal from "./ShareReportModal";
 
-const ShareReportModal = () => {
-    const [shareInput, setShareInput] = useState<string>("");
+const ShareReportFiltersModal = () => {
     const [showToast, setShowToast] = useState<boolean>(false);
 
     const { t } = useTranslation({ ShareReportModal });
 
     const { addAlertMessage } = useCommunityStore();
-    const { selectedReport } = useReportStore();
+    const { shareReportFilters } = useModalStore();
+    const { syncUrlFromState } = useReportStore();
 
-    useEffect(() => {
-        if (!selectedReport) {
-            setShareInput("");
-            return;
-        }
-
-        const url = new URL(window.location.href);
-        url.searchParams.set("report", String(selectedReport.id));
-        setShareInput(url.toString());
-    }, [selectedReport, shareInput]);
-
-    const { shareReport } = useModalStore();
+    const base_url = window.location.origin + window.location.pathname;
+    const url = base_url + syncUrlFromState();
 
     const handleCopy = async () => {
-        if (!shareInput) return;
+        if (!url) return;
         try {
-            await navigator.clipboard.writeText(shareInput);
+            await navigator.clipboard.writeText(url);
             setShowToast(true);
             setTimeout(() => setShowToast(false), 3000);
         } catch {
@@ -41,7 +32,7 @@ const ShareReportModal = () => {
     };
 
     return (
-        <ModaleComponent modal={shareReport} title={t("share_title")}>
+        <ModaleComponent modal={shareReportFilters} title={t("share_title")}>
             {showToast && <Tag className="shareReport__copiedLink">{t("copied_link")}</Tag>}
             <div className="shareReport__container">
                 <div className="shareReport__subTitle">
@@ -65,10 +56,7 @@ const ShareReportModal = () => {
                     nativeInputProps={{
                         readOnly: true,
                         placeholder: "https://",
-                        value: shareInput,
-                        onChange: (e) => {
-                            setShareInput(e.target.value);
-                        },
+                        value: url,
                     }}
                     state="info"
                     stateRelatedMessage={t("report_modalInfo")}
@@ -78,4 +66,4 @@ const ShareReportModal = () => {
     );
 };
 
-export default ShareReportModal;
+export default ShareReportFiltersModal;

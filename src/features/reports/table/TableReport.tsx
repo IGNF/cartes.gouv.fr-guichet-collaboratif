@@ -51,6 +51,7 @@ const TableReport = () => {
         setSelectedReport,
         reportTableWidth,
         toggleSortByDateCreation,
+        syncUrlFromState,
     } = useReportStore();
 
     const { replyReportModal, deleteReportModal } = useModalStore();
@@ -297,6 +298,7 @@ const TableReport = () => {
                         <SelectComponent
                             onChange={(selectedIndex) => {
                                 setLimitPerPage(REPORT_TABLE_LIMIT_OPTIONS[selectedIndex]);
+                                syncUrlFromState();
                             }}
                             name="limit"
                             defaultOption="Nombre de ligne par page"

@@ -16,6 +16,7 @@ export type ComponentKey =
     | import("../components/Layout/locale/AppHeader.locale").I18n
     | import("../components/Layout/locale/MapToolbar.locale").I18n
     | import("../components/locale/DrawerComponent.locale").I18n
+    | import("../components/locale/FilterAndSortReport.locale").I18n
     | import("../pages/locale/NotConnected.locale").I18n
     | import("../pages/locale/NotFound.locale").I18n
     | import("../pages/locale/Carte.locale").I18n
@@ -48,6 +49,7 @@ export type ComponentKey =
     | import("../features/reports/locale/CreateReport.locale").I18n
     | import("../features/reports/locale/EditReport.locale").I18n
     | import("../features/reports/locale/ShowReport.locale").I18n
+    | import("../features/reports/locale/TableReportDrawer.locale").I18n
     | import("../features/reports/locale/ReportDrawer.locale").I18n
     | import("../features/reports/locale/ConfirmDeleteShareReportModal.locale").I18n
     | import("../features/reports/locale/ReportTracking.locale").I18n
