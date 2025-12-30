@@ -3,7 +3,7 @@ import Layer from "ol/layer/Layer";
 import VectorSource from "ol/source/Vector";
 import { useGetUserProfileAPI } from "@/api/userData";
 import { useCommunityStore, useLocalStorageStore, useMapStore, useReportStore, useUserStore } from "@/store";
-import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
+import { hasReportParams, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import { getCenterReportMessage, handleShowOnMap, showCenterReportButtons, STATUS_NOT_ALLOWED } from "@/constants/utils";
 import { clearClusterStyles } from "@/constants/reports/utils/cluster";
 import { CommunityReport, ParamsReport, toolNames } from "@/constants/reports/types";
@@ -33,9 +33,9 @@ const ReportDrawer = () => {
         setDrawerOpened,
         tableDrawerOpened,
         responseDrawerOpened,
-        setTableDrawerOpened,
         setResponseDrawerOpened,
         reportTableWidth,
+        setTableDrawerOpened,
     } = useReportStore();
 
     const { localStorageData } = useLocalStorageStore();
@@ -162,7 +162,7 @@ const ReportDrawer = () => {
     }, [drawerOpened, selectedReport, isAdmin, isOwner, editReport]);
 
     const [searchParams] = useSearchParams();
-    const reportIdParam = searchParams.get("report_id");
+    const reportIdParam = searchParams.get("report");
 
     const clusterLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE);
     const clusterSource = clusterLayer?.getSource() as VectorSource;
@@ -173,6 +173,12 @@ const ReportDrawer = () => {
         },
         [map, clusterSource, localStorageData, t, reportTableWidth]
     );
+
+    useEffect(() => {
+        if (hasReportParams()) {
+            setTableDrawerOpened(true);
+        }
+    }, [setTableDrawerOpened]);
 
     useEffect(() => {
         if (!reportIdParam) return;

@@ -11,6 +11,7 @@ import { ConfirmCancelModalEnTranslations } from "@/features/reports/forms/local
 import { OpenReplyReportModalEnTranslations } from "@/features/reports/forms/locale/OpenReplyReportModal.locale";
 import { ConfirmDeleteReportModalEnTranslations } from "@/features/reports/forms/locale/ConfirmDeleteReportModal.locale";
 import { ShareReportModalEnTranslations } from "@/features/reports/locale/ShareReportModal.locale";
+import { TableReportDrawerEnTranslations } from "@/features/reports/locale/TableReportDrawer.locale";
 import { DrawingFormEnTranslations } from "@/features/reports/forms/locale/DrawingForm.locale";
 import { ImportSketchFileEnTranslations } from "@/features/reports/forms/locale/ImportSketchFile.locale";
 import { ReportFormEnTranslations } from "@/features/reports/forms/locale/ReportForm.locale";
@@ -29,6 +30,7 @@ import { useGetWMSLayerEnTranslations } from "@/hooks/navigation/layers/locale/u
 import { useGetWMTSLayerEnTranslations } from "@/hooks/navigation/layers/locale/useGetWMTSLayer.locale";
 import { useFeatureTypeValidationEnTranslations } from "@/hooks/working-layer/locale/useFeatureTypeValidation.locale";
 import { DrawerComponentEnTranslations } from "@/components/locale/DrawerComponent.locale";
+import { FilterAndSortReportEnTranslations } from "@/components/locale/FilterAndSortReport.locale";
 import { DrawingControlEnTranslations } from "@/features/navigation/controls/locale/DrawingControl.locale";
 import { CatalogControlEnTranslations } from "@/features/navigation/controls/locale/CatalogControl.locale";
 import { CenterReportControlEnTranslations } from "@/features/navigation/controls/cusom-controls/locale/CenterReportControl.locale";
@@ -59,6 +61,7 @@ export const translations: Translations<"en"> = {
     AppHeader: AppHeaderEnTranslations,
     MapToolbar: MapToolbarEnTranslations,
     DrawerComponent: DrawerComponentEnTranslations,
+    FilterAndSortReport: FilterAndSortReportEnTranslations,
     NotConnected: NotConnectedEnTranslations,
     NotFound: NotFoundEnTranslations,
     Carte: CarteEnTranslations,
@@ -68,6 +71,7 @@ export const translations: Translations<"en"> = {
     OpenReplyReportModal: OpenReplyReportModalEnTranslations,
     ConfirmDeleteReportModal: ConfirmDeleteReportModalEnTranslations,
     ShareReportModal: ShareReportModalEnTranslations,
+    TableReportDrawer: TableReportDrawerEnTranslations,
     DrawingForm: DrawingFormEnTranslations,
     ImportSketchFile: ImportSketchFileEnTranslations,
     ReportForm: ReportFormEnTranslations,

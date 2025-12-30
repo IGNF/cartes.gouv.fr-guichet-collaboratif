@@ -11,6 +11,7 @@ import { ConfirmCancelModalFrTranslations } from "@/features/reports/forms/local
 import { OpenReplyReportModalFrTranslations } from "@/features/reports/forms/locale/OpenReplyReportModal.locale";
 import { ConfirmDeleteReportModalFrTranslations } from "@/features/reports/forms/locale/ConfirmDeleteReportModal.locale";
 import { ShareReportModalFrTranslations } from "@/features/reports/locale/ShareReportModal.locale";
+import { TableReportDrawerFrTranslations } from "@/features/reports/locale/TableReportDrawer.locale";
 import { DrawingFormFrTranslations } from "@/features/reports/forms/locale/DrawingForm.locale";
 import { ImportSketchFileFrTranslations } from "@/features/reports/forms/locale/ImportSketchFile.locale";
 import { ReportFormFrTranslations } from "@/features/reports/forms/locale/ReportForm.locale";
@@ -29,6 +30,7 @@ import { useGetWMSLayerFrTranslations } from "@/hooks/navigation/layers/locale/u
 import { useGetWMTSLayerFrTranslations } from "@/hooks/navigation/layers/locale/useGetWMTSLayer.locale";
 import { useFeatureTypeValidationFrTranslations } from "@/hooks/working-layer/locale/useFeatureTypeValidation.locale";
 import { DrawerComponentFrTranslations } from "@/components/locale/DrawerComponent.locale";
+import { FilterAndSortReportFrTranslations } from "@/components/locale/FilterAndSortReport.locale";
 import { DrawingControlFrTranslations } from "@/features/navigation/controls/locale/DrawingControl.locale";
 import { CatalogControlFrTranslations } from "@/features/navigation/controls/locale/CatalogControl.locale";
 import { CenterReportControlFrTranslations } from "@/features/navigation/controls/cusom-controls/locale/CenterReportControl.locale";
@@ -59,6 +61,7 @@ export const translations: Translations<"fr"> = {
     AppHeader: AppHeaderFrTranslations,
     MapToolbar: MapToolbarFrTranslations,
     DrawerComponent: DrawerComponentFrTranslations,
+    FilterAndSortReport: FilterAndSortReportFrTranslations,
     NotConnected: NotConnectedFrTranslations,
     NotFound: NotFoundFrTranslations,
     Carte: CarteFrTranslations,
@@ -68,6 +71,7 @@ export const translations: Translations<"fr"> = {
     OpenReplyReportModal: OpenReplyReportModalFrTranslations,
     ConfirmDeleteReportModal: ConfirmDeleteReportModalFrTranslations,
     ShareReportModal: ShareReportModalFrTranslations,
+    TableReportDrawer: TableReportDrawerFrTranslations,
     DrawingForm: DrawingFormFrTranslations,
     ImportSketchFile: ImportSketchFileFrTranslations,
     ReportForm: ReportFormFrTranslations,

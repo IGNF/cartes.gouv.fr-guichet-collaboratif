@@ -46,7 +46,9 @@ export async function getTableReports(
 }> {
     searchReport = useReportStore.getState().searchReport;
 
-    let url = `${REPORTS_API_URL}?communities=${communityId}&limit=${limit}&page=${currentPage}`;
+    const safeLimit = !limit || limit < 1 ? 10 : limit;
+
+    let url = `${REPORTS_API_URL}?communities=${communityId}&limit=${safeLimit}&page=${currentPage}`;
 
     if (filters?.status) {
         url += `&status=${encodeURIComponent(filters?.status)}`;

@@ -7,6 +7,7 @@ import { useCommunityStore, useReportStore } from "@/store";
 import Button from "@codegouvfr/react-dsfr/Button";
 import Input from "@codegouvfr/react-dsfr/Input";
 import Select from "@codegouvfr/react-dsfr/Select";
+import { useTranslation } from "@/i18n";
 
 interface SelectProps {
     label?: string;
@@ -41,18 +42,34 @@ export const SelectComponent: React.FC<SelectProps> = ({ label, value = -1, defa
     );
 };
 
+enum SortField {
+    OpeningDate = "opening_date",
+    UpdatingDate = "updating_date",
+}
+
 const FilterAndSortReport = () => {
+    const { t } = useTranslation({ FilterAndSortReport });
     const formRef = useRef<HTMLFormElement>(null);
 
     const [statusIndex, setStatusIndex] = useState(-1);
     const [themeIndex, setThemeIndex] = useState(-1);
-
     const [sortOpeningDateIndex, setSortOpeningDateIndex] = useState(0);
     const [sortUpdatingDateIndex, setSortUpdatingDateIndex] = useState(0);
 
     const { community, addAlertMessage } = useCommunityStore();
-    const { limitPerPage, currentPage, setCurrentPage, setFilteredReports, setIsChecked, currentFilters, setCurrentFilters, searchReport, sortBy, setSortBy } =
-        useReportStore();
+    const {
+        limitPerPage,
+        currentPage,
+        setCurrentPage,
+        setFilteredReports,
+        setIsChecked,
+        currentFilters,
+        setCurrentFilters,
+        searchReport,
+        sortBy,
+        setSortBy,
+        syncUrlFromState,
+    } = useReportStore();
     const filters = useMemo(
         () => ({
             status: currentFilters.status,
@@ -83,7 +100,43 @@ const FilterAndSortReport = () => {
     const reports = useMemo(() => data?.data ?? [], [data]);
     const statusOptions = useMemo(() => [...new Set(REPORT_STATUS_LIST)], []);
     const themeOptions = useMemo(() => [...new Set(themes)], [themes]);
-    const sortOptions = ["Du plus récent au plus ancien", "Du plus ancien au plus récent"];
+    const sortOptions = [t("newToOld"), t("oldToNew")];
+
+    useEffect(() => {
+        if (!sortBy) {
+            setSortOpeningDateIndex(0);
+            setSortUpdatingDateIndex(0);
+            return;
+        }
+
+        const [field, order] = sortBy.split(":");
+        const idx = order === "DESC" ? 0 : 1;
+
+        if (field === SortField.OpeningDate) {
+            setSortOpeningDateIndex(idx);
+            setSortUpdatingDateIndex(-1);
+        } else if (field === SortField.UpdatingDate) {
+            setSortUpdatingDateIndex(idx);
+            setSortOpeningDateIndex(-1);
+        }
+    }, [sortBy]);
+
+    useEffect(() => {
+        if (currentFilters.status) {
+            const idx = statusOptions.indexOf(currentFilters.status);
+            setStatusIndex(idx);
+        }
+        if (currentFilters.theme) {
+            const idx = themeOptions.indexOf(currentFilters.theme);
+            setThemeIndex(idx);
+        }
+    }, [currentFilters.status, currentFilters.theme, statusOptions, themeOptions]);
+
+    useEffect(() => {
+        if (isErrorReport) {
+            addAlertMessage(StatusMessage.error, t("loading_error"));
+        }
+    }, [isErrorReport, addAlertMessage]);
 
     const onChangeOpeningDate = (index: number) => {
         setSortOpeningDateIndex(index);
@@ -123,6 +176,7 @@ const FilterAndSortReport = () => {
 
         setFilteredReports(reports, true);
         setIsChecked({});
+        syncUrlFromState();
     };
 
     const resetFiltersAndSort = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -143,13 +197,6 @@ const FilterAndSortReport = () => {
         setCurrentPage(1);
         setFilteredReports([], false);
     };
-
-    useEffect(() => {
-        if (isErrorReport) {
-            addAlertMessage(StatusMessage.error, "Erreur lors du chargement des signalements.");
-        }
-    }, [isErrorReport, addAlertMessage]);
-
     return (
         <>
             <form ref={formRef} className="filter-report">
@@ -196,7 +243,13 @@ const FilterAndSortReport = () => {
                         <Input
                             className="filter-report__select"
                             label="Auteur"
-                            nativeInputProps={{ name: "author", type: "number", inputMode: "numeric", pattern: "[0-9]*" }}
+                            nativeInputProps={{
+                                name: "author",
+                                type: "number",
+                                inputMode: "numeric",
+                                pattern: "[0-9]*",
+                                defaultValue: currentFilters.author ?? "",
+                            }}
                         />
                         <Input
                             className="filter-report__select"
@@ -207,6 +260,7 @@ const FilterAndSortReport = () => {
                                 type: "number",
                                 max: 2,
                                 multiple: true,
+                                defaultValue: currentFilters.departement ?? "",
                             }}
                         />
                     </div>
