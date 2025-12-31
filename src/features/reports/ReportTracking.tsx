@@ -7,7 +7,7 @@ import { useGetReportReplies } from "@/api/repliesData";
 import { useCommunityStore, useReportStore, useUserStore } from "@/store";
 import { useReplyStore } from "@/store/useReplyStore";
 import { MutationReportParams, Reply, Severity, StatusKey } from "@/constants/reports/types";
-import { reportImgStatus, STATUS_NOT_ALLOWED } from "@/constants/utils";
+import { formatFrenchDateWithCapitalMonth, reportImgStatus, STATUS_NOT_ALLOWED } from "@/constants/utils";
 import Badge from "@codegouvfr/react-dsfr/Badge";
 import Select from "@codegouvfr/react-dsfr/Select";
 import Input from "@codegouvfr/react-dsfr/Input";
@@ -104,18 +104,6 @@ const ReportTracking: React.FC<ReportTrackingProps> = ({ setCommittedStatus }) =
                 {repliesRes.length > 0 ? (
                     repliesRes.map((reply) => {
                         const hideIcon = reportImgStatus[reply.status as StatusKey].text !== "test";
-                        const formatFrenchDateWithCapitalMonth = (dateStr: string) => {
-                            if (!dateStr) return "-";
-                            const d = new Date(dateStr);
-                            const day = d.getDate();
-                            const year = d.getFullYear();
-                            const month = d.toLocaleDateString("fr-FR", { month: "long" });
-                            const monthCapital = month.charAt(0).toUpperCase() + month.slice(1);
-
-                            const heure = d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", hour12: false }).replace(":", "H");
-
-                            return `${day} ${monthCapital} ${year}, ${heure}`;
-                        };
 
                         const formattedDate = reply.date ? formatFrenchDateWithCapitalMonth(reply.date) : "-";
 

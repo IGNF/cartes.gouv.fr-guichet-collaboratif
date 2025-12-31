@@ -1,5 +1,5 @@
 import { CommunityReport, StatusKey } from "@/constants/reports/types";
-import { reportImgStatus, extractPointCoords } from "@/constants/utils";
+import { reportImgStatus, extractPointCoords, formatDateISO } from "@/constants/utils";
 import Badge from "@codegouvfr/react-dsfr/Badge";
 import Button from "@codegouvfr/react-dsfr/Button";
 import Checkbox from "@codegouvfr/react-dsfr/Checkbox";
@@ -20,15 +20,14 @@ const CreateTableData = (
         const updating_date = report.updating_date ? new Date(report.updating_date).toLocaleDateString() : "-";
         const closing_date = report.closing_date ? new Date(report.closing_date).toLocaleDateString() : "-";
         const attributs = JSON.stringify(report.attributes, null, 2);
-
-        const document = report.attachments.map((attachment) => `/document/download/${attachment.id}`).join(";"); // ou + ";" si tu veux un ; final
-
+        const document = report.attachments.map((attachment) => `/document/download/${attachment.id}`).join(";");
         const departement = report.commune ? `${report.commune.title} (${report.departement?.name})` : "-";
         const status = report.status || "-";
         const comment = report.comment || "-";
         const statusText = reportImgStatus[status as StatusKey].text;
+        const replyDate = report.replies?.filter((reply) => reply.date)?.slice(-1)[0]?.date || "-";
+        const reply = report.replies?.filter((reply) => reply.content)?.slice(-1)[0]?.content + "(" + formatDateISO(replyDate) + ")" || "-";
 
-        console.log("reportr: ", JSON.stringify(report.attributes, null, 2));
         const coords = extractPointCoords(report.geometry);
 
         return {
@@ -51,6 +50,7 @@ const CreateTableData = (
                 document,
                 departement,
                 statusCode: report.status || "-",
+                reply,
             },
             row: [
                 <Checkbox

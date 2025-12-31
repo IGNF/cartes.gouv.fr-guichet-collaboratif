@@ -35,7 +35,8 @@ type FilterHeaderKey =
     | "closing_date"
     | "attributs"
     | "document"
-    | "departement";
+    | "departement"
+    | "reply";
 
 const TableReport = () => {
     const [sortOrder, setSortOrder] = useState<"ASC" | "DESC" | undefined>(undefined);
@@ -184,17 +185,18 @@ const TableReport = () => {
     const tableHeaderToLabel: Record<FilterHeaderKey, string> = {
         x: "X",
         y: "Y",
-        id: "identifiant",
-        status: "Statut",
-        comment: "Commentaire",
-        author: "Pseudo",
-        id_author: "identifiant de l'autheur",
-        opening_date: "Date de création",
-        updating_date: "Date de mise à jour",
-        closing_date: "Date de fermeture",
-        attributs: "attributes",
-        departement: "Département",
-        document: "Document",
+        id: t("tableHeaders.id"),
+        status: t("tableHeaders.status"),
+        comment: t("tableHeaders.comment"),
+        author: t("tableHeaders.author"),
+        id_author: t("tableHeaders.id_author"),
+        opening_date: t("tableHeaders.opening_date"),
+        updating_date: t("tableHeaders.updating_date"),
+        closing_date: t("tableHeaders.closing_date"),
+        attributs: t("tableHeaders.attributs"),
+        departement: t("tableHeaders.departement"),
+        document: t("tableHeaders.document"),
+        reply: t("tableHeaders.reply"),
     };
 
     const tableHeader = (Object.entries(tableHeaderToLabel) as [FilterHeaderKey, string][]).map(([key, label]) => ({
@@ -242,6 +244,7 @@ const TableReport = () => {
                                 headers={tableHeader}
                                 data={downloadedTable}
                                 filename="export-reports.csv"
+                                separator=";"
                             ></CSVLink>
                             <Button
                                 type="button"

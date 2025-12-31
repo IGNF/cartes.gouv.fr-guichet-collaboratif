@@ -74,6 +74,7 @@ export interface CommunityReport {
     departement?: DepartementData;
     author?: AuthorData;
     attributes?: CommunityTheme[];
+    replies?: Reply[];
 }
 export enum SortType {
     ASC = "ASC",
