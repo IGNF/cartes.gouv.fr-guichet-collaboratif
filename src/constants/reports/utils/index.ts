@@ -215,3 +215,33 @@ export const getClickedMapReport = ({ feature, map, pixel, clusterSource, featur
         return;
     }
 };
+
+export const hasReportParams = (search: string = window.location.search): boolean => {
+    const params = new URLSearchParams(search);
+
+    return (
+        params.has("status") ||
+        params.has("theme") ||
+        params.has("author") ||
+        params.has("departement") ||
+        params.has("search") ||
+        params.has("sortBy") ||
+        params.has("page") ||
+        params.has("limit")
+    );
+};
+
+export const getReportQueryParams = () => {
+    const params = Object.fromEntries(new URLSearchParams(window.location.search));
+
+    return {
+        status: params.status ?? "",
+        theme: params.theme ?? "",
+        author: params.author ? Number(params.author) : null,
+        departement: params.departement ?? "",
+        search: params.search ?? "",
+        sortBy: params.sortBy ?? "",
+        page: params.page ? Number(params.page) : 1,
+        limit: params.limit ? Number(params.limit) : 10,
+    };
+};

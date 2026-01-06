@@ -54,6 +54,7 @@ interface ReportStore {
     updateDescription: (description: string) => void;
     updateFiles: (files: File[]) => void;
     clearFiles: () => void;
+    syncUrlFromState: () => string;
 }
 export const useReportStore = create<ReportStore>((set, get) => ({
     reports: [],
@@ -107,7 +108,9 @@ export const useReportStore = create<ReportStore>((set, get) => ({
     currentPage: 1,
     setCurrentPage: (currentPage) => set({ currentPage }),
     limitPerPage: 10,
-    setLimitPerPage: (limitPerPage: number) => set({ limitPerPage }),
+    setLimitPerPage: (value) => {
+        set({ limitPerPage: value });
+    },
     reportTableWidth: window.innerWidth * (2 / 3),
     setReportTableWidth: (reportTableWidth: number) => set({ reportTableWidth }),
     selectedLine: 0,
@@ -153,4 +156,22 @@ export const useReportStore = create<ReportStore>((set, get) => ({
     updateFiles: (files: File[]) => set({ formData: { ...get().formData, files } }),
 
     clearFiles: () => set({ formData: { ...get().formData, files: [] } }),
+
+    syncUrlFromState: () => {
+        const state = get();
+        const params = new URLSearchParams();
+
+        if (state.currentFilters.status) params.set("status", state.currentFilters.status);
+        if (state.currentFilters.theme) params.set("theme", state.currentFilters.theme);
+        if (state.currentFilters.author != null) params.set("author", String(state.currentFilters.author));
+        if (state.currentFilters.departement) params.set("departement", state.currentFilters.departement);
+
+        if (state.searchReport) params.set("search", state.searchReport);
+        if (state.sortBy) params.set("sortBy", state.sortBy);
+        if (state.currentPage) params.set("page", String(state.currentPage));
+        if (state.limitPerPage) params.set("limit", String(state.limitPerPage));
+
+        const newUrl = `?${params.toString()}`;
+        return newUrl;
+    },
 }));

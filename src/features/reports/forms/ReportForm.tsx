@@ -280,8 +280,9 @@ const ReportForm: React.FC<Props> = ({
         try {
             if (handleSubmitDocument) {
                 await handleSubmitDocument(filesUploaded);
-                setLoading(false);
+                setFilesUploaded([]);
             }
+            setLoading(false);
         } catch {
             setLoading(false);
         }
