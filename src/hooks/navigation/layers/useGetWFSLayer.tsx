@@ -69,20 +69,21 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
         async function (extent: Extent, wfsSource: VectorSource, page: number = 0) {
             try {
                 const transformedExtent = transformExtent(extent, mapProjCode, geoProjCode);
+                const isWFS2 = geoservice.version && String(geoservice.version).startsWith("2");
                 const url =
-                    `${geoservice.url}${geoservice.url.includes("?") ? "" : "?"}service=WFS` +
-                    (geoservice.version ? `&version=${geoservice.version || "1.1.0"}` : "") +
-                    `&request=GetFeature` +
-                    `&typename=${geoservice.layer}` +
-                    `&outputFormat=${geoservice.featureType ? "GeoJSON" : "application/json"}` + //
-                    `&srsname=${geoProjCode}` +
-                    `&maxFeatures=${TILE_MAX_FEATURES}` +
-                    `&offset=${page * TILE_MAX_FEATURES}` +
+                    `${geoservice.url}${geoservice.url.includes("?") ? "" : "?"}SERVICE=WFS` +
+                    (geoservice.version ? `&VERSION=${geoservice.version || "1.1.0"}` : "") +
+                    `&REQUEST=GetFeature` +
+                    (isWFS2 ? `&TYPENAMES=${geoservice.layer}` : `&typename=${geoservice.layer}`) +
+                    `&outputFormat=${geoservice.featureType ? "GeoJSON" : "application/json"}` +
+                    `&SRSNAME=${geoProjCode}` +
+                    (isWFS2
+                        ? `&COUNT=${TILE_MAX_FEATURES}&STARTINDEX=${page * TILE_MAX_FEATURES}`
+                        : `&maxFeatures=${TILE_MAX_FEATURES}&offset=${page * TILE_MAX_FEATURES}`) +
                     urlsFilters +
                     `&bbox=${transformedExtent.join(",")},${geoProjCode}`;
 
                 const queryKey = [`GET_WFS_GET_FEATURES_${geoservice.url}_${geoservice.version}_${geoservice.layer}_${transformedExtent.join(",")}_${page}`];
-
                 const data: GeoJSONProps | ArrayGeoJSONProps[] = await queryClient.fetchQuery({
                     queryKey: queryKey,
                     queryFn: async () => {
