@@ -601,26 +601,21 @@ export const handleShowOnMap = (
     const croquisFeatures = getReportSketchFeatures(report);
     clusterSource.addFeatures(croquisFeatures);
 
-    setTimeout(() => {
-        const reportFeatures = clusterSource.getFeatures().filter((f) => f.get("reportData")?.id === report.id);
+    const reportFeatures = [feature, ...croquisFeatures];
+    const croquisExtent = createEmpty();
+    reportFeatures.forEach((f) => {
+        const geom = f.getGeometry();
+        if (geom) extend(croquisExtent, geom.getExtent());
+    });
 
-        if (reportFeatures.length > 0) {
-            const croquisExtent = createEmpty();
-            reportFeatures.forEach((f) => {
-                const geom = f.getGeometry();
-                if (geom) extend(croquisExtent, geom.getExtent());
-            });
-
-            if (!isEmpty(croquisExtent)) {
-                view.fit(croquisExtent, {
-                    size: map.getSize(),
-                    padding: [20, -reportTableWidth / 2, 20, 20],
-                    duration: 800,
-                    maxZoom: 19,
-                });
-                return;
-            }
-        }
-        handleCenterToFeature(map, feature!);
-    }, 150);
+    if (!isEmpty(croquisExtent)) {
+        view.fit(croquisExtent, {
+            size: map.getSize(),
+            padding: [20, 100, 20, reportTableWidth],
+            duration: 800,
+            maxZoom: 19,
+        });
+        return;
+    }
+    handleCenterToFeature(map, feature!);
 };
