@@ -41,7 +41,7 @@ const ShareReportModal = () => {
     };
 
     return (
-        <ModaleComponent modal={shareReport} title={t("share_title")}>
+        <ModaleComponent modal={shareReport} title={t("share_title_report")}>
             {showToast && <Tag className="shareReport__copiedLink">{t("copied_link")}</Tag>}
             <div className="shareReport__container">
                 <div className="shareReport__subTitle">
