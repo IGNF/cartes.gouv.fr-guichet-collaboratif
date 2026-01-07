@@ -11,7 +11,6 @@ import { CommunityReport, GeometryFeatueParams, PostThemeReport, SketchFeatureTy
 import { Fill, Icon, Stroke, Style, Text } from "ol/style";
 import { Geometry, LineString, MultiLineString, MultiPoint, MultiPolygon, Point, Polygon } from "ol/geom";
 import Layer from "ol/layer/Layer";
-import TileLayer from "ol/layer/Tile";
 import VectorSource from "ol/source/Vector";
 import WKT from "ol/format/WKT";
 import { Coordinate } from "ol/coordinate";
@@ -25,9 +24,9 @@ import createCrossImg from "../img/reports/markerslist/cross.png";
 import createXImg from "../img/reports/markerslist/x.png";
 import createTriangleImg from "../img/reports/markerslist/triangle.png";
 import createPointImg from "../img/reports/create_point.png";
-import { Extent, getCenter, isEmpty } from "ol/extent";
+import { createEmpty, extend, Extent, getCenter, isEmpty } from "ol/extent";
 import React from "react";
-import { REPORTS_LAYER_TYPE } from "./reports/utils";
+import { getReportSketchFeatures, REPORTS_LAYER_TYPE } from "./reports/utils";
 import { ComparatorFunc, simpleComparators } from "./mongo_parser";
 import getWellKnownNames from "./wellKnownNames";
 import addProjectionsToProj4 from "./projectionsToDefine";
@@ -575,48 +574,38 @@ export const handleShowOnMap = (
     if (!map || !clusterSource) return;
 
     const localLayer: LocalLayer | undefined = localStorageData?.layers.find((l) => l.name === t("reports_title"));
-    if (localLayer) {
-        localLayer.visibility = true;
-    }
+    if (localLayer) localLayer.visibility = true;
 
-    const view = map?.getView();
-    if (!view || !map) return;
+    const view = map.getView();
+    if (!view) return;
 
     let feature = clusterSource.getFeatures().find((f) => f.get("reportData")?.id === report.id);
-
-    if (feature) {
-        handleCenterToFeature(map, feature);
-    } else {
-        const featData = {
-            type: SketchFeatureType.Point,
-            geometry: report.geometry,
-        };
+    if (!feature) {
+        const featData = { type: SketchFeatureType.Point, geometry: report.geometry };
         feature = getFeaturePoint(report, featData, true);
         clusterSource.addFeature(feature);
-        handleCenterToFeature(map, feature);
     }
 
-    const coords = getLonLatFromPoint(report.geometry) as Coordinate;
-    view.setCenter(coords);
+    const croquisFeatures = getReportSketchFeatures(report);
+    clusterSource.addFeatures(croquisFeatures);
 
-    const rasterLayers = map?.getAllLayers();
-    const layers = rasterLayers?.filter((layer) => layer.getVisible() === true && layer instanceof TileLayer);
-    const higherLayer = layers?.reduce((minLay, lay) => (!minLay || Number(lay.getZIndex()) < Number(minLay?.getZIndex()) ? lay : minLay));
-    const theLayerZoom = higherLayer?.getMaxZoom() - 2;
+    const reportFeatures = [feature, ...croquisFeatures];
+    const croquisExtent = createEmpty();
+    reportFeatures.forEach((f) => {
+        const geom = f.getGeometry();
+        if (geom) extend(croquisExtent, geom.getExtent());
+    });
 
-    view.setZoom(theLayerZoom ?? view.getZoom());
-
-    const pixelOffsetX = -reportTableWidth / 2;
-
-    const applyOffset = () => {
-        const pixel = map.getPixelFromCoordinate(coords);
-        const pixelOffset = [pixel[0] + pixelOffsetX, pixel[1]];
-        const offsetCoord = map.getCoordinateFromPixel(pixelOffset);
-        view.setCenter(offsetCoord);
-        map.un("postrender", applyOffset);
-    };
-
-    map.on("postrender", applyOffset);
+    if (!isEmpty(croquisExtent)) {
+        view.fit(croquisExtent, {
+            size: map.getSize(),
+            padding: [20, 100, 20, reportTableWidth],
+            duration: 800,
+            maxZoom: 19,
+        });
+        return;
+    }
+    handleCenterToFeature(map, feature!);
 };
 
 export const extractPointCoords = (wkt: string): { x: number; y: number } | null => {
