@@ -304,12 +304,53 @@ export const featureTypeSelectedPolygonStyle = (isDefaultStyle: boolean = false)
 };
 
 export const featureDefaultStyle = (type: GeoserviceFeatureTypeProp = GeoserviceFeatureTypeProp.POINT): FeatureTypeStyle => {
+    if (type === GeoserviceFeatureTypeProp.LINE) {
+        return {
+            name: DEFAULT_STYLE_NAME,
+            types: [
+                {
+                    title: "Par défaut",
+                    type: undefined,
+                    featureType: type,
+                    pointRadius: 0,
+                    fillColor: "",
+                    fillOpacity: 0,
+                    strokeColor: "#ee9900",
+                    strokeWidth: 3,
+                    strokeDashstyle: undefined,
+                    strokeLinecap: "round",
+                    strokeOpacity: 1,
+                },
+            ],
+        };
+    }
+    if (type === GeoserviceFeatureTypeProp.POLYGON) {
+        return {
+            name: DEFAULT_STYLE_NAME,
+            types: [
+                {
+                    title: "Par défaut",
+                    type: undefined,
+                    featureType: type,
+                    pointRadius: 0,
+                    fillColor: "#ee9900",
+                    fillOpacity: 0.4,
+                    strokeColor: "#ee9900",
+                    strokeWidth: 2,
+                    strokeDashstyle: undefined,
+                    strokeLinecap: "butt",
+                    strokeOpacity: 1,
+                },
+            ],
+        };
+    }
+
     return {
         name: DEFAULT_STYLE_NAME,
         types: [
             {
                 title: "Par défaut",
-                type: type === GeoserviceFeatureTypeProp.POINT ? "circle" : type,
+                type: "circle",
                 featureType: type,
                 pointRadius: 6,
                 fillColor: "#ee9900",
@@ -481,10 +522,14 @@ export const getFilterStyleByCondition = (newTypes: FeatureTypeStyleItem[]) => {
 };
 
 export const getWebGLStyle = (geoservice: CommunityGeoservice, selectedStyle?: FeatureTypeSelectedStyle[]) => {
+    let featureType = geoservice.featureType;
+    if (geoservice.title === "Courbes de niveau" && featureType !== GeoserviceFeatureTypeProp.LINE) {
+        featureType = GeoserviceFeatureTypeProp.LINE;
+    }
     if (!geoservice.styles || geoservice.styles.length === 0) {
-        const defaultStyle = featureDefaultStyle(geoservice.featureType);
+        const defaultStyle = featureDefaultStyle(featureType);
         geoservice.styles = [defaultStyle];
-        console.log(`No styles defined for geoservice ${geoservice.title}, applying default style.`);
+        console.log(`No styles defined for geoservice ${geoservice.title}, applying default style with featureType:`, featureType);
     }
     const layerStyle = selectedStyle?.find((type) => type.layer === geoservice.layer);
     const newStyle = layerStyle ? layerStyle.selectedStyle : geoservice.styles![0];
@@ -497,7 +542,7 @@ export const getWebGLStyle = (geoservice: CommunityGeoservice, selectedStyle?: F
             style: getStyleWebGLPoint(isDefault),
         },
     ];
-    if (geoservice.featureType === GeoserviceFeatureTypeProp.POLYGON) {
+    if (featureType === GeoserviceFeatureTypeProp.POLYGON) {
         filterSelected = [
             {
                 filter: ["all", ["==", ["get", "featureType"], GeoserviceFeatureTypeProp.POLYGON], ["has", FEATURE_TYPE_SELECTED_PROPERTY]],
@@ -505,21 +550,67 @@ export const getWebGLStyle = (geoservice: CommunityGeoservice, selectedStyle?: F
             },
         ];
     }
-    if (geoservice.featureType === GeoserviceFeatureTypeProp.LINE) {
-        filterSelected = [
+    if (featureType === GeoserviceFeatureTypeProp.LINE) {
+        if (geoservice.title === "Courbes de niveau") {
+            filterSelected = [
+                {
+                    filter: ["all", ["==", ["get", "featureType"], GeoserviceFeatureTypeProp.LINE], ["has", FEATURE_TYPE_SELECTED_PROPERTY]],
+                    style: [
+                        {
+                            "stroke-color": hexToRgba("#8B4513", 1),
+                            "stroke-width": 3,
+                            "stroke-line-cap": "round",
+                        },
+                        {
+                            "stroke-color": hexToRgba("#000", 0.7),
+                            "stroke-width": 5,
+                            "stroke-line-cap": "round",
+                        },
+                    ],
+                },
+            ];
+        } else {
+            filterSelected = [
+                {
+                    filter: ["all", ["==", ["get", "featureType"], GeoserviceFeatureTypeProp.LINE], ["has", FEATURE_TYPE_SELECTED_PROPERTY]],
+                    style: getStyleWebGLLine(isDefault),
+                },
+            ];
+        }
+    }
+    let styleResult;
+    if (geoservice.title === "Courbes de niveau") {
+        styleResult = [
+            ...filterStyleByCondition,
             {
-                filter: ["all", ["==", ["get", "featureType"], GeoserviceFeatureTypeProp.LINE], ["has", FEATURE_TYPE_SELECTED_PROPERTY]],
-                style: getStyleWebGLLine(isDefault),
+                else: true,
+                filter: ["!", ["has", FEATURE_TYPE_SELECTED_PROPERTY]],
+                style: [
+                    {
+                        "stroke-color": hexToRgba("#8B4513", 1),
+                        "stroke-width": 3,
+                        "stroke-line-cap": "round",
+                    },
+                    {
+                        "stroke-color": hexToRgba("#000", 0.7),
+                        "stroke-width": 5,
+                        "stroke-line-cap": "round",
+                    },
+                ],
             },
+            ...filterSelected,
+        ];
+        console.log("[WFS STYLE DEBUG] getWebGLStyle result for Courbes de niveau:", JSON.stringify(styleResult, null, 2));
+    } else {
+        styleResult = [
+            ...filterStyleByCondition,
+            {
+                else: true,
+                filter: ["!", ["has", FEATURE_TYPE_SELECTED_PROPERTY]],
+                style: getStyleWebGLDefault(newTypes![0]),
+            },
+            ...filterSelected,
         ];
     }
-    return [
-        ...filterStyleByCondition,
-        {
-            else: true,
-            filter: ["!", ["has", FEATURE_TYPE_SELECTED_PROPERTY]],
-            style: getStyleWebGLDefault(newTypes![0]),
-        },
-        ...filterSelected,
-    ];
+    return styleResult;
 };
