@@ -65,14 +65,16 @@ export interface CommunityReport {
     comment: string;
     themes: CommunityTheme[];
     status: StatusKey;
-    attachments: ReportAttachment[];
+    attachments: attachmentData[];
     sketch?: SketchReport | null;
     opening_date?: string;
     updating_date?: string;
+    closing_date?: string;
     commune?: CommuneData;
     departement?: DepartementData;
     author?: AuthorData;
     attributes?: CommunityTheme[];
+    replies?: Reply[];
 }
 export enum SortType {
     ASC = "ASC",

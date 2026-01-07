@@ -174,10 +174,10 @@ export async function getCommunityReports(communityId: number, extent: Extent): 
             attachments: report.attachments.map((attachment) => {
                 return {
                     id: attachment.id,
-                    name: attachment.short_fileName,
-                    type: attachment.mime_type,
+                    short_fileName: attachment.short_fileName,
+                    mime_type: attachment.mime_type,
                     size: attachment.size,
-                    url: attachment.uri,
+                    uri: attachment.uri,
                 };
             }),
             sketch: sketchReport,
@@ -201,10 +201,10 @@ export async function getCommunityReportById(reportId: number): Promise<Communit
         attachments: report.attachments.map((attachment) => {
             return {
                 id: attachment.id,
-                name: attachment.short_fileName,
-                type: attachment.mime_type,
+                short_fileName: attachment.short_fileName,
+                mime_type: attachment.mime_type,
                 size: attachment.size,
-                url: attachment.uri,
+                uri: attachment.uri,
             };
         }),
         sketch: sketchReport,
@@ -229,10 +229,10 @@ export async function postCommunityReport(report: PostReport): Promise<Community
         attachments: newReport.attachments.map((attachment) => {
             return {
                 id: attachment.id,
-                name: attachment.short_fileName,
-                type: attachment.mime_type,
+                short_fileName: attachment.short_fileName,
+                mime_type: attachment.mime_type,
                 size: attachment.size,
-                url: attachment.uri,
+                uri: attachment.uri,
             };
         }),
         sketch: sketchReport,
@@ -257,10 +257,10 @@ export async function updateCommunityReport(report: PostReport, reportId: number
         attachments: newReport.attachments.map((attachment) => {
             return {
                 id: attachment.id,
-                name: attachment.short_fileName,
-                type: attachment.mime_type,
+                short_fileName: attachment.short_fileName,
+                mime_type: attachment.mime_type,
                 size: attachment.size,
-                url: attachment.uri,
+                uri: attachment.uri,
             };
         }),
         sketch: sketchReport,

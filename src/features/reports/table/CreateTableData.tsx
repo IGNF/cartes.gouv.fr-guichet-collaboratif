@@ -1,5 +1,5 @@
 import { CommunityReport, StatusKey } from "@/constants/reports/types";
-import { reportImgStatus } from "@/constants/utils";
+import { reportImgStatus, extractPointCoords, formatDateISO } from "@/constants/utils";
 import Badge from "@codegouvfr/react-dsfr/Badge";
 import Button from "@codegouvfr/react-dsfr/Button";
 import Checkbox from "@codegouvfr/react-dsfr/Checkbox";
@@ -13,26 +13,44 @@ const CreateTableData = (
     onShowReport?: (report: CommunityReport) => void
 ) => {
     return reports.map((report) => {
+        const id = report.id;
         const author = report.author?.username || "-";
+        const id_author = report.author?.id || "-";
         const date = report.opening_date ? new Date(report.opening_date).toLocaleDateString() : "-";
+        const updating_date = report.updating_date ? new Date(report.updating_date).toLocaleDateString() : "-";
+        const closing_date = report.closing_date ? new Date(report.closing_date).toLocaleDateString() : "-";
+        const attributs = JSON.stringify(report.attributes, null, 2);
+        const document = report.attachments.map((attachment) => `/document/download/${attachment.id}`).join(";");
         const departement = report.commune ? `${report.commune.title} (${report.departement?.name})` : "-";
-        const themes = report.attributes && report.attributes.length > 0 ? report.attributes.map((attr) => attr.theme || "").join(", ") : "-";
-
         const status = report.status || "-";
+        const comment = report.comment || "-";
         const statusText = reportImgStatus[status as StatusKey].text;
+        const replyDate = report.replies?.filter((reply) => reply.date)?.slice(-1)[0]?.date || "-";
+        const reply = report.replies?.filter((reply) => reply.content)?.slice(-1)[0]?.content + "(" + formatDateISO(replyDate) + ")" || "-";
+
+        const coords = extractPointCoords(report.geometry);
 
         return {
-            id: report.id,
+            id: id,
             original: report,
-            comment: report.comment || "-",
+            comment: comment,
 
             exportData: {
-                author,
-                opening_date: date,
-                departement,
-                theme: themes,
+                x: JSON.stringify(coords?.x, null, 2),
+                y: JSON.stringify(coords?.y, null, 2),
+                id: id,
                 status: statusText,
+                comment,
+                author,
+                id_author,
+                opening_date: date,
+                updating_date,
+                closing_date,
+                attributs: attributs,
+                document,
+                departement,
                 statusCode: report.status || "-",
+                reply,
             },
             row: [
                 <Checkbox

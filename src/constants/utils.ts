@@ -564,18 +564,6 @@ export const extentEquals = (e1: Extent, e2: Extent) => {
     return e1[0] === e2[0] && e1[1] === e2[1] && e1[2] === e2[2] && e1[3] === e2[3];
 };
 
-export const transformReportsToExportData = (reports: CommunityReport[]) => {
-    return reports.map((report) => {
-        return {
-            author: report.author?.username || "-",
-            opening_date: report.opening_date ? new Date(report.opening_date).toLocaleDateString() : "-",
-            departement: report.commune ? `${report.commune.title} (${report.departement?.name})` : "-",
-            theme: report.attributes && report.attributes.length > 0 ? report.attributes.map((attr) => attr.theme || "").join(", ") : "-",
-            status: report.status || "-",
-        };
-    });
-};
-
 export const handleShowOnMap = (
     report: CommunityReport,
     map: Map | null,
@@ -629,4 +617,58 @@ export const handleShowOnMap = (
     };
 
     map.on("postrender", applyOffset);
+};
+
+export const extractPointCoords = (wkt: string): { x: number; y: number } | null => {
+    const match = wkt.match(/POINT\(([^ ]+) ([^)]+)\)/);
+    if (match) {
+        return {
+            x: parseFloat(match[1]),
+            y: parseFloat(match[2]),
+        };
+    }
+    return null;
+};
+
+// Ex: 18 Décembre 2025, 12H42
+export const formatFrenchDateWithCapitalMonth = (dateStr?: string): string => {
+    if (!dateStr) return "-";
+
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return "-";
+
+    const day = d.getDate();
+    const year = d.getFullYear();
+    const month = d.toLocaleDateString("fr-FR", { month: "long" });
+    const monthCapital = month.charAt(0).toUpperCase() + month.slice(1);
+    const time = d
+        .toLocaleTimeString("fr-FR", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+        })
+        .replace(":", "H");
+
+    return `${day} ${monthCapital} ${year}, ${time}`;
+};
+
+// Ex: 2025-12-18 12:42:46
+export const formatDateISO = (dateStr?: string): string => {
+    if (!dateStr) return "-";
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return "-";
+
+    return d.toISOString().slice(0, 19).replace("T", " ");
+};
+
+export const escapeCsvValue = (value: unknown): string => {
+    if (value == null || value === "") return "";
+
+    let str = String(value);
+
+    if (str.includes('"') || str.includes("\n") || str.includes("\r") || str.includes(",")) {
+        str = `"${str.replace(/\r?\n|\r/g, " ")}"`;
+    }
+
+    return str;
 };
