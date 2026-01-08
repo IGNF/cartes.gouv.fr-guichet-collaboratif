@@ -14,6 +14,9 @@ export const ShowReportFrTranslations: Translations<"fr">["ShowReport"] = {
     report_content: "Votre message",
     report_send: "Envoyer",
     report_reply: "Répondre",
+    report_document_deleted_error: "Erreur dans la suppression des documents du signalement !",
+    report_deleted_error: "Erreur dans la suppression du signalement !",
+    report_deleted_success: ({ reportId }: { reportId: number }) => `Le signalement ${reportId} est supprimé avec succès.`,
 };
 
 export const ShowReportEnTranslations: Translations<"en">["ShowReport"] = {
@@ -29,6 +32,9 @@ export const ShowReportEnTranslations: Translations<"en">["ShowReport"] = {
     report_content: "Your message",
     report_send: "Send",
     report_reply: "Reply",
+    report_document_deleted_error: "Error deleting documents from the report!",
+    report_deleted_error: "Error deleting report!",
+    report_deleted_success: ({ reportId }: { reportId: number }) => `Report ${reportId} is successfully deleted.`,
 };
 
 const { i18n } = declareComponentKeys<
@@ -44,5 +50,8 @@ const { i18n } = declareComponentKeys<
     | "report_content"
     | "report_reply"
     | "report_send"
+    | "report_document_deleted_error"
+    | "report_deleted_error"
+    | { K: "report_deleted_success"; P: { reportId: number }; R: string }
 >()("ShowReport");
 export type I18n = typeof i18n;
