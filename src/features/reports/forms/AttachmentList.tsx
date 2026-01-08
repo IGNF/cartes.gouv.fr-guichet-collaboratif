@@ -2,7 +2,7 @@ import { Fragment, useMemo, useState } from "react";
 import { useTranslation } from "@/i18n";
 import { deleteCommunityReportAttachment } from "@/api/attachmentData";
 import { useCommunityStore, useReportStore } from "@/store";
-import { ErrorFile, ReportAttachment } from "@/constants/reports/types";
+import { ErrorFile, attachmentData } from "@/constants/reports/types";
 import { StatusMessage } from "@/constants/communities/types";
 import Button from "@codegouvfr/react-dsfr/Button";
 import LoaderComponent from "@/components/LoaderComponent";
@@ -26,12 +26,12 @@ const AttachmentList: React.FC<Props> = ({ newFiles, errorFiles, removeFile, sho
     const { t } = useTranslation({ AttachmentList });
 
     if (!report && !newFiles) return null;
-    const deleteAttachment = async (attachment: ReportAttachment) => {
+    const deleteAttachment = async (attachment: attachmentData) => {
         if (!report) return;
         setLoading(true);
         const attachmentDeleted = await deleteCommunityReportAttachment(report?.id, attachment.id);
         if (!attachmentDeleted) {
-            addAlertMessage(StatusMessage.error, t("attchment_deleted_error", { fileName: attachment.name }));
+            addAlertMessage(StatusMessage.error, t("attchment_deleted_error", { fileName: attachment.short_fileName }));
             setLoading(false);
             return;
         }
@@ -46,14 +46,14 @@ const AttachmentList: React.FC<Props> = ({ newFiles, errorFiles, removeFile, sho
             {report?.attachments?.map((attachment) => (
                 <div key={`attachment_${attachment.id}`}>
                     <img src={fileUploadIcon} alt={t("alt_img_uploaded_file")} />
-                    <a href={attachment.url} target="_blank">
-                        {attachment.name}
+                    <a href={attachment.uri} target="_blank">
+                        {attachment.short_fileName}
                     </a>
 
                     {editReport && showDocument && (
                         <Button
                             iconId="ri-delete-bin-2-fill"
-                            title={t("delete_file", { fileName: attachment.name })}
+                            title={t("delete_file", { fileName: attachment.short_fileName })}
                             priority="tertiary"
                             onClick={() => deleteAttachment(attachment)}
                         ></Button>
