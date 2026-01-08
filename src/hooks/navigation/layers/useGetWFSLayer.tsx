@@ -75,7 +75,7 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
                     (geoservice.version ? `&VERSION=${geoservice.version || "1.1.0"}` : "") +
                     `&REQUEST=GetFeature` +
                     (isWFS2 ? `&TYPENAMES=${geoservice.layer}` : `&typename=${geoservice.layer}`) +
-                    `&outputFormat=${geoservice.featureType ? "GeoJSON" : "application/json"}` +
+                    `&outputFormat=${"application/json"}` +
                     `&SRSNAME=${geoProjCode}` +
                     (isWFS2
                         ? `&COUNT=${TILE_MAX_FEATURES}&STARTINDEX=${page * TILE_MAX_FEATURES}`

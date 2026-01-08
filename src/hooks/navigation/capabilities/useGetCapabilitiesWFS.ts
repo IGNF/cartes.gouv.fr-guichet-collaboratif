@@ -8,7 +8,7 @@ export default function useGetFeaturesWFS(geoservice: CommunityGeoservice) {
         return (
             `${geoservice.url}${geoservice.url.includes("?") ? "&" : "?"}SERVICE=WFS` +
             `&VERSION=${geoservice.version}` +
-            `&REQUEST=GetFeature` +
+            `&REQUEST=GetCapabilities` +
             `&TYPENAME=${geoservice.layer}` +
             `&OUTPUTFORMAT=application/json`
         );
@@ -20,7 +20,6 @@ export default function useGetFeaturesWFS(geoservice: CommunityGeoservice) {
     );
 
     const queryFunc = useCallback(async () => {
-        console.log("fetch WFS", getFeatURL);
         const response = await fetch(getFeatURL);
 
         if (!response.ok) {
