@@ -131,6 +131,12 @@ export const arrayToGeoJSON = (arr: ArrayGeoJSONProps[], geoservice: CommunityGe
 export const getGeoJSONProps = (arr: GeoJSONProps, geoservice: CommunityGeoservice) => {
     return {
         type: arr.type,
+        crs: {
+            type: "name",
+            properties: {
+                name: geoservice.columns?.find((c) => c.name === geoservice.geometryName)?.crs ?? "EPSG:3857",
+            },
+        },
         features: arr.features.map((el) => {
             const featureTypeData: ObjectProps = {
                 ...(typeof el.properties === "object" && el.properties !== null ? el.properties : {}),
