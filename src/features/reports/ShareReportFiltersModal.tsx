@@ -32,11 +32,11 @@ const ShareReportFiltersModal = () => {
     };
 
     return (
-        <ModaleComponent modal={shareReportFilters} title={t("share_title")}>
+        <ModaleComponent modal={shareReportFilters} title={t("share_title_reports")}>
             {showToast && <Tag className="shareReport__copiedLink">{t("copied_link")}</Tag>}
             <div className="shareReport__container">
                 <div className="shareReport__subTitle">
-                    <p>{t("report_link")}</p>
+                    <p>{t("reports_link")}</p>
                     <Button
                         iconId="ri-file-copy-line"
                         priority="tertiary"
@@ -59,7 +59,7 @@ const ShareReportFiltersModal = () => {
                         value: url,
                     }}
                     state="info"
-                    stateRelatedMessage={t("report_modalInfo")}
+                    stateRelatedMessage={t("reports_modalInfo")}
                 />
             </div>
         </ModaleComponent>

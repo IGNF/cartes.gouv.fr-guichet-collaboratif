@@ -36,6 +36,7 @@ import { CatalogControlEnTranslations } from "@/features/navigation/controls/loc
 import { CenterReportControlEnTranslations } from "@/features/navigation/controls/cusom-controls/locale/CenterReportControl.locale";
 import { useGetMapControlsEnTranslations } from "@/features/navigation/controls/locale/useGetMapControls.locale";
 import { useReportToolsEnTranslations } from "@/hooks/reports/locale/useReportTools.locale";
+import { useDeleteReportEnTranslations } from "@/hooks/reports/locale/useDeleteReport.locale";
 import { FeatureTypeLayerLegendsEnTranslations } from "@/features/navigation/layers/legends/locale/FeatureTypeLayerLegends.locale";
 import { ShowFeatureTypeFormEnTranslations } from "@/features/working-layer/forms/locale/ShowFeatureTypeForm.locale";
 import { EditFeatureTypeFormEnTranslations } from "@/features/working-layer/forms/locale/EditFeatureTypeForm.locale";
@@ -94,6 +95,7 @@ export const translations: Translations<"en"> = {
     CenterReportControl: CenterReportControlEnTranslations,
     useGetMapControls: useGetMapControlsEnTranslations,
     useReportTools: useReportToolsEnTranslations,
+    useDeleteReport: useDeleteReportEnTranslations,
     FeatureTypeLayerLegends: FeatureTypeLayerLegendsEnTranslations,
     ShowFeatureTypeForm: ShowFeatureTypeFormEnTranslations,
     EditFeatureTypeForm: EditFeatureTypeFormEnTranslations,
