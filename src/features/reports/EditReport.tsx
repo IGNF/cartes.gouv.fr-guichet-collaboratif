@@ -1,16 +1,16 @@
 import { useTranslation } from "@/i18n";
 import { Feature } from "ol";
-import VectorSource from "ol/source/Vector";
-import { deleteCommunityReportAPI, updateCommunityReport } from "@/api/reportsData";
-import { deleteCommunityReportAllAttachments, postCommunityReportAttachments } from "@/api/attachmentData";
+import { updateCommunityReport } from "@/api/reportsData";
+import { postCommunityReportAttachments } from "@/api/attachmentData";
 import { useCommunityStore, useMapStore, useReportStore } from "@/store";
 import { CommunityTheme, StatusMessage } from "@/constants/communities/types";
 import { PostReport, PostThemeReport } from "@/constants/reports/types";
-import { clearDrawingLayer, getFeatureGeometryWKT } from "@/constants/utils";
-import { getReportSketch, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
+import { getFeatureGeometryWKT } from "@/constants/utils";
+import { getReportSketch } from "@/constants/reports/utils";
 import ReportForm from "./forms/ReportForm";
 import { useCallback } from "react";
 import Button from "@codegouvfr/react-dsfr/Button";
+import { useDeleteReport } from "@/hooks/reports/useDeleteReport";
 
 interface Props {
     handleCloseDrawer: () => void;
@@ -59,39 +59,9 @@ const EditReport: React.FC<Props> = ({ handleCloseDrawer }) => {
         [community, selectedReport, reports, addAlertMessage, t, setReports]
     );
 
+    const { deleteReport } = useDeleteReport({ handleCloseDrawer });
+
     if (!community || !map || !selectedReport) return null;
-
-    const handleDeleteReport = async () => {
-        try {
-            const attachmentsDeleted = await deleteCommunityReportAllAttachments(selectedReport);
-            if (!attachmentsDeleted) {
-                addAlertMessage(StatusMessage.error, t("report_document_deleted_error"));
-                return;
-            }
-
-            const reportDeleted = await deleteCommunityReportAPI(selectedReport);
-            if (!reportDeleted) {
-                addAlertMessage(StatusMessage.error, t("report_deleted_error"));
-                return;
-            }
-            addAlertMessage(StatusMessage.success, t("report_deleted_success", { reportId: selectedReport.id }));
-            const reportLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE);
-            const reportSource = reportLayer?.getSource() as VectorSource;
-
-            const filteredFeatures = reportSource.getFeatures().filter((f) => {
-                const reportData = f.get("reportData");
-                return reportData?.id === selectedReport.id;
-            });
-
-            reportSource.removeFeatures(filteredFeatures);
-            setReports([...reports.filter((report) => report.id !== selectedReport.id)], true);
-            handleCloseDrawer();
-            clearDrawingLayer(map);
-        } catch {
-            addAlertMessage(StatusMessage.error, t("report_document_deleted_error"));
-            throw new Error();
-        }
-    };
 
     const handleUpdateReport = async (
         selectedTheme: CommunityTheme,
@@ -187,7 +157,7 @@ const EditReport: React.FC<Props> = ({ handleCloseDrawer }) => {
             </Button>
             <ReportForm
                 handleClose={handleCloseEditReportDrawer}
-                handleDelete={handleDeleteReport}
+                handleDelete={() => deleteReport(selectedReport!)}
                 handleSubmit={handleUpdateReport}
                 handleSubmitSketch={handleUpdateReportSketch}
                 handleSubmitTheme={handleUpdateReportTheme}

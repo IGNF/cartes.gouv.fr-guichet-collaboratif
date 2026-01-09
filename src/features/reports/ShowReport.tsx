@@ -12,14 +12,19 @@ import AttachmentList from "./forms/AttachmentList";
 import ReportTracking from "./ReportTracking";
 import DrawingForm from "./forms/DrawingForm";
 import { STATUS_NOT_ALLOWED } from "@/constants/utils";
+import DeleteShareReportComponent from "./DeleteShareReportComponent";
+import LoaderComponent from "@/components/LoaderComponent";
+
+import { useDeleteReport } from "@/hooks/reports/useDeleteReport";
 interface Props {
     handleCloseDrawer: () => void;
 }
 
-const ShowReport: React.FC<Props> = () => {
+const ShowReport: React.FC<Props> = ({ handleCloseDrawer }) => {
     const [openSuivi, setOpenSuivi] = useState(false);
     const [committedStatus, setCommittedStatus] = useState("");
 
+    const [loading] = useState<boolean>(false);
     const { selectedReport, setTableDrawerOpened, setDrawerOpened } = useReportStore();
     const { clickedTool, setClickedTool } = useMapStore();
     const { community } = useCommunityStore();
@@ -45,6 +50,7 @@ const ShowReport: React.FC<Props> = () => {
         }
     }, []);
 
+    const { deleteReport } = useDeleteReport({ handleCloseDrawer });
     if (!community || !selectedReport) return null;
 
     const selectedTheme = selectedReport.themes[0];
@@ -66,10 +72,14 @@ const ShowReport: React.FC<Props> = () => {
                 {t("report_back")}
             </Button>
             <div className="report-drawer">
-                <h2 className="fr-mt-4v fr-mb-1v fr-text--md">
-                    <span className="ri-map-pin-add-line fr-pr-1v" />
-                    {t("report_title", { reportId: selectedReport.id })}
-                </h2>
+                {loading && <LoaderComponent />}
+                <div className="report-drawer__container">
+                    <h2 className="fr-mt-4v fr-mb-1v fr-text--md">
+                        <span className="ri-map-pin-add-line fr-pr-1v" />
+                        {t("report_title", { reportId: selectedReport.id })}
+                    </h2>
+                    <DeleteShareReportComponent handleDelete={() => deleteReport(selectedReport!)} />
+                </div>
                 <ReportFiltersComponent reportStatus={committedStatus} />
                 {!STATUS_NOT_ALLOWED.includes(selectedReport.status) && (
                     <Button
