@@ -125,6 +125,18 @@ const EditFeatureTypeForm = () => {
         }
     }, [action, handleCancel, handleDelete, handleSave]);
 
+    const handleClick = useCallback(
+        (action: FeatureTypeFormActionMode) => {
+            if (selectedObjects.length <= 1) {
+                onConfirmModal();
+                return;
+            }
+            setAction(action);
+            confirmMultipleObjectsActionModal.open();
+        },
+        [selectedObjects, confirmMultipleObjectsActionModal, onConfirmModal, setAction]
+    );
+
     useEffect(() => {
         mapSwitcher?.on("layerswitcher:change:visibility" as EventTypes, handleLayerVisibility);
         return () => {
@@ -162,18 +174,9 @@ const EditFeatureTypeForm = () => {
 
             <div className="feature-type-form-actions-fixed">
                 <FeatureTypeFormActions
-                    onSave={() => {
-                        setAction(FeatureTypeFormActionMode.MODIFY);
-                        confirmMultipleObjectsActionModal.open();
-                    }}
-                    onDelete={() => {
-                        setAction(FeatureTypeFormActionMode.DELETE);
-                        confirmMultipleObjectsActionModal.open();
-                    }}
-                    onCancel={() => {
-                        setAction(FeatureTypeFormActionMode.CANCEL);
-                        confirmMultipleObjectsActionModal.open();
-                    }}
+                    onSave={() => handleClick(FeatureTypeFormActionMode.MODIFY)}
+                    onDelete={() => handleClick(FeatureTypeFormActionMode.DELETE)}
+                    onCancel={() => handleClick(FeatureTypeFormActionMode.CANCEL)}
                 />
             </div>
             <ConfirmMultipleObjectsActionModal action={action} onConfirm={onConfirmModal} />

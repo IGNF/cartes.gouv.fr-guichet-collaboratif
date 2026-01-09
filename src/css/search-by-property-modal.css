@@ -1,0 +1,128 @@
+.search-modal > div > div > div {
+    width: calc(1200% / 12);
+    max-width: calc(1200% / 12);
+    flex: unset;
+}
+
+.search-property {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.search-property-options {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    align-content: center;
+}
+
+.search-property-filters {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.search-property-and-or {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    border: 1px solid black;
+    border-radius: 5px;
+    padding: 10px;
+}
+
+.search-property-group {
+    border: 1px solid #ccc;
+    padding: 12px;
+    margin-top: 8px;
+}
+
+.search-property-header {
+    display: flex;
+    gap: 8px;
+    justify-content: space-between;
+}
+
+.search-property-rule-group-actions {
+    display: flex;
+}
+
+.search-property-rule {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    align-content: center;
+}
+
+.search-property-select {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    align-content: center;
+}
+
+.search-property-select > div {
+    margin: unset !important;
+}
+
+.group {
+    position: relative;
+    margin-left: 24px;
+}
+
+.group-children {
+    margin-top: 8px;
+    margin-left: 16px;
+}
+
+.group-item {
+    position: relative;
+    padding-left: 24px;
+    margin: 8px 0px;
+    gap: 8px;
+    align-items: center;
+    border: 1px solid #ccc;
+    padding: 12px;
+    margin-top: 8px;
+}
+
+.group-item::before {
+    content: "";
+    position: absolute;
+    top: 0px;
+    left: -12px;
+    width: 12px;
+    height: 50%;
+    background: transparent;
+    border: 1px solid var(--border-default-grey);
+    border-width: 0px 0px 2px 2px;
+    border-radius: 0px 3px;
+}
+
+.group-item:first-child:before {
+    top: -9px;
+    height: calc(50% + 9px);
+}
+
+.group-item::after {
+    content: "";
+    position: absolute;
+    top: calc(50% - 4px);
+    left: -12px;
+    width: 12px;
+    height: calc(50% + 14px);
+    background: transparent;
+    border: 1px solid var(--border-default-grey);
+    border-width: 0px 0px 0px 2px;
+    border-radius: 0px;
+}
+
+.group-item:last-child:before {
+    height: 50%;
+}
+
+.group-item:last-child:after {
+    height: 0%;
+}

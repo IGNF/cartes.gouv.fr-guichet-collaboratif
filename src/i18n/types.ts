@@ -28,13 +28,13 @@ export type ComponentKey =
     | import("../features/navigation/layers/legends/locale/FeatureTypeLayerLegends.locale").I18n
     | import("../features/navigation/controls/locale/DrawingControl.locale").I18n
     | import("../features/navigation/controls/locale/CatalogControl.locale").I18n
-    | import("../features/navigation/controls/cusom-controls/locale/CenterReportControl.locale").I18n
-    | import("../features/navigation/controls/cusom-controls/locale/ConfirmMultipleDeselection.locale").I18n
+    | import("../features/navigation/controls/custom-controls/locale/CenterReportControl.locale").I18n
+    | import("../features/navigation/controls/custom-controls/locale/ConfirmMultipleDeselection.locale").I18n
     | import("../features/navigation/controls/locale/useGetMapControls.locale").I18n
     | import("../features/navigation/controls/locale/WorkingLayerControl.locale").I18n
     | import("../features/navigation/controls/locale/WorkingLayerLabelMap.locale").I18n
     | import("../features/navigation/controls/locale/MesureLengthControl.locale").I18n
-    | import("../features/navigation/controls/cusom-controls/locale/index.locale").I18n
+    | import("../features/navigation/controls/custom-controls/locale/index.locale").I18n
     | import("../features/reports/forms/locale/AttachmentList.locale").I18n
     | import("../features/reports/forms/locale/ConfirmCancelModal.locale").I18n
     | import("../features/reports/forms/locale/OpenReplyReportModal.locale").I18n

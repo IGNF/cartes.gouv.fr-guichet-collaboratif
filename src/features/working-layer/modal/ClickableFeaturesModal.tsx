@@ -46,7 +46,7 @@ const ClickableFeaturesModal = () => {
                 return;
             }
             const isMultiSelectedFeature = selectedObjects.find(
-                (feat) => feat.get(FEATURE_TYPE_DATA_PROPERTY)[`${geoserviceData?.idName}`] === f.get(FEATURE_TYPE_DATA_PROPERTY)[`${geoserviceData?.idName}`]
+                (feat) => feat.get(FEATURE_TYPE_DATA_PROPERTY)![`${geoserviceData?.idName}`] === f.get(FEATURE_TYPE_DATA_PROPERTY)![`${geoserviceData?.idName}`]
             );
             if (isMultiSelectedFeature) {
                 isMultiSelectedFeature.unset(FEATURE_TYPE_SELECTED_PROPERTY);
@@ -70,7 +70,7 @@ const ClickableFeaturesModal = () => {
 
             if (clickedControl?.interaction === InteractionType.SELECT) {
                 const isMultiSelectedFeature = selectedObjects.find(
-                    (feat) => feat.get(FEATURE_TYPE_DATA_PROPERTY)[`${geoserviceData?.idName}`] === data[`${geoserviceData?.idName}`]
+                    (feat) => feat.get(FEATURE_TYPE_DATA_PROPERTY)![`${geoserviceData?.idName}`] === data[`${geoserviceData?.idName}`]
                 );
                 return isMultiSelectedFeature ? "secondary" : "tertiary";
             }
@@ -101,7 +101,7 @@ const ClickableFeaturesModal = () => {
             <div className="clickable-features-modal_content">
                 {clickableFeatures.map((f, index) => (
                     <Button key={`clickable-features-modal_${index}`} onClick={() => handleSelectedFeature(f)} priority={getButtonPriority(f)}>
-                        {f.get(FEATURE_TYPE_DATA_PROPERTY)[`${geoserviceData?.idName}`]}
+                        {f.get(FEATURE_TYPE_DATA_PROPERTY)![`${geoserviceData?.idName}`]}
                     </Button>
                 ))}
             </div>
