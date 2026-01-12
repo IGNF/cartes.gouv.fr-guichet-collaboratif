@@ -11,7 +11,5 @@ export interface LocalStorageData {
     center: number[];
     layers: LocalLayer[];
     zoom: number;
-    minZoom: number;
-    maxZoom: number;
     projection: string;
 }
