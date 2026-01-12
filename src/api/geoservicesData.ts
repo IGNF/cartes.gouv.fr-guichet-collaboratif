@@ -1,4 +1,4 @@
-import { CommunityGeoservice } from "@/constants/communities/types";
+import { CommunityGeoservice, GeoserviceFeatureTypeProp } from "@/constants/communities/types";
 import { GEOSERVICES_API_URL } from "@/constants/urls";
 import { axiosApi } from ".";
 
@@ -26,8 +26,18 @@ export async function getGeoserviceAll(geoserviceIds: number[]): Promise<Communi
                 tileZoom: res.data.min_zoom,
                 boxSrid: res.data.box_srid,
                 columns: res.data.columns || [],
+                featureType: inferFeatureType(res.data),
             };
         });
     }
     return [];
+}
+
+function inferFeatureType(resData: { layers?: string; title?: string }): GeoserviceFeatureTypeProp | undefined {
+    const layers = (resData.layers || "").toLowerCase();
+    const title = (resData.title || "").toLowerCase();
+    if (layers.includes("point")) return GeoserviceFeatureTypeProp.POINT;
+    if (layers.includes("line") || title.includes("courbe")) return GeoserviceFeatureTypeProp.LINE;
+    if (layers.includes("polygon") || layers.includes("poly")) return GeoserviceFeatureTypeProp.POLYGON;
+    return undefined;
 }

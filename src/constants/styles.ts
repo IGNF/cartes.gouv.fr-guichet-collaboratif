@@ -304,24 +304,63 @@ export const featureTypeSelectedPolygonStyle = (isDefaultStyle: boolean = false)
 };
 
 export const featureDefaultStyle = (type: GeoserviceFeatureTypeProp = GeoserviceFeatureTypeProp.POINT): FeatureTypeStyle => {
-    return {
-        name: DEFAULT_STYLE_NAME,
-        types: [
-            {
-                title: "Par défaut",
-                type: type === GeoserviceFeatureTypeProp.POINT ? "circle" : type,
-                featureType: type,
-                pointRadius: 6,
-                fillColor: "#ee9900",
-                fillOpacity: 0.4,
-                strokeColor: "#ee9900",
-                strokeWidth: 2,
-                strokeDashstyle: undefined,
-                strokeLinecap: undefined,
-                strokeOpacity: 1,
-            },
-        ],
+    const defaults: Record<GeoserviceFeatureTypeProp, FeatureTypeStyle> = {
+        [GeoserviceFeatureTypeProp.POINT]: {
+            name: DEFAULT_STYLE_NAME,
+            types: [
+                {
+                    title: "Par défaut - Point",
+                    type: "circle" as const,
+                    featureType: GeoserviceFeatureTypeProp.POINT,
+                    pointRadius: 6,
+                    fillColor: "#ee9900",
+                    fillOpacity: 0.4,
+                    strokeColor: "#ee9900",
+                    strokeWidth: 2,
+                    strokeOpacity: 1,
+                    strokeDashstyle: undefined,
+                    strokeLinecap: undefined,
+                },
+            ],
+        },
+        [GeoserviceFeatureTypeProp.LINE]: {
+            name: DEFAULT_STYLE_NAME,
+            types: [
+                {
+                    title: "Par défaut - Ligne",
+                    type: "line" as const,
+                    featureType: GeoserviceFeatureTypeProp.LINE,
+                    pointRadius: 0,
+                    fillColor: "",
+                    fillOpacity: 0,
+                    strokeColor: "#ee9900",
+                    strokeWidth: 2,
+                    strokeOpacity: 1,
+                    strokeDashstyle: undefined,
+                    strokeLinecap: "round" as const,
+                },
+            ],
+        },
+        [GeoserviceFeatureTypeProp.POLYGON]: {
+            name: DEFAULT_STYLE_NAME,
+            types: [
+                {
+                    title: "Par défaut - Polygone",
+                    type: "polygon" as const,
+                    featureType: GeoserviceFeatureTypeProp.POLYGON,
+                    pointRadius: 0,
+                    fillColor: "#ee9900",
+                    fillOpacity: 0.4,
+                    strokeColor: "#ee9900",
+                    strokeWidth: 2,
+                    strokeOpacity: 1,
+                    strokeDashstyle: undefined,
+                    strokeLinecap: undefined,
+                },
+            ],
+        },
     };
+    return defaults[type] || defaults[GeoserviceFeatureTypeProp.POINT];
 };
 
 export const getSelectedFeatureTypeStyle = (type: string, style: FeatureTypeStyle) => {
@@ -430,29 +469,78 @@ export const getConditionsByType = (condition: FeatureTypeCondition | undefined)
             .flat()
     );
 };
-
 export const getConditionedFiltersByType = (cond: FeatureTypeConditionValue[][] | undefined) => {
     const filter: WebGLFilterType = [];
-    let property: string = "";
+
     cond?.forEach((c: FeatureTypeConditionValue[]) => {
         if (c![0] === "$and" || c![0] === "$or") {
             const nc = getConditionedFiltersByType(getConditionsByType(c.splice(2).filter((el) => typeof el === "object") as unknown as FeatureTypeCondition));
-            property = "";
-            if (nc.length === 1) return filter.push(...nc);
-            return filter.push([c![0] === "$and" ? "all" : "any", ...nc]);
+            if (nc.length === 1) {
+                filter.push(...nc);
+            } else {
+                filter.push([c![0] === "$and" ? "all" : "any", ...nc]);
+            }
+            return;
         }
-        property = c![0] as string;
+
+        const property = c![0] as string;
         let comparator = symbolComparator[c![1] as string];
-        if (!comparator) comparator = "==";
-        const value = ["get", property];
         let expectedValue = c![2] as FeatureTypeConditionValue;
-        if (!expectedValue) expectedValue = c![1];
+
+        if (!comparator) {
+            comparator = "==";
+            expectedValue = c![1];
+        }
+
+        const value = ["get", property];
+
         if (typeof expectedValue === "boolean") {
             expectedValue = expectedValue ? 1 : 0;
         }
-        if (isDateFormat(expectedValue as string)) expectedValue = new Date(expectedValue as string).getTime();
-        filter.push(Array.isArray(expectedValue) ? [comparator, value, ...expectedValue] : [comparator, value, expectedValue]);
+
+        if (isDateFormat(expectedValue as string)) {
+            expectedValue = new Date(expectedValue as string).getTime();
+        }
+
+        if (Array.isArray(expectedValue)) {
+            if (comparator === "==" || comparator === "in") {
+                const orFilters = expectedValue.map((val) => {
+                    let processedVal = val;
+                    if (typeof val === "boolean") processedVal = val ? 1 : 0;
+                    if (isDateFormat(val as string)) processedVal = new Date(val as string).getTime();
+                    return ["==", value, processedVal];
+                });
+
+                if (orFilters.length === 1) {
+                    filter.push(orFilters[0]);
+                } else {
+                    filter.push(["any", ...orFilters]);
+                }
+            } else {
+                filter.push([comparator, value, expectedValue[0]]);
+            }
+        } else {
+            const additionalValues = c.slice(3);
+
+            if (additionalValues.length > 0) {
+                const orFilters = [expectedValue, ...additionalValues].map((val) => {
+                    let processedVal = val;
+                    if (typeof val === "boolean") processedVal = val ? 1 : 0;
+                    if (isDateFormat(val as string)) processedVal = new Date(val as string).getTime();
+                    return ["==", value, processedVal];
+                });
+
+                if (orFilters.length === 1) {
+                    filter.push(orFilters[0]);
+                } else {
+                    filter.push(["any", ...orFilters]);
+                }
+            } else {
+                filter.push([comparator, value, expectedValue]);
+            }
+        }
     });
+
     return filter;
 };
 
@@ -481,6 +569,10 @@ export const getFilterStyleByCondition = (newTypes: FeatureTypeStyleItem[]) => {
 };
 
 export const getWebGLStyle = (geoservice: CommunityGeoservice, selectedStyle?: FeatureTypeSelectedStyle[]) => {
+    if (!geoservice.styles || geoservice.styles.length === 0) {
+        const defaultStyle = featureDefaultStyle(geoservice.featureType);
+        geoservice.styles = [defaultStyle];
+    }
     const layerStyle = selectedStyle?.find((type) => type.layer === geoservice.layer);
     const newStyle = layerStyle ? layerStyle.selectedStyle : geoservice.styles![0];
     const newTypes = newStyle.types;

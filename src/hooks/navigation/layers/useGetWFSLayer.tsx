@@ -5,17 +5,17 @@ import WebGLVectorLayer from "ol/layer/WebGLVector";
 import { Collection, Feature } from "ol";
 import { Geometry } from "ol/geom";
 import GeoJSON from "ol/format/GeoJSON";
-import { tile as tileStrategy } from "ol/loadingstrategy";
+import { bbox as bboxStrategy } from "ol/loadingstrategy";
 import { ArrayGeoJSONProps, CommunityGeoservice, GeoJSONProps, StatusMessage } from "@/constants/communities/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMapStore } from "@/store";
 import { declareComponentKeys, useTranslation } from "@/i18n";
-import { createXYZ } from "ol/tilegrid";
+
 import { transformExtent } from "ol/proj";
 import { Extent } from "ol/extent";
 import { arrayToGeoJSON, getGeoJSONProps } from "@/constants/communities/utils";
 import { getWebGLStyle } from "@/constants/styles";
-import { FEATURE_TYPE_SELECTED_PROPERTY, LAYER_FEATURE_TYPE, LAYER_SWITCHER_INFO_DIV, TILE_MAX_FEATURES, TILE_SIZE } from "@/constants";
+import { FEATURE_TYPE_SELECTED_PROPERTY, LAYER_FEATURE_TYPE, LAYER_SWITCHER_INFO_DIV, TILE_MAX_FEATURES } from "@/constants";
 import VectorLayer from "ol/layer/Vector";
 import { Stroke, Style } from "ol/style";
 import Text from "ol/style/Text";
@@ -69,20 +69,22 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
         async function (extent: Extent, wfsSource: VectorSource, page: number = 0) {
             try {
                 const transformedExtent = transformExtent(extent, mapProjCode, geoProjCode);
+                const isWFS2 = geoservice.version && String(geoservice.version).startsWith("2");
+                const isWFS1 = geoservice.version && String(geoservice.version).startsWith("1.0");
                 const url =
-                    `${geoservice.url}${geoservice.url.includes("?") ? "" : "?"}service=WFS` +
-                    (geoservice.version ? `&version=${geoservice.version || "1.1.0"}` : "") +
-                    `&request=GetFeature` +
-                    `&typename=${geoservice.layer}` +
-                    `&outputFormat=${geoservice.featureType ? "GeoJSON" : "application/json"}` + //
-                    `&srsname=${geoProjCode}` +
-                    `&maxFeatures=${TILE_MAX_FEATURES}` +
-                    `&offset=${page * TILE_MAX_FEATURES}` +
+                    `${geoservice.url}${geoservice.url.includes("?") ? "" : "?"}SERVICE=WFS` +
+                    (geoservice.version ? `&VERSION=${geoservice.version || "1.1.0"}` : "") +
+                    `&REQUEST=GetFeature` +
+                    (isWFS2 ? `&TYPENAMES=${geoservice.layer}` : `&typename=${geoservice.layer}`) +
+                    `&outputFormat=${"application/json"}` +
+                    `&SRSNAME=${geoProjCode}` +
+                    (isWFS2
+                        ? `&COUNT=${TILE_MAX_FEATURES}&STARTINDEX=${page * TILE_MAX_FEATURES}`
+                        : `&maxFeatures=${TILE_MAX_FEATURES}${isWFS1 ? "" : `&offset=${page * TILE_MAX_FEATURES}`}`) +
                     urlsFilters +
                     `&bbox=${transformedExtent.join(",")},${geoProjCode}`;
 
                 const queryKey = [`GET_WFS_GET_FEATURES_${geoservice.url}_${geoservice.version}_${geoservice.layer}_${transformedExtent.join(",")}_${page}`];
-
                 const data: GeoJSONProps | ArrayGeoJSONProps[] = await queryClient.fetchQuery({
                     queryKey: queryKey,
                     queryFn: async () => {
@@ -114,7 +116,7 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
             new VectorSource<Feature<Geometry>>({
                 format: new GeoJSON(),
                 loader: (extent) => wfsLoader(extent, wfsSource),
-                strategy: tileStrategy(createXYZ({ tileSize: TILE_SIZE, minZoom: geoservice.tileZoom, maxZoom: geoservice.maxZoom })),
+                strategy: bboxStrategy,
             }),
         [geoservice, wfsLoader]
     );

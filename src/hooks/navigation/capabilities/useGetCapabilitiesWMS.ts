@@ -2,7 +2,6 @@ import { CommunityGeoservice } from "@/constants/communities/types";
 import { useMapStore } from "@/store";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import WMSCapabilities from "ol/format/WMSCapabilities";
-import { transformExtent } from "ol/proj";
 import { useCallback, useMemo } from "react";
 
 export default function useGetCapabilitiesWMS(geoservice: CommunityGeoservice) {
@@ -10,21 +9,13 @@ export default function useGetCapabilitiesWMS(geoservice: CommunityGeoservice) {
 
     const getCapURL = useMemo(() => {
         if (!map) return "";
-        const extent = map?.getView().calculateExtent(map?.getSize());
-        const bbox4326 = transformExtent(extent, "EPSG:3857", "EPSG:4326");
-        return (
-            `${geoservice.url}${geoservice.url.includes("?") ? "" : "?"}SERVICE=WMS` +
-            `&VERSION=${geoservice.version}` +
-            `&REQUEST=GetCapabilities` +
-            `&bbox=${bbox4326},${geoservice.boxSrid}`
-        );
+        return `${geoservice.url}${geoservice.url.includes("?") ? "" : "?"}SERVICE=WMS` + `&VERSION=${geoservice.version}` + `&REQUEST=GetCapabilities`;
     }, [geoservice, map]);
 
     const queryKey = useMemo(() => [`GP_WMS_GET_CAPABILITIES_${geoservice.url}_${geoservice.version}`], [geoservice]);
 
     const queryFunc = useCallback(async () => {
         const response = await fetch(getCapURL);
-
         if (!response.ok) {
             throw new Error(`Bad response from server : ${response.status}`);
         }
