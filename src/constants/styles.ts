@@ -2,7 +2,14 @@ import { Circle as CircleStyle, Fill, Icon, RegularShape, Stroke, Style, Text } 
 import { reportImgStatus } from "./utils";
 import { Circle, Geometry, LineString, Point } from "ol/geom";
 import { Coordinate } from "ol/coordinate";
-import { CLUSTER_CIRCLE_COLOR, CLUSTER_REPORT_CIRCLE_COLOR, CLUSTER_REPORT_CIRCLE_STROKE_COLOR, SELECTION_CIRCLE_COLOR, WHITE_COLOR } from "./colors";
+import {
+    CLUSTER_CIRCLE_COLOR,
+    CLUSTER_REPORT_CIRCLE_COLOR,
+    CLUSTER_REPORT_CIRCLE_STROKE_COLOR,
+    SELECTION_CIRCLE_COLOR,
+    WHITE_COLOR,
+    DARK_RGBA,
+} from "./colors";
 import { GeometryFeatueParams } from "./reports/types";
 import { Map } from "ol";
 import { FeatureLike } from "ol/Feature";
@@ -122,25 +129,41 @@ export const strokeLineDash = function ({ strokeWidth, strokeDashstyle }: { stro
     }
 };
 
-export const hexToRgba = (hex: string, opacity = 1) => {
-    if (!hex) return "#fff";
-    hex = hex.replace(/^#/, "");
+export function hexToRgba(hex: string | undefined | null, alpha: number = 1): string {
+    try {
+        if (!hex || typeof hex !== "string") {
+            return DARK_RGBA;
+        }
 
-    if (hex.length === 3) {
-        hex = hex
-            .split("")
-            .map((ch) => ch + ch)
-            .join("");
+        const cleanHex = hex.trim();
+        const match = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.exec(cleanHex);
+        if (!match) {
+            return DARK_RGBA;
+        }
+
+        let r: number, g: number, b: number;
+
+        if (cleanHex.length === 4) {
+            r = parseInt(cleanHex[1] + cleanHex[1], 16);
+            g = parseInt(cleanHex[2] + cleanHex[2], 16);
+            b = parseInt(cleanHex[3] + cleanHex[3], 16);
+        } else {
+            r = parseInt(cleanHex.slice(1, 3), 16);
+            g = parseInt(cleanHex.slice(3, 5), 16);
+            b = parseInt(cleanHex.slice(5, 7), 16);
+        }
+
+        if (![r, g, b, alpha].every(Number.isFinite)) {
+            return DARK_RGBA;
+        }
+
+        const safeAlpha = Number.isFinite(alpha) ? Math.min(Math.max(alpha, 0), 1) : 1;
+
+        return `rgba(${r}, ${g}, ${b}, ${safeAlpha})`;
+    } catch {
+        return DARK_RGBA;
     }
-
-    const r = parseInt(hex.slice(0, 2), 16);
-    const g = parseInt(hex.slice(2, 4), 16);
-    const b = parseInt(hex.slice(4, 6), 16);
-
-    const alpha = Math.min(1, Math.max(0, Number(opacity)));
-
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-};
+}
 
 export const getLineOrPolygonStyle = (shapeProps: FeatureTypeStyleItem) => {
     return new Style({
