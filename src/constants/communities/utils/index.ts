@@ -80,9 +80,18 @@ export const arrayToGeoJSON = (arr: ArrayGeoJSONProps[], geoservice: CommunityGe
         type: "FeatureCollection",
         features: [],
     };
-    arr.forEach((el) => {
+    const geometryFieldName = geoservice.geometryName || "geometrie";
+
+    arr.forEach((el, index) => {
+        const geometryValue = el[geometryFieldName];
+
+        if (!geometryValue) {
+            console.warn(`[arrayToGeoJSON] Feature ${index} missing geometry field "${geometryFieldName}". Available fields:`, Object.keys(el));
+            return;
+        }
+
         let type = "Point";
-        let lonLat: LonLatNumber = el.geometrie
+        let lonLat: LonLatNumber = String(geometryValue)
             ?.replace(/POINT|MULTIPOLYGON|MULTILINE|LINESTRING|\(|\)/g, "")
             .split(",")
             .map((s1: string) =>
@@ -90,19 +99,20 @@ export const arrayToGeoJSON = (arr: ArrayGeoJSONProps[], geoservice: CommunityGe
                     return Number(w);
                 })
             ) || [0, 0];
-        if (el.geometrie?.includes("MULTIPOLYGON")) {
-            lonLat = [[lonLat as number[]]];
+
+        if (String(geometryValue)?.includes("MULTIPOLYGON")) {
+            lonLat = [[lonLat as unknown as number[]]];
             type = "MultiPolygon";
         }
-        if (el.geometrie?.includes("MULTILINE") || el.geometrie?.includes("LINESTRING")) {
+        if (String(geometryValue).includes("MULTILINE") || String(geometryValue)?.includes("LINESTRING")) {
             type = "LineString";
         }
-        if (el.geometrie?.includes("POINT")) {
-            lonLat = (lonLat as number[])[0];
+        if (String(geometryValue)?.includes("POINT")) {
+            lonLat = (lonLat as unknown as number[])[0];
         }
 
         const featureTypeData: ObjectProps = { ...el, id: el[`${geoservice.idName}`] };
-        delete featureTypeData.geometrie;
+        delete featureTypeData[geometryFieldName];
 
         const validProperties: ObjectProps = getWebGLValidProperties(featureTypeData);
 
@@ -121,7 +131,7 @@ export const arrayToGeoJSON = (arr: ArrayGeoJSONProps[], geoservice: CommunityGe
                 type: type,
                 coordinates: lonLat,
             },
-            geometry_name: "geometrie",
+            geometry_name: geometryFieldName,
             properties,
         });
     });
