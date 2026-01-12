@@ -1,4 +1,5 @@
 import {
+    CommunityGeoservice,
     CommunityLayerFunctionalityType,
     CommunityLayerRoleType,
     CustomControlItem,
@@ -18,6 +19,13 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
     const communityEditableLayers = useMemo(() => communityLayers?.filter((l) => l.role !== CommunityLayerRoleType.VISU), [communityLayers]);
     const currentCommunityLayer = useMemo(() => communityLayers?.find((l) => l.geoservice.layer === mapWorkingLayer), [communityLayers, mapWorkingLayer]);
 
+    const geoservice: CommunityGeoservice | undefined = useMemo(
+        () => communityLayers?.find((layer) => layer.geoservice.layer === mapWorkingLayer)?.geoservice,
+        [communityLayers, mapWorkingLayer]
+    );
+
+    const queryableColumns = useMemo(() => geoservice?.columns.filter((col) => col.queryable), [geoservice]);
+
     const constrolsList: CustomControlItem[] = useMemo(() => {
         return [
             {
@@ -34,7 +42,7 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
                 title: "Rechercher par attributs",
                 target: "",
                 icon: "ri-search-line",
-                disabled: false,
+                disabled: !queryableColumns?.length,
                 enabled: !!community?.functionalities?.includes(CommunityLayerFunctionalityType.SEARCH),
                 interaction: InteractionType.SEARCH,
             },
@@ -114,7 +122,16 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
                 interaction: InteractionType.SPLIT_LINE,
             },
         ];
-    }, [community, currentCommunityLayer?.geoservice.featureType, currentCommunityLayer?.role, mapWorkingLayer, communityEditableLayers, clickedMapFeature, t]);
+    }, [
+        community,
+        currentCommunityLayer?.geoservice.featureType,
+        queryableColumns,
+        currentCommunityLayer?.role,
+        mapWorkingLayer,
+        communityEditableLayers,
+        clickedMapFeature,
+        t,
+    ]);
 
     return constrolsList.filter((c) => c.enabled);
 };

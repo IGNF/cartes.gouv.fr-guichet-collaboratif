@@ -72,10 +72,9 @@ const RuleComponent: React.FC<RuleProps> = ({ className, onDelete }) => {
                             </option>
                         ))}
                     </Select>
-
                     <ChoiceValueComponent
                         multipleSelect={multipleSelect}
-                        currentColumn={currentColumn!}
+                        currentColumn={currentColumn}
                         handleMultipleSelectChange={handleMultipleSelectChange}
                     />
                 </>

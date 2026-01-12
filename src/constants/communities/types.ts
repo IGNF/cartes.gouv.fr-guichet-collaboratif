@@ -1,4 +1,5 @@
 import { FrIconClassName, RiIconClassName } from "@codegouvfr/react-dsfr";
+import { Extent } from "ol/extent";
 import BaseLayer from "ol/layer/Base";
 import TileLayer from "ol/layer/Tile";
 import VectorLayer from "ol/layer/Vector";
@@ -168,6 +169,16 @@ export type CommunityTheme = {
 
 export type PointString = `POINT(${string})`;
 
+export interface CommunityGrids {
+    name: string;
+    title: string;
+    type: {
+        name: string;
+        title: string;
+    };
+    extent: Extent;
+}
+
 export interface Community {
     id: number;
     listed: boolean;
@@ -181,6 +192,7 @@ export interface Community {
     zoom: number;
     minZoom: number;
     maxZoom: number;
+    grids: CommunityGrids[];
 }
 
 export const enum StatusMessage {
