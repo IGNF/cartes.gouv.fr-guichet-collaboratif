@@ -469,29 +469,78 @@ export const getConditionsByType = (condition: FeatureTypeCondition | undefined)
             .flat()
     );
 };
-
 export const getConditionedFiltersByType = (cond: FeatureTypeConditionValue[][] | undefined) => {
     const filter: WebGLFilterType = [];
-    let property: string = "";
+
     cond?.forEach((c: FeatureTypeConditionValue[]) => {
         if (c![0] === "$and" || c![0] === "$or") {
             const nc = getConditionedFiltersByType(getConditionsByType(c.splice(2).filter((el) => typeof el === "object") as unknown as FeatureTypeCondition));
-            property = "";
-            if (nc.length === 1) return filter.push(...nc);
-            return filter.push([c![0] === "$and" ? "all" : "any", ...nc]);
+            if (nc.length === 1) {
+                filter.push(...nc);
+            } else {
+                filter.push([c![0] === "$and" ? "all" : "any", ...nc]);
+            }
+            return;
         }
-        property = c![0] as string;
+
+        const property = c![0] as string;
         let comparator = symbolComparator[c![1] as string];
-        if (!comparator) comparator = "==";
-        const value = ["get", property];
         let expectedValue = c![2] as FeatureTypeConditionValue;
-        if (!expectedValue) expectedValue = c![1];
+
+        if (!comparator) {
+            comparator = "==";
+            expectedValue = c![1];
+        }
+
+        const value = ["get", property];
+
         if (typeof expectedValue === "boolean") {
             expectedValue = expectedValue ? 1 : 0;
         }
-        if (isDateFormat(expectedValue as string)) expectedValue = new Date(expectedValue as string).getTime();
-        filter.push(Array.isArray(expectedValue) ? [comparator, value, ...expectedValue] : [comparator, value, expectedValue]);
+
+        if (isDateFormat(expectedValue as string)) {
+            expectedValue = new Date(expectedValue as string).getTime();
+        }
+
+        if (Array.isArray(expectedValue)) {
+            if (comparator === "==" || comparator === "in") {
+                const orFilters = expectedValue.map((val) => {
+                    let processedVal = val;
+                    if (typeof val === "boolean") processedVal = val ? 1 : 0;
+                    if (isDateFormat(val as string)) processedVal = new Date(val as string).getTime();
+                    return ["==", value, processedVal];
+                });
+
+                if (orFilters.length === 1) {
+                    filter.push(orFilters[0]);
+                } else {
+                    filter.push(["any", ...orFilters]);
+                }
+            } else {
+                filter.push([comparator, value, expectedValue[0]]);
+            }
+        } else {
+            const additionalValues = c.slice(3);
+
+            if (additionalValues.length > 0) {
+                const orFilters = [expectedValue, ...additionalValues].map((val) => {
+                    let processedVal = val;
+                    if (typeof val === "boolean") processedVal = val ? 1 : 0;
+                    if (isDateFormat(val as string)) processedVal = new Date(val as string).getTime();
+                    return ["==", value, processedVal];
+                });
+
+                if (orFilters.length === 1) {
+                    filter.push(orFilters[0]);
+                } else {
+                    filter.push(["any", ...orFilters]);
+                }
+            } else {
+                filter.push([comparator, value, expectedValue]);
+            }
+        }
     });
+
     return filter;
 };
 
