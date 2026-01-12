@@ -1,14 +1,24 @@
 import Button from "@codegouvfr/react-dsfr/Button";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import ConfirmDeleteShareReportModal from "./ConfirmDeleteShareReportModal";
-import { useModalStore } from "@/store";
+import { useCommunityStore, useModalStore } from "@/store";
 import ShareReportModal from "./ShareReportModal";
+import { useGetUserProfileAPI } from "@/api/userData";
 interface Props {
     handleDelete: () => void;
 }
 const DeleteShareReportComponent = ({ handleDelete }: Props) => {
     const [showActions, setShowActions] = useState<boolean>(false);
     const { deleteShareReportModal, shareReport } = useModalStore();
+
+    const { community } = useCommunityStore();
+
+    const { data: userData } = useGetUserProfileAPI();
+    const isAdmin = useMemo(() => {
+        const currentUser = userData?.communitiesMember?.filter((cm) => cm.communityId === community?.id);
+        return Array.isArray(currentUser) ? currentUser.some((role) => role.role === "admin") : false;
+    }, [userData, community?.id]);
+
     return (
         <div className="report-deleteShare__wrapper">
             <Button
@@ -20,9 +30,11 @@ const DeleteShareReportComponent = ({ handleDelete }: Props) => {
 
             {showActions && (
                 <div className="report-deleteShare__container">
-                    <Button priority="tertiary no outline" nativeButtonProps={deleteShareReportModal.buttonProps}>
-                        Supprimer
-                    </Button>
+                    {isAdmin && (
+                        <Button priority="tertiary no outline" nativeButtonProps={deleteShareReportModal.buttonProps}>
+                            Supprimer
+                        </Button>
+                    )}
                     <Button priority="tertiary no outline" nativeButtonProps={shareReport.buttonProps}>
                         Partager
                     </Button>

@@ -21,7 +21,6 @@ import AttachmentList from "./AttachmentList";
 import ReportTracking from "../ReportTracking";
 import ThemeComponent from "./ThemeComponent";
 import DeleteShareReportComponent from "../DeleteShareReportComponent";
-import { useGetUserProfileAPI } from "@/api/userData";
 
 const allowedTypes = ["image/png", "image/jpg", "image/jpeg", "application/pdf"];
 const maxSizeMB = 3;
@@ -79,7 +78,6 @@ const ReportForm: React.FC<Props> = ({
     const handleToolClickRef = useRef<((tool: ReportTool | undefined) => void) | null>(null);
 
     const { community } = useCommunityStore();
-    const { data: userData } = useGetUserProfileAPI();
 
     const { editReport, selectedReport, selectedFeatures, setSelectedFeatures, setTableDrawerOpened, setDrawerOpened, toggleSortByDateCreation } =
         useReportStore();
@@ -375,11 +373,6 @@ const ReportForm: React.FC<Props> = ({
         setThemeAttributes(attributes);
     };
 
-    const isAdmin = useMemo(() => {
-        const currentUser = userData?.communitiesMember?.filter((cm) => cm.communityId === community?.id);
-        return Array.isArray(currentUser) ? currentUser.some((role) => role.role === "admin") : false;
-    }, [userData, community?.id]);
-
     if (!community) return;
 
     return (
@@ -390,7 +383,7 @@ const ReportForm: React.FC<Props> = ({
                     <h2 className="ri-map-pin-add-line fr-mt-4v fr-mb-1v fr-text--md">
                         {selectedReport ? t("edit_report_title", { reportId: selectedReport.id }) : t("create_report_title")}
                     </h2>
-                    {editReport && isAdmin && <DeleteShareReportComponent handleDelete={onDelete} />}
+                    {editReport && <DeleteShareReportComponent handleDelete={onDelete} />}
                 </div>
                 {selectedReport && <ReportFiltersComponent reportStatus={committedStatus} />}
                 {!selectedReport && (
