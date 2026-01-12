@@ -13,7 +13,10 @@ export async function getFeatureTypesAll(featureTypesIds: FeatureTypeIds[]): Pro
     if (resAll) {
         return resAll.map((res) => {
             const styles = res.data.styles || [];
-            if (res.data.style) styles.unshift(res.data.style);
+            if (res.data.style && !styles.some((s: FeatureTypeStyleItemData) => s.name === res.data.style.name)) {
+                styles.unshift(res.data.style);
+            }
+
             const geometryColumn = res.data.columns?.find((c: FeatureTypeColumn) => c.name === res.data.geometry_name);
             let geomType: GeoserviceFeatureTypeProp = GeoserviceFeatureTypeProp.POINT;
 

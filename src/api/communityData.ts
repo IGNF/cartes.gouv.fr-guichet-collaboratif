@@ -71,6 +71,46 @@ async function getCommunityLayers(communityId: string): Promise<CommunityLayer[]
     });
 }
 
+const defineZoomlvl = (layers: CommunityLayer[], providedMinZoom?: number | null, providedMaxZoom?: number | null): { minZoom: number; maxZoom: number } => {
+    if (providedMinZoom != null && providedMaxZoom != null) {
+        return {
+            minZoom: providedMinZoom,
+            maxZoom: providedMaxZoom,
+        };
+    }
+
+    const rasterLayers = layers.filter(
+        (layer) => layer.type === "geoservice" && layer.geoservice?.type && (layer.geoservice.type === "WMS" || layer.geoservice.type === "WMTS")
+    );
+
+    if (rasterLayers.length > 0) {
+        let minZoom = Infinity;
+        let maxZoom = -Infinity;
+
+        rasterLayers.forEach((layer) => {
+            const geoservice = layer.geoservice;
+            if (geoservice?.minZoom != null) {
+                minZoom = Math.min(minZoom, geoservice.minZoom);
+            }
+            if (geoservice?.maxZoom != null) {
+                maxZoom = Math.max(maxZoom, geoservice.maxZoom);
+            }
+        });
+
+        if (minZoom !== Infinity && maxZoom !== -Infinity) {
+            return {
+                minZoom: providedMinZoom ?? minZoom,
+                maxZoom: providedMaxZoom ?? maxZoom,
+            };
+        }
+    }
+
+    return {
+        minZoom: providedMinZoom ?? DEFAULT_COMMUNITY_MIN_ZOOM,
+        maxZoom: providedMaxZoom ?? DEFAULT_COMMUNITY_MAX_ZOOM,
+    };
+};
+
 async function getCommunityById(communityId: string): Promise<[Community, CommunityLayer[]] | null> {
     const res = await axiosApi.get(`${COMMUNITIES_API_URL}/${communityId}`);
 
@@ -79,6 +119,24 @@ async function getCommunityById(communityId: string): Promise<[Community, Commun
         return null;
     }
     if (!res.data || res.status !== 200) return null;
+
+    const communityLayersKey = [`COMMUNITY_LAYERS_DATA_${communityId}`];
+    let layers: CommunityLayer[];
+    const cached = queryClient.getQueryData(communityLayersKey);
+    if (cached) {
+        layers = cached as CommunityLayer[];
+    } else {
+        layers = await queryClient?.fetchQuery({
+            queryKey: communityLayersKey,
+            queryFn: () => getCommunityLayers(communityId),
+        });
+    }
+
+    const { minZoom, maxZoom } = defineZoomlvl(
+        layers,
+        res.data.min_zoom != null ? Number(res.data.min_zoom) : null,
+        res.data.max_zoom != null ? Number(res.data.max_zoom) : null
+    );
 
     const community: Community = {
         id: res.data.id,
@@ -91,23 +149,12 @@ async function getCommunityById(communityId: string): Promise<[Community, Commun
         themes: res.data.attributes,
         position: res.data.position,
         zoom: res.data.zoom,
-        minZoom: res.data.min_zoom != null ? Number(res.data.min_zoom) : DEFAULT_COMMUNITY_MIN_ZOOM,
-        maxZoom: res.data.max_zoom != null ? Number(res.data.max_zoom) : DEFAULT_COMMUNITY_MAX_ZOOM,
+        minZoom,
+        maxZoom,
     };
-    const communityLayersKey = [`COMMUNITY_LAYERS_DATA_${communityId}`];
-    let layers: CommunityLayer[];
-    const cached = queryClient.getQueryData(communityLayersKey);
-    if (cached) {
-        layers = cached as CommunityLayer[];
-    } else {
-        layers = await queryClient?.fetchQuery({
-            queryKey: communityLayersKey,
-            queryFn: () => getCommunityLayers(communityId),
-        });
-    }
+
     return [community, layers];
 }
-
 export const useGetCommunityByIdAPI = (communityId: string) => {
     const { community } = useCommunityStore();
     const { user } = useUserStore();

@@ -97,8 +97,8 @@ export default function MainMap() {
             projection: localStorageData?.projection || olDefaults.projection,
             center: localStorageData?.center || (getLonLatFromPoint(community?.position) as number[]),
             zoom: localStorageData?.zoom || community?.zoom,
-            minZoom: localStorageData?.minZoom || community?.minZoom,
-            maxZoom: localStorageData?.maxZoom || community?.maxZoom,
+            minZoom: community?.minZoom,
+            maxZoom: community?.maxZoom,
         });
 
         const switcher = layerSwitcherControl(mapLayers);
