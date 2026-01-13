@@ -1,0 +1,25 @@
+.map-hover-tooltip {
+    position: absolute;
+    background-color: #0000;
+    background-color: var(--background-default-grey);
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: sans-serif;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 1000;
+    box-shadow: 0 -2px 8px var(--overlays-shadow);
+}
+
+.map-hover-tooltip__title {
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: var(--text-blue-france);
+}
+
+.map-hover-tooltip__id {
+    font-size: 11px;
+    opacity: 0.75;
+    color: var(--text-blue-france);
+}

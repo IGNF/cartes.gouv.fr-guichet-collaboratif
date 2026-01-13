@@ -1,15 +1,25 @@
-import { FEATURE_TYPE_GEOSERVICE_PROPERTY, HIT_DETECTION_TOLERENCE } from "@/constants";
+import {
+    FEATURE_TYPE_GEOSERVICE_PROPERTY,
+    FEATURE_TYPE_SELECTED_PROPERTY,
+    FEATURE_TYPE_NEW_PROPERTY,
+    HIT_DETECTION_TOLERENCE,
+    FEATURE_TYPE_HOVER_PROPERTY,
+} from "@/constants";
 import { InteractionType } from "@/constants/communities/types";
 import { getFeaturesInPixelBySource } from "@/constants/communities/utils";
 import { getClickedMapReport, getReportSketchFeatures, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import { showClusterFeatures } from "@/constants/reports/utils/cluster";
-import { useMapStore, useReportStore } from "@/store";
-import { Feature, MapBrowserEvent } from "ol";
+import { useContributionStore, useMapStore, useReportStore } from "@/store";
+import { Feature, MapBrowserEvent, Overlay } from "ol";
 import VectorSource from "ol/source/Vector";
+import VectorLayer from "ol/layer/Vector";
+import WebGLVectorLayer from "ol/layer/WebGLVector";
 import { Style } from "ol/style";
+import { StyleLike } from "ol/style/Style";
 
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { createEmpty, extend } from "ol/extent";
+import { getSelectedFeatureTypeStyle } from "@/constants/styles";
 
 interface Props {
     handleCloseDrawer: () => void;
@@ -18,12 +28,66 @@ interface Props {
 const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
     const { map, mapWorkingLayer, setClickableFeatures, setClickedMapFeature } = useMapStore();
     const { reports, selectedReport, editReport, selectedFeatures, setSelectedReport, setSelectedFeatures, drawerOpened } = useReportStore();
+    const { selectedObjects } = useContributionStore();
+
+    const tooltipRef = useRef<HTMLDivElement | null>(null);
+    const overlayRef = useRef<Overlay | null>(null);
+    const hoveredFeatureRef = useRef<Feature | null>(null);
+
+    const originalStyleRef = useRef<StyleLike | null | undefined>(null);
 
     const reportClusterLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE && layer.getSource() instanceof VectorSource);
     const reportClusterSource = reportClusterLayer?.getSource() as VectorSource;
 
     const clickableLayer = map?.getAllLayers().find((layer) => layer.get("name") === mapWorkingLayer && layer.getSource() instanceof VectorSource);
     const clickableSource = mapWorkingLayer === REPORTS_LAYER_TYPE ? reportClusterSource : (clickableLayer?.getSource() as VectorSource);
+
+    useEffect(() => {
+        if (!map) return;
+
+        const tooltipElement: HTMLDivElement = document.createElement("div");
+        tooltipElement.className = "map-hover-tooltip";
+        tooltipRef.current = tooltipElement;
+
+        const overlay = new Overlay({
+            element: tooltipElement,
+            offset: [15, -15],
+            positioning: "bottom-left",
+            stopEvent: false,
+        });
+
+        overlayRef.current = overlay;
+        map.addOverlay(overlay);
+
+        return () => {
+            if (overlayRef.current) {
+                map.removeOverlay(overlayRef.current);
+            }
+            tooltipElement.remove();
+        };
+    }, [map]);
+
+    const clearHoverState = useCallback(() => {
+        if (hoveredFeatureRef.current && originalStyleRef.current !== null) {
+            hoveredFeatureRef.current.unset(FEATURE_TYPE_HOVER_PROPERTY);
+            hoveredFeatureRef.current.unset(FEATURE_TYPE_SELECTED_PROPERTY);
+            hoveredFeatureRef.current.setStyle(originalStyleRef.current);
+            hoveredFeatureRef.current.changed();
+            hoveredFeatureRef.current = null;
+            originalStyleRef.current = null;
+        }
+
+        if (overlayRef.current) {
+            overlayRef.current.setPosition(undefined);
+        }
+    }, []);
+
+    const isTooltipDisabled = useCallback(() => {
+        if (!map) return false;
+
+        const activeInteractions = map.getInteractions().getArray();
+        return activeInteractions.some((interaction) => interaction.get("disablesTooltip") === true);
+    }, [map]);
 
     const handleClusterClick = useCallback(
         (clusterFeature: Feature): boolean => {
@@ -78,6 +142,8 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
         (evt: MapBrowserEvent) => {
             if (!map) return;
             if (selectedFeatures?.find((f) => f?.get("new"))) return;
+
+            clearHoverState();
 
             const features: { feature: Feature; zIndex: number }[] = [];
             const selectInteraction = map
@@ -176,12 +242,15 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
             setSelectedFeatures,
             setClickedMapFeature,
             setClickableFeatures,
+            clearHoverState,
         ]
     );
 
     const handlePointerMove = useCallback(
         (evt: MapBrowserEvent) => {
-            const features = map?.getFeaturesAtPixel(evt.pixel, {
+            if (!map) return;
+
+            const features = map.getFeaturesAtPixel(evt.pixel, {
                 layerFilter: (layer) => {
                     return layer.get("name") === mapWorkingLayer || layer.get("type") === mapWorkingLayer;
                 },
@@ -199,22 +268,107 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
                 return null;
             }) as Feature;
 
-            const targetElement = map?.getTargetElement();
+            const targetElement = map.getTargetElement();
             if (targetElement) {
                 if (feature) {
                     if (selectedFeatures.length && !selectedFeatures.includes(feature) && selectedFeatures.find((f) => f.get("new"))) {
                         targetElement.style.cursor = "";
-                        return;
+                    } else {
+                        targetElement.style.cursor = "pointer";
                     }
-                    targetElement.style.cursor = "pointer";
-                    return;
                 } else {
                     targetElement.style.cursor = "";
+                }
+            }
+
+            if (isTooltipDisabled()) {
+                clearHoverState();
+                return;
+            }
+
+            const workingLayer = map
+                .getAllLayers()
+                .find(
+                    (layer) =>
+                        (layer.get("name") === mapWorkingLayer || layer.get("type") === mapWorkingLayer) &&
+                        (layer instanceof VectorLayer || layer instanceof WebGLVectorLayer)
+                );
+
+            if (!workingLayer) {
+                clearHoverState();
+                return;
+            }
+
+            const source = workingLayer.getSource() as VectorSource;
+            const featuresAt = getFeaturesInPixelBySource(map, source, evt.pixel, HIT_DETECTION_TOLERENCE);
+
+            if (!featuresAt || featuresAt.length === 0) {
+                clearHoverState();
+                return;
+            }
+
+            let hoverFeature = featuresAt[0];
+
+            if (mapWorkingLayer === REPORTS_LAYER_TYPE && hoverFeature.get("features")) {
+                const clusterMembers = hoverFeature.get("features");
+                if (clusterMembers && clusterMembers.length === 1) {
+                    hoverFeature = clusterMembers[0];
+                } else if (clusterMembers && clusterMembers.length > 1) {
+                    clearHoverState();
                     return;
                 }
             }
+
+            if (hoverFeature.get(FEATURE_TYPE_NEW_PROPERTY) || selectedObjects.some((obj) => obj === hoverFeature)) {
+                clearHoverState();
+                return;
+            }
+            if (hoveredFeatureRef.current && hoveredFeatureRef.current !== hoverFeature) {
+                clearHoverState();
+            }
+
+            if (hoveredFeatureRef.current !== hoverFeature) {
+                hoveredFeatureRef.current = hoverFeature;
+                originalStyleRef.current = hoverFeature.getStyle();
+
+                const geoservice = hoverFeature.get(FEATURE_TYPE_GEOSERVICE_PROPERTY);
+                const featureType = geoservice?.featureType || hoverFeature.get("featureType");
+
+                if (featureType) {
+                    const selectedStyle = getSelectedFeatureTypeStyle(featureType, geoservice?.styles?.[0] || { name: "default", types: [] });
+                    if (selectedStyle) {
+                        hoverFeature.set(FEATURE_TYPE_HOVER_PROPERTY, true);
+                        hoverFeature.set(FEATURE_TYPE_SELECTED_PROPERTY, true);
+                        hoverFeature.setStyle(selectedStyle);
+                        hoverFeature.changed();
+                    }
+                }
+            }
+
+            if (tooltipRef.current && overlayRef.current) {
+                const featureName =
+                    hoverFeature.get("nom") ||
+                    hoverFeature.get("name") ||
+                    hoverFeature.get("titre") ||
+                    hoverFeature.get("title") ||
+                    hoverFeature.get("libelle") ||
+                    hoverFeature.get("description");
+
+                const featureId = hoverFeature.getId();
+
+                tooltipRef.current.innerHTML = `
+            <div class="map-hover-tooltip__title">
+                ${featureName}
+            </div>
+            <div class="map-hover-tooltip__id">
+                ID: ${featureId}
+            </div>
+        `;
+
+                overlayRef.current.setPosition(evt.coordinate);
+            }
         },
-        [map, selectedFeatures, mapWorkingLayer, clickableSource]
+        [map, selectedFeatures, selectedObjects, mapWorkingLayer, clickableSource, isTooltipDisabled, clearHoverState]
     );
 
     const handleClusterChange = useCallback(() => {
@@ -233,6 +387,21 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
 
     useEffect(() => {
         if (!map) return;
+
+        const handlePointerLeave = () => {
+            clearHoverState();
+        };
+
+        const viewport = map.getViewport();
+        viewport.addEventListener("mouseleave", handlePointerLeave);
+
+        return () => {
+            viewport.removeEventListener("mouseleave", handlePointerLeave);
+        };
+    }, [map, clearHoverState]);
+
+    useEffect(() => {
+        if (!map) return;
         map.on("singleclick", handleSingleClick);
         map.on("pointermove", handlePointerMove);
         map.getView()?.on("change:resolution", handleClusterChange);
@@ -241,8 +410,9 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
             map.un("singleclick", handleSingleClick);
             map.un("pointermove", handlePointerMove);
             map.getView().un("change:resolution", handleClusterChange);
+            clearHoverState();
         };
-    }, [map, reports, selectedReport, drawerOpened, handleSingleClick, handlePointerMove, setSelectedReport, handleClusterChange]);
+    }, [map, reports, selectedReport, drawerOpened, handleSingleClick, handlePointerMove, setSelectedReport, handleClusterChange, clearHoverState]);
 
     return null;
 };
