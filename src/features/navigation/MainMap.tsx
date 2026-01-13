@@ -27,7 +27,7 @@ import Layer from "ol/layer/Layer";
 import WorkingLayerControl from "./controls/WorkingLayerControl";
 import { APP_FOOTER_MIN_HEIGHT } from "@/constants";
 import WorkingLayerLabelMap from "./controls/WorkingLayerLabelMap";
-import CustomControls from "./controls/cusom-controls";
+import CustomControls from "./controls/custom-controls";
 import ReviewContributions from "../contributions/ReviewContributions";
 
 export default function MainMap() {
