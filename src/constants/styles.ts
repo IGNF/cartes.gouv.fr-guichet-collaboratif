@@ -8,7 +8,10 @@ import {
     CLUSTER_REPORT_CIRCLE_STROKE_COLOR,
     SELECTION_CIRCLE_COLOR,
     WHITE_COLOR,
-    DARK_RGBA,
+    HIGHLIGHT_COLOR,
+    POLYGON_LINE_COLOR,
+    POINT_COLOR,
+    FILL_COLOR,
 } from "./colors";
 import { GeometryFeatueParams } from "./reports/types";
 import { Map } from "ol";
@@ -132,13 +135,13 @@ export const strokeLineDash = function ({ strokeWidth, strokeDashstyle }: { stro
 export function hexToRgba(hex: string | undefined | null, alpha: number = 1): string {
     try {
         if (!hex || typeof hex !== "string") {
-            return DARK_RGBA;
+            return POLYGON_LINE_COLOR;
         }
 
         const cleanHex = hex.trim();
         const match = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.exec(cleanHex);
         if (!match) {
-            return DARK_RGBA;
+            return POLYGON_LINE_COLOR;
         }
 
         let r: number, g: number, b: number;
@@ -154,14 +157,14 @@ export function hexToRgba(hex: string | undefined | null, alpha: number = 1): st
         }
 
         if (![r, g, b, alpha].every(Number.isFinite)) {
-            return DARK_RGBA;
+            return POLYGON_LINE_COLOR;
         }
 
         const safeAlpha = Number.isFinite(alpha) ? Math.min(Math.max(alpha, 0), 1) : 1;
 
         return `rgba(${r}, ${g}, ${b}, ${safeAlpha})`;
     } catch {
-        return DARK_RGBA;
+        return POLYGON_LINE_COLOR;
     }
 }
 
@@ -229,13 +232,13 @@ export const featureTypeSelectedPointCircleStyle = (isDefaultStyle: boolean = fa
     if (isDefaultStyle) {
         return getCircleStyle({
             pointRadius: 6,
-            strokeColor: "#fff",
+            strokeColor: WHITE_COLOR,
             strokeOpacity: 1,
             strokeWidth: 1,
             title: GeoserviceFeatureTypeProp.POINT,
             strokeDashstyle: undefined,
             strokeLinecap: undefined,
-            fillColor: "#13a7eb",
+            fillColor: CLUSTER_CIRCLE_COLOR,
             fillOpacity: 1,
             zIndex: 2,
         });
@@ -243,25 +246,25 @@ export const featureTypeSelectedPointCircleStyle = (isDefaultStyle: boolean = fa
     return [
         getCircleStyle({
             pointRadius: 8,
-            strokeColor: "#13a7eb",
+            strokeColor: CLUSTER_CIRCLE_COLOR,
             strokeOpacity: 1,
             strokeWidth: 2,
             title: GeoserviceFeatureTypeProp.POINT,
             strokeDashstyle: undefined,
             strokeLinecap: undefined,
-            fillColor: "#fafa00",
+            fillColor: HIGHLIGHT_COLOR,
             fillOpacity: 1,
             zIndex: 2,
         }),
         getCircleStyle({
             pointRadius: 3,
-            strokeColor: "#13a7eb",
+            strokeColor: CLUSTER_CIRCLE_COLOR,
             strokeOpacity: 1,
             strokeWidth: 2,
             title: GeoserviceFeatureTypeProp.POINT,
             strokeDashstyle: undefined,
             strokeLinecap: undefined,
-            fillColor: "#fafa00",
+            fillColor: HIGHLIGHT_COLOR,
             fillOpacity: 1,
             zIndex: 2,
         }),
@@ -274,7 +277,7 @@ export const featureTypeSelectedLineStyle = (isDefaultStyle: boolean = false) =>
             pointRadius: 8,
             fillColor: "",
             fillOpacity: 1,
-            strokeColor: isDefaultStyle ? "#fff" : "#13a7eb",
+            strokeColor: isDefaultStyle ? WHITE_COLOR : CLUSTER_CIRCLE_COLOR,
             strokeOpacity: 1,
             strokeWidth: 7,
             title: GeoserviceFeatureTypeProp.LINE,
@@ -286,7 +289,7 @@ export const featureTypeSelectedLineStyle = (isDefaultStyle: boolean = false) =>
             pointRadius: 6,
             fillColor: "",
             fillOpacity: 1,
-            strokeColor: isDefaultStyle ? "#13a7eb" : "#fafa00",
+            strokeColor: isDefaultStyle ? CLUSTER_CIRCLE_COLOR : HIGHLIGHT_COLOR,
             strokeOpacity: 1,
             strokeWidth: 4,
             title: GeoserviceFeatureTypeProp.LINE,
@@ -301,9 +304,9 @@ export const featureTypeSelectedPolygonStyle = (isDefaultStyle: boolean = false)
     return [
         getLineOrPolygonStyle({
             pointRadius: 0,
-            fillColor: isDefaultStyle ? "#fff" : "#c89c4a",
+            fillColor: isDefaultStyle ? WHITE_COLOR : POLYGON_LINE_COLOR,
             fillOpacity: isDefaultStyle ? 0.2 : 0.8,
-            strokeColor: isDefaultStyle ? "#fff" : "#13a7eb",
+            strokeColor: isDefaultStyle ? WHITE_COLOR : CLUSTER_CIRCLE_COLOR,
             strokeOpacity: 1,
             strokeWidth: 4,
             title: GeoserviceFeatureTypeProp.POLYGON,
@@ -313,9 +316,9 @@ export const featureTypeSelectedPolygonStyle = (isDefaultStyle: boolean = false)
         }),
         getLineOrPolygonStyle({
             pointRadius: 0,
-            fillColor: isDefaultStyle ? "#fff" : "#fafa00",
+            fillColor: isDefaultStyle ? WHITE_COLOR : HIGHLIGHT_COLOR,
             fillOpacity: 0.2,
-            strokeColor: isDefaultStyle ? "#13a7eb" : "#fafa00",
+            strokeColor: isDefaultStyle ? CLUSTER_CIRCLE_COLOR : HIGHLIGHT_COLOR,
             strokeOpacity: 1,
             strokeWidth: 2,
             title: GeoserviceFeatureTypeProp.POLYGON,
@@ -327,63 +330,65 @@ export const featureTypeSelectedPolygonStyle = (isDefaultStyle: boolean = false)
 };
 
 export const featureDefaultStyle = (type: GeoserviceFeatureTypeProp = GeoserviceFeatureTypeProp.POINT): FeatureTypeStyle => {
-    const defaults: Record<GeoserviceFeatureTypeProp, FeatureTypeStyle> = {
-        [GeoserviceFeatureTypeProp.POINT]: {
+    if (type === GeoserviceFeatureTypeProp.LINE) {
+        return {
             name: DEFAULT_STYLE_NAME,
             types: [
                 {
-                    title: "Par défaut - Point",
-                    type: "circle" as const,
-                    featureType: GeoserviceFeatureTypeProp.POINT,
-                    pointRadius: 6,
-                    fillColor: "#ee9900",
-                    fillOpacity: 0.4,
-                    strokeColor: "#ee9900",
-                    strokeWidth: 2,
-                    strokeOpacity: 1,
-                    strokeDashstyle: undefined,
-                    strokeLinecap: undefined,
-                },
-            ],
-        },
-        [GeoserviceFeatureTypeProp.LINE]: {
-            name: DEFAULT_STYLE_NAME,
-            types: [
-                {
-                    title: "Par défaut - Ligne",
-                    type: "line" as const,
-                    featureType: GeoserviceFeatureTypeProp.LINE,
+                    title: "Par défaut",
+                    type: undefined,
+                    featureType: type,
                     pointRadius: 0,
                     fillColor: "",
                     fillOpacity: 0,
-                    strokeColor: "#ee9900",
-                    strokeWidth: 2,
-                    strokeOpacity: 1,
+                    strokeColor: POLYGON_LINE_COLOR,
+                    strokeWidth: 3,
                     strokeDashstyle: undefined,
-                    strokeLinecap: "round" as const,
+                    strokeLinecap: "round",
+                    strokeOpacity: 1,
                 },
             ],
-        },
-        [GeoserviceFeatureTypeProp.POLYGON]: {
+        };
+    }
+    if (type === GeoserviceFeatureTypeProp.POLYGON) {
+        return {
             name: DEFAULT_STYLE_NAME,
             types: [
                 {
-                    title: "Par défaut - Polygone",
-                    type: "polygon" as const,
-                    featureType: GeoserviceFeatureTypeProp.POLYGON,
+                    title: "Par défaut",
+                    type: undefined,
+                    featureType: type,
                     pointRadius: 0,
-                    fillColor: "#ee9900",
+                    fillColor: FILL_COLOR,
                     fillOpacity: 0.4,
-                    strokeColor: "#ee9900",
+                    strokeColor: POLYGON_LINE_COLOR,
                     strokeWidth: 2,
-                    strokeOpacity: 1,
                     strokeDashstyle: undefined,
-                    strokeLinecap: undefined,
+                    strokeLinecap: "butt",
+                    strokeOpacity: 1,
                 },
             ],
-        },
+        };
+    }
+
+    return {
+        name: DEFAULT_STYLE_NAME,
+        types: [
+            {
+                title: "Par défaut",
+                type: "circle",
+                featureType: type,
+                pointRadius: 6,
+                fillColor: FILL_COLOR,
+                fillOpacity: 0.4,
+                strokeColor: POINT_COLOR,
+                strokeWidth: 2,
+                strokeDashstyle: undefined,
+                strokeLinecap: undefined,
+                strokeOpacity: 1,
+            },
+        ],
     };
-    return defaults[type] || defaults[GeoserviceFeatureTypeProp.POINT];
 };
 
 export const getSelectedFeatureTypeStyle = (type: string, style: FeatureTypeStyle) => {
@@ -396,16 +401,16 @@ export const getSelectedFeatureTypeStyle = (type: string, style: FeatureTypeStyl
 export const getStyleWebGLPolygon: (isDefault: boolean) => FlatStyle[] = (isDefault: boolean = false): FlatStyle[] => {
     return [
         {
-            "stroke-color": hexToRgba(isDefault ? "#fff" : "#13a7eb", 1),
+            "stroke-color": isDefault ? WHITE_COLOR : CLUSTER_CIRCLE_COLOR,
             "stroke-width": 2,
-            "fill-color": hexToRgba(isDefault ? "#fff" : "#ee9900", 0.4),
+            "fill-color": isDefault ? WHITE_COLOR : FILL_COLOR,
         },
         {
-            "stroke-color": hexToRgba(isDefault ? "#fff" : "#13a7eb", 1),
+            "stroke-color": isDefault ? WHITE_COLOR : CLUSTER_CIRCLE_COLOR,
             "stroke-width": 6,
         },
         {
-            "stroke-color": hexToRgba(isDefault ? "#13a7eb" : "#fafa00", 1),
+            "stroke-color": isDefault ? CLUSTER_CIRCLE_COLOR : HIGHLIGHT_COLOR,
             "stroke-width": 3,
         },
     ];
@@ -414,12 +419,12 @@ export const getStyleWebGLPolygon: (isDefault: boolean) => FlatStyle[] = (isDefa
 export const getStyleWebGLLine: (isDefault: boolean) => FlatStyle[] = (isDefault: boolean = false): FlatStyle[] => {
     return [
         {
-            "stroke-color": hexToRgba(isDefault ? "#fff" : "#13a7eb", 1),
+            "stroke-color": isDefault ? WHITE_COLOR : CLUSTER_CIRCLE_COLOR,
             "stroke-width": 7,
             "stroke-line-cap": "round",
         },
         {
-            "stroke-color": hexToRgba(isDefault ? "#13a7eb" : "#fafa00", 1),
+            "stroke-color": isDefault ? CLUSTER_CIRCLE_COLOR : HIGHLIGHT_COLOR,
             "stroke-width": 4,
             "stroke-line-cap": "round",
         },
@@ -430,25 +435,25 @@ export const getStyleWebGLPoint: (isDefault: boolean) => FlatStyle | FlatStyle[]
     if (isDefault) {
         return {
             "circle-radius": 6,
-            "circle-stroke-color": hexToRgba("#fff", 1),
+            "circle-stroke-color": WHITE_COLOR,
             "circle-stroke-width": 2,
-            "circle-fill-color": hexToRgba("#13a7eb", 1),
+            "circle-fill-color": CLUSTER_CIRCLE_COLOR,
             "z-index": ["get", "zIndex"],
         };
     }
     return [
         {
             "circle-radius": 8,
-            "circle-stroke-color": hexToRgba("#13a7eb", 1),
+            "circle-stroke-color": CLUSTER_CIRCLE_COLOR,
             "circle-stroke-width": 2,
-            "circle-fill-color": hexToRgba("#fafa00", 1),
+            "circle-fill-color": HIGHLIGHT_COLOR,
             "z-index": ["get", "zIndex"],
         },
         {
             "circle-radius": 3.5,
-            "circle-stroke-color": hexToRgba("#13a7eb", 1),
+            "circle-stroke-color": CLUSTER_CIRCLE_COLOR,
             "circle-stroke-width": 2,
-            "circle-fill-color": hexToRgba("#c89c4a", 1),
+            "circle-fill-color": POLYGON_LINE_COLOR,
             "z-index": ["get", "zIndex"],
         },
     ];
@@ -466,15 +471,21 @@ export const getStyleWebGLDefault: (newStyle?: FeatureTypeStyleItem | undefined)
         if (style) return style;
     }
 
+    const hasStrokeColor = newStyle?.strokeColor && newStyle.strokeColor.trim() !== "";
+    const hasFillColor = newStyle?.fillColor && newStyle.fillColor.trim() !== "";
+
+    const strokeColor = hasStrokeColor ? hexToRgba(newStyle!.strokeColor, newStyle!.strokeOpacity) : POLYGON_LINE_COLOR;
+
+    const fillColor = hasFillColor ? hexToRgba(newStyle!.fillColor, newStyle!.fillOpacity) : FILL_COLOR;
+
     return {
-        "stroke-color": newStyle ? hexToRgba(newStyle.strokeColor, newStyle.strokeOpacity) : "#fff",
+        "stroke-color": strokeColor,
         "stroke-width": newStyle ? newStyle.strokeWidth : 1,
-        "fill-color": newStyle ? hexToRgba(newStyle.fillColor, newStyle.fillOpacity) : "#fff",
+        "fill-color": fillColor,
         "shape-stroke-line-cap": newStyle ? newStyle.strokeLinecap : "round",
         "shape-stroke-line-dash": newStyle && newStyle.strokeDashstyle ? strokeLineDash(newStyle) : undefined,
     };
 };
-
 export const getConditionsByType = (condition: FeatureTypeCondition | undefined) => {
     return condition?.map((cond) =>
         Object.keys(cond)
@@ -492,6 +503,7 @@ export const getConditionsByType = (condition: FeatureTypeCondition | undefined)
             .flat()
     );
 };
+
 export const getConditionedFiltersByType = (cond: FeatureTypeConditionValue[][] | undefined) => {
     const filter: WebGLFilterType = [];
 
@@ -500,7 +512,7 @@ export const getConditionedFiltersByType = (cond: FeatureTypeConditionValue[][] 
             const nc = getConditionedFiltersByType(getConditionsByType(c.splice(2).filter((el) => typeof el === "object") as unknown as FeatureTypeCondition));
             if (nc.length === 1) {
                 filter.push(...nc);
-            } else {
+            } else if (nc.length > 1) {
                 filter.push([c![0] === "$and" ? "all" : "any", ...nc]);
             }
             return;
@@ -536,7 +548,7 @@ export const getConditionedFiltersByType = (cond: FeatureTypeConditionValue[][] 
 
                 if (orFilters.length === 1) {
                     filter.push(orFilters[0]);
-                } else {
+                } else if (orFilters.length > 1) {
                     filter.push(["any", ...orFilters]);
                 }
             } else {
@@ -555,7 +567,7 @@ export const getConditionedFiltersByType = (cond: FeatureTypeConditionValue[][] 
 
                 if (orFilters.length === 1) {
                     filter.push(orFilters[0]);
-                } else {
+                } else if (orFilters.length > 1) {
                     filter.push(["any", ...orFilters]);
                 }
             } else {
@@ -568,27 +580,42 @@ export const getConditionedFiltersByType = (cond: FeatureTypeConditionValue[][] 
 };
 
 export const getFilterStyleByCondition = (newTypes: FeatureTypeStyleItem[]) => {
-    const filters: { else: boolean; filter: WebGLFilterType; style: FlatStyle | FlatStyle[] }[] = [];
+    const filters: { filter: WebGLFilterType; style: FlatStyle | FlatStyle[] }[] = [];
     const conditions = newTypes?.filter((t, index) => t.condition && newTypes![index]);
+
     conditions.forEach((type, index) => {
         if (type.condition?.$or) {
             const orCondition = getConditionsByType(type.condition?.$or);
-            filters.push({
-                else: true,
-                filter: ["all", ["!", ["has", FEATURE_TYPE_SELECTED_PROPERTY]], ["any", ...getConditionedFiltersByType(orCondition)]],
-                style: getStyleWebGLDefault(newTypes![index + 1]),
-            });
+            const conditionedFilters = getConditionedFiltersByType(orCondition);
+
+            if (conditionedFilters.length > 0) {
+                const filterExpression: WebGLFilterType =
+                    conditionedFilters.length === 1 ? (conditionedFilters[0] as WebGLFilterType) : (["any", ...conditionedFilters] as WebGLFilterType);
+
+                filters.push({
+                    filter: filterExpression,
+                    style: getStyleWebGLDefault(newTypes![index + 1]),
+                });
+            }
         }
+
         if (type.condition?.$and) {
             const andCondition = getConditionsByType(type.condition?.$and);
-            filters.push({
-                else: true,
-                filter: ["all", ["!", ["has", FEATURE_TYPE_SELECTED_PROPERTY]], ...getConditionedFiltersByType(andCondition)],
-                style: getStyleWebGLDefault(newTypes![index + 1]),
-            });
+            const conditionedFilters = getConditionedFiltersByType(andCondition);
+
+            if (conditionedFilters.length > 0) {
+                const filterExpression: WebGLFilterType =
+                    conditionedFilters.length === 1 ? (conditionedFilters[0] as WebGLFilterType) : (["all", ...conditionedFilters] as WebGLFilterType);
+
+                filters.push({
+                    filter: filterExpression,
+                    style: getStyleWebGLDefault(newTypes![index + 1]),
+                });
+            }
         }
     });
-    return filters ?? [];
+
+    return filters;
 };
 
 export const getWebGLStyle = (geoservice: CommunityGeoservice, selectedStyle?: FeatureTypeSelectedStyle[]) => {
@@ -596,17 +623,20 @@ export const getWebGLStyle = (geoservice: CommunityGeoservice, selectedStyle?: F
         const defaultStyle = featureDefaultStyle(geoservice.featureType);
         geoservice.styles = [defaultStyle];
     }
+
     const layerStyle = selectedStyle?.find((type) => type.layer === geoservice.layer);
-    const newStyle = layerStyle ? layerStyle.selectedStyle : geoservice.styles![0];
+    const newStyle = layerStyle ? layerStyle.selectedStyle : geoservice.styles[0];
     const newTypes = newStyle.types;
     const filterStyleByCondition = getFilterStyleByCondition(newTypes!);
     const isDefault = newStyle.name === DEFAULT_STYLE_NAME;
+
     let filterSelected = [
         {
             filter: ["all", ["==", ["get", "featureType"], GeoserviceFeatureTypeProp.POINT], ["has", FEATURE_TYPE_SELECTED_PROPERTY]],
             style: getStyleWebGLPoint(isDefault),
         },
     ];
+
     if (geoservice.featureType === GeoserviceFeatureTypeProp.POLYGON) {
         filterSelected = [
             {
@@ -615,6 +645,7 @@ export const getWebGLStyle = (geoservice: CommunityGeoservice, selectedStyle?: F
             },
         ];
     }
+
     if (geoservice.featureType === GeoserviceFeatureTypeProp.LINE) {
         filterSelected = [
             {
@@ -623,6 +654,7 @@ export const getWebGLStyle = (geoservice: CommunityGeoservice, selectedStyle?: F
             },
         ];
     }
+
     return [
         ...filterStyleByCondition,
         {
