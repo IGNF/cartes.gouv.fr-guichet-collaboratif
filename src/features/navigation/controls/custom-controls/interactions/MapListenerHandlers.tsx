@@ -16,7 +16,6 @@ import VectorLayer from "ol/layer/Vector";
 import WebGLVectorLayer from "ol/layer/WebGLVector";
 import { Style } from "ol/style";
 import { StyleLike } from "ol/style/Style";
-
 import { useCallback, useEffect, useRef } from "react";
 import { createEmpty, extend } from "ol/extent";
 import { getSelectedFeatureTypeStyle } from "@/constants/styles";
@@ -55,7 +54,6 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
             positioning: "bottom-left",
             stopEvent: false,
         });
-
         overlayRef.current = overlay;
         map.addOverlay(overlay);
 
@@ -63,7 +61,9 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
             if (overlayRef.current) {
                 map.removeOverlay(overlayRef.current);
             }
-            tooltipElement.remove();
+            if (tooltipRef.current) {
+                tooltipRef.current.remove();
+            }
         };
     }, [map]);
 
@@ -364,7 +364,6 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
                 ID: ${featureId}
             </div>
         `;
-
                 overlayRef.current.setPosition(evt.coordinate);
             }
         },
