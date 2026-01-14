@@ -1,7 +1,7 @@
 import { Style } from "ol/style";
 import ImageStyle from "ol/style/Image";
 import { FeatureTypeStyleItem } from "./communities/types";
-import { getCircleStyle, getLineOrPolygonStyle, getRegularShapeStyle, strokeLineDash } from "./styles";
+import { getCircleStyle, getLineOrPolygonStyle, getRegularShapeStyle, hexToRgba, strokeLineDash } from "./styles";
 import { FlatStyle } from "ol/style/flat";
 
 export const getRawWellKnownNames = (newStyle: FeatureTypeStyleItem): FlatStyle | undefined => {
@@ -10,18 +10,20 @@ export const getRawWellKnownNames = (newStyle: FeatureTypeStyleItem): FlatStyle 
             return {
                 "circle-radius": newStyle?.pointRadius,
                 "circle-stroke-width": newStyle.strokeWidth,
-                "circle-stroke-color": newStyle.strokeColor,
-                "circle-fill-color": newStyle.fillColor,
+                "circle-stroke-color": hexToRgba(newStyle.strokeColor, newStyle.strokeOpacity),
+                "circle-fill-color": hexToRgba(newStyle.fillColor, newStyle.fillOpacity),
                 "circle-scale": 1,
+                "circle-opacity": 1,
             };
         case "triangle":
             return {
                 "shape-radius": newStyle?.pointRadius ?? 4,
                 "shape-points": 3,
                 "shape-stroke-width": newStyle.strokeWidth,
-                "shape-stroke-color": newStyle.strokeColor,
-                "shape-fill-color": newStyle.fillColor,
+                "shape-stroke-color": hexToRgba(newStyle.strokeColor, newStyle.strokeOpacity),
+                "shape-fill-color": hexToRgba(newStyle.fillColor, newStyle.fillOpacity),
                 "shape-scale": 1,
+                "shape-opacity": 1,
                 "shape-radius2": newStyle?.pointRadius / 2,
                 "shape-angle": 0,
             };
@@ -30,9 +32,10 @@ export const getRawWellKnownNames = (newStyle: FeatureTypeStyleItem): FlatStyle 
                 "shape-radius": newStyle?.pointRadius ?? 10,
                 "shape-points": 5,
                 "shape-stroke-width": newStyle.strokeWidth,
-                "shape-stroke-color": newStyle.strokeColor,
-                "shape-fill-color": newStyle.fillColor,
+                "shape-stroke-color": hexToRgba(newStyle.strokeColor, newStyle.strokeOpacity),
+                "shape-fill-color": hexToRgba(newStyle.fillColor, newStyle.fillOpacity),
                 "shape-scale": 1,
+                "shape-opacity": 1,
                 "shape-radius2": newStyle?.pointRadius / 2,
                 "shape-angle": 0,
             };
@@ -41,9 +44,10 @@ export const getRawWellKnownNames = (newStyle: FeatureTypeStyleItem): FlatStyle 
                 "shape-radius": newStyle?.pointRadius ?? 4,
                 "shape-points": 4,
                 "shape-stroke-width": newStyle.strokeWidth,
-                "shape-stroke-color": newStyle.strokeColor,
-                "shape-fill-color": newStyle.fillColor,
+                "shape-stroke-color": hexToRgba(newStyle.strokeColor, newStyle.strokeOpacity),
+                "shape-fill-color": hexToRgba(newStyle.fillColor, newStyle.fillOpacity),
                 "shape-scale": 1,
+                "shape-opacity": 1,
                 "shape-angle": Math.PI / 4,
             };
         case "cross":
@@ -51,9 +55,10 @@ export const getRawWellKnownNames = (newStyle: FeatureTypeStyleItem): FlatStyle 
                 "shape-radius": newStyle?.pointRadius ?? 4,
                 "shape-points": 4,
                 "shape-stroke-width": newStyle.strokeWidth,
-                "shape-stroke-color": newStyle.strokeColor,
-                "shape-fill-color": newStyle.fillColor,
+                "shape-stroke-color": hexToRgba(newStyle.strokeColor, newStyle.strokeOpacity),
+                "shape-fill-color": hexToRgba(newStyle.fillColor, newStyle.fillOpacity),
                 "shape-scale": 1,
+                "shape-opacity": 1,
                 "shape-radius2": 0,
                 "shape-angle": Math.PI / 4,
             };
@@ -62,9 +67,10 @@ export const getRawWellKnownNames = (newStyle: FeatureTypeStyleItem): FlatStyle 
                 "shape-radius": newStyle?.pointRadius,
                 "shape-points": 4,
                 "shape-stroke-width": newStyle?.strokeWidth,
-                "shape-stroke-color": newStyle.strokeColor,
-                "shape-fill-color": newStyle.fillColor,
+                "shape-stroke-color": hexToRgba(newStyle.strokeColor, newStyle.strokeOpacity),
+                "shape-fill-color": hexToRgba(newStyle.fillColor, newStyle.fillOpacity),
                 "shape-scale": 1.2,
+                "shape-opacity": 1,
                 "shape-radius2": 0,
                 "shape-angle": Math.PI / 4,
                 "shape-stroke-line-cap": "butt",
