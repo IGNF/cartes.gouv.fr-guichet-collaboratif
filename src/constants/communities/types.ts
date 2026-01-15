@@ -4,7 +4,7 @@ import TileLayer from "ol/layer/Tile";
 import VectorLayer from "ol/layer/Vector";
 import { ReactNode } from "react";
 
-export type FeatureTypeIds = { database: number; table: number };
+export type FeatureTypeIds = { database: number | null; table: number | null };
 export type layerData = {
     id: number;
     type: string;
