@@ -15,9 +15,10 @@ interface FeatureTypeFormFieldsProps {
     formData: Record<string, string | number | boolean | File[] | null>;
     validationErrors: Record<string, string | null>;
     updateField: (name: string, value: string | number | boolean | File[] | null, col: FeatureTypeColumn) => void;
+    idName?: string;
 }
 
-export const FeatureTypeFormFields: React.FC<FeatureTypeFormFieldsProps> = ({ columns, formData, validationErrors, updateField }) => {
+export const FeatureTypeFormFields: React.FC<FeatureTypeFormFieldsProps> = ({ columns, formData, validationErrors, updateField, idName }) => {
     const { selectedObjects, featureTypeMode, columnsToModify, setColumnsToModify } = useContributionStore();
     const { t } = useTranslation({ FeatureTypeFormFields });
 
@@ -42,9 +43,12 @@ export const FeatureTypeFormFields: React.FC<FeatureTypeFormFieldsProps> = ({ co
                     const v = formData[col.name];
                     const error = validationErrors[col.name];
 
+                    const isIdColumn = idName && col.name === idName;
+                    const isReadOnly = col.read_only || isIdColumn;
+
                     const titleName = (
                         <span>
-                            {showTitleCellCheckbox && col.nullable ? (
+                            {showTitleCellCheckbox && col.nullable && !isIdColumn ? (
                                 <Checkbox
                                     options={[
                                         {
@@ -60,7 +64,7 @@ export const FeatureTypeFormFields: React.FC<FeatureTypeFormFieldsProps> = ({ co
                             ) : (
                                 col.title
                             )}
-                            {col.required && <span style={{ color: "red" }}> *</span>}
+                            {col.required && !isIdColumn && <span style={{ color: "red" }}> *</span>}
                         </span>
                     );
 
@@ -73,16 +77,8 @@ export const FeatureTypeFormFields: React.FC<FeatureTypeFormFieldsProps> = ({ co
                     );
                     let valueCell: React.ReactNode;
 
-                    if (col.read_only) {
-                        valueCell = (
-                            <Input
-                                label=""
-                                nativeInputProps={{
-                                    value: String(v ?? ""),
-                                    disabled: true,
-                                }}
-                            />
-                        );
+                    if (isReadOnly) {
+                        valueCell = <span>{String(v ?? "")}</span>;
                     } else {
                         switch (col.type.toLowerCase()) {
                             case "string":
@@ -220,7 +216,7 @@ export const FeatureTypeFormFields: React.FC<FeatureTypeFormFieldsProps> = ({ co
                         </div>,
                     ];
                 }),
-        [columns, formData, validationErrors, showTitleCellCheckbox, updateField, handleCheckboxChange, t]
+        [columns, formData, validationErrors, showTitleCellCheckbox, updateField, handleCheckboxChange, t, idName]
     );
 
     return <Table bordered fixed className="feature-type-form-table" data={dataColumns} />;
