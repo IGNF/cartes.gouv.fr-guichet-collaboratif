@@ -86,7 +86,25 @@ export const FeatureTypeFormFields: React.FC<FeatureTypeFormFieldsProps> = ({ co
                     } else {
                         switch (col.type.toLowerCase()) {
                             case "string":
-                                valueCell = (
+                                valueCell = col.enum ? (
+                                    <Select
+                                        label=""
+                                        state={error ? "error" : "default"}
+                                        stateRelatedMessage={error || undefined}
+                                        nativeSelectProps={{
+                                            value: String(v ?? ""),
+                                            onChange: (e) => updateField(col.name, e.target.value || null, col),
+                                            required: col.required,
+                                        }}
+                                    >
+                                        <option value="">{t("select_placeholder")}</option>
+                                        {col.enum.map((opt, idx) => (
+                                            <option key={idx} value={opt ?? ""}>
+                                                {opt ?? t("select_placeholder")}
+                                            </option>
+                                        ))}
+                                    </Select>
+                                ) : (
                                     <Input
                                         label=""
                                         state={error ? "error" : "default"}
