@@ -15,7 +15,6 @@ import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
 import WebGLVectorLayer from "ol/layer/WebGLVector";
 import { Style } from "ol/style";
-import { StyleLike } from "ol/style/Style";
 import { useCallback, useEffect, useRef } from "react";
 import { createEmpty, extend } from "ol/extent";
 import { getSelectedFeatureTypeStyle } from "@/constants/styles";
@@ -32,8 +31,6 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
     const tooltipRef = useRef<HTMLDivElement | null>(null);
     const overlayRef = useRef<Overlay | null>(null);
     const hoveredFeatureRef = useRef<Feature | null>(null);
-
-    const originalStyleRef = useRef<StyleLike | null | undefined>(null);
 
     const reportClusterLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE && layer.getSource() instanceof VectorSource);
     const reportClusterSource = reportClusterLayer?.getSource() as VectorSource;
@@ -68,13 +65,11 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
     }, [map]);
 
     const clearHoverState = useCallback(() => {
-        if (hoveredFeatureRef.current && originalStyleRef.current !== null) {
+        if (hoveredFeatureRef.current) {
             hoveredFeatureRef.current.unset(FEATURE_TYPE_HOVER_PROPERTY);
             hoveredFeatureRef.current.unset(FEATURE_TYPE_SELECTED_PROPERTY);
-            hoveredFeatureRef.current.setStyle(originalStyleRef.current);
             hoveredFeatureRef.current.changed();
             hoveredFeatureRef.current = null;
-            originalStyleRef.current = null;
         }
 
         if (overlayRef.current) {
@@ -329,7 +324,6 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
 
             if (hoveredFeatureRef.current !== hoverFeature) {
                 hoveredFeatureRef.current = hoverFeature;
-                originalStyleRef.current = hoverFeature.getStyle();
 
                 const geoservice = hoverFeature.get(FEATURE_TYPE_GEOSERVICE_PROPERTY);
                 const featureType = geoservice?.featureType || hoverFeature.get("featureType");
