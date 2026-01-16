@@ -33,7 +33,7 @@ import { DrawerComponentEnTranslations } from "@/components/locale/DrawerCompone
 import { FilterAndSortReportEnTranslations } from "@/components/locale/FilterAndSortReport.locale";
 import { DrawingControlEnTranslations } from "@/features/navigation/controls/locale/DrawingControl.locale";
 import { CatalogControlEnTranslations } from "@/features/navigation/controls/locale/CatalogControl.locale";
-import { CenterReportControlEnTranslations } from "@/features/navigation/controls/cusom-controls/locale/CenterReportControl.locale";
+import { CenterReportControlEnTranslations } from "@/features/navigation/controls/custom-controls/locale/CenterReportControl.locale";
 import { useGetMapControlsEnTranslations } from "@/features/navigation/controls/locale/useGetMapControls.locale";
 import { useReportToolsEnTranslations } from "@/hooks/reports/locale/useReportTools.locale";
 import { useDeleteReportEnTranslations } from "@/hooks/reports/locale/useDeleteReport.locale";
@@ -49,13 +49,13 @@ import { FormAttachmentsEnTranslations } from "@/features/reports/forms/locale/F
 import { WorkingLayerControlEnTranslations } from "@/features/navigation/controls/locale/WorkingLayerControl.locale";
 import { WorkingLayerLabelMapEnTranslations } from "@/features/navigation/controls/locale/WorkingLayerLabelMap.locale";
 import { MesureLengthControlEnTranslations } from "@/features/navigation/controls/locale/MesureLengthControl.locale";
-import { CustomControlsEnTranslations } from "@/features/navigation/controls/cusom-controls/locale/index.locale";
+import { CustomControlsEnTranslations } from "@/features/navigation/controls/custom-controls/locale/index.locale";
 import { ContributionListEnTranslations } from "@/features/contributions/locale/ContributionList.locale";
 import { ContributionsConfirmResetEnTranslations } from "@/features/contributions/locale/ContributionsConfirmReset.locale";
 import { ReviewContributionsEnTranslations } from "@/features/contributions/locale/ReviewContributions.locale";
 import { ConfirmSaveContributionsEnTranslations } from "@/features/contributions/locale/ConfirmSaveContributions.locale";
 import { ConfirmMultipleObjectsActionModalEnTranslations } from "@/features/working-layer/forms/locale/ConfirmMultipleObjectsActionModal.locale";
-import { ConfirmMultipleDeselectionEnTranslations } from "@/features/navigation/controls/cusom-controls/locale/ConfirmMultipleDeselection.locale";
+import { ConfirmMultipleDeselectionEnTranslations } from "@/features/navigation/controls/custom-controls/locale/ConfirmMultipleDeselection.locale";
 
 export const translations: Translations<"en"> = {
     AppFooter: AppFooterEnTranslations,

@@ -3,16 +3,28 @@ import React from "react";
 type ModaleProps = {
     modal: ReturnType<typeof createModal>;
     title: string;
+    size?: "small" | "medium" | "large" | undefined;
     children: React.ReactNode;
     confirmText?: string;
     cancelText?: string;
+    className?: string;
     onConfirm?: () => void;
     onClose?: () => void;
 };
 
 type ButtonProps = ModalProps.ActionAreaButtonProps;
 
-const ModaleComponent: React.FC<ModaleProps> = ({ title, children, modal, onConfirm, onClose, confirmText = "Confirmer", cancelText = "Annuler" }) => {
+const ModaleComponent: React.FC<ModaleProps> = ({
+    title,
+    children,
+    size,
+    modal,
+    onConfirm,
+    onClose,
+    confirmText = "Confirmer",
+    cancelText = "Annuler",
+    className = "",
+}) => {
     const cancelButton: ButtonProps | null = onClose
         ? {
               onClick: onClose,
@@ -38,7 +50,7 @@ const ModaleComponent: React.FC<ModaleProps> = ({ title, children, modal, onConf
     }
 
     return (
-        <modal.Component title={title} {...(buttons !== undefined && { buttons })}>
+        <modal.Component className={className} size={size} title={title} {...(buttons !== undefined && { buttons })}>
             {children}
         </modal.Component>
     );

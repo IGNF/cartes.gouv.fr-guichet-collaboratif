@@ -27,7 +27,7 @@ import Layer from "ol/layer/Layer";
 import WorkingLayerControl from "./controls/WorkingLayerControl";
 import { APP_FOOTER_MIN_HEIGHT } from "@/constants";
 import WorkingLayerLabelMap from "./controls/WorkingLayerLabelMap";
-import CustomControls from "./controls/cusom-controls";
+import CustomControls from "./controls/custom-controls";
 import ReviewContributions from "../contributions/ReviewContributions";
 
 export default function MainMap() {
@@ -125,13 +125,17 @@ export default function MainMap() {
             if (!mapRef.current || !switcherRef.current) return;
             const currentLayers = mapRef.current?.getAllLayers();
             mapLayers.forEach((layer: MapLayer) => {
-                const layerExist = currentLayers.find((l) => l.get("name") === layer.source.get("name") || l.get("type") === REPORTS_LAYER_TYPE);
-
-                if (switcherRef.current?.getLayerInfo(layer.source as Layer) && layerExist) {
-                    layer.source.setZIndex(layer.order);
+                let layerExist = currentLayers.find((l) => l.get("name") === layer.source.get("name"));
+                if (layer.name === REPORTS_LAYER_TYPE) {
+                    layerExist = currentLayers.find((l) => l.get("type") === REPORTS_LAYER_TYPE);
+                }
+                if (layerExist) {
                     return;
                 }
+
                 addLayer(layer.source);
+                layer.source.setZIndex(layer.order);
+                layer.source.changed();
             });
         })();
     }, [mapLayers, addLayer]);

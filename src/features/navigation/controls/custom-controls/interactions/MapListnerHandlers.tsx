@@ -1,22 +1,23 @@
+import { useCallback, useEffect, useMemo } from "react";
+import { createEmpty, extend } from "ol/extent";
 import { FEATURE_TYPE_GEOSERVICE_PROPERTY, HIT_DETECTION_TOLERENCE } from "@/constants";
-import { InteractionType } from "@/constants/communities/types";
+import { CommunityGeoservice, InteractionType } from "@/constants/communities/types";
 import { getFeaturesInPixelBySource } from "@/constants/communities/utils";
 import { getClickedMapReport, getReportSketchFeatures, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import { showClusterFeatures } from "@/constants/reports/utils/cluster";
-import { useMapStore, useReportStore } from "@/store";
+import { useCommunityStore, useMapStore, useReportStore } from "@/store";
 import { Feature, MapBrowserEvent } from "ol";
 import VectorSource from "ol/source/Vector";
 import { Style } from "ol/style";
-
-import { useCallback, useEffect } from "react";
-import { createEmpty, extend } from "ol/extent";
 
 interface Props {
     handleCloseDrawer: () => void;
 }
 
 const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
-    const { map, mapWorkingLayer, setClickableFeatures, setClickedMapFeature } = useMapStore();
+    const { map, mapWorkingLayer, clickedControl, setClickableFeatures, setClickedMapFeature } = useMapStore();
+    const { communityLayers } = useCommunityStore();
+
     const { reports, selectedReport, editReport, selectedFeatures, setSelectedReport, setSelectedFeatures, drawerOpened } = useReportStore();
 
     const reportClusterLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE && layer.getSource() instanceof VectorSource);
@@ -73,10 +74,23 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
         },
         [map, reportClusterSource]
     );
+    const currentGeoservice: CommunityGeoservice | undefined = useMemo(
+        () => communityLayers?.find((layer) => layer.geoservice.layer === mapWorkingLayer)?.geoservice,
+        [communityLayers, mapWorkingLayer]
+    );
+
+    const isNotClickable = useMemo(
+        () =>
+            clickedControl ||
+            editReport ||
+            selectedFeatures?.find((f) => f?.get("new")) ||
+            (!currentGeoservice?.featureType && mapWorkingLayer !== REPORTS_LAYER_TYPE),
+        [clickedControl, editReport, selectedFeatures, currentGeoservice, mapWorkingLayer]
+    );
 
     const handleSingleClick = useCallback(
         (evt: MapBrowserEvent) => {
-            if (!map) return;
+            if (!map || isNotClickable) return;
             if (selectedFeatures?.find((f) => f?.get("new"))) return;
 
             const features: { feature: Feature; zIndex: number }[] = [];
@@ -167,9 +181,9 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
             reportClusterSource,
             selectedReport,
             selectedFeatures,
-            editReport,
             mapWorkingLayer,
             clickableSource,
+            isNotClickable,
             handleCloseDrawer,
             handleClusterClick,
             setSelectedReport,
@@ -181,6 +195,7 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
 
     const handlePointerMove = useCallback(
         (evt: MapBrowserEvent) => {
+            if (isNotClickable) return;
             const features = map?.getFeaturesAtPixel(evt.pixel, {
                 layerFilter: (layer) => {
                     return layer.get("name") === mapWorkingLayer || layer.get("type") === mapWorkingLayer;
@@ -214,7 +229,7 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
                 }
             }
         },
-        [map, selectedFeatures, mapWorkingLayer, clickableSource]
+        [map, selectedFeatures, mapWorkingLayer, clickableSource, isNotClickable]
     );
 
     const handleClusterChange = useCallback(() => {
