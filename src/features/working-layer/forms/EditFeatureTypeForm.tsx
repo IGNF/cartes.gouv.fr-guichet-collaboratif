@@ -157,7 +157,13 @@ const EditFeatureTypeForm = () => {
             />
             <div className="feature-type-form-scrollable">
                 <FeatureTypeFormAutomatic columns={columns} formData={formData} onAutomaticFieldsCalculated={handleAutomaticFieldsCalculated} />
-                <FeatureTypeFormFields columns={columns} formData={formData} validationErrors={validationErrors} updateField={updateField} />
+                <FeatureTypeFormFields
+                    columns={columns}
+                    formData={formData}
+                    validationErrors={validationErrors}
+                    updateField={updateField}
+                    idName={geoserviceData?.idName || "id"}
+                />
             </div>
 
             <div className="feature-type-form-actions-fixed">
