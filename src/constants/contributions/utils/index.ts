@@ -2,7 +2,7 @@ import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_GEOSERVICE_PROPERTY, FEATURE_T
 import { CommunityGeoservice, ObjectProps } from "@/constants/communities/types";
 import { getWebGLValidProperties } from "@/constants/communities/utils";
 import { Feature, Map } from "ol";
-import { Contribution, ContributionType } from "../types";
+import { Contribution, ContributionType, Group, Rule } from "../types";
 import { Interaction } from "ol/interaction";
 import VectorSource from "ol/source/Vector";
 import { CoordinateType, GeometryFeatueParams } from "@/constants/reports/types";
@@ -103,3 +103,18 @@ export const isPointOnSegment = (A: Coordinate, B: Coordinate, P: Coordinate) =>
 
     return true;
 };
+
+export const uuid = () => crypto.randomUUID();
+
+export const createRule = (): Rule => ({
+    id: uuid(),
+    field: "type_objet",
+    condition: "est compris dans",
+    values: ["null", "FONTAINE_BOIS", "FONTNE_WALLACE", "FTNE_PETILLANTE"],
+});
+
+export const createGroup = (): Group => ({
+    id: uuid(),
+    operator: "ET",
+    rules: [],
+});

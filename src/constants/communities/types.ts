@@ -97,6 +97,7 @@ export type FeatureTypeColumn = {
     is3d: boolean;
     automatic: boolean;
     formula?: string;
+    queryable: boolean;
 };
 export type FeatureTypeSelectedStyle = { layer: string; selectedStyle: FeatureTypeStyle };
 
@@ -207,7 +208,7 @@ export interface ArrayGeoJSONProps {
 }
 
 export enum CommunityLayerFunctionalityType {
-    VISU = "search",
+    SEARCH = "search",
     MEASURE_DISTANCE = "measureDistance",
     MEASURE_AREA = "measureArea",
     GEOREM = "georem",
@@ -237,6 +238,7 @@ export enum CommunityLayerRoleType {
 
 export enum InteractionType {
     SELECT = "select",
+    SEARCH = "search",
     MODIFY = "modify",
     REMOVE = "remove",
     CREATE_REPORT = "create_report",

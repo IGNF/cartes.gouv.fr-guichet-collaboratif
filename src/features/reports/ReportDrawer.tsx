@@ -15,7 +15,7 @@ import OpenReplyReportModal from "./forms/OpenReplyReportModal";
 import EditReport from "./EditReport";
 import Button from "@codegouvfr/react-dsfr/Button";
 import { useTranslation } from "@/i18n";
-import MapListnerHandlers from "../navigation/controls/cusom-controls/interactions/MapListnerHandlers";
+import MapListnerHandlers from "../navigation/controls/custom-controls/interactions/MapListnerHandlers";
 import { getCommunityReportById } from "@/api/reportsData";
 import { useSearchParams } from "react-router-dom";
 

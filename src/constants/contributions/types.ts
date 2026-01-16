@@ -92,3 +92,36 @@ export enum FeatureTypeFormActionMode {
     DELETE = "delete",
     CANCEL = "cancel",
 }
+
+export interface ConditionRule {
+    id: number;
+    type: string;
+    comparator: string;
+    values: string[];
+}
+
+export type ConditionGroup = ConditionProps & {
+    id: number;
+};
+
+export type ConditionElement = ConditionRule | ConditionGroup;
+
+export interface ConditionProps {
+    andOr: boolean;
+    elements: ConditionElement[];
+}
+
+export type Operator = "ET" | "OU";
+
+export type Rule = {
+    id: string;
+    field: string;
+    condition: string;
+    values: string[];
+};
+
+export type Group = {
+    id: string;
+    operator: Operator;
+    rules: Array<Rule | Group>;
+};

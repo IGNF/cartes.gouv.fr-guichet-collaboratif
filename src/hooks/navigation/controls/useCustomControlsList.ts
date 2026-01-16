@@ -30,6 +30,15 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
                 interaction: InteractionType.SELECT,
             },
             {
+                id: 9,
+                title: "Rechercher par attributs",
+                target: "",
+                icon: "ri-search-line",
+                disabled: false,
+                enabled: !!community?.functionalities?.includes(CommunityLayerFunctionalityType.SEARCH),
+                interaction: InteractionType.SEARCH,
+            },
+            {
                 id: 1,
                 title: t("create_report"),
                 target: "drawing-tool-point-",
