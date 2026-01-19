@@ -54,6 +54,8 @@ interface ReportStore {
     updateDescription: (description: string) => void;
     updateFiles: (files: File[]) => void;
     clearFiles: () => void;
+    activeTable: string;
+    setActiveTable: (table: string) => void;
     syncUrlFromState: () => string;
 }
 export const useReportStore = create<ReportStore>((set, get) => ({
@@ -156,6 +158,9 @@ export const useReportStore = create<ReportStore>((set, get) => ({
     updateFiles: (files: File[]) => set({ formData: { ...get().formData, files } }),
 
     clearFiles: () => set({ formData: { ...get().formData, files: [] } }),
+
+    activeTable: "",
+    setActiveTable: (table: string) => set({ activeTable: table }),
 
     syncUrlFromState: () => {
         const state = get();
