@@ -1,16 +1,31 @@
-import useExtentList from "@/hooks/working-layer/searchObjects/useExtentList";
 import Input from "@codegouvfr/react-dsfr/Input";
 import Select from "@codegouvfr/react-dsfr/Select";
-import { useState } from "react";
 
-const ConstraintsComponent = () => {
-    const extentList = useExtentList();
-    const [selectedExtent, setSelectedExtent] = useState<string>(extentList[0].value);
+interface Props {
+    extentList: {
+        value: string;
+        title: string;
+    }[];
+    maxNumber: number;
+    selectedExtent: string;
+    setMaxNumber: (max: number) => void;
+    setSelectedExtent: (extent: string) => void;
+}
+
+const ConstraintsComponent: React.FC<Props> = ({ extentList, maxNumber, selectedExtent, setMaxNumber, setSelectedExtent }) => {
     return (
         <div className="search-property-options">
             <Input
                 label="Nombre max. de résultats"
-                nativeInputProps={{ type: "number", pattern: "[0-9]*", inputMode: "numeric", defaultValue: 20, placeholder: "20" }}
+                nativeInputProps={{
+                    type: "number",
+                    pattern: "[0-9]*",
+                    inputMode: "numeric",
+                    max: 10000,
+                    defaultValue: maxNumber,
+                    placeholder: `${maxNumber}`,
+                    onChange: (e) => setMaxNumber(parseInt(e.target.value)),
+                }}
             />
             <Select
                 label=""

@@ -6,6 +6,8 @@ import { transform } from "ol/proj";
 import { AutomaticFieldType, AutomaticFieldContext } from "../types";
 
 import { getMunicipalityFromCoords, getAddressFromCoords, getCadastreFromCoords, getAltitudeFromCoords, getFeatureCoordinates } from "@/api/geocodageData";
+import { FeatureTypeColumn, OperatorType } from "@/constants/communities/types";
+import { BuildFilterResponse, GroupSearch, RuleSearch } from "@/constants/contributions/types";
 
 export const calculateAutomaticField = async (fieldType: AutomaticFieldType, context: AutomaticFieldContext): Promise<string | number | null> => {
     const { feature, userId, username, layerProjection } = context;
@@ -248,3 +250,195 @@ const getAltitude = async (feature: Feature<Geometry>): Promise<number | null> =
     const altitude = await getAltitudeFromCoords(coords.lon, coords.lat);
     return altitude ? Math.round(altitude * 10) / 10 : null;
 };
+
+export const getOperators = (
+    currentColumn: FeatureTypeColumn | undefined,
+    operatorList: {
+        value: OperatorType;
+        title: string;
+    }[]
+) => {
+    if (!currentColumn) return [];
+
+    let operators: string[] = [];
+
+    switch (currentColumn.type) {
+        case "String":
+            if (currentColumn.enum) {
+                operators = [OperatorType.in, OperatorType.not_in, OperatorType.is_empty, OperatorType.is_not_empty];
+                break;
+            }
+            operators = [
+                OperatorType.equal,
+                OperatorType.not_equal,
+                OperatorType.begins_with,
+                OperatorType.not_begins_with,
+                OperatorType.contains,
+                OperatorType.not_contains,
+                OperatorType.ends_with,
+                OperatorType.not_ends_with,
+                OperatorType.is_empty,
+                OperatorType.is_not_empty,
+            ];
+            if (currentColumn.nullable) {
+                operators = operators.concat([OperatorType.is_null, OperatorType.is_not_null]);
+            }
+            break;
+
+        case "Integer":
+            operators = [
+                OperatorType.equal,
+                OperatorType.not_equal,
+                OperatorType.less,
+                OperatorType.less_or_equal,
+                OperatorType.greater,
+                OperatorType.greater_or_equal,
+                OperatorType.between,
+                OperatorType.not_between,
+            ];
+            if (currentColumn.nullable) {
+                operators = operators.concat([OperatorType.is_null, OperatorType.is_not_null]);
+            }
+            break;
+        case "Double":
+            operators = [
+                OperatorType.less,
+                OperatorType.less_or_equal,
+                OperatorType.greater,
+                OperatorType.greater_or_equal,
+                OperatorType.between,
+                OperatorType.not_between,
+            ];
+            if (currentColumn.nullable) {
+                operators = operators.concat([OperatorType.is_null, OperatorType.is_not_null]);
+            }
+            break;
+        case "Boolean":
+            operators = [OperatorType.equal];
+            if (currentColumn.nullable) {
+                operators = operators.concat([OperatorType.is_null, OperatorType.is_not_null]);
+            }
+            break;
+        case "Date":
+        case "DateTime":
+        case "Year":
+        case "YearMonth":
+            operators = [
+                OperatorType.equal,
+                OperatorType.not_equal,
+                OperatorType.less,
+                OperatorType.less_or_equal,
+                OperatorType.greater,
+                OperatorType.greater_or_equal,
+                OperatorType.between,
+                OperatorType.not_between,
+                OperatorType.is_empty,
+                OperatorType.is_not_empty,
+            ];
+            if (currentColumn.nullable) {
+                operators = operators.concat([OperatorType.is_null, OperatorType.is_not_null]);
+            }
+            break;
+        default:
+            operators = [];
+            break;
+    }
+    return operatorList.filter((op) => operators.includes(op.value));
+};
+
+export function buildCondition(rule: RuleSearch) {
+    const { name, operator, value = [] } = rule;
+    switch (operator) {
+        case OperatorType.in:
+            return { [name]: { $in: value ?? "" } };
+        case OperatorType.not_in:
+            return { [name]: { $nin: value ?? "" } };
+        case OperatorType.equal:
+            return {
+                [name]: { $regex: `^${value[0] ?? ""}$`, $options: "i" },
+            };
+        case OperatorType.not_equal:
+            return {
+                [name]: { $not: { $regex: `^${value[0] ?? ""}$`, $options: "i" } },
+            };
+        case OperatorType.begins_with:
+            return {
+                [name]: { $regex: `^${value[0] ?? ""}`, $options: "i" },
+            };
+        case OperatorType.not_begins_with:
+            return {
+                [name]: { $not: { $regex: `^${value[0] ?? ""}`, $options: "i" } },
+            };
+        case OperatorType.contains:
+            return {
+                [name]: { $regex: value[0] ?? "", $options: "i" },
+            };
+        case OperatorType.not_contains:
+            return {
+                [name]: { $not: { $regex: value[0] ?? "", $options: "i" } },
+            };
+        case OperatorType.ends_with:
+            return {
+                [name]: { $regex: `${value[0] ?? ""}$`, $options: "i" },
+            };
+        case OperatorType.not_ends_with:
+            return {
+                [name]: { $not: { $regex: `${value[0] ?? ""}$`, $options: "i" } },
+            };
+        case OperatorType.is_empty:
+            return {
+                $or: [{ [name]: "" }],
+            };
+        case OperatorType.is_not_empty:
+            return {
+                [name]: { $ne: "" },
+            };
+        case OperatorType.is_null:
+            return {
+                [name]: null,
+            };
+        case OperatorType.is_not_null:
+            return {
+                [name]: { $ne: null },
+            };
+        case OperatorType.less:
+            return { [name]: { $lt: value[0] ?? "" } };
+        case OperatorType.less_or_equal:
+            return { [name]: { $lte: value[0] ?? "" } };
+        case OperatorType.greater:
+            return { [name]: { $gt: value[0] ?? "" } };
+        case OperatorType.greater_or_equal:
+            return { [name]: { $gte: value[0] ?? "" } };
+        case OperatorType.between:
+            return {
+                [name]: {
+                    $gte: value[0] ?? "",
+                    $lte: value[1] ?? "",
+                },
+            };
+        case OperatorType.not_between:
+            return {
+                $or: [{ [name]: { $lt: value[0] ?? "" } }, { [name]: { $gt: value[1] ?? "" } }],
+            };
+
+        default:
+            throw new Error(`Unsupported operator: ${operator}`);
+    }
+}
+
+export function buildFilter(group: GroupSearch): { $and?: BuildFilterResponse[]; $or?: BuildFilterResponse[] } {
+    const conditions = group.rules.map((rule) => {
+        if ("groupOp" in rule) {
+            return buildFilter(rule);
+        }
+        return buildCondition(rule);
+    });
+
+    return group.groupOp === "ET" ? { $and: conditions } : { $or: conditions };
+}
+
+export function toMongoFilter(input: GroupSearch) {
+    return {
+        filter: buildFilter(input),
+    };
+}

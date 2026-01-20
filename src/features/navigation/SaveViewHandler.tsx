@@ -32,6 +32,9 @@ const SaveViewHandler: React.FC = () => {
             }),
             zoom: view.getZoom() || 10,
             projection: view.getProjection().getCode(),
+            searchExtent: "",
+            searchMax: 20,
+            searchRoot: null,
         };
         if (isEqual(newLocalStorageData, localStorageData)) return;
         setLocalStorage(community?.name, newLocalStorageData);

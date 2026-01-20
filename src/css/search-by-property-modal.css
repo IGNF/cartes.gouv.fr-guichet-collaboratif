@@ -126,3 +126,15 @@
 .group-item:last-child:after {
     height: 0%;
 }
+
+.search-pagination ul {
+    display: flex;
+    justify-content: center;
+    bottom: 0;
+}
+
+.search-table tr td > {
+    display: flex;
+    justify-content: center;
+    height: 24px;
+}

@@ -4,12 +4,12 @@ import RadioButtons from "@codegouvfr/react-dsfr/RadioButtons";
 import Select from "@codegouvfr/react-dsfr/Select";
 
 interface ChoiceTypeProps {
-    multipleSelect: string[];
+    choiceValue: string[];
     currentColumn: FeatureTypeColumn | undefined;
-    handleMultipleSelectChange: (val: string) => void;
+    handleChoiceValueChange: (val: string) => void;
 }
 
-const ChoiceValueComponent: React.FC<ChoiceTypeProps> = ({ multipleSelect, currentColumn, handleMultipleSelectChange }) => {
+const ChoiceValueComponent: React.FC<ChoiceTypeProps> = ({ choiceValue, currentColumn, handleChoiceValueChange }) => {
     switch (currentColumn?.type) {
         case "String":
             if (currentColumn.enum) {
@@ -17,10 +17,10 @@ const ChoiceValueComponent: React.FC<ChoiceTypeProps> = ({ multipleSelect, curre
                     <Select
                         label=""
                         nativeSelectProps={{
-                            defaultValue: multipleSelect,
+                            value: choiceValue,
                             multiple: true,
                             size: 3,
-                            onClick: (e) => handleMultipleSelectChange((e.target as HTMLSelectElement).value),
+                            onClick: (e) => handleChoiceValueChange((e.target as HTMLSelectElement).value),
                         }}
                     >
                         {currentColumn?.enum?.map((val, idx) => (
@@ -35,8 +35,8 @@ const ChoiceValueComponent: React.FC<ChoiceTypeProps> = ({ multipleSelect, curre
                 <Input
                     label=""
                     nativeInputProps={{
-                        defaultValue: multipleSelect.join(""),
-                        onChange: (e) => handleMultipleSelectChange(e.target.value),
+                        defaultValue: choiceValue.join(""),
+                        onChange: (e) => handleChoiceValueChange(e.target.value),
                     }}
                 />
             );
@@ -46,11 +46,24 @@ const ChoiceValueComponent: React.FC<ChoiceTypeProps> = ({ multipleSelect, curre
                 <Input
                     label=""
                     nativeInputProps={{
-                        defaultValue: multipleSelect.join(""),
+                        defaultValue: choiceValue.join(""),
                         type: "number",
                         inputMode: "numeric",
                         pattern: "[0-9]*",
-                        onChange: (e) => handleMultipleSelectChange(e.target.value),
+                        onChange: (e) => handleChoiceValueChange(e.target.value),
+                    }}
+                />
+            );
+        case "Double":
+            return (
+                <Input
+                    label=""
+                    nativeInputProps={{
+                        defaultValue: choiceValue.join(""),
+                        type: "double",
+                        inputMode: "numeric",
+                        step: "0,001",
+                        onChange: (e) => handleChoiceValueChange(e.target.value),
                     }}
                 />
             );
@@ -64,12 +77,14 @@ const ChoiceValueComponent: React.FC<ChoiceTypeProps> = ({ multipleSelect, curre
                             label: "True",
                             nativeInputProps: {
                                 value: "true",
+                                onChange: (e) => handleChoiceValueChange(e.target.value),
                             },
                         },
                         {
                             label: "False",
                             nativeInputProps: {
                                 value: "false",
+                                onChange: (e) => handleChoiceValueChange(e.target.value),
                             },
                         },
                     ]}

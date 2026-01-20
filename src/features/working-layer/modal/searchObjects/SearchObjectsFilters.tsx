@@ -1,16 +1,21 @@
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import GroupComponent from "./GroupComponent";
 import { Group } from "@/constants/contributions/types";
 
-import { createGroup } from "@/constants/contributions/utils";
 import Button from "@codegouvfr/react-dsfr/Button";
+import { useContributionStore } from "@/store";
 
-const SearchObjectsFilters = () => {
-    const [root, setRoot] = useState<Group>(() => createGroup());
+interface Props {
+    root: Group;
+    setRoot: (group: Group) => void;
+}
 
+const SearchObjectsFilters: React.FC<Props> = ({ root, setRoot }) => {
+    const { setSearchResult } = useContributionStore();
     const handleReset = useCallback(() => {
         setRoot({ ...root, operator: "ET", rules: [] });
-    }, [root]);
+        setSearchResult([]);
+    }, [root, setRoot, setSearchResult]);
 
     return (
         <>

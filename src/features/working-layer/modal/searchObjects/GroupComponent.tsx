@@ -22,6 +22,17 @@ const GroupComponent: React.FC<GroupProps> = ({ className, group, onChange, onDe
         onChange({ ...group, rules: newRules, operator: newRules.length <= 1 ? "ET" : "OU" });
     };
 
+    const handleChange = (group: Group, rule: Rule) => {
+        const newRoot = {
+            ...group,
+            rules: group.rules.map((r) => {
+                if (r.id === rule.id) return rule;
+                return r;
+            }),
+        };
+        onChange(newRoot);
+    };
+
     return (
         <div className={`search-property-group ${className}`}>
             <div className="search-property-header">
@@ -100,7 +111,13 @@ const GroupComponent: React.FC<GroupProps> = ({ className, group, onChange, onDe
                             onDelete={() => removeChild(index)}
                         />
                     ) : (
-                        <RuleComponent className="group-item" key={item.id} onDelete={() => removeChild(index)} />
+                        <RuleComponent
+                            rule={item}
+                            className="group-item"
+                            key={item.id}
+                            onDelete={() => removeChild(index)}
+                            onChange={(rule: Rule) => handleChange(group, rule)}
+                        />
                     )
                 )}
             </div>

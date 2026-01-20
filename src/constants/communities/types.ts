@@ -36,6 +36,10 @@ export interface RegularShapeStyleProps {
 }
 export type FeatureTypeConditionValue = string | number | string[] | number[];
 export type FeatureTypeCondition = { [key: string]: { [key: string]: FeatureTypeConditionValue } }[];
+export type SearchObjectCondition = {
+    $and?: FeatureTypeCondition;
+    $or?: FeatureTypeCondition;
+};
 export type WebGLFilterType = (string | number | (string | number | string[])[] | WebGLFilterType)[];
 
 export type FeatureTypeStyleItem = {
@@ -60,10 +64,7 @@ export type FeatureTypeStyleItem = {
     labelXOffset?: number;
     labelYOffset?: number;
     labelMinZoom?: number;
-    condition?: {
-        $and?: FeatureTypeCondition;
-        $or?: FeatureTypeCondition;
-    };
+    condition?: SearchObjectCondition;
 };
 
 export type FeatureTypeStyleItemData = FeatureTypeStyleItem & {
@@ -272,3 +273,26 @@ export type CustomControlItem = {
 
 export type LonLatNumber = number | number[] | number[][] | number[][][];
 export type ObjectProps = { [key: string]: string | number | boolean | object | null | undefined };
+
+export enum OperatorType {
+    in = "in",
+    not_in = "not_in",
+    is_empty = "is_empty",
+    is_not_empty = "is_not_empty",
+    equal = "equal",
+    not_equal = "not_equal",
+    begins_with = "begins_with",
+    not_begins_with = "not_begins_with",
+    contains = "contains",
+    not_contains = "not_contains",
+    ends_with = "ends_with",
+    not_ends_with = "not_ends_with",
+    is_null = "is_null",
+    is_not_null = "is_not_null",
+    less = "less",
+    less_or_equal = "less_or_equal",
+    greater = "greater",
+    greater_or_equal = "greater_or_equal",
+    between = "between",
+    not_between = "not_between",
+}

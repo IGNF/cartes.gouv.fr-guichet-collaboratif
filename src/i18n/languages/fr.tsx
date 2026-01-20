@@ -56,6 +56,7 @@ import { ReviewContributionsFrTranslations } from "@/features/contributions/loca
 import { ConfirmSaveContributionsFrTranslations } from "@/features/contributions/locale/ConfirmSaveContributions.locale";
 import { ConfirmMultipleObjectsActionModalFrTranslations } from "@/features/working-layer/forms/locale/ConfirmMultipleObjectsActionModal.locale";
 import { ConfirmMultipleDeselectionFrTranslations } from "@/features/navigation/controls/custom-controls/locale/ConfirmMultipleDeselection.locale";
+import { useOperatorListFrTranslations } from "@/hooks/working-layer/locale/useOperatorList.locale";
 
 export const translations: Translations<"fr"> = {
     AppFooter: AppFooterFrTranslations,
@@ -115,4 +116,5 @@ export const translations: Translations<"fr"> = {
     ConfirmSaveContributions: ConfirmSaveContributionsFrTranslations,
     ConfirmMultipleObjectsActionModal: ConfirmMultipleObjectsActionModalFrTranslations,
     ConfirmMultipleDeselection: ConfirmMultipleDeselectionFrTranslations,
+    useOperatorList: useOperatorListFrTranslations,
 };
