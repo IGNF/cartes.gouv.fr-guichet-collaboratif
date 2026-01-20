@@ -1,5 +1,6 @@
 import ModaleComponent from "@/components/ModaleComponent";
 import { ContributionType } from "@/constants/contributions/types";
+import { useTranslation } from "@/i18n";
 import { useContributionStore, useMapStore, useModalStore } from "@/store";
 import { useIsModalOpen } from "@codegouvfr/react-dsfr/Modal/useIsModalOpen";
 import VectorLayer from "ol/layer/Vector";
@@ -11,6 +12,8 @@ const ConfirmDeleteObjectModal = () => {
     const { map, mapWorkingLayer } = useMapStore();
     const { confirmDeleteObjectSearchModal, searchModal } = useModalStore();
     const { searchItemToDelete, setSearchItemToDelete, saveContribution } = useContributionStore();
+
+    const { t } = useTranslation({ ConfirmDeleteObjectModal });
 
     const clickableLayer = map
         ?.getAllLayers()
@@ -31,13 +34,13 @@ const ConfirmDeleteObjectModal = () => {
     return (
         <ModaleComponent
             modal={confirmDeleteObjectSearchModal}
-            title={"Attention"}
+            title={t("title")}
             onClose={() => setSearchItemToDelete(null)}
             onConfirm={handleConfirmModal}
-            cancelText={"Non"}
-            confirmText={"Yes"}
+            cancelText={t("no")}
+            confirmText={t("yes")}
         >
-            <p>Êtes vous sûr de vouloir supprimer cet objet ?</p>
+            <p>{t("description")}</p>
         </ModaleComponent>
     );
 };

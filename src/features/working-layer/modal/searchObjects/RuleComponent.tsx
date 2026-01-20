@@ -8,15 +8,18 @@ import OperatorComponent from "./OperatorComponent";
 import { Rule } from "@/constants/contributions/types";
 import useOperatorList from "@/hooks/working-layer/searchObjects/useOperatorList";
 import { getOperators } from "@/constants/working-layer/utils";
+import { TranslationFunction } from "i18nifty/typeUtils/TranslationFunction";
+import { ComponentKey } from "@/i18n/types";
 
 type RuleProps = {
+    t: TranslationFunction<"GroupComponent", ComponentKey>;
     rule: Rule;
     className: string;
     onDelete: () => void;
     onChange: (rule: Rule) => void;
 };
 
-const RuleComponent: React.FC<RuleProps> = ({ rule, className, onDelete, onChange }) => {
+const RuleComponent: React.FC<RuleProps> = ({ t, rule, className, onDelete, onChange }) => {
     const { mapWorkingLayer } = useMapStore();
     const { communityLayers } = useCommunityStore();
 
@@ -97,7 +100,7 @@ const RuleComponent: React.FC<RuleProps> = ({ rule, className, onDelete, onChang
             )}
 
             <Button size="small" iconId="ri-delete-bin-2-fill" title="" priority="tertiary" onClick={onDelete} style={{ color: "red" }}>
-                Supprimer
+                {t("delete")}
             </Button>
         </div>
     );

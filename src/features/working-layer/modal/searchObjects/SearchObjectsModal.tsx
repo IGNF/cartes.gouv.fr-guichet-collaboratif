@@ -15,13 +15,17 @@ import SearchTable from "./SearchTable";
 import ConfirmDeleteObjectModal from "./ConfirmDeleteObjectModal";
 import { searchFilteredObjects } from "@/api/featureTypesData";
 import { LocalStorageData } from "@/constants/localStorage/types";
+import { useTranslation } from "@/i18n";
 
 const SearchObjectsModal = () => {
     const { localStorageData, setLocalStorage } = useLocalStorageStore();
+    const { setSearchResult } = useContributionStore();
+
+    const { t } = useTranslation({ SearchObjectsModal });
+
     const [root, setRoot] = useState<Group>(localStorageData?.searchRoot ? localStorageData?.searchRoot : () => createGroup());
     const [maxNumber, setMaxNumber] = useState(localStorageData?.searchMax ?? 20);
 
-    const { setSearchResult } = useContributionStore();
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const queryClient = useQueryClient();
@@ -53,7 +57,7 @@ const SearchObjectsModal = () => {
             if (!community) return;
             searchModal.open();
             if (!root.rules.length) {
-                addAlertMessage(StatusMessage.warning, "Veuillez ajouter une condition", 3000);
+                addAlertMessage(StatusMessage.warning, t("no_filters_alert"), 3000);
                 return;
             }
             if (!geoservice || !map) return;
@@ -86,7 +90,7 @@ const SearchObjectsModal = () => {
             setLocalStorage(community?.name, newLocalStoageData);
         } catch (error: unknown) {
             console.error(error);
-            const errorMessage = error instanceof Error ? error.message : "An error occurred";
+            const errorMessage = error instanceof Error ? error.message : "Error";
             addAlertMessage(StatusMessage.error, errorMessage);
             setIsLoading(false);
             setSearchResult([]);
@@ -115,16 +119,17 @@ const SearchObjectsModal = () => {
             <ModaleComponent
                 className="search-modal"
                 modal={searchModal}
-                title="Rechercher"
+                title={t("search")}
                 onClose={onClose}
                 onConfirm={onConfirm}
-                confirmText="Rechercher"
+                confirmText={t("search")}
                 size="large"
             >
                 <>
                     <div className="search-property">
-                        <SearchObjectsFilters root={root} setRoot={setRoot} />
+                        <SearchObjectsFilters t={t} root={root} setRoot={setRoot} />
                         <ConstraintsComponent
+                            t={t}
                             extentList={extentList}
                             maxNumber={maxNumber}
                             setMaxNumber={setMaxNumber}

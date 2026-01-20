@@ -57,6 +57,10 @@ import { ConfirmSaveContributionsEnTranslations } from "@/features/contributions
 import { ConfirmMultipleObjectsActionModalEnTranslations } from "@/features/working-layer/forms/locale/ConfirmMultipleObjectsActionModal.locale";
 import { ConfirmMultipleDeselectionEnTranslations } from "@/features/navigation/controls/custom-controls/locale/ConfirmMultipleDeselection.locale";
 import { useOperatorListEnTranslations } from "@/hooks/working-layer/locale/useOperatorList.locale";
+import { SearchTableEnTranslations } from "@/features/working-layer/modal/searchObjects/locale/SearchTable.locale";
+import { SearchObjectsModalEnTranslations } from "@/features/working-layer/modal/searchObjects/locale/SearchObjectsModal.locale";
+import { GroupComponentEnTranslations } from "@/features/working-layer/modal/searchObjects/locale/GroupComponent.locale";
+import { ConfirmDeleteObjectModalEnTranslations } from "@/features/working-layer/modal/searchObjects/locale/ConfirmDeleteObjectModal.locale";
 
 export const translations: Translations<"en"> = {
     AppFooter: AppFooterEnTranslations,
@@ -117,4 +121,8 @@ export const translations: Translations<"en"> = {
     ConfirmMultipleObjectsActionModal: ConfirmMultipleObjectsActionModalEnTranslations,
     ConfirmMultipleDeselection: ConfirmMultipleDeselectionEnTranslations,
     useOperatorList: useOperatorListEnTranslations,
+    SearchTable: SearchTableEnTranslations,
+    SearchObjectsModal: SearchObjectsModalEnTranslations,
+    GroupComponent: GroupComponentEnTranslations,
+    ConfirmDeleteObjectModal: ConfirmDeleteObjectModalEnTranslations,
 };

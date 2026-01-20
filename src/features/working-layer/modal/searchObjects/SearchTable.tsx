@@ -4,6 +4,7 @@ import { arrayToGeoJSON } from "@/constants/communities/utils";
 import { ContributionType, FeatureTypeMode, SearchResultItem } from "@/constants/contributions/types";
 import { resetContributionToMap } from "@/constants/contributions/utils";
 import { handleCenterToFeature } from "@/constants/utils";
+import { useTranslation } from "@/i18n";
 import { useCommunityStore, useContributionStore, useMapStore, useModalStore } from "@/store";
 import Badge from "@codegouvfr/react-dsfr/Badge";
 import Button from "@codegouvfr/react-dsfr/Button";
@@ -27,6 +28,8 @@ const SearchTable: React.FC<Props> = ({ geoservice }) => {
     const { searchResult, contributions, selectedObjects, setFeatureTypeMode, setSearchItemToDelete, setContributions, setSelectedObjects } =
         useContributionStore();
     const { communityLayers } = useCommunityStore();
+
+    const { t } = useTranslation({ SearchTable });
 
     const [checkedObjects, setCheckedObjects] = useState<SearchResultItem[]>([]);
     const [page, setPage] = useState<number>(1);
@@ -223,9 +226,7 @@ const SearchTable: React.FC<Props> = ({ geoservice }) => {
         <>
             {totalItems > 0 && (
                 <>
-                    <Badge severity="info">
-                        {totalItems} objet{totalItems > 1 ? "s" : ""} trouvé{totalItems > 1 ? "s" : ""}
-                    </Badge>
+                    <Badge severity="info">{t("total_objects", { total: totalItems })}</Badge>
                     <Table
                         className="search-table"
                         fixed
@@ -248,13 +249,13 @@ const SearchTable: React.FC<Props> = ({ geoservice }) => {
                             <span style={{ color: getItemStyle(item) }}>{item.categorie}</span>,
                             <span style={{ color: getItemStyle(item) }}>{item.commune}</span>,
                             <div style={{ display: "flex", gap: 8 }}>
-                                <Button iconId="ri-eye-line" title="Afficher sur la carte" priority="tertiary" onClick={() => handleShowObject(item)} />
+                                <Button iconId="ri-eye-line" title={t("show_object")} priority="tertiary" onClick={() => handleShowObject(item)} />
                                 {currentCommunityLayer?.role !== CommunityLayerRoleType.VISU && (
-                                    <Button iconId="ri-pencil-line" title="Modifier" priority="tertiary" onClick={() => handleModifyObject(item)} />
+                                    <Button iconId="ri-pencil-line" title={t("edit_object")} priority="tertiary" onClick={() => handleModifyObject(item)} />
                                 )}
                                 <Button
                                     iconId={getItemStyle(item) === "red" ? "ri-refresh-line" : "ri-delete-bin-line"}
-                                    title={getItemStyle(item) === "red" ? "Annuler" : "Supprimer"}
+                                    title={getItemStyle(item) === "red" ? t("cancel") : t("delete_object")}
                                     priority="tertiary"
                                     style={{ color: getItemStyle(item) === "red" ? "orange" : "red" }}
                                     nativeButtonProps={getItemStyle(item) === "red" ? undefined : confirmDeleteObjectSearchModal.buttonProps}
@@ -292,7 +293,7 @@ const SearchTable: React.FC<Props> = ({ geoservice }) => {
                             <Button iconId={getSortIcon("commune")} priority="tertiary no outline" onClick={() => handleSortChange("commune")}>
                                 Commune
                             </Button>,
-                            "Actions",
+                            t("actions"),
                         ]}
                     />
                 </>
@@ -305,7 +306,7 @@ const SearchTable: React.FC<Props> = ({ geoservice }) => {
                     getPageLinkProps={(pageNumber: number) => {
                         return {
                             href: `?page=${pageNumber}`,
-                            "aria-label": `Aller à la page ${pageNumber}`,
+                            "aria-label": t("go_to_page", { pageNumber }),
 
                             onClick: (e) => {
                                 e.preventDefault();

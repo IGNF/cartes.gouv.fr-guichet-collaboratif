@@ -111,7 +111,10 @@ export interface ConditionProps {
     elements: ConditionElement[];
 }
 
-export type GroupOperator = "ET" | "OU";
+export enum GroupOperator {
+    ET = "ET",
+    OU = "OU",
+}
 
 export type Rule = {
     id: string;

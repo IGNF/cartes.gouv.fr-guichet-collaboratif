@@ -1,19 +1,22 @@
 import { useCallback } from "react";
 import GroupComponent from "./GroupComponent";
-import { Group } from "@/constants/contributions/types";
+import { Group, GroupOperator } from "@/constants/contributions/types";
 
 import Button from "@codegouvfr/react-dsfr/Button";
 import { useContributionStore } from "@/store";
+import { TranslationFunction } from "i18nifty/typeUtils/TranslationFunction";
+import { ComponentKey } from "@/i18n/types";
 
 interface Props {
+    t: TranslationFunction<"SearchObjectsModal", ComponentKey>;
     root: Group;
     setRoot: (group: Group) => void;
 }
 
-const SearchObjectsFilters: React.FC<Props> = ({ root, setRoot }) => {
+const SearchObjectsFilters: React.FC<Props> = ({ t, root, setRoot }) => {
     const { setSearchResult } = useContributionStore();
     const handleReset = useCallback(() => {
-        setRoot({ ...root, operator: "ET", rules: [] });
+        setRoot({ ...root, operator: GroupOperator.ET, rules: [] });
         setSearchResult([]);
     }, [root, setRoot, setSearchResult]);
 
@@ -21,7 +24,7 @@ const SearchObjectsFilters: React.FC<Props> = ({ root, setRoot }) => {
         <>
             <GroupComponent className="" group={root} onChange={setRoot} />
             <Button iconId="ri-refresh-line" priority="secondary" onClick={handleReset}>
-                Réinitialiser
+                {t("reset")}
             </Button>
         </>
     );

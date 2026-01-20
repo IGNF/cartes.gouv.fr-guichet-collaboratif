@@ -1,6 +1,7 @@
 import RuleComponent from "./RuleComponent";
-import { Group, Rule } from "@/constants/contributions/types";
+import { Group, GroupOperator, Rule } from "@/constants/contributions/types";
 import { createGroup, createRule } from "@/constants/contributions/utils";
+import { useTranslation } from "@/i18n";
 import Button from "@codegouvfr/react-dsfr/Button";
 
 type GroupProps = {
@@ -11,6 +12,8 @@ type GroupProps = {
 };
 
 const GroupComponent: React.FC<GroupProps> = ({ className, group, onChange, onDelete }) => {
+    const { t } = useTranslation({ GroupComponent });
+
     const updateChild = (index: number, updated: Rule | Group) => {
         const newRules = [...group.rules];
         newRules[index] = updated;
@@ -19,7 +22,7 @@ const GroupComponent: React.FC<GroupProps> = ({ className, group, onChange, onDe
 
     const removeChild = (index: number) => {
         const newRules = group.rules.filter((_, i) => i !== index);
-        onChange({ ...group, rules: newRules, operator: newRules.length <= 1 ? "ET" : "OU" });
+        onChange({ ...group, rules: newRules, operator: newRules.length <= 1 ? GroupOperator.ET : GroupOperator.OU });
     };
 
     const handleChange = (group: Group, rule: Rule) => {
@@ -42,25 +45,25 @@ const GroupComponent: React.FC<GroupProps> = ({ className, group, onChange, onDe
                         onClick={() =>
                             onChange({
                                 ...group,
-                                operator: "ET",
+                                operator: GroupOperator.ET,
                             })
                         }
-                        priority={group.operator === "ET" ? "secondary" : "tertiary"}
+                        priority={group.operator === GroupOperator.ET ? "secondary" : "tertiary"}
                     >
-                        ET
+                        {t("and_operator")}
                     </Button>
                     <Button
                         size="small"
                         onClick={() =>
                             onChange({
                                 ...group,
-                                operator: "OU",
+                                operator: GroupOperator.OU,
                             })
                         }
-                        priority={group.operator === "OU" ? "secondary" : "tertiary"}
+                        priority={group.operator === GroupOperator.OU ? "secondary" : "tertiary"}
                         disabled={group.rules.length <= 1}
                     >
-                        OU
+                        {t("or_operator")}
                     </Button>
                 </div>
                 <div>
@@ -75,7 +78,7 @@ const GroupComponent: React.FC<GroupProps> = ({ className, group, onChange, onDe
                             })
                         }
                     >
-                        Ajouter une règle
+                        {t("add_rule")}
                     </Button>
 
                     <Button
@@ -89,12 +92,12 @@ const GroupComponent: React.FC<GroupProps> = ({ className, group, onChange, onDe
                             })
                         }
                     >
-                        Ajouter un groupe
+                        {t("add_group")}
                     </Button>
 
                     {onDelete && (
                         <Button size="small" iconId="ri-delete-bin-2-fill" priority="tertiary" onClick={onDelete} style={{ color: "red", borderColor: "red" }}>
-                            Supprimer
+                            {t("delete")}
                         </Button>
                     )}
                 </div>
@@ -112,6 +115,7 @@ const GroupComponent: React.FC<GroupProps> = ({ className, group, onChange, onDe
                         />
                     ) : (
                         <RuleComponent
+                            t={t}
                             rule={item}
                             className="group-item"
                             key={item.id}
