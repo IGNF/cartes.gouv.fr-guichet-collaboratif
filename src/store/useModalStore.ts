@@ -14,6 +14,7 @@ interface ModalState {
     confirmMultipleObjectsActionModal: ReturnType<typeof createModal>;
     shareReportFilters: ReturnType<typeof createModal>;
     searchModal: ReturnType<typeof createModal>;
+    confirmDeleteObjectSearchModal: ReturnType<typeof createModal>;
 }
 
 const modalConfigs = [
@@ -30,6 +31,7 @@ const modalConfigs = [
     { key: "confirmMultipleObjectsActionModal", id: "confirm-multiple-objects-action-modal" },
     { key: "shareReportFilters", id: "share-report-filters-modal" },
     { key: "searchModal", id: "search-modal" },
+    { key: "confirmDeleteObjectSearchModal", id: "confirm-delete-object-search-modal" },
 ];
 
 const modals = modalConfigs.reduce((acc, { key, id }) => {

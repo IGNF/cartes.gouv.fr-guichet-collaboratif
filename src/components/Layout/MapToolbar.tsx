@@ -11,7 +11,7 @@ const MapToolbar: React.FC = () => {
 
     const { t } = useTranslation({ MapToolbar });
 
-    const userCommunityMember = useMemo(() => user?.communitiesMember.find((cm) => cm.communityId === community?.id), [user, community]);
+    const userCommunityMember = useMemo(() => user?.communitiesMember.find((cm) => cm.communityId === String(community?.id)), [user, community]);
 
     if (!community) return null;
 

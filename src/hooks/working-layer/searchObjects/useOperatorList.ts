@@ -1,19 +1,29 @@
+import { OperatorType } from "@/constants/communities/types";
+import { useTranslation } from "@/i18n";
+
 const useOperatorList = () => {
+    const { t } = useTranslation({ useOperatorList });
     const operatorList = [
-        { value: "in", title: "est compris dans" },
-        { value: "not_in", title: "n'est pas compris dans" },
-        { value: "is_empty", title: "est vide" },
-        { value: "is_not_empty", title: "n'est pas vide" },
-        { value: "equal", title: "est égal à" },
-        { value: "not_equal", title: "n'est pas égal à" },
-        { value: "begins_with", title: "commence par" },
-        { value: "not_begins_with", title: "ne commence pas par" },
-        { value: "contains", title: "contient" },
-        { value: "not_contains", title: "ne contient pas" },
-        { value: "ends_with", title: "finit par" },
-        { value: "not_ends_with", title: "ne finit pas par" },
-        { value: "is_null", title: "est nul" },
-        { value: "is_not_null", title: "n'est pas nul" },
+        { value: OperatorType.in, title: t("in") },
+        { value: OperatorType.not_in, title: t("not_in") },
+        { value: OperatorType.is_empty, title: t("is_empty") },
+        { value: OperatorType.is_not_empty, title: t("is_not_empty") },
+        { value: OperatorType.equal, title: t("equal") },
+        { value: OperatorType.not_equal, title: t("not_equal") },
+        { value: OperatorType.begins_with, title: t("begins_with") },
+        { value: OperatorType.not_begins_with, title: t("not_begins_with") },
+        { value: OperatorType.contains, title: t("contains") },
+        { value: OperatorType.not_contains, title: t("not_contains") },
+        { value: OperatorType.ends_with, title: t("ends_with") },
+        { value: OperatorType.not_ends_with, title: t("not_ends_with") },
+        { value: OperatorType.is_null, title: t("is_null") },
+        { value: OperatorType.is_not_null, title: t("is_not_null") },
+        { value: OperatorType.less, title: t("less") },
+        { value: OperatorType.less_or_equal, title: t("less_or_equal") },
+        { value: OperatorType.greater, title: t("greater") },
+        { value: OperatorType.greater_or_equal, title: t("greater_or_equal") },
+        { value: OperatorType.between, title: t("between") },
+        { value: OperatorType.not_between, title: t("not_between") },
     ];
     return operatorList;
 };

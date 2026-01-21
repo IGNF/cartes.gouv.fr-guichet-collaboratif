@@ -16,8 +16,9 @@ async function getUserProfile(): Promise<User> {
         name: user.username,
         communitiesMember: user.communities_member.map((cm) => {
             return {
-                communityId: cm.community_id,
+                communityId: `${cm.community_id}`,
                 role: cm.role,
+                grids: cm.grids,
             };
         }),
     };

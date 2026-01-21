@@ -61,6 +61,10 @@ export type ComponentKey =
     | import("../features/working-layer/forms/locale/FeatureTypeFormAutomatic.locale").I18n
     | import("../features/working-layer/forms/locale/ConfirmMultipleObjectsActionModal.locale").I18n
     | import("../features/working-layer/modal/locale/ClickableFeaturesModal.locale").I18n
+    | import("../features/working-layer/modal/searchObjects/locale/SearchTable.locale").I18n
+    | import("../features/working-layer/modal/searchObjects/locale/SearchObjectsModal.locale").I18n
+    | import("../features/working-layer/modal/searchObjects/locale/GroupComponent.locale").I18n
+    | import("../features/working-layer/modal/searchObjects/locale/ConfirmDeleteObjectModal.locale").I18n
     | import("../hooks/navigation/layers/locale/useGetReportsLayer.locale").I18n
     | import("../hooks/navigation/layers/locale/useGetWFSLayer.locale").I18n
     | import("../hooks/navigation/layers/locale/useGetWMSLayer.locale").I18n
@@ -68,6 +72,7 @@ export type ComponentKey =
     | import("../hooks/reports/locale/useReportTools.locale").I18n
     | import("../hooks/reports/locale/useDeleteReport.locale").I18n
     | import("../hooks/working-layer/locale/useFeatureTypeValidation.locale").I18n
+    | import("../hooks/working-layer/locale/useOperatorList.locale").I18n
     | import("../features/reports/forms/locale/FormAttachments.locale").I18n;
 
 export type Translations<L extends Language> = GenericTranslations<ComponentKey, Language, typeof fallbackLanguage, L>;
