@@ -12,13 +12,14 @@ export const SearchTableFrTranslations: Translations<"fr">["SearchTable"] = {
 };
 
 export const SearchTableEnTranslations: Translations<"en">["SearchTable"] = {
-    show_object: "Afficher sur la carte",
-    edit_object: "Modifier",
-    delete_object: "Supprimer",
-    cancel: "Annuler",
+    show_object: "Show on the map",
+    edit_object: "Edit",
+    delete_object: "Delete",
+    cancel: "Cancel",
     actions: "Actions",
-    go_to_page: ({ pageNumber }: { pageNumber: number }) => `Aller à la page ${pageNumber}`,
-    total_objects: ({ total }: { total: number }) => `${total} objet${total > 1 ? "s" : ""} trouvé${total > 1 ? "s" : ""}`,
+    go_to_page: ({ pageNumber }: { pageNumber: number }) => `Go to page number: ${pageNumber}`,
+    total_objects: ({ total }: { total: number }) => `${total} object${total > 1 ? "s" : ""} found`,
+
 };
 
 const { i18n } = declareComponentKeys<
