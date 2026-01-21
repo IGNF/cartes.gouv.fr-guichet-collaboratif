@@ -5,14 +5,14 @@ export const ConfirmDeleteObjectModalFrTranslations: Translations<"fr">["Confirm
     title: "Attention",
     yes: "Oui",
     no: "Non",
-    description: "Êtes vous sûr de vouloir supprimer cet objet ?",
+    description: "Êtes-vous sûr de vouloir supprimer cet objet ?",
 };
 
 export const ConfirmDeleteObjectModalEnTranslations: Translations<"en">["ConfirmDeleteObjectModal"] = {
     title: "Attention",
-    yes: "Oui",
-    no: "Non",
-    description: "Êtes vous sûr de vouloir supprimer cet objet ?",
+    yes: "Yes",
+    no: "No",
+    description: "Are you sure about deleting this object?",
 };
 
 const { i18n } = declareComponentKeys<"title" | "yes" | "no" | "description">()("ConfirmDeleteObjectModal");
