@@ -9,10 +9,10 @@ export const SearchObjectsModalFrTranslations: Translations<"fr">["SearchObjects
 };
 
 export const SearchObjectsModalEnTranslations: Translations<"en">["SearchObjectsModal"] = {
-    no_filters_alert: "Veuillez ajouter une condition",
-    search: "Rechercher",
+    no_filters_alert: "Please add a condition",
+    search: "Search",
     reset: "Reset",
-    max_number_title: "Nombre max. de résultats",
+    max_number_title: "Max result number",
 };
 
 const { i18n } = declareComponentKeys<"no_filters_alert" | "search" | "reset" | "max_number_title">()("SearchObjectsModal");
