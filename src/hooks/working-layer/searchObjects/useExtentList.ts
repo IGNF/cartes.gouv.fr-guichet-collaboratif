@@ -6,7 +6,7 @@ const useExtentList = () => {
 
     const grids = useMemo(() => community?.grids, [community]);
 
-    const extentList = [
+    const extentList: Array<{ value: string; title: string }> = [
         { value: "map_extent", title: "Dans l'emprise de la carte" },
         { value: "table_extent", title: "Dans toute la table" },
         ...(grids
@@ -14,7 +14,7 @@ const useExtentList = () => {
                 if (!grid.extent || !grid.type || !grid.title || !grid.type.title) return null;
                 return { value: grid.extent?.join(",") ?? "", title: `${grid.type.title} ${grid.title}` };
             })
-            .filter(Boolean) ?? []),
+            .filter((extent): extent is { value: string; title: string } => extent !== null) ?? []),
     ];
     return extentList;
 };
