@@ -2,6 +2,7 @@ import { CommunityGeoservice, FeatureTypeColumn, FeatureTypeIds, FeatureTypeStyl
 import { API_URL, DATABASE_API_URL } from "@/constants/urls";
 import { axiosApi } from ".";
 import { featureDefaultStyle } from "@/constants/styles";
+import { FEATURE_TYPE_HOVER_COLUMN } from "@/constants";
 
 export function getFeatureTypeById(featureTypesId: FeatureTypeIds) {
     return axiosApi.get(`${DATABASE_API_URL}/${featureTypesId.database}/tables/${featureTypesId.table}`);
@@ -25,6 +26,9 @@ export async function getFeatureTypesAll(featureTypesIds: FeatureTypeIds[]): Pro
             } else if (geometryColumn.type.includes("Line")) {
                 geomType = GeoserviceFeatureTypeProp.LINE;
             }
+
+            const hasHoverColumn = res.data.columns?.some((col: FeatureTypeColumn) => col.name === FEATURE_TYPE_HOVER_COLUMN);
+
             const data: CommunityGeoservice = {
                 idName: res.data.id_name,
                 id: res.data.id,
@@ -43,6 +47,7 @@ export async function getFeatureTypesAll(featureTypesIds: FeatureTypeIds[]): Pro
                 geometryName: res.data.geometry_name,
                 featureType: geomType,
                 readOnly: res.data.read_only,
+                hover: hasHoverColumn,
                 table: res.data.id,
                 database: res.data.database_id,
                 columns: res.data.columns.map((col: FeatureTypeColumn) => {
