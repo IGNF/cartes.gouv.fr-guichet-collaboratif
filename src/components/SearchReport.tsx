@@ -12,7 +12,7 @@ const SearchReport = () => {
     }, []);
 
     const handleSearchReport = (value: string) => {
-        setSearchReport(value.toLowerCase());
+        setSearchReport(value);
         setCurrentPage(1);
     };
     return <SearchBar allowEmptySearch={true} onButtonClick={handleSearchReport} />;

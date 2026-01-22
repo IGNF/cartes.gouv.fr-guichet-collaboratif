@@ -28,7 +28,7 @@ const RuleComponent: React.FC<RuleProps> = ({ t, rule, className, onDelete, onCh
     const [choiceValue, setChoiceValue] = useState<string[]>(rule.values ?? []);
 
     const geoservice: CommunityGeoservice | undefined = useMemo(
-        () => communityLayers?.find((layer) => layer.geoservice.layer === mapWorkingLayer)?.geoservice,
+        () => communityLayers?.find((layer) => layer?.geoservice?.layer === mapWorkingLayer)?.geoservice,
         [communityLayers, mapWorkingLayer]
     );
 

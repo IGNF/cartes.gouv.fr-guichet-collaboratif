@@ -23,7 +23,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
     const { confirmCopyModal, searchModal } = useModalStore();
     const { communityLayers } = useCommunityStore();
 
-    const currentCommunityLayer = useMemo(() => communityLayers?.find((l) => l.geoservice.layer === mapWorkingLayer), [communityLayers, mapWorkingLayer]);
+    const currentCommunityLayer = useMemo(() => communityLayers?.find((l) => l?.geoservice?.layer === mapWorkingLayer), [communityLayers, mapWorkingLayer]);
 
     const currentMapWorkingSource = useMemo(
         () =>

@@ -75,7 +75,7 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
         [map, reportClusterSource]
     );
     const currentGeoservice: CommunityGeoservice | undefined = useMemo(
-        () => communityLayers?.find((layer) => layer.geoservice.layer === mapWorkingLayer)?.geoservice,
+        () => communityLayers?.find((layer) => layer?.geoservice?.layer === mapWorkingLayer)?.geoservice,
         [communityLayers, mapWorkingLayer]
     );
 

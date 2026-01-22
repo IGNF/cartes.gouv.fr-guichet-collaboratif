@@ -17,7 +17,7 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
     const { community, communityLayers } = useCommunityStore();
 
     const communityEditableLayers = useMemo(() => communityLayers?.filter((l) => l.role !== CommunityLayerRoleType.VISU), [communityLayers]);
-    const currentCommunityLayer = useMemo(() => communityLayers?.find((l) => l.geoservice.layer === mapWorkingLayer), [communityLayers, mapWorkingLayer]);
+    const currentCommunityLayer = useMemo(() => communityLayers?.find((l) => l?.geoservice?.layer === mapWorkingLayer), [communityLayers, mapWorkingLayer]);
 
     const geoservice: CommunityGeoservice | undefined = useMemo(
         () => communityLayers?.find((layer) => layer.geoservice.layer === mapWorkingLayer)?.geoservice,
