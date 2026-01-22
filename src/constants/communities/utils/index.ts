@@ -75,6 +75,81 @@ export const getWebGLValidProperties = (featureTypeData: ObjectProps) => {
     return validProperties;
 };
 
+export const getLonLatFromGeometry = (geometryValue: string) => {
+    let type = "Point";
+    let lonLat: LonLatNumber = [0, 0];
+
+    if (geometryValue.includes("MULTIPOLYGON")) {
+        type = "MultiPolygon";
+        lonLat = geometryValue
+            .replace(/MULTIPOLYGON|\(|\)/g, "")
+            .split(",")
+            .map((s1: string) =>
+                s1
+                    .trim()
+                    .split(" ")
+                    .map((w) => Number(w))
+            );
+        lonLat = [[lonLat as unknown as number[]]];
+    } else if (geometryValue.includes("POLYGON")) {
+        type = "Polygon";
+        lonLat = geometryValue
+            .replace(/POLYGON|\(|\)/g, "")
+            .split(",")
+            .map((s1: string) =>
+                s1
+                    .trim()
+                    .split(" ")
+                    .map((w) => Number(w))
+            );
+        lonLat = [lonLat as unknown as number[]];
+    } else if (geometryValue.includes("MULTILINESTRING") || geometryValue.includes("MULTILINE")) {
+        type = "MultiLineString";
+        lonLat = geometryValue
+            .replace(/MULTILINESTRING|MULTILINE|\(|\)/g, "")
+            .split(",")
+            .map((s1: string) =>
+                s1
+                    .trim()
+                    .split(" ")
+                    .map((w) => Number(w))
+            );
+    } else if (geometryValue.includes("LINESTRING")) {
+        type = "LineString";
+        lonLat = geometryValue
+            .replace(/LINESTRING|\(|\)/g, "")
+            .split(",")
+            .map((s1: string) =>
+                s1
+                    .trim()
+                    .split(" ")
+                    .map((w) => Number(w))
+            );
+    } else if (geometryValue.includes("MULTIPOINT")) {
+        type = "MultiPoint";
+        lonLat = geometryValue
+            .replace(/MULTIPOINT|\(|\)/g, "")
+            .split(",")
+            .map((s1: string) =>
+                s1
+                    .trim()
+                    .split(" ")
+                    .map((w) => Number(w))
+            );
+    } else if (geometryValue.includes("POINT")) {
+        type = "Point";
+        lonLat = geometryValue
+            .replace(/POINT|\(|\)/g, "")
+            .trim()
+            .split(" ")
+            .map((w) => Number(w));
+    } else {
+        console.error(`[arrayToGeoJSON] Unknown geometry type in: ${geometryValue}`);
+    }
+
+    return { type, lonLat };
+};
+
 export const arrayToGeoJSON = (arr: ArrayGeoJSONProps[], geoservice: CommunityGeoservice) => {
     const features: GeoJSONProps = {
         type: "FeatureCollection",
@@ -91,76 +166,7 @@ export const arrayToGeoJSON = (arr: ArrayGeoJSONProps[], geoservice: CommunityGe
             return;
         }
 
-        let type = "Point";
-        let lonLat: LonLatNumber = [0, 0];
-
-        if (geometryValue.includes("MULTIPOLYGON")) {
-            type = "MultiPolygon";
-            lonLat = geometryValue
-                .replace(/MULTIPOLYGON|\(|\)/g, "")
-                .split(",")
-                .map((s1: string) =>
-                    s1
-                        .trim()
-                        .split(" ")
-                        .map((w) => Number(w))
-                );
-            lonLat = [[lonLat as unknown as number[]]];
-        } else if (geometryValue.includes("POLYGON")) {
-            type = "Polygon";
-            lonLat = geometryValue
-                .replace(/POLYGON|\(|\)/g, "")
-                .split(",")
-                .map((s1: string) =>
-                    s1
-                        .trim()
-                        .split(" ")
-                        .map((w) => Number(w))
-                );
-            lonLat = [lonLat as unknown as number[]];
-        } else if (geometryValue.includes("MULTILINESTRING") || geometryValue.includes("MULTILINE")) {
-            type = "MultiLineString";
-            lonLat = geometryValue
-                .replace(/MULTILINESTRING|MULTILINE|\(|\)/g, "")
-                .split(",")
-                .map((s1: string) =>
-                    s1
-                        .trim()
-                        .split(" ")
-                        .map((w) => Number(w))
-                );
-        } else if (geometryValue.includes("LINESTRING")) {
-            type = "LineString";
-            lonLat = geometryValue
-                .replace(/LINESTRING|\(|\)/g, "")
-                .split(",")
-                .map((s1: string) =>
-                    s1
-                        .trim()
-                        .split(" ")
-                        .map((w) => Number(w))
-                );
-        } else if (geometryValue.includes("MULTIPOINT")) {
-            type = "MultiPoint";
-            lonLat = geometryValue
-                .replace(/MULTIPOINT|\(|\)/g, "")
-                .split(",")
-                .map((s1: string) =>
-                    s1
-                        .trim()
-                        .split(" ")
-                        .map((w) => Number(w))
-                );
-        } else if (geometryValue.includes("POINT")) {
-            type = "Point";
-            lonLat = geometryValue
-                .replace(/POINT|\(|\)/g, "")
-                .trim()
-                .split(" ")
-                .map((w) => Number(w));
-        } else {
-            console.error(`[arrayToGeoJSON] Unknown geometry type in: ${geometryValue}`);
-        }
+        const { type, lonLat } = getLonLatFromGeometry(geometryValue);
 
         const featureTypeData: ObjectProps = { ...el, id: el[`${geoservice.idName}`] };
 

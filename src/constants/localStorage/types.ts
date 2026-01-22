@@ -1,3 +1,5 @@
+import { Group } from "../contributions/types";
+
 export type LocalLayer = {
     name: string;
     opacity: number;
@@ -12,4 +14,7 @@ export interface LocalStorageData {
     layers: LocalLayer[];
     zoom: number;
     projection: string;
+    searchRoot: Group | null;
+    searchMax: number;
+    searchExtent: string;
 }

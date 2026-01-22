@@ -1,8 +1,8 @@
 import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_GEOSERVICE_PROPERTY, FEATURE_TYPE_NEW_Z_COOD, FEATURE_TYPE_SELECTED_PROPERTY } from "@/constants";
-import { CommunityGeoservice, ObjectProps } from "@/constants/communities/types";
+import { CommunityGeoservice, ObjectProps, OperatorType } from "@/constants/communities/types";
 import { getWebGLValidProperties } from "@/constants/communities/utils";
 import { Feature, Map } from "ol";
-import { Contribution, ContributionType, Group, Rule } from "../types";
+import { Contribution, ContributionType, Group, GroupOperator, GroupSearch, Rule, RuleSearch } from "../types";
 import { Interaction } from "ol/interaction";
 import VectorSource from "ol/source/Vector";
 import { CoordinateType, GeometryFeatueParams } from "@/constants/reports/types";
@@ -108,13 +108,26 @@ export const uuid = () => crypto.randomUUID();
 
 export const createRule = (): Rule => ({
     id: uuid(),
-    field: "type_objet",
-    condition: "est compris dans",
-    values: ["null", "FONTAINE_BOIS", "FONTNE_WALLACE", "FTNE_PETILLANTE"],
+    field: "-1",
+    ruleOperator: OperatorType.in,
+    values: [],
 });
 
 export const createGroup = (): Group => ({
     id: uuid(),
-    operator: "ET",
+    operator: GroupOperator.ET,
     rules: [],
 });
+
+export const getRules = (root: Group): GroupSearch => {
+    const rules = {
+        groupOp: root.operator,
+        rules: root.rules.map((rule: Group | Rule): GroupSearch | RuleSearch => {
+            if ("operator" in rule) {
+                return getRules(rule);
+            }
+            return { name: rule.field, operator: rule.ruleOperator, value: rule.values };
+        }),
+    };
+    return rules;
+};

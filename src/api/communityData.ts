@@ -1,12 +1,13 @@
 import { useCommunityStore } from "@/store/useCommunityStore";
-import { COMMUNITIES_API_URL, LIST_COMMUNITIES_URL } from "@/constants/urls";
+import { COMMUNITIES_API_URL, GRIDS_API_URL, LIST_COMMUNITIES_URL } from "@/constants/urls";
 import { QueryClient, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useUserStore } from "@/store/useUserStore";
 import { getGeoserviceAll } from "./geoservicesData";
-import { Community, CommunityGeoservice, CommunityLayer, layerData } from "@/constants/communities/types";
+import { Community, CommunityGeoservice, CommunityGrids, CommunityLayer, layerData } from "@/constants/communities/types";
 import { axiosApi } from ".";
 import { getFeatureTypesAll } from "./featureTypesData";
 import { LAYER_FEATURE_TYPE, DEFAULT_COMMUNITY_MIN_ZOOM, DEFAULT_COMMUNITY_MAX_ZOOM } from "@/constants";
+import { User } from "@/constants/user/types";
 
 let queryClient: QueryClient;
 
@@ -14,6 +15,20 @@ export const isDigital = (value: string): boolean => {
     const regex = /^[1-9]\d*$/;
     return regex.test(value);
 };
+
+async function getCommunityGrids(grids: string[]): Promise<CommunityGrids[]> {
+    const resAll = await Promise.all(
+        grids.map((gridName) => axiosApi.get(`${GRIDS_API_URL}/${gridName}?fields[]=name` + `&fields[]=title` + `&fields[]=type` + `&fields[]=extent`))
+    );
+    return resAll.map((res) => {
+        return {
+            name: res.data.name,
+            title: res.data.title,
+            type: res.data.type,
+            extent: res.data.extent,
+        };
+    });
+}
 
 async function getCommunityLayers(communityId: string): Promise<CommunityLayer[]> {
     const res = await axiosApi.get(`${COMMUNITIES_API_URL}/${communityId}/layer/get_all`);
@@ -111,7 +126,7 @@ const defineZoomlvl = (layers: CommunityLayer[], providedMinZoom?: number | null
     };
 };
 
-async function getCommunityById(communityId: string): Promise<[Community, CommunityLayer[]] | null> {
+async function getCommunityById(communityId: string, user: User): Promise<[Community, CommunityLayer[]] | null> {
     const res = await axiosApi.get(`${COMMUNITIES_API_URL}/${communityId}`);
 
     if (res.status === 403) {
@@ -151,8 +166,16 @@ async function getCommunityById(communityId: string): Promise<[Community, Commun
         zoom: res.data.zoom,
         minZoom,
         maxZoom,
+        grids: [],
     };
-
+    if (user) {
+        const grids = user.communitiesMember.find((cm) => cm.communityId === communityId)?.grids;
+        const communityGrids = await queryClient?.fetchQuery({
+            queryKey: [`COMMUNITY_GRIDS_DATA_${communityId}`],
+            queryFn: () => getCommunityGrids(grids!),
+        });
+        community.grids = communityGrids;
+    }
     return [community, layers];
 }
 export const useGetCommunityByIdAPI = (communityId: string) => {
@@ -161,7 +184,7 @@ export const useGetCommunityByIdAPI = (communityId: string) => {
     queryClient = useQueryClient();
     return useQuery({
         queryKey: ["COMMUNITY_DATA_" + communityId],
-        queryFn: () => getCommunityById(communityId),
+        queryFn: () => getCommunityById(communityId, user),
         retry: 2,
         enabled: !community && isDigital(communityId) && !!user,
     });

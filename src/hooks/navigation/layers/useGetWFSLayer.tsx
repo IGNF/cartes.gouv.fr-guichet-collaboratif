@@ -118,7 +118,7 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
                 loader: (extent) => wfsLoader(extent, wfsSource),
                 strategy: bboxStrategy,
             }),
-        [geoservice, wfsLoader]
+        [wfsLoader]
     );
 
     const wfsSourceLabels = useMemo(() => new VectorSource<Feature<Geometry>>(), []);

@@ -147,7 +147,7 @@ const ReportDrawer = () => {
     }, [drawerOpened, responseDrawerOpened, setDrawerOpened, setResponseDrawerOpened, setTableDrawerOpened, tableDrawerOpened]);
 
     const isAdmin = useMemo(() => {
-        const currentUser = userData?.communitiesMember?.filter((cm) => cm.communityId === community?.id);
+        const currentUser = userData?.communitiesMember?.filter((cm) => cm.communityId === String(community?.id));
         return Array.isArray(currentUser) ? currentUser.some((role) => role.role === "admin") : false;
     }, [userData, community?.id]);
 

@@ -20,6 +20,7 @@ export const USERS_API_URL = API_URL + "/users";
 export const COMMUNITIES_API_URL = API_URL + "/espaceco/community";
 export const GEOSERVICES_API_URL = API_URL + "/espaceco/geoservice";
 export const DATABASE_API_URL = API_URL + "/espaceco/databases";
+export const GRIDS_API_URL = API_URL + "/espaceco/grids";
 
 export const REPORTS_API_URL = API_URL + "/espaceco/reports";
 export const REPORTS_WFS_API_URL = API_URL + "/espaceco/reports/wfs";
