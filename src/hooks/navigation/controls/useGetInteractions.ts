@@ -16,7 +16,7 @@ const useGetInteractions = () => {
         .find((layer) => layer.get("name") === mapWorkingLayer && (layer instanceof VectorLayer || layer instanceof WebGLVectorLayer));
     const clickableSource = clickableLayer?.getSource() as VectorSource;
 
-    const currentCommunityLayer = communityLayers?.find((layer) => layer.geoservice.layer === mapWorkingLayer);
+    const currentCommunityLayer = communityLayers?.find((layer) => layer?.geoservice?.layer === mapWorkingLayer);
 
     const snapto = currentCommunityLayer?.snapto?.split(",").map((l) => Number(l));
     const snapToLayers = communityLayers?.filter((layer) => snapto?.includes(layer.geoservice.id)).map((layer) => layer.geoservice.layer);

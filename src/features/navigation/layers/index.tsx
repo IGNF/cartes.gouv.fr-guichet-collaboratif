@@ -17,7 +17,7 @@ const GetAllLayers = () => {
 
             {communityLayers.map((layer: CommunityLayer, index: number) => {
                 const geoservice = layer.geoservice;
-                switch (geoservice.type) {
+                switch (geoservice?.type) {
                     case "WMTS":
                         return <GetWMTSLayer key={`GetWMTS_${index}`} layer={layer} />;
                     case "WMS":

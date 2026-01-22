@@ -75,8 +75,6 @@ export async function getTableReports(
         url += `&opening_date=${encodeURIComponent(filters?.opening_date)}`;
     }
 
-    if (searchReport) url += `&comment=%${encodeURIComponent(searchReport)}%`;
-
     if (sortBy) {
         url += `&sort=${encodeURIComponent(sortBy)}`;
     }

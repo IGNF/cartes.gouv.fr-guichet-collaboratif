@@ -12,6 +12,9 @@ const CreateTableData = (
     onShowReportOnMap?: (report: CommunityReport) => void,
     onShowReport?: (report: CommunityReport) => void
 ) => {
+    if (!Array.isArray(reports) || reports.length === 0) {
+        return [];
+    }
     return reports.map((report) => {
         const id = report.id;
         const author = report.author?.username || "-";

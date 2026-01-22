@@ -7,7 +7,7 @@ const SnapInteractionEffect = (props: InteractionsProps) => {
     const { communityLayers } = useCommunityStore();
 
     const currentCommunityLayer = useMemo(
-        () => communityLayers?.find((layer) => layer.geoservice.layer === mapWorkingLayer),
+        () => communityLayers?.find((layer) => layer?.geoservice?.layer === mapWorkingLayer),
         [communityLayers, mapWorkingLayer]
     );
 

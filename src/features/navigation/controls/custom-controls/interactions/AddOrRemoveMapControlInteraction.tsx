@@ -10,7 +10,7 @@ const AddOrRemoveMapControlInteraction = (props: InteractionsFuncsProps & Intera
     const { communityLayers } = useCommunityStore();
     const { isModifying } = useContributionStore();
 
-    const currentCommunityLayer = useMemo(() => communityLayers?.find((l) => l.geoservice.layer === mapWorkingLayer), [communityLayers, mapWorkingLayer]);
+    const currentCommunityLayer = useMemo(() => communityLayers?.find((l) => l?.geoservice?.layer === mapWorkingLayer), [communityLayers, mapWorkingLayer]);
 
     useEffect(() => {
         if (!isModifying && clickedControl && clickedControl.interaction) {
