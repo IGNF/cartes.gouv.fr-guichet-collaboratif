@@ -82,19 +82,7 @@ const ReportDrawer = () => {
         setTableDrawerOpened(false);
         setSelectedReport(null);
         setSelectedFeatures([]);
-    }, [
-        selectedReport,
-        alertMessages,
-        setDrawerOpened,
-        setEditReport,
-        editReport,
-        setTableDrawerOpened,
-        tableDrawerOpened,
-        setSelectedReport,
-        setSelectedFeatures,
-        map,
-        removeAlertMessage,
-    ]);
+    }, [selectedReport, alertMessages, setDrawerOpened, setEditReport, setTableDrawerOpened, setSelectedReport, setSelectedFeatures, map, removeAlertMessage]);
 
     const handleDrawingAdd = useCallback(
         (e: Event) => {
@@ -147,7 +135,7 @@ const ReportDrawer = () => {
     }, [drawerOpened, responseDrawerOpened, setDrawerOpened, setResponseDrawerOpened, setTableDrawerOpened, tableDrawerOpened]);
 
     const isAdmin = useMemo(() => {
-        const currentUser = userData?.communitiesMember?.filter((cm) => cm.communityId === community?.id);
+        const currentUser = userData?.communitiesMember?.filter((cm) => cm.communityId === String(community?.id));
         return Array.isArray(currentUser) ? currentUser.some((role) => role.role === "admin") : false;
     }, [userData, community?.id]);
 

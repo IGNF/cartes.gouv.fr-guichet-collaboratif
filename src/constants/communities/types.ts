@@ -1,10 +1,11 @@
 import { FrIconClassName, RiIconClassName } from "@codegouvfr/react-dsfr";
+import { Extent } from "ol/extent";
 import BaseLayer from "ol/layer/Base";
 import TileLayer from "ol/layer/Tile";
 import VectorLayer from "ol/layer/Vector";
 import { ReactNode } from "react";
 
-export type FeatureTypeIds = { database: number; table: number };
+export type FeatureTypeIds = { database: number | null; table: number | null };
 export type layerData = {
     id: number;
     type: string;
@@ -35,6 +36,10 @@ export interface RegularShapeStyleProps {
 }
 export type FeatureTypeConditionValue = string | number | string[] | number[];
 export type FeatureTypeCondition = { [key: string]: { [key: string]: FeatureTypeConditionValue } }[];
+export type SearchObjectCondition = {
+    $and?: FeatureTypeCondition;
+    $or?: FeatureTypeCondition;
+};
 export type WebGLFilterType = (string | number | (string | number | string[])[] | WebGLFilterType)[];
 
 export type FeatureTypeStyleItem = {
@@ -59,10 +64,7 @@ export type FeatureTypeStyleItem = {
     labelXOffset?: number;
     labelYOffset?: number;
     labelMinZoom?: number;
-    condition?: {
-        $and?: FeatureTypeCondition;
-        $or?: FeatureTypeCondition;
-    };
+    condition?: SearchObjectCondition;
 };
 
 export type FeatureTypeStyleItemData = FeatureTypeStyleItem & {
@@ -97,6 +99,7 @@ export type FeatureTypeColumn = {
     is3d: boolean;
     automatic: boolean;
     formula?: string;
+    queryable: boolean;
 };
 export type FeatureTypeSelectedStyle = { layer: string; selectedStyle: FeatureTypeStyle };
 
@@ -168,6 +171,16 @@ export type CommunityTheme = {
 
 export type PointString = `POINT(${string})`;
 
+export interface CommunityGrids {
+    name: string;
+    title: string;
+    type: {
+        name: string;
+        title: string;
+    };
+    extent: Extent;
+}
+
 export interface Community {
     id: number;
     listed: boolean;
@@ -181,6 +194,7 @@ export interface Community {
     zoom: number;
     minZoom: number;
     maxZoom: number;
+    grids: CommunityGrids[];
 }
 
 export const enum StatusMessage {
@@ -208,7 +222,7 @@ export interface ArrayGeoJSONProps {
 }
 
 export enum CommunityLayerFunctionalityType {
-    VISU = "search",
+    SEARCH = "search",
     MEASURE_DISTANCE = "measureDistance",
     MEASURE_AREA = "measureArea",
     GEOREM = "georem",
@@ -238,6 +252,7 @@ export enum CommunityLayerRoleType {
 
 export enum InteractionType {
     SELECT = "select",
+    SEARCH = "search",
     MODIFY = "modify",
     REMOVE = "remove",
     CREATE_REPORT = "create_report",
@@ -262,3 +277,26 @@ export type LonLatNumber = number | number[] | number[][] | number[][][];
 export type ObjectProps = { [key: string]: string | number | boolean | object | null | undefined };
 
 export type TooltipLayers = { layer: string; visibility: boolean };
+
+export enum OperatorType {
+    in = "in",
+    not_in = "not_in",
+    is_empty = "is_empty",
+    is_not_empty = "is_not_empty",
+    equal = "equal",
+    not_equal = "not_equal",
+    begins_with = "begins_with",
+    not_begins_with = "not_begins_with",
+    contains = "contains",
+    not_contains = "not_contains",
+    ends_with = "ends_with",
+    not_ends_with = "not_ends_with",
+    is_null = "is_null",
+    is_not_null = "is_not_null",
+    less = "less",
+    less_or_equal = "less_or_equal",
+    greater = "greater",
+    greater_or_equal = "greater_or_equal",
+    between = "between",
+    not_between = "not_between",
+}

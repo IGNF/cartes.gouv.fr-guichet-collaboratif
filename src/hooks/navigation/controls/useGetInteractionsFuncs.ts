@@ -20,7 +20,7 @@ let lastPointedFeat: Feature | null = null;
 const useGetInteractionsFuncs = (props: InteractionsProps) => {
     const { map, mapWorkingLayer, clickedControl, setClickedControl, setClickedMapFeature } = useMapStore();
     const { contributions, selectedObjects, saveContribution, setIsModifying, setSelectedObjects } = useContributionStore();
-    const { confirmCopyModal } = useModalStore();
+    const { confirmCopyModal, searchModal } = useModalStore();
     const { communityLayers } = useCommunityStore();
 
     const currentCommunityLayer = useMemo(() => communityLayers?.find((l) => l.geoservice.layer === mapWorkingLayer), [communityLayers, mapWorkingLayer]);
@@ -299,6 +299,9 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
 
     const handleClick = useCallback(
         (control: CustomControlItem) => {
+            if (control.interaction === InteractionType.SEARCH) {
+                searchModal.open();
+            }
             if (control.interaction === InteractionType.REMOVE) {
                 selectInteraction.getFeatures().clear();
             }
@@ -319,7 +322,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                 addInteractionToMap(interaction, map!);
             }
         },
-        [map, clickedControl, selectedObjects, selectInteraction, getInteractionByType, copyInteractionFunc, setSelectedObjects]
+        [map, clickedControl, selectedObjects, selectInteraction, searchModal, getInteractionByType, copyInteractionFunc, setSelectedObjects]
     );
 
     useEffect(() => {

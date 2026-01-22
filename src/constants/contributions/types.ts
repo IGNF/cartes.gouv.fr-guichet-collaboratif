@@ -3,7 +3,7 @@ import { DragBox, Draw, Modify, Select, Snap, Translate } from "ol/interaction";
 import { DrawEvent } from "ol/interaction/Draw";
 import { ModifyEvent } from "ol/interaction/Modify";
 import { SelectEvent } from "ol/interaction/Select";
-import { CustomControlItem } from "../communities/types";
+import { CustomControlItem, OperatorType } from "../communities/types";
 
 export enum ContributionType {
     CREATE = "Insert",
@@ -92,3 +92,54 @@ export enum FeatureTypeFormActionMode {
     DELETE = "delete",
     CANCEL = "cancel",
 }
+
+export interface ConditionRule {
+    id: number;
+    type: string;
+    comparator: string;
+    values: string[];
+}
+
+export type ConditionGroup = ConditionProps & {
+    id: number;
+};
+
+export type ConditionElement = ConditionRule | ConditionGroup;
+
+export interface ConditionProps {
+    andOr: boolean;
+    elements: ConditionElement[];
+}
+
+export enum GroupOperator {
+    ET = "ET",
+    OU = "OU",
+}
+
+export type Rule = {
+    id: string;
+    field: string;
+    ruleOperator: OperatorType;
+    values: string[];
+};
+
+export type Group = {
+    id: string;
+    operator: GroupOperator;
+    rules: Array<Rule | Group>;
+};
+
+export interface RuleSearch {
+    name: string;
+    operator: OperatorType;
+    value: string[];
+}
+
+export interface GroupSearch {
+    groupOp: GroupOperator;
+    rules: (RuleSearch | GroupSearch)[];
+}
+
+export type BuildFilterResponse = Record<string, unknown>;
+
+export type SearchResultItem = { [key: string]: string | number };

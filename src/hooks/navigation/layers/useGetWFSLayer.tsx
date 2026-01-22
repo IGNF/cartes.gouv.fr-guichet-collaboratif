@@ -118,7 +118,7 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
                 loader: (extent) => wfsLoader(extent, wfsSource),
                 strategy: bboxStrategy,
             }),
-        [geoservice, wfsLoader]
+        [wfsLoader]
     );
 
     const wfsSourceLabels = useMemo(() => new VectorSource<Feature<Geometry>>(), []);
@@ -185,6 +185,7 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
     }, [wfsSource, addFeaturesToLabels]);
 
     useEffect(() => {
+        if (!geoservice.featureType) return;
         const typeLabelStyle = selectedStyle?.selectedStyle?.types![0];
         if (typeLabelStyle?.labelMinZoom) wfsLayerLabels.setMinZoom(typeLabelStyle.labelMinZoom);
 
@@ -230,6 +231,7 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
     }, [map, geoservice, layerGroup, wfsLayer, wfsLayerLabels]);
 
     useEffect(() => {
+        if (!geoservice.featureType) return;
         const currentLayerStyle = featureTypeSelectedStyle.find((style) => style.layer === geoservice.layer);
         if (!currentLayerStyle) {
             setFeatureTypeSelectedStyle({ layer: geoservice.layer, selectedStyle: geoservice.styles![0] });

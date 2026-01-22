@@ -2,6 +2,9 @@ import { CommunityGeoservice, FeatureTypeColumn, FeatureTypeIds, FeatureTypeStyl
 import { API_URL, DATABASE_API_URL } from "@/constants/urls";
 import { axiosApi } from ".";
 import { featureDefaultStyle } from "@/constants/styles";
+import { transformExtent } from "ol/proj";
+import { QueryClient } from "@tanstack/react-query";
+import { Extent } from "ol/extent";
 import { FEATURE_TYPE_HOVER_COLUMN } from "@/constants";
 
 export function getFeatureTypeById(featureTypesId: FeatureTypeIds) {
@@ -68,6 +71,7 @@ export async function getFeatureTypesAll(featureTypesIds: FeatureTypeIds[]): Pro
                         min_value: col.min_value,
                         max_value: col.max_value,
                         is3d: col.is3d,
+                        queryable: col.queryable,
                     };
                 }),
             };
@@ -144,3 +148,49 @@ export async function getFeatureTypesAll(featureTypesIds: FeatureTypeIds[]): Pro
     }
     return [];
 }
+
+export const searchFilteredObjects = async (
+    queryClient: QueryClient,
+    geoservice: CommunityGeoservice,
+    maxNumber: number,
+    extent: Extent,
+    mapProjCode: string,
+    geoProjCode: string,
+    urlsFilters: string
+) => {
+    let wfsUrl =
+        `${geoservice.url}` +
+        `${geoservice.url.includes("?") ? "" : "?"}SERVICE=WFS` +
+        (geoservice.version ? `&VERSION=${geoservice.version || "1.1.0"}` : "") +
+        `&REQUEST=GetFeature` +
+        `&typename=${geoservice.layer}` +
+        `&outputFormat=${"application/json"}` +
+        `&SRSNAME=${geoProjCode}` +
+        `&offset=${0}` +
+        `&maxFeatures=${maxNumber}` +
+        urlsFilters;
+
+    let queryKey = `SEARCH_WFS_GET_FEATURES_${geoservice.url}_${geoservice.version}_${geoservice.layer}`;
+
+    if (isFinite(extent[0])) {
+        const transformedExtent = transformExtent(extent, mapProjCode, geoProjCode);
+        wfsUrl += `&bbox=${transformedExtent.join(",")},${geoProjCode}`;
+        queryKey += `_${transformedExtent.join(",")}`;
+    }
+    const data = await queryClient.fetchQuery({
+        queryKey: [queryKey],
+        queryFn: async () => {
+            return await fetch(wfsUrl, { headers: { "X-Requested-With": "XMLHttpRequest" } })
+                .then((response) => response.json())
+
+                .catch(() => {
+                    throw Error;
+                });
+        },
+        retry: 1,
+    });
+
+    if (!Array.isArray(data)) throw Error(data.message);
+
+    return data;
+};

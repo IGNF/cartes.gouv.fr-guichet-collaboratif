@@ -1,3 +1,5 @@
+import { useCallback, useEffect, useMemo, useRef } from "react";
+import { createEmpty, extend } from "ol/extent";
 import {
     FEATURE_TYPE_GEOSERVICE_PROPERTY,
     FEATURE_TYPE_SELECTED_PROPERTY,
@@ -5,18 +7,16 @@ import {
     HIT_DETECTION_TOLERENCE,
     FEATURE_TYPE_HOVER_PROPERTY,
 } from "@/constants";
-import { InteractionType } from "@/constants/communities/types";
+import { CommunityGeoservice, InteractionType } from "@/constants/communities/types";
 import { getFeaturesInPixelBySource } from "@/constants/communities/utils";
 import { getClickedMapReport, getReportSketchFeatures, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import { showClusterFeatures } from "@/constants/reports/utils/cluster";
-import { useContributionStore, useMapStore, useReportStore } from "@/store";
+import { useCommunityStore, useContributionStore, useMapStore, useReportStore } from "@/store";
 import { Feature, MapBrowserEvent, Overlay } from "ol";
 import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
 import WebGLVectorLayer from "ol/layer/WebGLVector";
 import { Style } from "ol/style";
-import { useCallback, useEffect, useRef } from "react";
-import { createEmpty, extend } from "ol/extent";
 import { getSelectedFeatureTypeStyle } from "@/constants/styles";
 
 interface Props {
@@ -24,7 +24,8 @@ interface Props {
 }
 
 const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
-    const { map, mapWorkingLayer, setClickableFeatures, setClickedMapFeature } = useMapStore();
+    const { map, mapWorkingLayer, clickedControl, setClickableFeatures, setClickedMapFeature } = useMapStore();
+    const { communityLayers } = useCommunityStore();
     const { reports, selectedReport, editReport, selectedFeatures, setSelectedReport, setSelectedFeatures, drawerOpened } = useReportStore();
     const { selectedObjects } = useContributionStore();
 
@@ -132,11 +133,23 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
         },
         [map, reportClusterSource]
     );
+    const currentGeoservice: CommunityGeoservice | undefined = useMemo(
+        () => communityLayers?.find((layer) => layer.geoservice.layer === mapWorkingLayer)?.geoservice,
+        [communityLayers, mapWorkingLayer]
+    );
+
+    const isNotClickable = useMemo(
+        () =>
+            clickedControl ||
+            editReport ||
+            selectedFeatures?.find((f) => f?.get("new")) ||
+            (!currentGeoservice?.featureType && mapWorkingLayer !== REPORTS_LAYER_TYPE),
+        [clickedControl, editReport, selectedFeatures, currentGeoservice, mapWorkingLayer]
+    );
 
     const handleSingleClick = useCallback(
         (evt: MapBrowserEvent) => {
-            if (!map) return;
-            if (selectedFeatures?.find((f) => f?.get("new"))) return;
+            if (!map || isNotClickable) return;
 
             clearHoverState();
 
@@ -227,10 +240,9 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
             map,
             reportClusterSource,
             selectedReport,
-            selectedFeatures,
-            editReport,
             mapWorkingLayer,
             clickableSource,
+            isNotClickable,
             handleCloseDrawer,
             handleClusterClick,
             setSelectedReport,
@@ -243,7 +255,7 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
 
     const handlePointerMove = useCallback(
         (evt: MapBrowserEvent) => {
-            if (!map) return;
+            if (!map || isNotClickable) return;
 
             const features = map.getFeaturesAtPixel(evt.pixel, {
                 layerFilter: (layer) => {
@@ -361,7 +373,7 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
                 overlayRef.current.setPosition(evt.coordinate);
             }
         },
-        [map, selectedFeatures, selectedObjects, mapWorkingLayer, clickableSource, isTooltipDisabled, clearHoverState]
+        [map, selectedFeatures, selectedObjects, mapWorkingLayer, clickableSource, isNotClickable, isTooltipDisabled, clearHoverState]
     );
 
     const handleClusterChange = useCallback(() => {

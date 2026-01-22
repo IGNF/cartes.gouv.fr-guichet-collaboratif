@@ -1,5 +1,5 @@
 import { FeatureTypeColumn } from "@/constants/communities/types";
-import { Contribution, ContributionType, FeatureTypeMode } from "@/constants/contributions/types";
+import { Contribution, ContributionType, FeatureTypeMode, SearchResultItem } from "@/constants/contributions/types";
 import { Feature } from "ol";
 import { create } from "zustand";
 
@@ -11,6 +11,8 @@ interface ContributionStore {
     isModifying: boolean;
     selectedObjects: Feature[];
     columnsToModify: FeatureTypeColumn[];
+    searchResult: SearchResultItem[];
+    searchItemToDelete: Feature | null;
     setContributions: (contributions: Contribution[]) => void;
     setReviewContribution: (isReview: boolean) => void;
     setContrToCancel: (contributions: Contribution[]) => void;
@@ -19,6 +21,8 @@ interface ContributionStore {
     setFeatureTypeMode: (mode: FeatureTypeMode) => void;
     setSelectedObjects: (objects: Feature[]) => void;
     setColumnsToModify: (columns: FeatureTypeColumn[]) => void;
+    setSearchResult: (result: SearchResultItem[]) => void;
+    setSearchItemToDelete: (item: Feature | null) => void;
 }
 
 export const useContributionStore = create<ContributionStore>((set, get) => ({
@@ -29,6 +33,8 @@ export const useContributionStore = create<ContributionStore>((set, get) => ({
     isModifying: false,
     selectedObjects: [],
     columnsToModify: [],
+    searchResult: [],
+    searchItemToDelete: null,
     setContributions: (contributions) => set({ contributions }),
     setReviewContribution: (isReview) => set({ isReviewContribution: isReview }),
     setContrToCancel: (contributions) => set({ contrToCancel: contributions }),
@@ -36,6 +42,8 @@ export const useContributionStore = create<ContributionStore>((set, get) => ({
     setFeatureTypeMode: (mode) => set({ featureTypeMode: mode }),
     setSelectedObjects: (objects) => set({ selectedObjects: objects }),
     setColumnsToModify: (columns) => set({ columnsToModify: columns }),
+    setSearchResult: (result) => set({ searchResult: result }),
+    setSearchItemToDelete: (item) => set({ searchItemToDelete: item }),
     saveContribution: (feat, type, initialFeat, mapWorkingLayer) => {
         const { contributions, setContributions } = get();
         const contrExist = contributions.find((contr) => contr.feature === feat);

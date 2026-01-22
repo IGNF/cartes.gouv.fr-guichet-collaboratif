@@ -13,6 +13,7 @@ import useGetInteractions from "@/hooks/navigation/controls/useGetInteractions";
 import { CustomControlItem, InteractionType } from "@/constants/communities/types";
 import { FEATURE_TYPE_SELECTED_PROPERTY } from "@/constants";
 import ConfirmMultipleDeselection from "./ConfirmMultipleDeselection";
+import SearchObjectsModal from "@/features/working-layer/modal/searchObjects/SearchObjectsModal";
 
 let prevClickedControl: CustomControlItem | null = null;
 
@@ -102,6 +103,7 @@ const CustomControls = () => {
             <AddOrRemoveSnapInteraction {...interactions} />
             <ConfirmCopyModal />
             <ConfirmMultipleDeselection onConfirm={() => onConfirm(prevClickedControl!)} />
+            <SearchObjectsModal />
         </>
     );
 };
