@@ -6,6 +6,7 @@ import WebGLVectorLayer from "ol/layer/WebGLVector";
 import { ContributionType, CustomInteraction, InteractionsProps } from "@/constants/contributions/types";
 import { ModifyEvent } from "ol/interaction/Modify";
 import { DrawEvent } from "ol/interaction/Draw";
+import { DragPan } from "ol/interaction";
 import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_NEW_PROPERTY, FEATURE_TYPE_SELECTED_PROPERTY, POINTER_HIT_DETECTION_TOLERENCE } from "@/constants";
 import { addFeatureProperties, addInteractionToMap, isPointOnSegment, removeInteractionFromMap, setFeatNewCoords } from "@/constants/contributions/utils";
 import { GeometryFeatueParams } from "@/constants/reports/types";
@@ -43,10 +44,12 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
         selectInteraction,
         dragInteraction,
         modifyInteraction,
+        modifyFeatures,
         drawPointInteraction,
         drawLineInteraction,
         drawPolygonInteraction,
         translateInteraction,
+        translateFeatures,
         splitInteraction,
     } = props;
 
@@ -110,8 +113,18 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             const feat = features[0];
             saveContribution(feat, ContributionType.MODIFY, initialFeat, mapWorkingLayer);
             initialFeat = null;
+            selectInteraction.setActive(true);
+            if (clickedControl?.interaction === InteractionType.TRANSLATE_OBJECT) {
+                const dragPan = map
+                    ?.getInteractions()
+                    .getArray()
+                    .find((i) => i instanceof DragPan) as DragPan | undefined;
+                if (dragPan) {
+                    dragPan.setActive(true);
+                }
+            }
         },
-        [mapWorkingLayer, saveContribution, setIsModifying]
+        [mapWorkingLayer, saveContribution, setIsModifying, selectInteraction, clickedControl, map]
     );
 
     const modifyInteractionFuncStart = useCallback(
@@ -121,8 +134,18 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             const feat = features[0];
             initialFeat = feat.clone();
             saveContribution(feat, ContributionType.MODIFY, initialFeat, mapWorkingLayer);
+
+            if (clickedControl?.interaction === InteractionType.TRANSLATE_OBJECT) {
+                const dragPan = map
+                    ?.getInteractions()
+                    .getArray()
+                    .find((i) => i instanceof DragPan) as DragPan | undefined;
+                if (dragPan) {
+                    dragPan.setActive(false);
+                }
+            }
         },
-        [mapWorkingLayer, saveContribution, setIsModifying]
+        [mapWorkingLayer, saveContribution, setIsModifying, clickedControl, map]
     );
 
     const drawInteractionFunc = useCallback(
@@ -305,7 +328,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             if (control.interaction === InteractionType.REMOVE) {
                 selectInteraction.getFeatures().clear();
             }
-            if (control.interaction !== InteractionType.MODIFY) {
+            if (control.interaction !== InteractionType.MODIFY && control.interaction !== InteractionType.TRANSLATE_OBJECT) {
                 selectedObjects.forEach((feat) => {
                     feat.unset(FEATURE_TYPE_SELECTED_PROPERTY);
                 });
@@ -318,11 +341,28 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                 removeInteractionFromMap(control.interaction, map!);
             } else {
                 removeInteractionFromMap(clickedControl?.interaction ?? null, map!);
+
+                if (control.interaction === InteractionType.MODIFY && selectedObjects.length > 0) {
+                    modifyFeatures.clear();
+                    selectedObjects.forEach((feat) => {
+                        modifyFeatures.push(feat);
+                    });
+                    selectInteraction.setActive(false);
+                }
+
+                if (control.interaction === InteractionType.TRANSLATE_OBJECT && selectedObjects.length > 0) {
+                    translateFeatures.clear();
+                    selectedObjects.forEach((feat) => {
+                        translateFeatures.push(feat);
+                    });
+                    selectInteraction.setActive(false);
+                }
+
                 const interaction = getInteractionByType(control.interaction, control.target);
                 addInteractionToMap(interaction, map!);
             }
         },
-        [map, clickedControl, selectedObjects, selectInteraction, searchModal, getInteractionByType, copyInteractionFunc, setSelectedObjects]
+        [map, clickedControl, selectedObjects, selectInteraction, modifyInteraction, searchModal, getInteractionByType, copyInteractionFunc, setSelectedObjects]
     );
 
     useEffect(() => {
