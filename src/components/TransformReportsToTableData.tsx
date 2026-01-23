@@ -30,7 +30,7 @@ const TransformReportsToTableData = (reports: CommunityReport[]) => {
         handleShowOnMap(report, map, clusterSource, localStorageData, t, reportTableWidth);
     };
 
-    return reports.map((report) => {
+    return reports?.map((report) => {
         const author = report.author?.username || "-";
         const date = report.opening_date ? new Date(report.opening_date).toLocaleDateString() : "-";
         const departement = report.commune ? `${report.commune.title} (${report.departement?.name})` : "-";

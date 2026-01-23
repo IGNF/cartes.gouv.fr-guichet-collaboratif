@@ -1,7 +1,7 @@
 import type { CommunityReport, FilterState } from "@/constants/reports/types";
 
 export function applyFiltersToReports(reports: CommunityReport[], filters: FilterState, searchText: string): CommunityReport[] {
-    return reports.filter((report) => {
+    return reports?.filter((report) => {
         const matchesStatus = !filters.status || report.status === filters.status;
 
         const matchesTheme = !filters.theme || (report.attributes?.some((attr) => attr.theme === filters.theme) ?? false);

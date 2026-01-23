@@ -15,7 +15,7 @@ const WorkingLayerLabelMap = () => {
     const scaleControlDiv = document.querySelector(".ol-scale-line.ol-unselectable");
 
     const mapWorkingGeoservice = useMemo(
-        () => communityLayers?.find((layer) => layer.geoservice.layer === mapWorkingLayer)?.geoservice,
+        () => communityLayers?.find((layer) => layer?.geoservice?.layer === mapWorkingLayer)?.geoservice,
         [mapWorkingLayer, communityLayers]
     );
 
