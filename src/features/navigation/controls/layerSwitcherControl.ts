@@ -18,6 +18,7 @@ const layerSwitcherControl = (layers: MapLayer[]): LayerSwitcher => {
             collapsed: true,
             panel: true,
             counter: true,
+            allowTooltips: true,
         },
     });
 

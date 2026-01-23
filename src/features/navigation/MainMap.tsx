@@ -25,7 +25,7 @@ import WorkingLayerDrawer from "../working-layer/WorkingLayerDrawer";
 import { Control } from "ol/control";
 import Layer from "ol/layer/Layer";
 import WorkingLayerControl from "./controls/WorkingLayerControl";
-import { APP_FOOTER_MIN_HEIGHT } from "@/constants";
+import { APP_FOOTER_MIN_HEIGHT, LAYER_SWITCHER_INFO_DIV } from "@/constants";
 import WorkingLayerLabelMap from "./controls/WorkingLayerLabelMap";
 import CustomControls from "./controls/custom-controls";
 import ReviewContributions from "../contributions/ReviewContributions";
@@ -76,9 +76,13 @@ export default function MainMap() {
                 return;
             }
             mapRef.current?.addLayer(layer);
+
+            const description = layer.get("description");
+            const tooltipDescription = !description || description === LAYER_SWITCHER_INFO_DIV ? layer.get("title") : description;
+
             switcherRef.current?.addLayer(layer as Layer, {
                 title: layer.get("title"),
-                description: layer.get("description"),
+                description: tooltipDescription,
             });
         },
         [addReportLayer]
