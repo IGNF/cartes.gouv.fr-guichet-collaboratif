@@ -43,8 +43,10 @@ const ShareReportFiltersModal = () => {
 
     useEffect(() => {
         const baseParams = new URL(url).search;
-        const tableParam = currentGeoservice?.database ? `&table=${activeTable}` : "";
-        setShareUrl(`${baseUrl}${baseParams}${tableParam}`);
+        const tableParam = currentGeoservice?.database ? `&table=${activeTable}` : "&table=reports";
+
+        const newUrl = `${baseUrl}${baseParams}${tableParam}`;
+        setShareUrl(newUrl);
     }, [activeTable, baseUrl, currentGeoservice, url]);
 
     const handleCopy = async () => {
