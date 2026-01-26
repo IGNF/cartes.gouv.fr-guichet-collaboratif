@@ -1,5 +1,6 @@
 import { FeatureTypeColumn } from "@/constants/communities/types";
-import { Contribution, ContributionType, FeatureTypeMode, SearchResultItem } from "@/constants/contributions/types";
+import { Contribution, ContributionType, FeatureTypeMode } from "@/constants/contributions/types";
+import { SearchResultItem } from "@/constants/savedSearches/types";
 import { Feature } from "ol";
 import { create } from "zustand";
 

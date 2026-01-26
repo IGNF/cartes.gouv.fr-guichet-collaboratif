@@ -5,7 +5,7 @@ import Select from "@codegouvfr/react-dsfr/Select";
 import { useCallback, useMemo, useState } from "react";
 import ChoiceValueComponent from "./ChoiceValueComponent";
 import OperatorComponent from "./OperatorComponent";
-import { Rule } from "@/constants/contributions/types";
+import { Rule } from "@/constants/savedSearches/types";
 import useOperatorList from "@/hooks/working-layer/searchObjects/useOperatorList";
 import { getOperators } from "@/constants/working-layer/utils";
 import { TranslationFunction } from "i18nifty/typeUtils/TranslationFunction";

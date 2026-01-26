@@ -1,7 +1,8 @@
 import { FEATURE_TYPE_DATA_PROPERTY } from "@/constants";
 import { CommunityGeoservice, CommunityLayerRoleType } from "@/constants/communities/types";
 import { arrayToGeoJSON } from "@/constants/communities/utils";
-import { ContributionType, FeatureTypeMode, SearchResultItem } from "@/constants/contributions/types";
+import { ContributionType, FeatureTypeMode } from "@/constants/contributions/types";
+import { SearchResultItem } from "@/constants/savedSearches/types";
 import { resetContributionToMap } from "@/constants/contributions/utils";
 import { handleCenterToFeature } from "@/constants/utils";
 import { useTranslation } from "@/i18n";

@@ -1,10 +1,10 @@
 import ModaleComponent from "@/components/ModaleComponent";
-import { useCommunityStore, useContributionStore, useLocalStorageStore, useMapStore, useModalStore } from "@/store";
+import { useCommunityStore, useContributionStore, useLocalStorageStore, useMapStore, useModalStore, useSavedSearchesStore } from "@/store";
 import { useIsModalOpen } from "@codegouvfr/react-dsfr/Modal/useIsModalOpen";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import SearchObjectsFilters from "./SearchObjectsFilters";
 import ConstraintsComponent from "./ConstraintsComponent";
-import { Group } from "@/constants/contributions/types";
+import { Group } from "@/constants/savedSearches/types";
 import { createGroup, getRules } from "@/constants/contributions/utils";
 import { toMongoFilter } from "@/constants/working-layer/utils";
 import useExtentList from "@/hooks/working-layer/searchObjects/useExtentList";
@@ -16,15 +16,21 @@ import ConfirmDeleteObjectModal from "./ConfirmDeleteObjectModal";
 import { searchFilteredObjects } from "@/api/featureTypesData";
 import { LocalStorageData } from "@/constants/localStorage/types";
 import { useTranslation } from "@/i18n";
+import SaveSearchForm from "./SaveSearchForm";
+import SavedSearchesList from "./SavedSearchesList";
+import { SavedSearch } from "@/constants/savedSearches/types";
+import Button from "@codegouvfr/react-dsfr/Button";
 
 const SearchObjectsModal = () => {
     const { localStorageData, setLocalStorage } = useLocalStorageStore();
     const { setSearchResult } = useContributionStore();
+    const { loadLocalSavedSearches } = useSavedSearchesStore();
 
     const { t } = useTranslation({ SearchObjectsModal });
 
     const [root, setRoot] = useState<Group>(localStorageData?.searchRoot ? localStorageData?.searchRoot : () => createGroup());
     const [maxNumber, setMaxNumber] = useState(localStorageData?.searchMax ?? 20);
+    const [showSavedSearches, setShowSavedSearches] = useState(false);
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -51,6 +57,23 @@ const SearchObjectsModal = () => {
     useIsModalOpen(searchModal, {
         onConceal: onClose,
     });
+
+    useEffect(() => {
+        if (community?.name) {
+            loadLocalSavedSearches(community.name);
+        }
+    }, [community?.name, loadLocalSavedSearches]);
+
+    const handleLoadSearch = useCallback(
+        (search: SavedSearch) => {
+            setRoot(search.searchRoot);
+            setMaxNumber(search.searchMax);
+            setSelectedExtent(search.searchExtent);
+            setShowSavedSearches(false);
+            addAlertMessage(StatusMessage.success, t("search_loaded_successfully"), 3000);
+        },
+        [setRoot, setMaxNumber, setSelectedExtent, addAlertMessage, t]
+    );
 
     const onConfirm = useCallback(async () => {
         try {
@@ -89,7 +112,6 @@ const SearchObjectsModal = () => {
             };
             setLocalStorage(community?.name, newLocalStoageData);
         } catch (error: unknown) {
-            console.error(error);
             const errorMessage = error instanceof Error ? error.message : "Error";
             addAlertMessage(StatusMessage.error, errorMessage);
             setIsLoading(false);
@@ -127,7 +149,35 @@ const SearchObjectsModal = () => {
             >
                 <>
                     <div className="search-property">
-                        <SearchObjectsFilters t={t} root={root} setRoot={setRoot} />
+                        <div className="saved-searches-toggle-header">
+                            <h5>{t("search_filters")}</h5>
+                            <Button
+                                iconId={showSavedSearches ? "fr-icon-arrow-up-s-line" : "fr-icon-arrow-down-s-line"}
+                                priority="tertiary no outline"
+                                size="small"
+                                onClick={() => setShowSavedSearches(!showSavedSearches)}
+                            >
+                                {showSavedSearches ? t("hide_saved_searches") : t("show_saved_searches")}
+                            </Button>
+                        </div>
+
+                        {showSavedSearches && community?.name && (
+                            <div className="saved-searches-section">
+                                <SaveSearchForm
+                                    t={t}
+                                    communityName={community.name}
+                                    root={root}
+                                    maxNumber={maxNumber}
+                                    selectedExtent={selectedExtent}
+                                    onSaveComplete={() => loadLocalSavedSearches(community.name)}
+                                />
+                                <SavedSearchesList t={t} communityName={community.name} onLoadSearch={handleLoadSearch} />
+                            </div>
+                        )}
+
+                        <div className="search-filters-section">
+                            <SearchObjectsFilters t={t} root={root} setRoot={setRoot} />
+                        </div>
                         <ConstraintsComponent
                             t={t}
                             extentList={extentList}
