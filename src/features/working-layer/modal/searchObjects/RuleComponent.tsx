@@ -99,7 +99,7 @@ const RuleComponent: React.FC<RuleProps> = ({ t, rule, className, onDelete, onCh
                 </>
             )}
 
-            <Button size="small" iconId="ri-delete-bin-2-fill" title="" priority="tertiary" onClick={onDelete} style={{ color: "red" }}>
+            <Button size="small" iconId="fr-icon-delete-line" title="" priority="tertiary" onClick={onDelete}>
                 {t("delete")}
             </Button>
         </div>

@@ -17,14 +17,13 @@ const ChoiceValueComponent: React.FC<ChoiceTypeProps> = ({ choiceValue, currentC
                     <Select
                         label=""
                         nativeSelectProps={{
-                            value: choiceValue,
-                            multiple: true,
-                            size: 3,
-                            onClick: (e) => handleChoiceValueChange((e.target as HTMLSelectElement).value),
+                            value: choiceValue[0] ?? "",
+                            onChange: (e) => handleChoiceValueChange((e.target as HTMLSelectElement).value),
                         }}
                     >
+                        <option value="">Sélectionner une option</option>
                         {currentColumn?.enum?.map((val, idx) => (
-                            <option key={`multiple_${val}_${idx}`} value={val}>
+                            <option key={`option_${val}_${idx}`} value={val}>
                                 {val ?? "null"}
                             </option>
                         ))}
