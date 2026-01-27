@@ -20,7 +20,7 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
     const currentCommunityLayer = useMemo(() => communityLayers?.find((l) => l?.geoservice?.layer === mapWorkingLayer), [communityLayers, mapWorkingLayer]);
 
     const geoservice: CommunityGeoservice | undefined = useMemo(
-        () => communityLayers?.find((layer) => layer.geoservice.layer === mapWorkingLayer)?.geoservice,
+        () => communityLayers?.find((layer) => layer?.geoservice?.layer === mapWorkingLayer)?.geoservice,
         [communityLayers, mapWorkingLayer]
     );
 

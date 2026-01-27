@@ -37,7 +37,7 @@ const SearchObjectsModal = () => {
     const { map, mapWorkingLayer, setClickedControl } = useMapStore();
     const { searchModal } = useModalStore();
 
-    const geoservice = useMemo(() => communityLayers?.find((l) => l.geoservice.layer === mapWorkingLayer)?.geoservice, [communityLayers, mapWorkingLayer]);
+    const geoservice = useMemo(() => communityLayers?.find((l) => l?.geoservice?.layer === mapWorkingLayer)?.geoservice, [communityLayers, mapWorkingLayer]);
     const mapProjCode = useMemo(() => map?.getView()?.getProjection().getCode() ?? "EPSG:3857", [map]);
     const geoProjCode = useMemo(() => geoservice?.columns?.find((c) => c.name === geoservice?.geometryName)?.crs ?? "EPSG:3857", [geoservice]);
 
