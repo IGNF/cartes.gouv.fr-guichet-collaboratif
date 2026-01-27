@@ -6,7 +6,7 @@ import { ADMIN_ROLE } from "@/constants";
 import ContributionsCount from "../../features/contributions/ContributionsCount";
 
 const MapToolbar: React.FC = () => {
-    const { community } = useCommunityStore();
+    const { community, hasOneEditableLayer } = useCommunityStore();
     const { user } = useUserStore();
 
     const { t } = useTranslation({ MapToolbar });
@@ -28,7 +28,7 @@ const MapToolbar: React.FC = () => {
                 <span className="map-toolbar-label">{t("community_title", { communityName: community.name })}</span>
             </div>
             <div>
-                <ContributionsCount t={t} />
+                {hasOneEditableLayer && <ContributionsCount t={t} />}
 
                 {userCommunityMember?.role === ADMIN_ROLE && (
                     <Button iconId="fr-icon-settings-5-fill" priority="secondary" linkProps={{ href: "#" }} className="map-toolbar-manage">
