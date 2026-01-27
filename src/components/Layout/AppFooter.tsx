@@ -30,14 +30,10 @@ const AppFooter: React.FC = () => {
                 </Button>
             )}
             <Footer
-                accessibility={"partially compliant"}
-                accessibilityLinkProps={
-                    showFullFooter
-                        ? {
-                              href: "/accessibilite",
-                          }
-                        : undefined
-                }
+                accessibility="partially compliant"
+                accessibilityLinkProps={{
+                    href: "/accessibilite",
+                }}
                 brandTop={
                     showFullFooter ? (
                         <>
@@ -59,7 +55,6 @@ const AppFooter: React.FC = () => {
                     },
                     <FooterPersonalDataPolicyItem key="footer-personal-data-policy-item" />,
                     <FooterConsentManagementItem key="footer-consent-management-item" />,
-
                     headerFooterDisplayItem,
                 ]}
                 homeLinkProps={
