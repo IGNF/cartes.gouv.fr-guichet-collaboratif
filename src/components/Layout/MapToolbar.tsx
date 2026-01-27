@@ -20,8 +20,7 @@ const MapToolbar: React.FC = () => {
             <div className="map-toolbar-title">
                 <img
                     src={
-                        community.logoUrl ||
-                        "https://media.istockphoto.com/id/528909900/photo/sunbeams-rays-of-light-shining-through-green-foliage-into-forest.webp?a=1&b=1&s=612x612&w=0&k=20&c=XvEKcyRQSLGgeTULTqy53TTuno_IevpN9VVUg3nXkjA="
+                        community.logoUrl || "https://images.freeimages.com/images/large-previews/732/sunset-in-snowy-spruce-forest-1336307.jpg?fmt=webp&h=350"
                     }
                     alt="Icône Guichet"
                     className="map-toolbar-avatar"
