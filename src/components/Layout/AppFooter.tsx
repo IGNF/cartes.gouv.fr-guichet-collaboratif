@@ -1,6 +1,6 @@
 import { headerFooterDisplayItem } from "@codegouvfr/react-dsfr/Display";
 import Footer from "@codegouvfr/react-dsfr/Footer";
-import { FooterConsentManagementItem, FooterPersonalDataPolicyItem } from "@/components/ConsentManagement";
+import { ConsentBannerAndConsentManagement, FooterConsentManagementItem, FooterPersonalDataPolicyItem } from "@/components/ConsentManagement";
 import { useCommunityStore, useUserStore } from "@/store";
 import { useTranslation } from "@/i18n";
 import Button from "@codegouvfr/react-dsfr/Button";
@@ -29,6 +29,7 @@ const AppFooter: React.FC = () => {
                     Fermer
                 </Button>
             )}
+            <ConsentBannerAndConsentManagement />
             <Footer
                 accessibility="partially compliant"
                 accessibilityLinkProps={{
