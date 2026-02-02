@@ -54,6 +54,7 @@ export type SearchResultItem = { [key: string]: string | number };
 export interface SavedSearch {
     id: string;
     name: string;
+    workingLayer: string;
     searchRoot: Group;
     searchMax: number;
     searchExtent: string;
@@ -64,8 +65,19 @@ export interface SavedSearch {
 export interface SavedSearchesStore {
     localSavedSearches: SavedSearch[];
     userSavedSearches: SavedSearch[];
-    loadLocalSavedSearches: (communityName: string) => void;
-    saveSearchLocally: (communityName: string, name: string, search: Omit<SavedSearch, "id" | "name" | "createdAt" | "updatedAt">) => void;
-    deleteLocalSearch: (communityName: string, searchId: string) => void;
-    updateLocalSearch: (communityName: string, searchId: string, name: string, search: Omit<SavedSearch, "id" | "name" | "createdAt" | "updatedAt">) => void;
+    loadLocalSavedSearches: (communityName: string, workingLayer: string) => void;
+    saveSearchLocally: (
+        communityName: string,
+        workingLayer: string,
+        name: string,
+        search: Omit<SavedSearch, "id" | "name" | "createdAt" | "updatedAt">
+    ) => void;
+    deleteLocalSearch: (communityName: string, workingLayer: string, searchId: string) => void;
+    updateLocalSearch: (
+        communityName: string,
+        workingLayer: string,
+        searchId: string,
+        name: string,
+        search: Omit<SavedSearch, "id" | "name" | "createdAt" | "updatedAt">
+    ) => void;
 }

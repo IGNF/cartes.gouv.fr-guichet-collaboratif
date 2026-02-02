@@ -10,10 +10,11 @@ import ModaleComponent from "@/components/ModaleComponent";
 interface SavedSearchesListProps {
     t: TranslationFunction<"SearchObjectsModal", ComponentKey>;
     communityName: string;
+    workingLayer: string;
     onLoadSearch: (search: SavedSearch) => void;
 }
 
-const SavedSearchesList: React.FC<SavedSearchesListProps> = ({ t, communityName, onLoadSearch }) => {
+const SavedSearchesList: React.FC<SavedSearchesListProps> = ({ t, communityName, workingLayer, onLoadSearch }) => {
     const { localSavedSearches, deleteLocalSearch } = useSavedSearchesStore();
     const { confirmDeleteSavedSearchModal } = useModalStore();
     const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -26,7 +27,7 @@ const SavedSearchesList: React.FC<SavedSearchesListProps> = ({ t, communityName,
 
     const handleConfirmDelete = () => {
         if (searchToDelete) {
-            deleteLocalSearch(communityName, searchToDelete);
+            deleteLocalSearch(communityName, workingLayer, searchToDelete);
             setSearchToDelete(null);
         }
     };

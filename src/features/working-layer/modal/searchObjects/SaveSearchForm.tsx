@@ -10,13 +10,14 @@ import { StatusMessage } from "@/constants/communities/types";
 interface SaveSearchFormProps {
     t: TranslationFunction<"SearchObjectsModal", ComponentKey>;
     communityName: string;
+    workingLayer: string;
     root: Group;
     maxNumber: number;
     selectedExtent: string;
     onSaveComplete?: () => void;
 }
 
-const SaveSearchForm: React.FC<SaveSearchFormProps> = ({ t, communityName, root, maxNumber, selectedExtent, onSaveComplete }) => {
+const SaveSearchForm: React.FC<SaveSearchFormProps> = ({ t, communityName, workingLayer, root, maxNumber, selectedExtent, onSaveComplete }) => {
     const { saveSearchLocally } = useSavedSearchesStore();
     const { addAlertMessage } = useCommunityStore();
     const [searchName, setSearchName] = useState("");
@@ -36,7 +37,8 @@ const SaveSearchForm: React.FC<SaveSearchFormProps> = ({ t, communityName, root,
         setIsSaving(true);
 
         try {
-            saveSearchLocally(communityName, searchName.trim(), {
+            saveSearchLocally(communityName, workingLayer, searchName.trim(), {
+                workingLayer,
                 searchRoot: root,
                 searchMax: maxNumber,
                 searchExtent: selectedExtent,

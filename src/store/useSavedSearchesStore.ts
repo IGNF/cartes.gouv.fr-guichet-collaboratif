@@ -6,8 +6,8 @@ export const useSavedSearchesStore = create<SavedSearchesStore>((set, get) => ({
     localSavedSearches: [],
     userSavedSearches: [],
 
-    loadLocalSavedSearches: (communityName: string) => {
-        const storageKey = `${SAVED_SEARCHES_PREFIX}${communityName}`;
+    loadLocalSavedSearches: (communityName: string, workingLayer: string) => {
+        const storageKey = `${SAVED_SEARCHES_PREFIX}${communityName}_${workingLayer}`;
         const savedData = window.localStorage.getItem(storageKey);
 
         if (savedData) {
@@ -27,13 +27,14 @@ export const useSavedSearchesStore = create<SavedSearchesStore>((set, get) => ({
         }
     },
 
-    saveSearchLocally: (communityName: string, name: string, search) => {
-        const storageKey = `${SAVED_SEARCHES_PREFIX}${communityName}`;
+    saveSearchLocally: (communityName: string, workingLayer: string, name: string, search) => {
+        const storageKey = `${SAVED_SEARCHES_PREFIX}${communityName}_${workingLayer}`;
         const currentSearches = get().localSavedSearches;
 
         const newSearch: SavedSearch = {
             id: `search_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
             name,
+            workingLayer,
             searchRoot: search.searchRoot,
             searchMax: search.searchMax,
             searchExtent: search.searchExtent,
@@ -46,8 +47,8 @@ export const useSavedSearchesStore = create<SavedSearchesStore>((set, get) => ({
         set({ localSavedSearches: updatedSearches });
     },
 
-    updateLocalSearch: (communityName: string, searchId: string, name: string, search) => {
-        const storageKey = `${SAVED_SEARCHES_PREFIX}${communityName}`;
+    updateLocalSearch: (communityName: string, workingLayer: string, searchId: string, name: string, search) => {
+        const storageKey = `${SAVED_SEARCHES_PREFIX}${communityName}_${workingLayer}`;
         const currentSearches = get().localSavedSearches;
 
         const updatedSearches = currentSearches.map((s) => {
@@ -55,6 +56,7 @@ export const useSavedSearchesStore = create<SavedSearchesStore>((set, get) => ({
                 return {
                     ...s,
                     name,
+                    workingLayer,
                     searchRoot: search.searchRoot,
                     searchMax: search.searchMax,
                     searchExtent: search.searchExtent,
@@ -68,8 +70,8 @@ export const useSavedSearchesStore = create<SavedSearchesStore>((set, get) => ({
         set({ localSavedSearches: updatedSearches });
     },
 
-    deleteLocalSearch: (communityName: string, searchId: string) => {
-        const storageKey = `${SAVED_SEARCHES_PREFIX}${communityName}`;
+    deleteLocalSearch: (communityName: string, workingLayer: string, searchId: string) => {
+        const storageKey = `${SAVED_SEARCHES_PREFIX}${communityName}_${workingLayer}`;
         const currentSearches = get().localSavedSearches;
 
         const updatedSearches = currentSearches.filter((s) => s.id !== searchId);

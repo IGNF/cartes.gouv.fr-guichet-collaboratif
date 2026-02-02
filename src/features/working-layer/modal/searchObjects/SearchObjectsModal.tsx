@@ -59,10 +59,10 @@ const SearchObjectsModal = () => {
     });
 
     useEffect(() => {
-        if (community?.name) {
-            loadLocalSavedSearches(community.name);
+        if (community?.name && mapWorkingLayer) {
+            loadLocalSavedSearches(community.name, mapWorkingLayer);
         }
-    }, [community?.name, loadLocalSavedSearches]);
+    }, [community?.name, mapWorkingLayer, loadLocalSavedSearches]);
 
     const handleLoadSearch = useCallback(
         (search: SavedSearch) => {
@@ -161,17 +161,18 @@ const SearchObjectsModal = () => {
                             </Button>
                         </div>
 
-                        {showSavedSearches && community?.name && (
+                        {showSavedSearches && community?.name && mapWorkingLayer && (
                             <div className="saved-searches-section">
                                 <SaveSearchForm
                                     t={t}
                                     communityName={community.name}
+                                    workingLayer={mapWorkingLayer}
                                     root={root}
                                     maxNumber={maxNumber}
                                     selectedExtent={selectedExtent}
-                                    onSaveComplete={() => loadLocalSavedSearches(community.name)}
+                                    onSaveComplete={() => loadLocalSavedSearches(community.name, mapWorkingLayer)}
                                 />
-                                <SavedSearchesList t={t} communityName={community.name} onLoadSearch={handleLoadSearch} />
+                                <SavedSearchesList t={t} communityName={community.name} workingLayer={mapWorkingLayer} onLoadSearch={handleLoadSearch} />
                             </div>
                         )}
 
