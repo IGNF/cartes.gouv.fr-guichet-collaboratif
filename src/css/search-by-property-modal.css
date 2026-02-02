@@ -2,6 +2,8 @@
     width: calc(1200% / 12);
     max-width: calc(1200% / 12);
     flex: unset;
+    overflow-y: visible !important;
+    max-height: none !important;
 }
 
 .search-property {
@@ -28,13 +30,13 @@
     display: flex;
     flex-direction: column;
     gap: 14px;
-    border: 1px solid black;
+    border: 1px solid var(--border-default-grey);
     border-radius: 5px;
     padding: 10px;
 }
 
 .search-property-group {
-    border: 1px solid #ccc;
+    border: 1px solid var(--border-default-grey);
     padding: 12px;
     margin-top: 8px;
 }
@@ -83,7 +85,7 @@
     margin: 8px 0px;
     gap: 8px;
     align-items: center;
-    border: 1px solid #ccc;
+    border: 1px solid var(--background-default-grey);
     padding: 12px;
     margin-top: 8px;
 }
@@ -133,9 +135,156 @@
     bottom: 0;
 }
 
-.search-table tr td {
+.search-table-container {
+    max-height: 500px;
+    overflow: auto;
+    border: 1px solid var(--border-default-grey);
+    border-radius: 4px;
+    cursor: grab;
+    position: relative;
+}
+
+.search-table-container.grabbing {
+    cursor: grabbing;
+}
+
+.search-table-container::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+.search-table-container::-webkit-scrollbar-track {
+    background: var(--background-alt-grey);
+}
+
+.search-table-container::-webkit-scrollbar-thumb {
+    background: var(--border-default-grey);
+    border-radius: 6px;
+}
+
+.search-table-container::-webkit-scrollbar-thumb:hover {
+    background: var(--text-default-grey);
+}
+
+.search-table-container::-webkit-scrollbar-corner {
+    background: var(--background-alt-grey);
+}
+
+.search-table {
+    width: max-content !important;
+    min-width: 100%;
+    table-layout: auto !important;
+    margin-bottom: 0 !important;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.search-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background-color: var(--background-default-grey);
+    vertical-align: middle;
+    white-space: nowrap;
+    padding: 8px 12px;
+    border-bottom: 2px solid var(--border-default-grey);
+}
+
+.search-table th:first-child,
+.search-table td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 15;
+    background-color: var(--background-default-grey);
+    box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+}
+
+.search-table thead th:first-child {
+    z-index: 25;
+}
+
+.search-table tbody tr:nth-child(even) td:first-child {
+    background-color: var(--background-contrast-grey);
+}
+
+.search-table thead th:last-child {
+    z-index: 25;
+}
+
+.search-table tbody td {
     text-align: center;
     vertical-align: middle;
+    white-space: nowrap;
+    padding: 8px 12px;
+    background-color: var(--background-default-grey);
+}
+
+.search-table tbody tr:nth-child(even) td {
+    background-color: var(--background-contrast-grey);
+}
+
+.search-table td:last-child,
+.search-table th:last-child {
+    position: sticky;
+    right: 0;
+    box-shadow: -2px 0 4px rgba(0, 0, 0, 0.1);
+}
+
+.search-table thead th:last-child {
+    background-color: var(--background-default-grey);
+}
+
+.search-table tbody td:last-child {
+    background-color: var(--background-default-grey);
+}
+
+.search-table tbody tr:nth-child(even) td:last-child {
+    background-color: var(--background-contrast-grey);
+}
+
+.search-table-column-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.search-table-column-header button {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.search-table-actions {
+    min-width: 150px;
+    white-space: nowrap;
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    align-items: center;
+}
+
+.search-table-actions-header {
+    min-width: 150px;
+    white-space: nowrap;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 600;
+}
+
+.search-table-container * {
+    cursor: inherit;
+}
+
+.search-table-container button,
+.search-table-container input,
+.search-table-container label {
+    cursor: pointer;
 }
 
 .saved-searches-section {
