@@ -42,7 +42,7 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
                 title: "Rechercher par attributs",
                 target: "",
                 icon: "ri-search-line",
-                disabled: !queryableColumns?.length,
+                disabled: mapWorkingLayer === REPORTS_LAYER_TYPE,
                 enabled: !!community?.functionalities?.includes(CommunityLayerFunctionalityType.SEARCH),
                 interaction: InteractionType.SEARCH,
             },

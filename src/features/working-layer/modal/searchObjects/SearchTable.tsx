@@ -274,9 +274,9 @@ const SearchTable: React.FC<Props> = ({ geoservice }) => {
 
     return (
         <>
+            <Badge severity="info">{t("total_objects", { total: totalItems })}</Badge>
             {totalItems > 0 && (
                 <>
-                    <Badge severity="info">{t("total_objects", { total: totalItems })}</Badge>
                     <div
                         ref={tableWrapperRef}
                         className="search-table-container"
@@ -316,7 +316,9 @@ const SearchTable: React.FC<Props> = ({ geoservice }) => {
                                             </div>
                                         </th>
                                     ))}
-                                    <th className="search-table-actions-header">{t("actions")}</th>
+                                    <th>
+                                        <div className="search-table-actions-header">{t("actions")}</div>
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>

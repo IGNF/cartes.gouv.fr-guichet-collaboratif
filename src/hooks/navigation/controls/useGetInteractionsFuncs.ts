@@ -13,6 +13,7 @@ import { Coordinate } from "ol/coordinate";
 import { useCommunityStore, useContributionStore, useMapStore, useModalStore } from "@/store";
 import { useCallback, useEffect, useMemo } from "react";
 import { CustomControlItem, InteractionType } from "@/constants/communities/types";
+import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 
 let initialFeat: Feature | null = null;
 let lastPointedFeat: Feature | null = null;
@@ -300,7 +301,9 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
     const handleClick = useCallback(
         (control: CustomControlItem) => {
             if (control.interaction === InteractionType.SEARCH) {
-                searchModal.open();
+                if (mapWorkingLayer !== REPORTS_LAYER_TYPE) {
+                    searchModal.open();
+                }
             }
             if (control.interaction === InteractionType.REMOVE) {
                 selectInteraction.getFeatures().clear();
