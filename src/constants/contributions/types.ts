@@ -1,4 +1,5 @@
 import { Feature, MapBrowserEvent } from "ol";
+import { Collection } from "ol";
 import { DragBox, Draw, Modify, Select, Snap, Translate } from "ol/interaction";
 import { DrawEvent } from "ol/interaction/Draw";
 import { ModifyEvent } from "ol/interaction/Modify";
@@ -56,10 +57,12 @@ export interface InteractionsProps {
     selectInteraction: Select;
     dragInteraction: DragBox;
     modifyInteraction: Modify;
+    modifyFeatures: Collection<Feature>;
     drawPointInteraction: Draw;
     drawLineInteraction: Draw;
     drawPolygonInteraction: Draw;
     translateInteraction: Translate;
+    translateFeatures: Collection<Feature>;
     splitInteraction: Modify;
     snapInteraction: Snap;
 }
