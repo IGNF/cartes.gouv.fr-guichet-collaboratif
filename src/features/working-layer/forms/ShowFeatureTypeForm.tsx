@@ -10,7 +10,7 @@ import { FeatureTypeFormHeader } from "./FeatureTypeFormHeader";
 import VectorLayer from "ol/layer/Vector";
 import WebGLVectorLayer from "ol/layer/WebGLVector";
 import { EventTypes } from "ol/Observable";
-import { memo, useCallback, useEffect, useMemo } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef } from "react";
 
 interface PointDataProps {
     [key: string]: string | number | null;
@@ -19,6 +19,7 @@ interface PointDataProps {
 const ShowFeatureTypeForm = () => {
     const { map, mapSwitcher, mapWorkingLayer, clickedMapFeature, setWorkingLayerDrawerOpened, setClickedMapFeature } = useMapStore();
     const { setFeatureTypeMode } = useContributionStore();
+    const isSwitchingToEdit = useRef(false);
 
     const { t } = useTranslation({ ShowFeatureTypeForm });
 
@@ -37,6 +38,9 @@ const ShowFeatureTypeForm = () => {
 
     const handleModeChange = useCallback(
         (newMode: FeatureTypeMode) => {
+            if (newMode === FeatureTypeMode.EDIT) {
+                isSwitchingToEdit.current = true;
+            }
             setFeatureTypeMode(newMode);
         },
         [setFeatureTypeMode]
@@ -54,7 +58,7 @@ const ShowFeatureTypeForm = () => {
             clickedMapFeature.changed();
         }
         return () => {
-            if (clickedMapFeature) {
+            if (clickedMapFeature && !isSwitchingToEdit.current) {
                 clickedMapFeature.unset(FEATURE_TYPE_SELECTED_PROPERTY);
                 clickedMapFeature.changed();
             }

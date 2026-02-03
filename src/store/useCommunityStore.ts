@@ -1,4 +1,13 @@
-import { AlertMessageType, Community, CommunityGeoservice, CommunityLayer, MapLayer, StatusMessage } from "@/constants/communities/types";
+import {
+    AlertMessageType,
+    Community,
+    CommunityGeoservice,
+    CommunityLayer,
+    MapLayer,
+    StatusMessage,
+    CommunityLayerRoleType,
+} from "@/constants/communities/types";
+import { LAYER_FEATURE_TYPE } from "@/constants";
 import { ReactNode } from "react";
 import { create } from "zustand";
 
@@ -11,6 +20,7 @@ interface CommunityStore {
     geoservices: CommunityGeoservice[];
     alertMessages: AlertMessageType[];
     isLoadingCommunity: boolean;
+    hasOneEditableLayer: boolean;
     setCommunity: (community: Community | null) => void;
     setCommunityLayers: (layers: CommunityLayer[] | null) => void;
     addAlertMessage: (status: StatusMessage, message: string | NonNullable<ReactNode>, duration?: number | null) => number;
@@ -28,6 +38,7 @@ export const useCommunityStore = create<CommunityStore>((set, get) => ({
     mapLayers: [],
     geoservices: [],
     isLoadingCommunity: false,
+    hasOneEditableLayer: false,
     setCommunity: (community) => {
         set(() => {
             return { community };
@@ -35,7 +46,8 @@ export const useCommunityStore = create<CommunityStore>((set, get) => ({
     },
     setCommunityLayers: (layers) => {
         set(() => {
-            return { communityLayers: layers };
+            const hasOneEditableLayer = layers?.some((layer) => layer.type === LAYER_FEATURE_TYPE && layer.role === CommunityLayerRoleType.EDIT) ?? false;
+            return { communityLayers: layers, hasOneEditableLayer };
         });
     },
     setIsLoadingCommunity: (value) => {

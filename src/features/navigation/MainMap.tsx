@@ -67,6 +67,12 @@ export default function MainMap() {
             title: layer.get("title"),
             description: layer.get("description"),
         });
+
+        const layers = mapRef.current?.getLayers();
+        if (layers) {
+            layers.remove(reportLayer);
+            layers.push(reportLayer);
+        }
     }, []);
 
     const addLayer = useCallback(
