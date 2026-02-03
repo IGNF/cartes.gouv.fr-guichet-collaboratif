@@ -168,7 +168,7 @@ export const FeatureTypeFormFields: React.FC<FeatureTypeFormFieldsProps> = ({ co
                                             required: col.required,
                                         }}
                                     >
-                                        {col.nullable && !col.required && <option value="">{t("null")}</option>}
+                                        {col.nullable && !col.required && <option value=""></option>}
                                         <option value="true">{t("yes") || "Oui"}</option>
                                         <option value="false">{t("no") || "Non"}</option>
                                     </Select>
