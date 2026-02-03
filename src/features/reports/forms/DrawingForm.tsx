@@ -134,11 +134,7 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsD
 
             {!hideToolsDiv && editReport && !showSketch && (
                 <Button className="fr-mt-4v" onClick={() => setShowSketch(!showSketch)}>
-                    {showSketch
-                        ? t("hide_sketchToEdit")
-                        : editReport && selectedReport && selectedReport.sketch
-                          ? t("edit_sketchToEdit")
-                          : t("show_sketchToEdit")}
+                    {showSketch ? t("hide_sketchToEdit") : selectedReport?.sketch ? t("edit_sketchToEdit") : t("show_sketchToEdit")}
                 </Button>
             )}
 

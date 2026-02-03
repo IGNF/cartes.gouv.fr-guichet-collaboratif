@@ -437,8 +437,8 @@ const ReportForm: React.FC<Props> = ({
                         )}
                         {showTheme && (
                             <div className="report__actions">
-                                {editReport && <Button onClick={onSubmitTheme}>{t("save_report")}</Button>}
-                                <Button priority="secondary" onClick={() => onToggleTheme()}>
+                                {editReport && showTheme && <Button onClick={onSubmitTheme}>{t("save_report")}</Button>}
+                                <Button priority="secondary" onClick={onToggleTheme}>
                                     {showTheme ? t("hide_toEdit") : editReport ? t("show_toEdit") : t("show_toCreate")}
                                 </Button>
                             </div>
@@ -492,14 +492,12 @@ const ReportForm: React.FC<Props> = ({
                                 }}
                             />
                         )}
-                        {showDescription && (
-                            <div className="report__actions">
-                                {editReport && <Button onClick={onSubmitDescription}>{t("submit_report")}</Button>}
-                                <Button priority="secondary" onClick={() => onToggleDescription()}>
-                                    {showDescription ? t("hide_toEdit") : editReport ? t("show_toEdit") : t("show_toCreate")}
-                                </Button>
-                            </div>
-                        )}
+                        <div className="report__actions">
+                            {editReport && showDescription && <Button onClick={onSubmitDescription}>{t("submit_report")}</Button>}
+                            <Button priority="secondary" onClick={onToggleDescription}>
+                                {showDescription ? t("hide_toEdit") : editReport ? t("show_toEdit") : t("show_toCreate")}
+                            </Button>
+                        </div>
                     </Accordion>
 
                     <Accordion
@@ -514,11 +512,7 @@ const ReportForm: React.FC<Props> = ({
 
                             {editReport && !showDocument && (
                                 <Button className="fr-mt-4v" onClick={() => onToggleDocument()}>
-                                    {showDocument
-                                        ? t("hide_toEdit")
-                                        : editReport && selectedReport && selectedReport.attachments.length > 0
-                                          ? t("show_toEdit")
-                                          : t("show_toCreate")}
+                                    {selectedReport && selectedReport.attachments.length > 0 ? t("show_toEdit") : t("show_toCreate")}
                                 </Button>
                             )}
                             {(showDocument || !editReport) && (

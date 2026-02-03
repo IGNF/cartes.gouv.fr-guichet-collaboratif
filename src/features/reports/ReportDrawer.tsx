@@ -121,7 +121,7 @@ const ReportDrawer = () => {
     useEffect(() => {
         if (!drawerOpened) {
             document.addEventListener("create-report-event", handleDrawingAdd);
-            if (selectedReport && !drawerOpened) {
+            if (selectedReport) {
                 setDrawerOpened(true);
             }
         } else {
