@@ -155,20 +155,23 @@ export const FeatureTypeFormFields: React.FC<FeatureTypeFormFieldsProps> = ({ co
 
                             case "boolean":
                                 valueCell = (
-                                    <Checkbox
+                                    <Select
+                                        label=""
                                         state={error ? "error" : "default"}
                                         stateRelatedMessage={error || undefined}
-                                        options={[
-                                            {
-                                                label: "",
-                                                nativeInputProps: {
-                                                    checked: Boolean(v),
-                                                    onChange: (e) => updateField(col.name, e.target.checked, col),
-                                                    required: col.required,
-                                                },
+                                        nativeSelectProps={{
+                                            value: v === null ? "" : String(v),
+                                            onChange: (e) => {
+                                                const val = e.target.value;
+                                                updateField(col.name, val === "" ? null : val === "true", col);
                                             },
-                                        ]}
-                                    />
+                                            required: col.required,
+                                        }}
+                                    >
+                                        {col.nullable && !col.required && <option value="">{t("null")}</option>}
+                                        <option value="true">{t("yes") || "Oui"}</option>
+                                        <option value="false">{t("no") || "Non"}</option>
+                                    </Select>
                                 );
                                 break;
 
