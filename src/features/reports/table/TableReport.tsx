@@ -94,8 +94,7 @@ const TableReport = () => {
         enabled: !!community,
     });
 
-    const reports = useMemo(() => data?.data ?? [], [data]);
-
+    const reports = useMemo(() => (Array.isArray(data?.data) ? data.data : []), [data]);
     const total = data?.total ?? 10;
     const totalPages = Math.ceil(total / limitPerPage);
     const { data: exportedData } = useQuery({

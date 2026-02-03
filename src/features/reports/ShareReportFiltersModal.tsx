@@ -8,7 +8,6 @@ import Tag from "@codegouvfr/react-dsfr/Tag";
 import { layerData, StatusMessage } from "@/constants/communities/types";
 import ShareReportModal from "./ShareReportModal";
 import { LAYER_FEATURE_TYPE } from "@/constants";
-import { getFeatureTypeById } from "@/api/featureTypesData";
 
 const ShareReportFiltersModal = () => {
     const [showToast, setShowToast] = useState<boolean>(false);
@@ -18,7 +17,7 @@ const ShareReportFiltersModal = () => {
 
     const { addAlertMessage, communityLayers } = useCommunityStore();
     const { shareReportFilters } = useModalStore();
-    const { activeTable, setActiveTable, syncUrlFromState } = useReportStore();
+    const { activeTable, syncUrlFromState } = useReportStore();
 
     const baseUrl = useMemo(() => `${window.location.origin}${window.location.pathname}`, []);
     const url = useMemo(() => baseUrl + syncUrlFromState(), [baseUrl, syncUrlFromState]);
@@ -26,25 +25,10 @@ const ShareReportFiltersModal = () => {
     const currentGeoservice = useMemo(() => communityLayers?.find((layer: layerData) => layer.type === LAYER_FEATURE_TYPE), [communityLayers]);
 
     useEffect(() => {
-        if (!currentGeoservice?.database || !currentGeoservice?.table) return;
-
-        async function directTable() {
-            const featureTypeId = {
-                database: currentGeoservice?.database || null,
-                table: currentGeoservice?.table || null,
-            };
-
-            const res = await getFeatureTypeById(featureTypeId);
-            const fullName = res.data.full_name;
-            setActiveTable(fullName);
-        }
-        directTable();
-    }, [currentGeoservice, setActiveTable]);
-
-    useEffect(() => {
         const baseParams = new URL(url).search;
-        const tableParam = currentGeoservice?.database ? `&table=${activeTable}` : "";
-        setShareUrl(`${baseUrl}${baseParams}${tableParam}`);
+
+        const newUrl = `${baseUrl}${baseParams}&view=reports`;
+        setShareUrl(newUrl);
     }, [activeTable, baseUrl, currentGeoservice, url]);
 
     const handleCopy = async () => {
