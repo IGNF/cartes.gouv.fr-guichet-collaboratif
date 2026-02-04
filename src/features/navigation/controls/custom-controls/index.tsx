@@ -43,14 +43,18 @@ const CustomControls = () => {
     const onConfirm = useCallback(
         (control: CustomControlItem) => {
             interactionsFuncs.handleClick(control);
-            interactions.selectInteraction.getFeatures().clear();
+
+            if (control.interaction !== InteractionType.MODIFY && control.interaction !== InteractionType.TRANSLATE_OBJECT) {
+                interactions.selectInteraction.getFeatures().clear();
+                selectedObjects.forEach((feat) => {
+                    feat.unset(FEATURE_TYPE_SELECTED_PROPERTY);
+                });
+                setSelectedObjects([]);
+                setWorkingLayerDrawerOpened(false);
+                setClickedMapFeature(null);
+            }
+
             setClickedControl(control?.id === clickedControl?.id ? null : control);
-            selectedObjects.forEach((feat) => {
-                feat.unset(FEATURE_TYPE_SELECTED_PROPERTY);
-            });
-            setSelectedObjects([]);
-            setWorkingLayerDrawerOpened(false);
-            setClickedMapFeature(null);
             prevClickedControl = null;
         },
         [

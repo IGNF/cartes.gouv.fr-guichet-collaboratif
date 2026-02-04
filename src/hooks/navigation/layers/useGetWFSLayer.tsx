@@ -48,7 +48,7 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
 
     const addFeaturesToSource = useCallback(
         (wfsSource: VectorSource, data: GeoJSONProps | ArrayGeoJSONProps[]) => {
-            let newData = data;
+            let newData;
             if (Array.isArray(data)) {
                 newData = arrayToGeoJSON(data, geoservice);
             } else {

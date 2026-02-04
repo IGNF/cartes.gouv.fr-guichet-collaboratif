@@ -32,20 +32,17 @@ function useGetWMTSLayer(geoservice: CommunityGeoservice) {
                 loading: true,
             },
         });
-        if (capabilities) {
-            const wmtsOptions = optionsFromCapabilities(capabilities, {
-                layer: geoservice.layer,
-            });
+        const wmtsOptions = optionsFromCapabilities(capabilities, {
+            layer: geoservice.layer,
+        });
 
-            if (wmtsOptions) {
-                const wmtsSource = new WMTS({ ...wmtsOptions, crossOrigin: "anonymous" });
-                wmtsSource.setUrl(geoservice.url);
+        if (wmtsOptions) {
+            const wmtsSource = new WMTS({ ...wmtsOptions, crossOrigin: "anonymous" });
+            wmtsSource.setUrl(geoservice.url);
 
-                wmtsLayer.setSource(wmtsSource);
-                wmtsLayer.set("loading", false);
-            }
+            wmtsLayer.setSource(wmtsSource);
+            wmtsLayer.set("loading", false);
         }
-
         wmtsLayer.set("title", geoservice.title);
         wmtsLayer.set("name", geoservice.layer);
         wmtsLayer.set("description", geoservice.description);
