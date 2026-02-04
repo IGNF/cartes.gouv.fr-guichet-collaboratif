@@ -1,4 +1,4 @@
-import { Group } from "../contributions/types";
+import { Group } from "@/constants/savedSearches/types";
 
 export type LocalLayer = {
     name: string;

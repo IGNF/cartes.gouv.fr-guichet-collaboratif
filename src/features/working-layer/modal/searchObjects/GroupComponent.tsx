@@ -1,5 +1,5 @@
 import RuleComponent from "./RuleComponent";
-import { Group, GroupOperator, Rule } from "@/constants/contributions/types";
+import { Group, GroupOperator, Rule } from "@/constants/savedSearches/types";
 import { createGroup, createRule } from "@/constants/contributions/utils";
 import { useTranslation } from "@/i18n";
 import Button from "@codegouvfr/react-dsfr/Button";

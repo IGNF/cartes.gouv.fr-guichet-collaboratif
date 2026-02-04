@@ -2,7 +2,8 @@ import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_GEOSERVICE_PROPERTY, FEATURE_T
 import { CommunityGeoservice, ObjectProps, OperatorType } from "@/constants/communities/types";
 import { getWebGLValidProperties } from "@/constants/communities/utils";
 import { Feature, Map } from "ol";
-import { Contribution, ContributionType, Group, GroupOperator, GroupSearch, Rule, RuleSearch } from "../types";
+import { Contribution, ContributionType } from "../types";
+import { Group, GroupOperator, GroupSearch, Rule, RuleSearch } from "@/constants/savedSearches/types";
 import { Interaction } from "ol/interaction";
 import VectorSource from "ol/source/Vector";
 import { CoordinateType, GeometryFeatueParams } from "@/constants/reports/types";

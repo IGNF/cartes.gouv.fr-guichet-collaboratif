@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import GroupComponent from "./GroupComponent";
-import { Group, GroupOperator } from "@/constants/contributions/types";
+import { Group, GroupOperator } from "@/constants/savedSearches/types";
 
 import Button from "@codegouvfr/react-dsfr/Button";
 import { useContributionStore } from "@/store";

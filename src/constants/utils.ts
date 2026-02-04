@@ -250,7 +250,7 @@ export const getGeoserviceFeatureTypeGeometries = (
         }
 
         feat.set(FEATURE_TYPE_DATA_PROPERTY, item);
-        if (feat && !featureExists(feat, wfsSource)) {
+        if (!featureExists(feat, wfsSource)) {
             features.push(feat);
         }
     });

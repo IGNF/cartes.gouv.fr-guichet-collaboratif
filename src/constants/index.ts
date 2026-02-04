@@ -22,3 +22,5 @@ export const APP_FOOTER_MIN_HEIGHT = 40;
 
 export const DEFAULT_COMMUNITY_MIN_ZOOM = 4;
 export const DEFAULT_COMMUNITY_MAX_ZOOM = 20;
+
+export const SAVED_SEARCHES_PREFIX = "saved_searches_";
