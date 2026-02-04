@@ -1,5 +1,5 @@
 import { useCommunityStore, useMapStore } from "@/store";
-import { Collection } from "ol";
+import { Collection, Feature } from "ol";
 import { platformModifierKeyOnly, click, shiftKeyOnly } from "ol/events/condition";
 import { Draw, Modify, Select, Snap, Translate, DragBox } from "ol/interaction";
 import VectorLayer from "ol/layer/Vector";
@@ -8,7 +8,7 @@ import VectorSource from "ol/source/Vector";
 import { useMemo } from "react";
 
 const useGetInteractions = () => {
-    const { map, mapWorkingLayer, clickedMapFeature } = useMapStore();
+    const { map, mapWorkingLayer } = useMapStore();
     const { communityLayers } = useCommunityStore();
 
     const clickableLayer = map
@@ -43,11 +43,21 @@ const useGetInteractions = () => {
 
     const dragInteraction = useMemo(() => new DragBox({ condition: shiftKeyOnly }), []);
 
-    const modifyInteraction = useMemo(() => new Modify({ features: selectInteraction.getFeatures() }), [selectInteraction]);
+    const modifyFeatures = useMemo(() => {
+        return new Collection<Feature>();
+    }, []);
+    const modifyInteraction = useMemo(() => {
+        return new Modify({
+            features: modifyFeatures,
+            source: clickableSource,
+        });
+    }, [modifyFeatures, clickableSource]);
     const drawPointInteraction = useMemo(() => new Draw({ type: "Point" }), []);
     const drawLineInteraction = useMemo(() => new Draw({ type: "LineString" }), []);
     const drawPolygonInteraction = useMemo(() => new Draw({ type: "Polygon" }), []);
-    const translateInteraction = useMemo(() => new Translate({ features: new Collection(clickedMapFeature ? [clickedMapFeature] : []) }), [clickedMapFeature]);
+
+    const translateFeatures = useMemo(() => new Collection<Feature>(), []);
+    const translateInteraction = useMemo(() => new Translate({ features: translateFeatures }), [translateFeatures]);
     const splitInteraction = useMemo(
         () =>
             new Modify({
@@ -67,10 +77,12 @@ const useGetInteractions = () => {
         selectInteraction,
         dragInteraction,
         modifyInteraction,
+        modifyFeatures,
         drawPointInteraction,
         drawLineInteraction,
         drawPolygonInteraction,
         translateInteraction,
+        translateFeatures,
         splitInteraction,
         snapInteraction,
     };

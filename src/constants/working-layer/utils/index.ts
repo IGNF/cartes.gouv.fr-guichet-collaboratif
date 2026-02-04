@@ -7,7 +7,7 @@ import { AutomaticFieldType, AutomaticFieldContext } from "../types";
 
 import { getMunicipalityFromCoords, getAddressFromCoords, getCadastreFromCoords, getAltitudeFromCoords, getFeatureCoordinates } from "@/api/geocodageData";
 import { FeatureTypeColumn, OperatorType } from "@/constants/communities/types";
-import { BuildFilterResponse, GroupSearch, RuleSearch } from "@/constants/contributions/types";
+import { BuildFilterResponse, GroupSearch, RuleSearch } from "@/constants/savedSearches/types";
 
 export const calculateAutomaticField = async (fieldType: AutomaticFieldType, context: AutomaticFieldContext): Promise<string | number | null> => {
     const { feature, userId, username, layerProjection } = context;

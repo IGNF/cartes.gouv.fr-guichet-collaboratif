@@ -80,7 +80,7 @@ const WorkingLayerControl = () => {
     const handleWorkingLayerChange = useCallback(
         (value: string) => {
             if (!community) return;
-            if (community && localStorageData) {
+            if (localStorageData) {
                 const newLocalData = { ...localStorageData, activeLayer: value };
                 setLocalStorage(community?.name, newLocalData);
             }

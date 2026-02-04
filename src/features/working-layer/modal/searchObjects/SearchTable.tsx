@@ -1,7 +1,8 @@
 import { FEATURE_TYPE_DATA_PROPERTY } from "@/constants";
 import { CommunityGeoservice, CommunityLayerRoleType } from "@/constants/communities/types";
 import { arrayToGeoJSON } from "@/constants/communities/utils";
-import { ContributionType, FeatureTypeMode, SearchResultItem } from "@/constants/contributions/types";
+import { ContributionType, FeatureTypeMode } from "@/constants/contributions/types";
+import { SearchResultItem } from "@/constants/savedSearches/types";
 import { resetContributionToMap } from "@/constants/contributions/utils";
 import { handleCenterToFeature } from "@/constants/utils";
 import { useTranslation } from "@/i18n";
@@ -10,13 +11,12 @@ import Badge from "@codegouvfr/react-dsfr/Badge";
 import Button from "@codegouvfr/react-dsfr/Button";
 import Checkbox from "@codegouvfr/react-dsfr/Checkbox";
 import Pagination from "@codegouvfr/react-dsfr/Pagination";
-import Table from "@codegouvfr/react-dsfr/Table";
 import { Feature } from "ol";
 import GeoJSON from "ol/format/GeoJSON";
 import VectorLayer from "ol/layer/Vector";
 import WebGLVectorLayer from "ol/layer/WebGLVector";
 import VectorSource from "ol/source/Vector";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 interface Props {
     geoservice: CommunityGeoservice;
@@ -34,6 +34,12 @@ const SearchTable: React.FC<Props> = ({ geoservice }) => {
     const [checkedObjects, setCheckedObjects] = useState<SearchResultItem[]>([]);
     const [page, setPage] = useState<number>(1);
     const [sortBy, setSortBy] = useState<{ value: string; desc: boolean }>({ value: geoservice?.idName ?? "id", desc: false });
+    const [isDragging, setIsDragging] = useState(false);
+    const [startX, setStartX] = useState(0);
+    const [startY, setStartY] = useState(0);
+    const [scrollLeft, setScrollLeft] = useState(0);
+    const [scrollTop, setScrollTop] = useState(0);
+    const tableWrapperRef = useRef<HTMLDivElement>(null);
 
     const clickableLayer = map
         ?.getAllLayers()
@@ -44,6 +50,8 @@ const SearchTable: React.FC<Props> = ({ geoservice }) => {
     const geoProjCode = useMemo(() => geoservice?.columns?.find((c) => c.name === geoservice?.geometryName)?.crs ?? "EPSG:3857", [geoservice]);
 
     const currentCommunityLayer = useMemo(() => communityLayers?.find((l) => l?.geoservice?.layer === mapWorkingLayer), [communityLayers, mapWorkingLayer]);
+
+    const visibleColumns = useMemo(() => geoservice.columns.filter((col) => col.name !== geoservice.geometryName), [geoservice]);
 
     const sortedSearchResult = useMemo(
         () =>
@@ -217,6 +225,48 @@ const SearchTable: React.FC<Props> = ({ geoservice }) => {
         [checkedObjects, searchResult]
     );
 
+    const handleMouseDown = useCallback((e: React.MouseEvent) => {
+        if (!tableWrapperRef.current) return;
+        const target = e.target as HTMLElement;
+        if (target.closest("button, input, label, a")) {
+            return;
+        }
+        setIsDragging(true);
+        setStartX(e.pageX - tableWrapperRef.current.offsetLeft);
+        setStartY(e.pageY - tableWrapperRef.current.offsetTop);
+        setScrollLeft(tableWrapperRef.current.scrollLeft);
+        setScrollTop(tableWrapperRef.current.scrollTop);
+        tableWrapperRef.current.classList.add("grabbing");
+    }, []);
+
+    const handleMouseLeave = useCallback(() => {
+        setIsDragging(false);
+        if (tableWrapperRef.current) {
+            tableWrapperRef.current.classList.remove("grabbing");
+        }
+    }, []);
+
+    const handleMouseUp = useCallback(() => {
+        setIsDragging(false);
+        if (tableWrapperRef.current) {
+            tableWrapperRef.current.classList.remove("grabbing");
+        }
+    }, []);
+
+    const handleMouseMove = useCallback(
+        (e: React.MouseEvent) => {
+            if (!isDragging || !tableWrapperRef.current) return;
+            e.preventDefault();
+            const x = e.pageX - tableWrapperRef.current.offsetLeft;
+            const y = e.pageY - tableWrapperRef.current.offsetTop;
+            const walkX = (x - startX) * 1.5;
+            const walkY = (y - startY) * 1.5;
+            tableWrapperRef.current.scrollLeft = scrollLeft - walkX;
+            tableWrapperRef.current.scrollTop = scrollTop - walkY;
+        },
+        [isDragging, startX, startY, scrollLeft, scrollTop]
+    );
+
     const totalItems = searchResult.length;
     const totalPages = Math.ceil(totalItems / 20);
 
@@ -224,78 +274,108 @@ const SearchTable: React.FC<Props> = ({ geoservice }) => {
 
     return (
         <>
+            <Badge severity="info">{t("total_objects", { total: totalItems })}</Badge>
             {totalItems > 0 && (
                 <>
-                    <Badge severity="info">{t("total_objects", { total: totalItems })}</Badge>
-                    <Table
-                        className="search-table"
-                        fixed
-                        data={currentPageItems.map((item) => [
-                            <Checkbox
-                                options={[
-                                    {
-                                        label: "",
-                                        nativeInputProps: {
-                                            name: "select-item",
-                                            value: item[`${geoservice.idName}`],
-                                            checked: checkedObjects.includes(item),
-                                            onChange: () => handleSelectObject(item),
-                                        },
-                                    },
-                                ]}
-                            />,
-                            <span style={{ color: getItemStyle(item) }}>{item[`${geoservice?.idName}`]}</span>,
-                            <span style={{ color: getItemStyle(item) }}>{item.nature}</span>,
-                            <span style={{ color: getItemStyle(item) }}>{item.categorie}</span>,
-                            <span style={{ color: getItemStyle(item) }}>{item.commune}</span>,
-                            <div style={{ display: "flex", gap: 8 }}>
-                                <Button iconId="ri-eye-line" title={t("show_object")} priority="tertiary" onClick={() => handleShowObject(item)} />
-                                {currentCommunityLayer?.role !== CommunityLayerRoleType.VISU && (
-                                    <Button iconId="ri-pencil-line" title={t("edit_object")} priority="tertiary" onClick={() => handleModifyObject(item)} />
-                                )}
-                                <Button
-                                    iconId={getItemStyle(item) === "red" ? "ri-refresh-line" : "ri-delete-bin-line"}
-                                    title={getItemStyle(item) === "red" ? t("cancel") : t("delete_object")}
-                                    priority="tertiary"
-                                    style={{ color: getItemStyle(item) === "red" ? "orange" : "red" }}
-                                    nativeButtonProps={getItemStyle(item) === "red" ? undefined : confirmDeleteObjectSearchModal.buttonProps}
-                                    onClick={() => handleDeleteObject(item)}
-                                />
-                            </div>,
-                        ])}
-                        headers={[
-                            <Checkbox
-                                options={[
-                                    {
-                                        label: "",
-                                        nativeInputProps: {
-                                            name: "select-all",
-                                            value: "all",
-                                            checked: checkedObjects.length === searchResult.length,
-                                            onChange: () => handleSelectObject(null),
-                                        },
-                                    },
-                                ]}
-                            />,
-                            <Button
-                                iconId={getSortIcon(geoservice?.idName ?? "id")}
-                                priority="tertiary no outline"
-                                onClick={() => handleSortChange(geoservice?.idName ?? "id")}
-                            >
-                                {geoservice?.idName}
-                            </Button>,
-                            <Button iconId={getSortIcon("nature")} priority="tertiary no outline" onClick={() => handleSortChange("nature")}>
-                                Nature
-                            </Button>,
-                            <Button iconId={getSortIcon("categorie")} priority="tertiary no outline" onClick={() => handleSortChange("categorie")}>
-                                Catégorie
-                            </Button>,
-                            <Button iconId={getSortIcon("commune")} priority="tertiary no outline" onClick={() => handleSortChange("commune")}>
-                                Commune
-                            </Button>,
-                            t("actions"),
-                        ]}
-                    />
+                    <div
+                        ref={tableWrapperRef}
+                        className="search-table-container"
+                        onMouseDown={handleMouseDown}
+                        onMouseLeave={handleMouseLeave}
+                        onMouseUp={handleMouseUp}
+                        onMouseMove={handleMouseMove}
+                    >
+                        <table className="search-table fr-table">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <Checkbox
+                                            options={[
+                                                {
+                                                    label: "",
+                                                    nativeInputProps: {
+                                                        name: "select-all",
+                                                        value: "all",
+                                                        checked: checkedObjects.length === searchResult.length,
+                                                        onChange: () => handleSelectObject(null),
+                                                    },
+                                                },
+                                            ]}
+                                        />
+                                    </th>
+                                    {visibleColumns.map((col) => (
+                                        <th key={col.name}>
+                                            <div className="search-table-column-header">
+                                                <Button
+                                                    iconId={getSortIcon(col.name)}
+                                                    priority="tertiary no outline"
+                                                    onClick={() => handleSortChange(col.name)}
+                                                >
+                                                    {col.title || col.name}
+                                                </Button>
+                                            </div>
+                                        </th>
+                                    ))}
+                                    <th>
+                                        <div className="search-table-actions-header">{t("actions")}</div>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {currentPageItems.map((item) => (
+                                    <tr key={item[`${geoservice.idName}`]}>
+                                        <td>
+                                            <Checkbox
+                                                options={[
+                                                    {
+                                                        label: "",
+                                                        nativeInputProps: {
+                                                            name: "select-item",
+                                                            value: item[`${geoservice.idName}`],
+                                                            checked: checkedObjects.includes(item),
+                                                            onChange: () => handleSelectObject(item),
+                                                        },
+                                                    },
+                                                ]}
+                                            />
+                                        </td>
+                                        {visibleColumns.map((col) => (
+                                            <td key={col.name}>
+                                                <span style={{ color: getItemStyle(item) }}>
+                                                    {item[col.name] !== null && item[col.name] !== undefined ? String(item[col.name]) : ""}
+                                                </span>
+                                            </td>
+                                        ))}
+                                        <td>
+                                            <div className="search-table-actions">
+                                                <Button
+                                                    iconId="ri-eye-line"
+                                                    title={t("show_object")}
+                                                    priority="tertiary"
+                                                    onClick={() => handleShowObject(item)}
+                                                />
+                                                {currentCommunityLayer?.role !== CommunityLayerRoleType.VISU && (
+                                                    <Button
+                                                        iconId="ri-pencil-line"
+                                                        title={t("edit_object")}
+                                                        priority="tertiary"
+                                                        onClick={() => handleModifyObject(item)}
+                                                    />
+                                                )}
+                                                <Button
+                                                    iconId={getItemStyle(item) === "red" ? "ri-refresh-line" : "ri-delete-bin-line"}
+                                                    title={getItemStyle(item) === "red" ? t("cancel") : t("delete_object")}
+                                                    priority="tertiary"
+                                                    nativeButtonProps={getItemStyle(item) === "red" ? undefined : confirmDeleteObjectSearchModal.buttonProps}
+                                                    onClick={() => handleDeleteObject(item)}
+                                                />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </>
             )}
             {totalItems > 20 && (
