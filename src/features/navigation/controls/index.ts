@@ -1,4 +1,4 @@
-import SearchEngine from "geopf-extensions-openlayers/src/packages/Controls/SearchEngine/SearchEngine";
+import SearchEngineAdvanced from "geopf-extensions-openlayers/src/packages/Controls/SearchEngine/SearchEngineAdvanced.js";
 import { Control, ScaleLine } from "ol/control";
 import GeoportalZoom from "geopf-extensions-openlayers/src/packages/Controls/Zoom/GeoportalZoom";
 import MesureLength from "geopf-extensions-openlayers/src/packages/Controls/Measures/MeasureLength";
@@ -18,7 +18,7 @@ const useGetMapControls = (): Collection<Control> | Control[] | undefined => {
     }, 100);
 
     return [
-        new SearchEngine({
+        new SearchEngineAdvanced({
             collapsed: true,
             displayButtonAdvancedSearch: false,
             apiKey: "essentiels",
