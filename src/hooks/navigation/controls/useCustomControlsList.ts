@@ -88,7 +88,7 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
                 target: "GPshowMeasureLengthPicto-",
                 icon: "ri-ruler-line",
                 disabled: false,
-                enabled: !!communityEditableLayers?.length && !!community?.functionalities?.includes(CommunityLayerFunctionalityType.MEASURE_DISTANCE),
+                enabled: !!community?.functionalities?.includes(CommunityLayerFunctionalityType.MEASURE_DISTANCE),
                 interaction: null,
             },
             {
@@ -97,7 +97,7 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
                 target: "GPshowMeasureAreaPicto-",
                 icon: "ri-ruler-2-line",
                 disabled: false,
-                enabled: !!communityEditableLayers?.length && !!community?.functionalities?.includes(CommunityLayerFunctionalityType.MEASURE_AREA),
+                enabled: !!community?.functionalities?.includes(CommunityLayerFunctionalityType.MEASURE_AREA),
                 interaction: null,
             },
             {
@@ -107,7 +107,7 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
                 icon: "ri-compasses-2-fill",
                 disabled: false,
                 interaction: null,
-                enabled: !!communityEditableLayers?.length && !!community?.functionalities?.includes(CommunityLayerFunctionalityType.MEASURE_AZIMUTH),
+                enabled: !!community?.functionalities?.includes(CommunityLayerFunctionalityType.MEASURE_AZIMUTH),
             },
             {
                 id: 9,
