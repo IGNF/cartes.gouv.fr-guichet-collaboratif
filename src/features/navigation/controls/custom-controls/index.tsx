@@ -90,6 +90,26 @@ const CustomControls = () => {
         };
     }, [clickToolButton]);
 
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape" && clickedControl) {
+                if (clickedControl.interaction === InteractionType.SELECT && selectedObjects.length > 1) {
+                    return;
+                }
+                if (clickedControl.target) {
+                    const controlButton = document.querySelector(`button[id^='${clickedControl.target}']`) as HTMLButtonElement;
+                    if (controlButton?.classList.contains("active")) {
+                        controlButton.click();
+                    }
+                }
+                setClickedControl(null);
+            }
+        };
+
+        document.addEventListener("keydown", handleKeyDown);
+        return () => document.removeEventListener("keydown", handleKeyDown);
+    }, [clickedControl, setClickedControl, selectedObjects]);
+
     return (
         <>
             <div className="custom-controls">

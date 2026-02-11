@@ -154,6 +154,7 @@ export default function MainMap() {
                 className={cx(fr.cx("fr-col"), "map-view")}
                 ref={mapTargetRef}
                 style={{ height: `calc(100vh - ${(mapToolbarHeader?.clientHeight || 0) + APP_FOOTER_MIN_HEIGHT}px)` }}
+                tabIndex={0}
             ></div>
 
             <SaveViewHandler />
