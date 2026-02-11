@@ -88,7 +88,9 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
                 target: "GPshowMeasureLengthPicto-",
                 icon: "ri-ruler-line",
                 disabled: currentCommunityLayer?.role === CommunityLayerRoleType.VISU || mapWorkingLayer === REPORTS_LAYER_TYPE,
-                enabled: !!communityEditableLayers?.length && !!community?.functionalities?.includes(CommunityLayerFunctionalityType.MEASURE_DISTANCE),
+                enabled:
+                    (!!communityEditableLayers?.length && !!community?.functionalities?.includes(CommunityLayerFunctionalityType.MEASURE_DISTANCE)) ||
+                    !!community?.functionalities?.includes(CommunityLayerFunctionalityType.MEASURE_DISTANCE_DEPRECIATED),
                 interaction: null,
             },
             {
