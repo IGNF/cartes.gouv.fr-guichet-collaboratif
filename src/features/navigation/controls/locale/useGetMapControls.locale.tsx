@@ -19,6 +19,7 @@ export const useGetMapControlsFrTranslations: Translations<"fr">["useGetMapContr
     control_search_engine_btn: "Rechercher",
     close_panel_title: "Fermer le panneau",
     close_panel_text: "Fermer",
+    minimap: "Mini-carte",
 };
 
 export const useGetMapControlsEnTranslations: Translations<"en">["useGetMapControls"] = {
@@ -39,6 +40,7 @@ export const useGetMapControlsEnTranslations: Translations<"en">["useGetMapContr
     control_search_engine_btn: "Search",
     close_panel_title: "Close panel",
     close_panel_text: "Close",
+    minimap: "Mini-map",
 };
 
 const { i18n } = declareComponentKeys<
@@ -59,5 +61,6 @@ const { i18n } = declareComponentKeys<
     | "control_zoom_in"
     | "control_zoom_out"
     | "control_search_engine_btn"
+    | "minimap"
 >()("useGetMapControls");
 export type I18n = typeof i18n;

@@ -5,6 +5,7 @@ import GeoportalZoom from "geopf-extensions-openlayers/src/packages/Controls/Zoo
 import MeasureLength from "geopf-extensions-openlayers/src/packages/Controls/Measures/MeasureLength";
 import MeasureArea from "geopf-extensions-openlayers/src/packages/Controls/Measures/MeasureArea";
 import MeasureAzimuth from "geopf-extensions-openlayers/src/packages/Controls/Measures/MeasureAzimuth";
+import GeoportalOverviewMap from "geopf-extensions-openlayers/src/packages/Controls/OverviewMap/GeoportalOverviewMap";
 import { Collection } from "ol";
 import { useTranslation } from "@/i18n";
 import { translateLayerSwitcherControl, translateSearchEngineControl, translateZoomControl } from "@/constants/communities/utils";
@@ -36,6 +37,8 @@ const useGetMapControls = (): Collection<Control> | Control[] | undefined => {
         community?.functionalities?.includes(CommunityLayerFunctionalityType.ADRESSE) ||
         community?.functionalities?.includes(CommunityLayerFunctionalityType.ADRESSE_DEPRECIATED);
 
+    const hasMinimap = community?.functionalities?.includes(CommunityLayerFunctionalityType.OVERVIEW);
+
     return [
         new SearchEngineAdvanced({
             displayButtonAdvancedSearch: advancedSearchForms.length > 0,
@@ -50,6 +53,7 @@ const useGetMapControls = (): Collection<Control> | Control[] | undefined => {
         }),
         new ScaleLine(),
         new GeoportalZoom({ position: "bottom-right" }),
+        ...(hasMinimap ? [new GeoportalOverviewMap({ position: "bottom-left", tipLabel: t("minimap") })] : []),
         new MeasureLength({}),
         new MeasureArea({}),
         new MeasureAzimuth({}),
