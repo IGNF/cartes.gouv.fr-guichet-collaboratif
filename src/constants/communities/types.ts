@@ -225,6 +225,7 @@ export enum CommunityLayerFunctionalityType {
     MEASURE_DISTANCE = "measure_distance",
     MEASURE_DISTANCE_DEPRECIATED = "measureDistance",
     MEASURE_AREA = "measureArea",
+    MEASURE_AZIMUTH = "measureAzimuth",
     GEOREM = "georem",
     MODIFY = "modify",
     TRANSLATE = "translate",
