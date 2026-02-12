@@ -1,18 +1,18 @@
 import { useCallback, useEffect, useMemo } from "react";
-import { CommunityGeoservice } from "@/constants/communities/types";
-import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import { useCommunityStore, useMapStore, useReportStore } from "@/store";
 import VectorSource from "ol/source/Vector";
-import { useClusterClickHandler } from "./handlers/useClusterClickHandler";
+import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
+import { CommunityGeoservice, InteractionType } from "@/constants/communities/types";
 import { useSingleClickHandler } from "./handlers/useSingleClickHandler";
 import { usePointerMoveHandler } from "./handlers/usePointerMoveHandler";
+import { useClusterClickHandler } from "./handlers/useClusterClickHandler";
 
 interface Props {
     handleCloseDrawer: () => void;
 }
 
 const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
-    const { map, mapWorkingLayer, clickedControl, setClickableFeatures, setClickedMapFeature } = useMapStore();
+    const { map, mapWorkingLayer, clickedControl, setClickableFeatures, setClickedMapFeature, setFeatureInfo } = useMapStore();
     const { communityLayers } = useCommunityStore();
 
     const { reports, selectedReport, editReport, selectedFeatures, setSelectedReport, setSelectedFeatures, drawerOpened } = useReportStore();
@@ -33,20 +33,28 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
         [communityLayers, mapWorkingLayer]
     );
 
+    const isRasterLayer = useMemo(
+        () => !!(currentGeoservice && (currentGeoservice.type === "WMS" || currentGeoservice.type === "WMTS" || currentGeoservice.type === "WFS")),
+        [currentGeoservice]
+    );
+
     const isNotClickable = useMemo(
         () =>
             !!(
-                clickedControl ||
+                (clickedControl && clickedControl.interaction !== InteractionType.SELECT) ||
                 editReport ||
                 selectedFeatures?.find((f) => f?.get("new")) ||
-                (!currentGeoservice?.featureType && mapWorkingLayer !== REPORTS_LAYER_TYPE)
+                (!currentGeoservice?.featureType && !isRasterLayer && mapWorkingLayer !== REPORTS_LAYER_TYPE)
             ),
-        [clickedControl, editReport, selectedFeatures, currentGeoservice, mapWorkingLayer]
+        [clickedControl, editReport, selectedFeatures, currentGeoservice, isRasterLayer, mapWorkingLayer]
     );
 
     const handleSingleClick = useSingleClickHandler({
         map,
         isNotClickable,
+        isRasterLayer,
+        clickedControl,
+        currentGeoservice,
         mapWorkingLayer,
         clickableSource,
         reportClusterSource,
@@ -54,6 +62,7 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
         selectedFeatures,
         setClickableFeatures,
         setClickedMapFeature,
+        setFeatureInfo,
         setSelectedReport,
         setSelectedFeatures,
         handleCloseDrawer,

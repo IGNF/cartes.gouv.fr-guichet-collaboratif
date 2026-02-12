@@ -52,6 +52,6 @@ export const usePointerMoveHandler = (props: UsePointerMoveHandlerProps) => {
                 }
             }
         },
-        [map, selectedFeatures, mapWorkingLayer, clickableSource, isNotClickable]
+        [map, isNotClickable, mapWorkingLayer, clickableSource, selectedFeatures]
     );
 };

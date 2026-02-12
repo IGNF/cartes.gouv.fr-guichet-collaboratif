@@ -1,0 +1,98 @@
+.ol-popup {
+    position: absolute;
+    background-color: var(--background-default-grey);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    padding: 1rem;
+    border-radius: 4px;
+    border: 1px solid var(--border-default-grey);
+    bottom: 12px;
+    left: -50px;
+    min-width: 280px;
+    max-width: 500px;
+    max-height: 400px;
+    overflow-y: auto;
+    display: none;
+    z-index: 1000;
+}
+
+.ol-popup.visible {
+    display: block;
+}
+
+.ol-popup:after,
+.ol-popup:before {
+    top: 100%;
+    border: solid transparent;
+    content: " ";
+    height: 0;
+    width: 0;
+    position: absolute;
+    pointer-events: none;
+}
+
+.ol-popup:after {
+    border-top-color: var(--background-default-grey);
+    border-width: 10px;
+    left: 48px;
+    margin-left: -10px;
+}
+
+.ol-popup:before {
+    border-top-color: var(--border-default-grey);
+    border-width: 11px;
+    left: 48px;
+    margin-left: -11px;
+}
+
+.ol-popup-closer {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    font-size: 1.5rem;
+    line-height: 1;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--text-mention-grey);
+    padding: 0;
+    width: 20px;
+    height: 20px;
+    transition: color 0.2s;
+}
+
+.ol-popup-closer:hover {
+    color: var(--text-default-grey);
+}
+
+.ol-popup-content {
+    margin-top: 0.75rem;
+}
+
+.get-feature-info-popup table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    color: var(--text-default-grey);
+}
+
+.get-feature-info-popup table th,
+.get-feature-info-popup table td {
+    padding: 0.5rem;
+    border: 1px solid var(--border-default-grey);
+    text-align: left;
+}
+
+.get-feature-info-popup table th {
+    background-color: var(--background-contrast-grey);
+    color: var(--text-default-grey);
+}
+
+.get-feature-info-popup a {
+    color: var(--text-action-high-blue-france);
+    text-decoration: underline;
+    transition: color 0.2s;
+}
+
+.get-feature-info-popup a:hover {
+    color: var(--text-action-high-blue-france-hover);
+}

@@ -125,6 +125,7 @@ export interface CommunityGeoservice extends LayerGeoservice {
     geometryName?: string;
     featureType?: GeoserviceFeatureTypeProp;
     readOnly?: boolean;
+    queryable?: boolean;
     styles?: FeatureTypeStyle[];
     columns: FeatureTypeColumn[];
     table?: number;
