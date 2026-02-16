@@ -1,6 +1,6 @@
 import { LocalStorageData } from "@/constants/localStorage/types";
 import { useCommunityStore, useLocalStorageStore, useMapStore } from "@/store";
-import isEqual from "lodash.isequal";
+import isEqual from "fast-deep-equal/react";
 import { EventTypes } from "ol/Observable";
 import { useCallback, useEffect } from "react";
 
