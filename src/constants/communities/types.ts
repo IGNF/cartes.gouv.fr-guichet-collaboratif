@@ -247,7 +247,7 @@ export enum CommunityLayerFunctionalityType {
     SHORTEST_PATH = "shortestpath",
     COPY_REF = "copyRef",
     TOOLTIP = "tooltip",
-    OVERVIEW = "overviw_map_control",
+    OVERVIEW = "overview_map_control",
 }
 
 export enum CommunityLayerRoleType {
