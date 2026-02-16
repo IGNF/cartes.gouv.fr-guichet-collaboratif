@@ -1,15 +1,12 @@
 import { CommunityGeoservice } from "@/constants/communities/types";
-import { useMapStore } from "@/store";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import WMTSCapabilities from "ol/format/WMTSCapabilities";
 import { useCallback, useMemo } from "react";
 
 export default function useGetCapabilitiesWMTS(geoservice: CommunityGeoservice) {
-    const { map } = useMapStore();
     const getCapURL = useMemo(() => {
-        if (!map) return "";
         return `${geoservice.url}${geoservice.url.includes("?") ? "&" : "?"}` + `SERVICE=WMTS` + `&VERSION=${geoservice.version}` + `&REQUEST=GetCapabilities`;
-    }, [geoservice, map]);
+    }, [geoservice]);
 
     const queryKey = useMemo(() => [`GP_WMTS_GET_CAPABILITIES_${geoservice.url}_${geoservice.version}`], [geoservice]);
 
@@ -25,7 +22,6 @@ export default function useGetCapabilitiesWMTS(geoservice: CommunityGeoservice) 
         if (!capabilities) {
             throw new Error("Reading capabilities failed");
         }
-
         return capabilities;
     }, [getCapURL]);
 

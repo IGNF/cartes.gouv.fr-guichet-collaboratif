@@ -6,19 +6,22 @@ import GeoportalZoom from "geopf-extensions-openlayers/src/packages/Controls/Zoo
 import MeasureLength from "geopf-extensions-openlayers/src/packages/Controls/Measures/MeasureLength";
 import MeasureArea from "geopf-extensions-openlayers/src/packages/Controls/Measures/MeasureArea";
 import MeasureAzimuth from "geopf-extensions-openlayers/src/packages/Controls/Measures/MeasureAzimuth";
+import { useEffect } from "react";
 import { useTranslation } from "@/i18n";
 import { translateSearchEngineControl, translateZoomControl } from "@/constants/communities/utils";
 import { useCommunityStore } from "@/store/useCommunityStore";
 import { CommunityLayerFunctionalityType } from "@/constants/communities/types";
+import useGetOverviewMapLayer from "@/hooks/navigation/layers/useGetOverviewMapLayer";
 
 const ToolsControl = (): Control[] => {
     const { t } = useTranslation({ ToolsControl });
     const { community } = useCommunityStore();
+    const overviewMapLayer = useGetOverviewMapLayer();
 
-    setTimeout(() => {
+    useEffect(() => {
         translateZoomControl(t);
         translateSearchEngineControl(t);
-    }, 100);
+    }, [t]);
 
     const advancedSearchForms = [];
 
@@ -34,9 +37,9 @@ const ToolsControl = (): Control[] => {
         community?.functionalities?.includes(CommunityLayerFunctionalityType.ADRESSE) ||
         community?.functionalities?.includes(CommunityLayerFunctionalityType.ADRESSE_DEPRECIATED);
 
-    const hasMinimap = community?.functionalities?.includes(CommunityLayerFunctionalityType.OVERVIEW);
+    const hasMinimap = true; //community?.functionalities?.includes(CommunityLayerFunctionalityType.OVERVIEW);
 
-    return [
+    const controls: Control[] = [
         new SearchEngineAdvanced({
             displayButtonAdvancedSearch: advancedSearchForms.length > 0,
             apiKey: "essentiels",
@@ -49,11 +52,21 @@ const ToolsControl = (): Control[] => {
             },
         }),
         new GeoportalZoom({ position: "bottom-right" }),
-        ...(hasMinimap ? [new GeoportalOverviewMap({ position: "bottom-left", tipLabel: t("minimap") })] : []),
         new MeasureLength({}),
         new MeasureArea({}),
         new MeasureAzimuth({}),
     ];
+
+    if (hasMinimap && overviewMapLayer) {
+        controls.push(
+            new GeoportalOverviewMap({
+                position: "bottom-left",
+                layers: [overviewMapLayer],
+            })
+        );
+    }
+
+    return controls;
 };
 
 export default ToolsControl;

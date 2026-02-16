@@ -32,3 +32,9 @@ form[id^="GPcoordinateSearchForm"] {
         height: 70vh;
     }
 }
+
+.ol-overviewmap .ol-overviewmap-map {
+    border-radius: 4px;
+    width: 104px !important;
+    height: 104px !important;
+}
