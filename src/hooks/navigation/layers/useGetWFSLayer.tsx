@@ -105,7 +105,7 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
                     if (data.features.length === TILE_MAX_FEATURES) await wfsLoader(extent, wfsSource, page + 1);
                 }
             } catch {
-                addAlertMessage(StatusMessage.error, t("loading_layer_error", { layerTitle: geoservice.title }));
+                addAlertMessage(StatusMessage.error, t("loading_layer_error", { layerTitle: geoservice.title }), 3000);
             }
         },
         [addAlertMessage, addFeaturesToSource, urlsFilters, geoProjCode, geoservice, mapProjCode, queryClient, t]

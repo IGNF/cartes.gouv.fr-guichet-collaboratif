@@ -27,6 +27,7 @@ export type ComponentKey =
     | import("../features/navigation/layers/locale/GetReportsLayer.locale").I18n
     | import("../features/navigation/layers/legends/locale/FeatureTypeLayerLegends.locale").I18n
     | import("../features/navigation/controls/locale/DrawingControl.locale").I18n
+    | import("../features/navigation/controls/locale/ToolsControl.locale").I18n
     | import("../features/navigation/controls/locale/CatalogControl.locale").I18n
     | import("../features/navigation/controls/custom-controls/locale/CenterReportControl.locale").I18n
     | import("../features/navigation/controls/custom-controls/locale/ConfirmMultipleDeselection.locale").I18n
