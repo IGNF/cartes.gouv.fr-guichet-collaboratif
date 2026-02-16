@@ -43,7 +43,7 @@ const useToolsControl = (): Control[] => {
         community?.functionalities?.includes(CommunityLayerFunctionalityType.ADRESSE) ||
         community?.functionalities?.includes(CommunityLayerFunctionalityType.ADRESSE_DEPRECIATED);
 
-    const hasMinimap = true; //community?.functionalities?.includes(CommunityLayerFunctionalityType.OVERVIEW);
+    const hasMiniMap = community?.functionalities?.includes(CommunityLayerFunctionalityType.OVERVIEW);
 
     const Controls = useMemo<Control[]>(
         () => [
@@ -67,7 +67,7 @@ const useToolsControl = (): Control[] => {
     );
 
     useEffect(() => {
-        if (!hasMinimap || !overviewMapLayer || !map) {
+        if (!hasMiniMap || !overviewMapLayer || !map) {
             return;
         }
 
@@ -87,7 +87,7 @@ const useToolsControl = (): Control[] => {
                 overviewMapControlRef.current = null;
             }
         };
-    }, [hasMinimap, overviewMapLayer, map]);
+    }, [hasMiniMap, overviewMapLayer, map]);
 
     return Controls;
 };
