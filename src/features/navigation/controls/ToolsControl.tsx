@@ -39,9 +39,9 @@ const useToolsControl = (): Control[] => {
         community?.functionalities?.includes(CommunityLayerFunctionalityType.ADRESSE) ||
         community?.functionalities?.includes(CommunityLayerFunctionalityType.ADRESSE_DEPRECIATED);
 
-    // const hasLocateControl = community?.functionalities?.includes(CommunityLayerFunctionalityType.LOCATE_CONTROL);
-
     const hasMiniMap = community?.functionalities?.includes(CommunityLayerFunctionalityType.OVERVIEW);
+
+    // const hasLocateControl = community?.functionalities?.includes(CommunityLayerFunctionalityType.LOCATE_CONTROL);
 
     useEffect(() => {
         if (!hasMiniMap || !overviewMapLayer || !map) {
