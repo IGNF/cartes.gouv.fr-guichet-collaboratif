@@ -32,6 +32,7 @@ import { useFeatureTypeValidationFrTranslations } from "@/hooks/working-layer/lo
 import { DrawerComponentFrTranslations } from "@/components/locale/DrawerComponent.locale";
 import { FilterAndSortReportFrTranslations } from "@/components/locale/FilterAndSortReport.locale";
 import { DrawingControlFrTranslations } from "@/features/navigation/controls/locale/DrawingControl.locale";
+import { ToolsControlFrTranslations } from "@/features/navigation/controls/locale/ToolsControl.locale";
 import { CatalogControlFrTranslations } from "@/features/navigation/controls/locale/CatalogControl.locale";
 import { CenterReportControlFrTranslations } from "@/features/navigation/controls/custom-controls/locale/CenterReportControl.locale";
 import { useGetMapControlsFrTranslations } from "@/features/navigation/controls/locale/useGetMapControls.locale";
@@ -96,6 +97,7 @@ export const translations: Translations<"fr"> = {
     useGetWMTSLayer: useGetWMTSLayerFrTranslations,
     useFeatureTypeValidation: useFeatureTypeValidationFrTranslations,
     DrawingControl: DrawingControlFrTranslations,
+    ToolsControl: ToolsControlFrTranslations,
     CatalogControl: CatalogControlFrTranslations,
     CenterReportControl: CenterReportControlFrTranslations,
     useGetMapControls: useGetMapControlsFrTranslations,

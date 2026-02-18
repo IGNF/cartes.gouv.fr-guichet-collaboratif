@@ -3,7 +3,6 @@ import { declareComponentKeys } from "i18nifty";
 
 export const useGetMapControlsFrTranslations: Translations<"fr">["useGetMapControls"] = {
     full_screen_label: "Basculer en mode plein écran",
-    search_engine_placeholder: "Rechercher un lieu, une adresse",
     control_layer_swticher_aria_label: "Afficher/masquer le gestionnaire de couches",
     control_layer_swticher_pannel_title: "Couches de données",
     control_layer_swticher_pannel_icon_title_remove: "Supprimer la couche",
@@ -24,7 +23,6 @@ export const useGetMapControlsFrTranslations: Translations<"fr">["useGetMapContr
 
 export const useGetMapControlsEnTranslations: Translations<"en">["useGetMapControls"] = {
     full_screen_label: "Switch to full screen mode",
-    search_engine_placeholder: "Search for a place, an address",
     control_layer_swticher_aria_label: "Show/hide the layer manager",
     control_layer_swticher_pannel_title: "Data layers",
     control_layer_swticher_pannel_icon_title_remove: "Delete layer",
@@ -45,7 +43,6 @@ export const useGetMapControlsEnTranslations: Translations<"en">["useGetMapContr
 
 const { i18n } = declareComponentKeys<
     | "full_screen_label"
-    | "search_engine_placeholder"
     | "control_layer_swticher_aria_label"
     | "control_layer_swticher_pannel_title"
     | "close_panel_title"

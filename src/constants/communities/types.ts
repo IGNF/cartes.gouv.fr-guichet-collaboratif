@@ -112,7 +112,7 @@ export enum GeoserviceFeatureTypeProp {
 export interface CommunityGeoservice extends LayerGeoservice {
     idName?: string;
     type: string;
-    version: number;
+    version: number | string;
     url: string;
     layer: string;
     format: string;
@@ -247,7 +247,7 @@ export enum CommunityLayerFunctionalityType {
     SHORTEST_PATH = "shortestpath",
     COPY_REF = "copyRef",
     TOOLTIP = "tooltip",
-    OVERVIEW = "overviw_map_control",
+    OVERVIEW = "overview_map_control",
 }
 
 export enum CommunityLayerRoleType {
@@ -302,3 +302,7 @@ export enum OperatorType {
     between = "between",
     not_between = "not_between",
 }
+
+export const OVERVIEW_MAP_WMTS_LAYER = "GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2";
+export const OVERVIEW_MAP_WMTS_URL = "https://data.geopf.fr/wmts";
+export const OVERVIEW_MAP_WMTS_VERSION = "1.0.0";
