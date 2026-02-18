@@ -22,10 +22,10 @@ function useGetWMSLayer(geoservice: CommunityGeoservice) {
 
     useEffect(() => {
         if (error) {
-            addAlertMessage(StatusMessage.error, t("loading_layer_error", { layerTitle: geoservice.title }));
+            addAlertMessage(StatusMessage.error, t("loading_layer_error", { layerTitle: geoservice.title }), 3000);
         }
         if (capabilities && !capabilities?.Capability?.Layer) {
-            addAlertMessage(StatusMessage.error, t("loading_layer_error", { layerTitle: geoservice.title }));
+            addAlertMessage(StatusMessage.error, t("loading_layer_error", { layerTitle: geoservice.title }), 3000);
         }
     }, [error, capabilities, geoservice, addAlertMessage, t]);
 

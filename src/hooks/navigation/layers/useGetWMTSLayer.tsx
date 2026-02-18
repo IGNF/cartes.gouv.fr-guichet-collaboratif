@@ -19,7 +19,7 @@ function useGetWMTSLayer(geoservice: CommunityGeoservice) {
 
     useEffect(() => {
         if (error) {
-            addAlertMessage(StatusMessage.error, t("loading_layer_error", { layerTitle: geoservice.title }));
+            addAlertMessage(StatusMessage.error, t("loading_layer_error", { layerTitle: geoservice.title }), 3000);
         }
     }, [error, geoservice, addAlertMessage, t]);
 
