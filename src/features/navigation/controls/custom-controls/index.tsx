@@ -29,6 +29,13 @@ const CustomControls = () => {
     const interactions = useGetInteractions();
     const interactionsFuncs = useGetInteractionsFuncs(interactions);
 
+    useEffect(() => {
+        const selectControl = constrolsList.find((c) => c.interaction === InteractionType.SELECT);
+        if (!clickedControl && selectControl && !selectControl.disabled) {
+            setClickedControl(selectControl);
+        }
+    }, [constrolsList, clickedControl, setClickedControl]);
+
     const clickToolButton = useCallback(() => {
         if (!clickedControl || clickedControl?.interaction || clickedControl?.disabled) return;
         const controlButton = document.querySelector(`button[id^='${clickedControl?.target}'`) as HTMLButtonElement;

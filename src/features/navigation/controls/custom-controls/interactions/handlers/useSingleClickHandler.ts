@@ -5,7 +5,7 @@ import VectorSource from "ol/source/Vector";
 import { WMTS } from "ol/source";
 import { Style } from "ol/style";
 import { FEATURE_TYPE_GEOSERVICE_PROPERTY, HIT_DETECTION_TOLERENCE } from "@/constants";
-import { CommunityGeoservice, InteractionType } from "@/constants/communities/types";
+import { CommunityGeoservice, CustomControlItem, InteractionType } from "@/constants/communities/types";
 import { getFeaturesInPixelBySource } from "@/constants/communities/utils";
 import { getClickedMapReport, getReportSketchFeatures, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import { getWMSFeatureInfo, getWMTSFeatureInfo } from "@/api/featureTypesData";
@@ -16,7 +16,7 @@ interface UseSingleClickHandlerProps {
     map: Map | null;
     isNotClickable: boolean;
     isRasterLayer: boolean;
-    clickedControl: { interaction: InteractionType } | null;
+    clickedControl: CustomControlItem | null;
     currentGeoservice: CommunityGeoservice | undefined;
     mapWorkingLayer: string;
     clickableSource: VectorSource;
