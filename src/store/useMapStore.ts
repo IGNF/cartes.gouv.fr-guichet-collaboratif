@@ -1,15 +1,9 @@
-import { CustomControlItem, FeatureTypeSelectedStyle } from "@/constants/communities/types";
+import { CustomControlItem, FeatureInfo, FeatureTypeSelectedStyle } from "@/constants/communities/types";
 import { ClickedTool } from "@/constants/reports/types";
 import LayerSwitcher from "geopf-extensions-openlayers/src/packages/Controls/LayerSwitcher/LayerSwitcher";
 import { Feature, Map } from "ol";
 import { Coordinate } from "ol/coordinate";
 import { create } from "zustand";
-
-export interface FeatureInfo {
-    content: string | null;
-    title: string | null;
-    position: Coordinate | undefined;
-}
 
 interface MapStore {
     map: Map | null;

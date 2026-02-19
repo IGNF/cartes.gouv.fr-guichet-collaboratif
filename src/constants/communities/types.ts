@@ -1,4 +1,5 @@
 import { FrIconClassName, RiIconClassName } from "@codegouvfr/react-dsfr";
+import { Coordinate } from "ol/coordinate";
 import { Extent } from "ol/extent";
 import BaseLayer from "ol/layer/Base";
 import TileLayer from "ol/layer/Tile";
@@ -307,3 +308,9 @@ export enum OperatorType {
 export const OVERVIEW_MAP_WMTS_LAYER = "GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2";
 export const OVERVIEW_MAP_WMTS_URL = "https://data.geopf.fr/wmts";
 export const OVERVIEW_MAP_WMTS_VERSION = "1.0.0";
+
+export interface FeatureInfo {
+    content: string | null;
+    title: string | null;
+    position: Coordinate | undefined;
+}
