@@ -9,6 +9,7 @@ import {
 import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import { ComponentKey } from "@/i18n/types";
 import { useCommunityStore, useMapStore } from "@/store";
+import { useRasterWorkingLayer } from "@/hooks/working-layer/useRasterWorkingLayer";
 import { TranslationFunction } from "i18nifty/typeUtils/TranslationFunction";
 import { useMemo } from "react";
 
@@ -26,6 +27,8 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
 
     const queryableColumns = useMemo(() => geoservice?.columns.filter((col) => col.queryable), [geoservice]);
 
+    const { isRasterLayer, isRasterLayerQueryable } = useRasterWorkingLayer();
+
     const constrolsList: CustomControlItem[] = useMemo(() => {
         return [
             {
@@ -33,7 +36,7 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
                 title: t("selector"),
                 target: "drawing-tool-point-",
                 icon: "ri-cursor-line",
-                disabled: false,
+                disabled: isRasterLayer && !isRasterLayerQueryable,
                 enabled: true,
                 interaction: InteractionType.SELECT,
             },
@@ -87,9 +90,9 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
                 title: t("measure_distance"),
                 target: "GPshowMeasureLengthPicto-",
                 icon: "ri-ruler-line",
-                disabled: currentCommunityLayer?.role === CommunityLayerRoleType.VISU || mapWorkingLayer === REPORTS_LAYER_TYPE,
+                disabled: false,
                 enabled:
-                    (!!community?.functionalities?.includes(CommunityLayerFunctionalityType.MEASURE_DISTANCE)) ||
+                    !!community?.functionalities?.includes(CommunityLayerFunctionalityType.MEASURE_DISTANCE) ||
                     !!community?.functionalities?.includes(CommunityLayerFunctionalityType.MEASURE_DISTANCE_DEPRECIATED),
                 interaction: null,
             },
@@ -150,6 +153,8 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
         mapWorkingLayer,
         communityEditableLayers,
         clickedMapFeature,
+        isRasterLayer,
+        isRasterLayerQueryable,
         t,
     ]);
 

@@ -3,6 +3,7 @@ import { useCommunityStore, useMapStore, useReportStore } from "@/store";
 import VectorSource from "ol/source/Vector";
 import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import { CommunityGeoservice, InteractionType } from "@/constants/communities/types";
+import { useRasterWorkingLayer } from "@/hooks/working-layer/useRasterWorkingLayer";
 import { useSingleClickHandler } from "./handlers/useSingleClickHandler";
 import { usePointerMoveHandler } from "./handlers/usePointerMoveHandler";
 import { useClusterClickHandler } from "./handlers/useClusterClickHandler";
@@ -16,6 +17,8 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
     const { communityLayers } = useCommunityStore();
 
     const { reports, selectedReport, editReport, selectedFeatures, setSelectedReport, setSelectedFeatures, drawerOpened } = useReportStore();
+
+    const { isRasterLayer, isRasterLayerQueryable } = useRasterWorkingLayer();
 
     const reportClusterLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE && layer.getSource() instanceof VectorSource);
     const reportClusterSource = reportClusterLayer?.getSource() as VectorSource;
@@ -33,20 +36,15 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
         [communityLayers, mapWorkingLayer]
     );
 
-    const isRasterLayer = useMemo(
-        () => !!(currentGeoservice && (currentGeoservice.type === "WMS" || currentGeoservice.type === "WMTS" || currentGeoservice.type === "WFS")),
-        [currentGeoservice]
-    );
-
     const isNotClickable = useMemo(
         () =>
             !!(
                 (clickedControl && clickedControl.interaction !== InteractionType.SELECT) ||
                 editReport ||
                 selectedFeatures?.find((f) => f?.get("new")) ||
-                (!currentGeoservice?.featureType && !isRasterLayer && mapWorkingLayer !== REPORTS_LAYER_TYPE)
+                (!currentGeoservice?.featureType && !isRasterLayerQueryable && mapWorkingLayer !== REPORTS_LAYER_TYPE)
             ),
-        [clickedControl, editReport, selectedFeatures, currentGeoservice, isRasterLayer, mapWorkingLayer]
+        [clickedControl, editReport, selectedFeatures, currentGeoservice, isRasterLayerQueryable, mapWorkingLayer]
     );
 
     const handleSingleClick = useSingleClickHandler({

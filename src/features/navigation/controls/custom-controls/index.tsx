@@ -34,6 +34,9 @@ const CustomControls = () => {
         if (!clickedControl && selectControl && !selectControl.disabled) {
             setClickedControl(selectControl);
         }
+        if (clickedControl?.interaction === InteractionType.SELECT && selectControl?.disabled) {
+            setClickedControl(null);
+        }
     }, [constrolsList, clickedControl, setClickedControl]);
 
     const clickToolButton = useCallback(() => {
