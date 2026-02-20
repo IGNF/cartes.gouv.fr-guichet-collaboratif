@@ -24,20 +24,20 @@ const CustomControls = () => {
 
     const { t } = useTranslation({ CustomControls });
 
-    const constrolsList = useCustomControlsList(t);
+    const controlsList = useCustomControlsList(t);
 
     const interactions = useGetInteractions();
     const interactionsFuncs = useGetInteractionsFuncs(interactions);
 
     useEffect(() => {
-        const selectControl = constrolsList.find((c) => c.interaction === InteractionType.SELECT);
+        const selectControl = controlsList.find((c) => c.interaction === InteractionType.SELECT);
         if (!clickedControl && selectControl && !selectControl.disabled) {
             setClickedControl(selectControl);
         }
         if (clickedControl?.interaction === InteractionType.SELECT && selectControl?.disabled) {
             setClickedControl(null);
         }
-    }, [constrolsList, clickedControl, setClickedControl]);
+    }, [controlsList, clickedControl, setClickedControl]);
 
     const clickToolButton = useCallback(() => {
         if (!clickedControl || clickedControl?.interaction || clickedControl?.disabled) return;
@@ -124,7 +124,7 @@ const CustomControls = () => {
         <>
             <div className="custom-controls">
                 <div className="control-btns">
-                    {constrolsList.map((control) => {
+                    {controlsList.map((control) => {
                         return <ButtonControl key={`custom-control-${control.id}`} control={control} onClick={onClick} />;
                     })}
                 </div>
