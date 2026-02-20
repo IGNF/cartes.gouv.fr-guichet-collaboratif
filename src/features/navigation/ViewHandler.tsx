@@ -66,7 +66,7 @@ const ViewHandler: React.FC = () => {
 
         if (center) {
             const [lon, lat] = transform(center, projCode, "EPSG:4326");
-            const newLocationParam = `${parseFloat(lat.toFixed(6))},${parseFloat(lon.toFixed(6))},${parseFloat(zoom.toFixed(2))}`;
+            const newLocationParam = `${parseFloat(lat.toFixed(6))},${parseFloat(lon.toFixed(6))},${parseFloat(zoom.toFixed(0))}`;
 
             if (newLocationParam !== locationParam) {
                 isMapDrivenUpdate.current = true;
