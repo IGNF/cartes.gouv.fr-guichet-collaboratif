@@ -51,6 +51,9 @@ const ReportDrawer = () => {
     const { data: userData } = useGetUserProfileAPI();
     const { t } = useTranslation({ ReportDrawer });
 
+    const [searchParams, setSearchParams] = useSearchParams();
+    const reportIdParam = searchParams.get("report");
+
     const handleCloseDrawer = useCallback(() => {
         if (!selectedReport) {
             const drawingLayer = map?.getAllLayers().find((layer: Layer & { gpResultLayerId?: string }) => layer.gpResultLayerId === "drawing");
@@ -70,6 +73,8 @@ const ReportDrawer = () => {
 
             reportSource?.removeFeatures(reportFeatures);
         }
+        searchParams.delete("report");
+        setSearchParams(searchParams);
 
         const isNotified = getCenterReportMessage(alertMessages);
         if (isNotified) {
@@ -94,6 +99,7 @@ const ReportDrawer = () => {
         setSelectedFeatures,
         map,
         removeAlertMessage,
+        searchParams,
     ]);
 
     const handleDrawingAdd = useCallback(
@@ -160,9 +166,6 @@ const ReportDrawer = () => {
             setEditReport(false);
         }
     }, [drawerOpened, selectedReport, isAdmin, isOwner, editReport]);
-
-    const [searchParams] = useSearchParams();
-    const reportIdParam = searchParams.get("report");
 
     const clusterLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE);
     const clusterSource = clusterLayer?.getSource() as VectorSource;
