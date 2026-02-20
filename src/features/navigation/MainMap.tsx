@@ -14,7 +14,7 @@ import useGpConfig from "@/hooks/navigation/useGpConfig";
 import GetAllLayers from "./layers";
 import { MapLayer, MapLayerSource } from "@/constants/communities/types";
 import { getLonLatFromPoint } from "@/constants/utils";
-import SaveViewHandler from "./SaveViewHandler";
+import ViewHandler from "./ViewHandler";
 import ReportDrawer from "../reports/ReportDrawer";
 import { Cluster } from "ol/source";
 import VectorLayer from "ol/layer/Vector";
@@ -157,7 +157,7 @@ export default function MainMap() {
                 tabIndex={0}
             ></div>
 
-            <SaveViewHandler />
+            <ViewHandler />
             <GetAllLayers />
 
             <ReportDrawer />
