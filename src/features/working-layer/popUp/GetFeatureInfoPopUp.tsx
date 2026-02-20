@@ -2,6 +2,20 @@ import { useMapStore } from "@/store";
 import { useEffect, useRef } from "react";
 import Overlay from "ol/Overlay";
 
+const isEmpty = (htmlString: string): boolean => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlString, "text/html");
+    const bodyText = doc.body.textContent?.trim() || "";
+    return bodyText.length > 0;
+};
+
+const removeStyle = (htmlString: string): string => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlString, "text/html");
+    doc.querySelectorAll("style, title").forEach((el) => el.remove());
+    return doc.body.innerHTML;
+};
+
 const GetFeatureInfoPopup = () => {
     const { map, featureInfo, setFeatureInfo } = useMapStore();
     const popupRef = useRef<HTMLDivElement>(null);
@@ -35,7 +49,7 @@ const GetFeatureInfoPopup = () => {
     useEffect(() => {
         if (!overlayRef.current) return;
 
-        if (featureInfo.content && featureInfo.position) {
+        if (featureInfo.content && featureInfo.position && isEmpty(featureInfo.content)) {
             overlayRef.current.setPosition(featureInfo.position);
             overlayRef.current.getElement()?.classList.add("visible");
         } else {
@@ -53,9 +67,7 @@ const GetFeatureInfoPopup = () => {
             <button className="ol-popup-closer" onClick={handleClose} aria-label="Close">
                 ×
             </button>
-            <div className="ol-popup-content">
-                <div dangerouslySetInnerHTML={{ __html: featureInfo.content || "" }} />
-            </div>
+            {featureInfo.content && <div dangerouslySetInnerHTML={{ __html: removeStyle(featureInfo.content) }} />}
         </div>
     );
 };
