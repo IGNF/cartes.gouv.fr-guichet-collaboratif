@@ -36,7 +36,7 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
                 title: t("selector"),
                 target: "drawing-tool-point-",
                 icon: "ri-cursor-line",
-                disabled: isRasterLayer && !isRasterLayerQueryable,
+                disabled: (isRasterLayer && !isRasterLayerQueryable) || mapWorkingLayer === REPORTS_LAYER_TYPE,
                 enabled: true,
                 interaction: InteractionType.SELECT,
             },

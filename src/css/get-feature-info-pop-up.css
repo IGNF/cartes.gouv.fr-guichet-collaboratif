@@ -63,36 +63,3 @@
 .ol-popup-closer:hover {
     color: var(--text-default-grey);
 }
-
-.ol-popup-content {
-    margin-top: 0.75rem;
-}
-
-.get-feature-info-popup table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.875rem;
-    color: var(--text-default-grey);
-}
-
-.get-feature-info-popup table th,
-.get-feature-info-popup table td {
-    padding: 0.5rem;
-    border: 1px solid var(--border-default-grey);
-    text-align: left;
-}
-
-.get-feature-info-popup table th {
-    background-color: var(--background-contrast-grey);
-    color: var(--text-default-grey);
-}
-
-.get-feature-info-popup a {
-    color: var(--text-action-high-blue-france);
-    text-decoration: underline;
-    transition: color 0.2s;
-}
-
-.get-feature-info-popup a:hover {
-    color: var(--text-action-high-blue-france-hover);
-}
