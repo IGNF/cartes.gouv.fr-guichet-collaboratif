@@ -8,14 +8,14 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 
 let timer: ReturnType<typeof setTimeout> | undefined;
 
-const parseLocationParam = (raw: string): { lat: number; lon: number; z: number } | null => {
+const parseLocationParam = (raw: string): { lat: number; lon: number; z?: number } | null => {
     const parts = raw.replace(/\s/g, "").split(",");
-    if (parts.length !== 3) return null;
+    if (parts.length < 2 || parts.length > 3) return null;
     const [lat, lon, z] = parts.map(Number);
-    if (!isFinite(lat) || !isFinite(lon) || !isFinite(z)) return null;
+    if (!isFinite(lat) || !isFinite(lon)) return null;
     if (lat < -90 || lat > 90) return null;
     if (lon < -180 || lon > 180) return null;
-    if (z < 0 || z > 24) return null;
+    if (z !== undefined && (!isFinite(z) || z < 0 || z > 24)) return null;
     return { lat, lon, z };
 };
 
@@ -92,7 +92,9 @@ const ViewHandler: React.FC = () => {
         const view = map.getView();
         const center = transform([lon, lat], "EPSG:4326", view.getProjection().getCode());
         view.setCenter(center);
-        view.setZoom(z);
+        if (z !== undefined || community?.zoom !== undefined) {
+            view.setZoom(z ?? community?.zoom ?? 10);
+        }
     }, [locationParam, map]);
 
     const onChange = useCallback(() => {
