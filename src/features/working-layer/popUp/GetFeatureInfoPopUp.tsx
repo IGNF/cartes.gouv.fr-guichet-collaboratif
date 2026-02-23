@@ -12,7 +12,7 @@ const isEmpty = (htmlString: string): boolean => {
 const removeStyle = (htmlString: string): string => {
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlString, "text/html");
-    doc.querySelectorAll("style, title").forEach((el) => el.remove());
+    doc.querySelectorAll("[style]").forEach((el) => el.removeAttribute("style"));
     return doc.body.innerHTML;
 };
 
