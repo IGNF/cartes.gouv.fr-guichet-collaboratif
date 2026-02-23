@@ -10,6 +10,8 @@ import { useTranslation } from "@/i18n";
 
 type CapabilityLayer = {
     Name: string;
+    queryable?: boolean;
+    InfoFormat?: string[];
 };
 
 function useGetWMSLayer(geoservice: CommunityGeoservice) {
@@ -59,6 +61,9 @@ function useGetWMSLayer(geoservice: CommunityGeoservice) {
             wmsSource.setUrl(geoservice.url);
             wmsLayer.setSource(wmsSource);
             wmsLayer.set("loading", false);
+            if (wmsLayerOption.queryable) {
+                wmsLayer.set("queryable", true);
+            }
         }
 
         wmsLayer.set("title", geoservice.title);
