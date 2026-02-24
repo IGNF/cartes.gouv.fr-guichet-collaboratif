@@ -24,3 +24,11 @@ export const DEFAULT_COMMUNITY_MIN_ZOOM = 4;
 export const DEFAULT_COMMUNITY_MAX_ZOOM = 20;
 
 export const SAVED_SEARCHES_PREFIX = "saved_searches_";
+
+export enum TRAFFIC_FLOW_DIRECTION {
+    ALL = "Double sens",
+    DIRECT = "Sens direct",
+    INDIRECT = "Sens indirect",
+    UNKNOWN = "Sans objet",
+}
+export const TRAFFIC_FLOW_DIRECTION_NAME = "sens_de_circulation";
