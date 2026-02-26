@@ -16,7 +16,7 @@ interface PointDataProps {
     [key: string]: string | number | null;
 }
 
-const ShowFeatureTypeForm = () => {
+const ShowFeatureTypeForm = ({ onClose }: { onClose?: () => void }) => {
     const { map, mapSwitcher, mapWorkingLayer, clickedMapFeature, setWorkingLayerDrawerOpened, setClickedMapFeature } = useMapStore();
     const { setFeatureTypeMode } = useContributionStore();
     const isSwitchingToEdit = useRef(false);
@@ -121,7 +121,7 @@ const ShowFeatureTypeForm = () => {
                 featureId={pointData?.[geoserviceData?.idName || "id"] || ""}
                 mode={FeatureTypeMode.VIEW}
                 onModeChange={handleModeChange}
-                onClose={handleCancel}
+                onClose={onClose ?? handleCancel}
             />
 
             <div className="feature-type-form-scrollable">

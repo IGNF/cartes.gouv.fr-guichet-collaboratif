@@ -74,6 +74,7 @@ export const useContributionStore = create<ContributionStore>((set, get) => ({
                 newContributions = [...contributions.filter((contr) => contr.feature !== contrExist.feature), newContr];
             }
         }
+        console.log(newContributions);
         setContributions(newContributions);
     },
 }));
