@@ -7,7 +7,6 @@ export const FEATURE_TYPE_DATA_PROPERTY = "featureTypeData";
 export const FEATURE_TYPE_GEOSERVICE_PROPERTY = "geoservice";
 export const FEATURE_TYPE_SELECTED_PROPERTY = "selected";
 export const FEATURE_TYPE_HOVER_PROPERTY = "hover";
-export const FEATURE_TYPE_HOVER_COLUMN = "importance";
 export const FEATURE_TYPE_NEW_PROPERTY = "new";
 export const FEATURE_TYPE_NEW_Z_COOD = -1000;
 

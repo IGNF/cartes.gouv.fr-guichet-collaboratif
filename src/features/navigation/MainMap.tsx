@@ -12,7 +12,7 @@ import LayerSwitcher from "geopf-extensions-openlayers/src/packages/Controls/Lay
 import layerSwitcherControl from "./controls/layerSwitcherControl";
 import useGpConfig from "@/hooks/navigation/useGpConfig";
 import GetAllLayers from "./layers";
-import { MapLayer, MapLayerSource, TooltipLayers } from "@/constants/communities/types";
+import { MapLayer, MapLayerSource } from "@/constants/communities/types";
 import { getLonLatFromPoint } from "@/constants/utils";
 import SaveViewHandler from "./ViewHandler";
 import ReportDrawer from "../reports/ReportDrawer";
@@ -36,9 +36,9 @@ export default function MainMap() {
     const viewRef = useRef<View>(null);
     const switcherRef = useRef<LayerSwitcher>(null);
 
-    const { community, mapLayers, communityLayers } = useCommunityStore();
+    const { community, mapLayers } = useCommunityStore();
     const { localStorageData } = useLocalStorageStore();
-    const { map, mapSwitcher, setMap, setTooltipLayers } = useMapStore();
+    const { map, mapSwitcher, setMap } = useMapStore();
     const { contributions, isReviewContribution } = useContributionStore();
 
     const mapControls = useGetMapControls();
@@ -145,59 +145,6 @@ export default function MainMap() {
             });
         })();
     }, [mapLayers, addLayer]);
-
-    useEffect(() => {
-        if (!communityLayers || !map) return;
-
-        const updateTooltipLayers = () => {
-            const allLayers = map.getAllLayers();
-
-            const layersWithTooltip: TooltipLayers[] = communityLayers
-                .filter((layer) => layer.geoservice.hover === true)
-                .map((layer) => {
-                    const mapLayer = allLayers.find((l) => l.get("name") === layer.geoservice.layer);
-                    return {
-                        layer: layer.geoservice.layer,
-                        visibility: mapLayer?.getVisible() ?? false,
-                    };
-                });
-
-            const reportsLayer = allLayers.find((l) => l.get("type") === REPORTS_LAYER_TYPE);
-            if (reportsLayer) {
-                const reportsTooltipExists = layersWithTooltip.find((l) => l.layer === REPORTS_LAYER_TYPE);
-                if (!reportsTooltipExists) {
-                    layersWithTooltip.push({
-                        layer: REPORTS_LAYER_TYPE,
-                        visibility: reportsLayer.getVisible(),
-                    });
-                }
-            }
-
-            setTooltipLayers(layersWithTooltip);
-        };
-
-        // Initial update
-        updateTooltipLayers();
-
-        // Listen to layer visibility changes
-        const allLayers = map.getAllLayers();
-        const listeners: (() => void)[] = [];
-
-        allLayers.forEach((layer) => {
-            const layerName = layer.get("name");
-            const layerType = layer.get("type");
-            const isRelevant = communityLayers.some((cl) => cl.geoservice.hover && cl.geoservice.layer === layerName) || layerType === REPORTS_LAYER_TYPE;
-
-            if (isRelevant) {
-                const listener = layer.on("change:visible", updateTooltipLayers);
-                listeners.push(() => layer.un("change:visible", listener.listener));
-            }
-        });
-
-        return () => {
-            listeners.forEach((unlisten) => unlisten());
-        };
-    }, [communityLayers, mapLayers, setTooltipLayers, map]);
 
     const mapToolbarHeader = document.getElementById("map-toolbar-header");
 

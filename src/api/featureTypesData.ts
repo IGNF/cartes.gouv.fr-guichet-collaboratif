@@ -5,7 +5,6 @@ import { featureDefaultStyle } from "@/constants/styles";
 import { transformExtent } from "ol/proj";
 import { QueryClient } from "@tanstack/react-query";
 import { Extent } from "ol/extent";
-import { FEATURE_TYPE_HOVER_COLUMN } from "@/constants";
 
 export function getFeatureTypeById(featureTypesId: FeatureTypeIds) {
     return axiosApi.get(`${DATABASE_API_URL}/${featureTypesId.database}/tables/${featureTypesId.table}`);
@@ -30,8 +29,6 @@ export async function getFeatureTypesAll(featureTypesIds: FeatureTypeIds[]): Pro
                 geomType = GeoserviceFeatureTypeProp.LINE;
             }
 
-            const hasHoverColumn = res.data.columns?.some((col: FeatureTypeColumn) => col.name === FEATURE_TYPE_HOVER_COLUMN);
-
             const data: CommunityGeoservice = {
                 idName: res.data.id_name,
                 id: res.data.id,
@@ -50,7 +47,6 @@ export async function getFeatureTypesAll(featureTypesIds: FeatureTypeIds[]): Pro
                 geometryName: res.data.geometry_name,
                 featureType: geomType,
                 readOnly: res.data.read_only,
-                hover: hasHoverColumn,
                 table: res.data.id,
                 database: res.data.database_id,
                 columns: res.data.columns.map((col: FeatureTypeColumn) => {

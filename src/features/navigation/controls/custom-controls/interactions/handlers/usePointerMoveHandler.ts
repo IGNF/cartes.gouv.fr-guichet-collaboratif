@@ -96,10 +96,8 @@ export const usePointerMoveHandler = (props: UsePointerMoveHandlerProps) => {
                     if (mapWorkingLayer === REPORTS_LAYER_TYPE) {
                         const innerFeatures: Feature[] = feature.get("features") ?? [];
                         if (innerFeatures.length > 1) {
-                            const titleDiv = document.createElement("div");
-                            titleDiv.className = "map-hover-tooltip-title";
-                            titleDiv.textContent = `${innerFeatures.length} signalements`;
-                            tooltipRef.current.appendChild(titleDiv);
+                            clearHoverState();
+                            return;
                         } else {
                             const reportData = innerFeatures[0]?.get("reportData");
                             if (reportData) {
@@ -130,9 +128,9 @@ export const usePointerMoveHandler = (props: UsePointerMoveHandlerProps) => {
 
                             fieldDiv.className = "map-hover-tooltip-field";
                             fieldDiv.textContent = `#${featureId}`;
-                            const toponyme = data?.toponyme ?? data?.nature ?? data?.nom;
-                            if (toponyme) {
-                                fieldDiv.textContent += ` - ${toponyme}`;
+                            const infoSupp = data?.toponyme ?? data?.nature ?? data?.nom ?? data?.type;
+                            if (infoSupp) {
+                                fieldDiv.textContent += ` - ${infoSupp}`;
                             }
                             tooltipRef.current.appendChild(fieldDiv);
                         }

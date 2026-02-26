@@ -291,8 +291,6 @@ export type CustomControlItem = {
 export type LonLatNumber = number | number[] | number[][] | number[][][];
 export type ObjectProps = { [key: string]: string | number | boolean | object | null | undefined };
 
-export type TooltipLayers = { layer: string; visibility: boolean };
-
 export enum OperatorType {
     in = "in",
     not_in = "not_in",

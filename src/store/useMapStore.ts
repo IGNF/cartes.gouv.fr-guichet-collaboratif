@@ -1,4 +1,4 @@
-import { CustomControlItem, FeatureInfo, FeatureTypeSelectedStyle, TooltipLayers } from "@/constants/communities/types";
+import { CustomControlItem, FeatureInfo, FeatureTypeSelectedStyle } from "@/constants/communities/types";
 import { ClickedTool } from "@/constants/reports/types";
 import LayerSwitcher from "geopf-extensions-openlayers/src/packages/Controls/LayerSwitcher/LayerSwitcher";
 import { Feature, Map } from "ol";
@@ -16,10 +16,8 @@ interface MapStore {
     clickedControl: CustomControlItem | null;
     showMapWorkingLayerSelect: boolean;
     showCenterReportButtons: boolean;
-    tooltipLayers: TooltipLayers[];
     featureInfo: FeatureInfo;
     setMap: (map: Map | null, mapSwitcher: LayerSwitcher | null) => void;
-    setTooltipLayers: (layers: TooltipLayers[]) => void;
     setFeatureTypeSelectedStyle: ({ layer, selectedStyle }: FeatureTypeSelectedStyle) => void;
     setClickedMapFeature: (feature: Feature | null) => void;
     setWorkingLayerDrawerOpened: (open: boolean) => void;
@@ -44,7 +42,6 @@ export const useMapStore = create<MapStore>((set, get) => ({
     clickedControl: null,
     showMapWorkingLayerSelect: true,
     showCenterReportButtons: false,
-    tooltipLayers: [],
     featureInfo: {
         content: null,
         title: null,
@@ -53,7 +50,6 @@ export const useMapStore = create<MapStore>((set, get) => ({
     setMap: (map, mapSwitcher) => {
         set({ map, mapSwitcher });
     },
-    setTooltipLayers: (layers) => set({ tooltipLayers: layers }),
     setFeatureTypeSelectedStyle: (newStyle) => {
         const currentFeatureTypeStyles = get().featureTypeSelectedStyle;
         const styleExist = currentFeatureTypeStyles.find((style) => style.layer === newStyle.layer);
