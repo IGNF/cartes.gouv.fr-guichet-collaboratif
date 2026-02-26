@@ -9,42 +9,53 @@ import { CommunityGeoservice, StatusMessage } from "@/constants/communities/type
 import { useMapStore } from "@/store";
 import { useTranslation } from "@/i18n";
 
+function isLayerQueryable(rawXml: string, layerIdentifier: string): boolean {
+    const doc = new DOMParser().parseFromString(rawXml, "text/xml");
+    const layers = doc.querySelectorAll("Contents > Layer");
+    for (const layer of layers) {
+        const identifier = layer.querySelector("Identifier");
+        if (identifier?.textContent?.trim() === layerIdentifier) {
+            const infoFormats = layer.querySelectorAll("InfoFormat");
+            return infoFormats.length > 0;
+        }
+    }
+    return false;
+}
+
 function useGetWMTSLayer(geoservice: CommunityGeoservice) {
-    const { data: capabilities, error } = useGetCapabilitiesWMTS(geoservice);
+    const { data: capabilities, rawXml, error } = useGetCapabilitiesWMTS(geoservice);
 
     const { addAlertMessage } = useCommunityStore();
     const { map } = useMapStore();
-
     const { t } = useTranslation({ useGetWMTSLayer });
 
     useEffect(() => {
         if (error) {
-            addAlertMessage(StatusMessage.error, t("loading_layer_error", { layerTitle: geoservice.title }));
+            addAlertMessage(StatusMessage.error, t("loading_layer_error", { layerTitle: geoservice.title }), 3000);
         }
     }, [error, geoservice, addAlertMessage, t]);
 
     const wmtsLayer = useMemo(() => {
-        if (!capabilities) return;
+        if (!capabilities || !rawXml) return;
+
         const wmtsLayer: TileLayer = new TileLayer({
             source: undefined,
             visible: false,
-            properties: {
-                loading: true,
-            },
+            properties: { loading: true },
         });
-        if (capabilities) {
-            const wmtsOptions = optionsFromCapabilities(capabilities, {
-                layer: geoservice.layer,
-            });
 
-            if (wmtsOptions) {
-                const wmtsSource = new WMTS({ ...wmtsOptions, crossOrigin: "anonymous" });
-                wmtsSource.setUrl(geoservice.url);
+        const wmtsOptions = optionsFromCapabilities(capabilities, {
+            layer: geoservice.layer,
+        });
 
-                wmtsLayer.setSource(wmtsSource);
-                wmtsLayer.set("loading", false);
-            }
+        if (wmtsOptions) {
+            const wmtsSource = new WMTS({ ...wmtsOptions, crossOrigin: "anonymous" });
+            wmtsSource.setUrl(geoservice.url);
+            wmtsLayer.setSource(wmtsSource);
+            wmtsLayer.set("loading", false);
         }
+
+        wmtsLayer.set("queryable", isLayerQueryable(rawXml, geoservice.layer));
 
         wmtsLayer.set("title", geoservice.title);
         wmtsLayer.set("name", geoservice.layer);
@@ -54,16 +65,15 @@ function useGetWMTSLayer(geoservice: CommunityGeoservice) {
 
         if (map) {
             const mapView = map.getView();
-            const minResolution = mapView?.getResolutionForZoom(geoservice.maxZoom);
-            const maxResolution = mapView?.getResolutionForZoom(geoservice.minZoom);
-            wmtsLayer.setMinResolution(minResolution);
-            wmtsLayer.setMaxResolution(maxResolution);
+            wmtsLayer.setMinResolution(mapView?.getResolutionForZoom(geoservice.maxZoom));
+            wmtsLayer.setMaxResolution(mapView?.getResolutionForZoom(geoservice.minZoom));
         }
 
         const extent = geoservice.extent.split(",")?.map((extent) => parseFloat(extent));
         wmtsLayer.setExtent(transformExtent(extent, "EPSG:4326", "EPSG:3857"));
+
         return wmtsLayer;
-    }, [capabilities, geoservice, map]);
+    }, [capabilities, rawXml, geoservice, map]);
 
     return wmtsLayer;
 }

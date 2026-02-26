@@ -14,7 +14,7 @@ import { declareComponentKeys, useTranslation } from "@/i18n";
 import { transformExtent } from "ol/proj";
 import { Extent } from "ol/extent";
 import { arrayToGeoJSON, getGeoJSONProps } from "@/constants/communities/utils";
-import { getWebGLStyle } from "@/constants/styles";
+import { getTrafficFlowStyles, getWebGLStyle } from "@/constants/styles";
 import { FEATURE_TYPE_SELECTED_PROPERTY, LAYER_FEATURE_TYPE, LAYER_SWITCHER_INFO_DIV, TILE_MAX_FEATURES } from "@/constants";
 import VectorLayer from "ol/layer/Vector";
 import { Stroke, Style } from "ol/style";
@@ -48,7 +48,7 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
 
     const addFeaturesToSource = useCallback(
         (wfsSource: VectorSource, data: GeoJSONProps | ArrayGeoJSONProps[]) => {
-            let newData = data;
+            let newData;
             if (Array.isArray(data)) {
                 newData = arrayToGeoJSON(data, geoservice);
             } else {
@@ -105,7 +105,7 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
                     if (data.features.length === TILE_MAX_FEATURES) await wfsLoader(extent, wfsSource, page + 1);
                 }
             } catch {
-                addAlertMessage(StatusMessage.error, t("loading_layer_error", { layerTitle: geoservice.title }));
+                addAlertMessage(StatusMessage.error, t("loading_layer_error", { layerTitle: geoservice.title }), 3000);
             }
         },
         [addAlertMessage, addFeaturesToSource, urlsFilters, geoProjCode, geoservice, mapProjCode, queryClient, t]
@@ -190,24 +190,38 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
         if (typeLabelStyle?.labelMinZoom) wfsLayerLabels.setMinZoom(typeLabelStyle.labelMinZoom);
 
         wfsLayer.setStyle(getWebGLStyle(geoservice, featureTypeSelectedStyle));
-        wfsLayerLabels.setStyle((ft) => {
-            const text = ft.get(typeLabelStyle?.label?.replace(/\${|}/g, "") as string);
-            if (ft.get(FEATURE_TYPE_SELECTED_PROPERTY) || text === "null") return;
-            return new Style({
-                text: new Text({
-                    text: text,
-                    font: `${typeLabelStyle?.fontWeight} ${typeLabelStyle?.fontSize}px ${typeLabelStyle?.fontFamily}`,
-                    offsetX: typeLabelStyle?.labelXOffset,
-                    offsetY: typeLabelStyle?.labelYOffset,
-                    stroke: new Stroke({
-                        color: "#fff",
-                        width: 2,
-                    }),
-                }),
-            });
+        wfsLayerLabels.setStyle((ft, resolution) => {
+            if (ft.get(FEATURE_TYPE_SELECTED_PROPERTY)) return;
+
+            const styles: Style[] = [];
+            if (typeLabelStyle?.label) {
+                const text = ft.get(typeLabelStyle.label.replace(/\${|}/g, "") as string);
+                if (text && text !== "null") {
+                    styles.push(
+                        new Style({
+                            text: new Text({
+                                text: text,
+                                font: `${typeLabelStyle?.fontWeight} ${typeLabelStyle?.fontSize}px ${typeLabelStyle?.fontFamily}`,
+                                offsetX: typeLabelStyle?.labelXOffset,
+                                offsetY: typeLabelStyle?.labelYOffset,
+                                stroke: new Stroke({
+                                    color: "#fff",
+                                    width: 2,
+                                }),
+                            }),
+                        })
+                    );
+                }
+            }
+
+            if (typeLabelStyle?.directionField) {
+                styles.push(...getTrafficFlowStyles(ft, typeLabelStyle.directionField, resolution));
+            }
+
+            return styles.length > 0 ? styles : undefined;
         });
 
-        if (typeLabelStyle?.label) {
+        if (typeLabelStyle?.label || typeLabelStyle?.directionField) {
             layerGroup.setLayers(new Collection([wfsLayer, wfsLayerLabels]));
         } else {
             layerGroup.setLayers(new Collection([wfsLayer]));

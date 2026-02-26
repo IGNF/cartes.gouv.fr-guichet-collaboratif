@@ -164,7 +164,7 @@
 
 .map-toolbar-bottom-select .separator {
     margin: 4px;
-    width: 1px;
+    width: 2px;
     background-color: var(--background-default-grey);
 }
 

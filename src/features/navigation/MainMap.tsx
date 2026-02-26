@@ -14,7 +14,7 @@ import useGpConfig from "@/hooks/navigation/useGpConfig";
 import GetAllLayers from "./layers";
 import { MapLayer, MapLayerSource, TooltipLayers } from "@/constants/communities/types";
 import { getLonLatFromPoint } from "@/constants/utils";
-import SaveViewHandler from "./SaveViewHandler";
+import SaveViewHandler from "./ViewHandler";
 import ReportDrawer from "../reports/ReportDrawer";
 import { Cluster } from "ol/source";
 import VectorLayer from "ol/layer/Vector";
@@ -67,6 +67,12 @@ export default function MainMap() {
             title: layer.get("title"),
             description: layer.get("description"),
         });
+
+        const layers = mapRef.current?.getLayers();
+        if (layers) {
+            layers.remove(reportLayer);
+            layers.push(reportLayer);
+        }
     }, []);
 
     const addLayer = useCallback(
@@ -201,6 +207,7 @@ export default function MainMap() {
                 className={cx(fr.cx("fr-col"), "map-view")}
                 ref={mapTargetRef}
                 style={{ height: `calc(100vh - ${(mapToolbarHeader?.clientHeight || 0) + APP_FOOTER_MIN_HEIGHT}px)` }}
+                tabIndex={0}
             ></div>
 
             <SaveViewHandler />

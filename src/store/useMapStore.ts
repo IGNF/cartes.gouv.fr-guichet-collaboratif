@@ -1,7 +1,8 @@
-import { CustomControlItem, FeatureTypeSelectedStyle, TooltipLayers } from "@/constants/communities/types";
+import { CustomControlItem, FeatureInfo, FeatureTypeSelectedStyle, TooltipLayers } from "@/constants/communities/types";
 import { ClickedTool } from "@/constants/reports/types";
 import LayerSwitcher from "geopf-extensions-openlayers/src/packages/Controls/LayerSwitcher/LayerSwitcher";
 import { Feature, Map } from "ol";
+import { Coordinate } from "ol/coordinate";
 import { create } from "zustand";
 
 interface MapStore {
@@ -16,6 +17,7 @@ interface MapStore {
     showMapWorkingLayerSelect: boolean;
     showCenterReportButtons: boolean;
     tooltipLayers: TooltipLayers[];
+    featureInfo: FeatureInfo;
     setMap: (map: Map | null, mapSwitcher: LayerSwitcher | null) => void;
     setTooltipLayers: (layers: TooltipLayers[]) => void;
     setFeatureTypeSelectedStyle: ({ layer, selectedStyle }: FeatureTypeSelectedStyle) => void;
@@ -26,6 +28,7 @@ interface MapStore {
     setClickedControl: (control: CustomControlItem | null) => void;
     setShowMapWorkingLayerSelect: (show: boolean) => void;
     setShowCenterReportButtons: (show: boolean) => void;
+    setFeatureInfo: (content: string | null, title: string | null, position?: Coordinate) => void;
     clickedTool: ClickedTool;
     setClickedTool: (tool: ClickedTool) => void;
 }
@@ -42,6 +45,11 @@ export const useMapStore = create<MapStore>((set, get) => ({
     showMapWorkingLayerSelect: true,
     showCenterReportButtons: false,
     tooltipLayers: [],
+    featureInfo: {
+        content: null,
+        title: null,
+        position: undefined,
+    },
     setMap: (map, mapSwitcher) => {
         set({ map, mapSwitcher });
     },
@@ -71,6 +79,14 @@ export const useMapStore = create<MapStore>((set, get) => ({
     setClickedControl: (control) => set({ clickedControl: control }),
     setShowMapWorkingLayerSelect: (show) => set({ showMapWorkingLayerSelect: show }),
     setShowCenterReportButtons: (show) => set({ showCenterReportButtons: show }),
+    setFeatureInfo: (content, title, position) =>
+        set((state) => ({
+            featureInfo: {
+                content,
+                title,
+                position: position !== undefined ? position : state.featureInfo.position,
+            },
+        })),
     clickedTool: { name: "", clicked: false },
     setClickedTool: (tool) =>
         set((state) => ({

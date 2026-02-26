@@ -10,6 +10,8 @@ import { useTranslation } from "@/i18n";
 
 type CapabilityLayer = {
     Name: string;
+    queryable?: boolean;
+    InfoFormat?: string[];
 };
 
 function useGetWMSLayer(geoservice: CommunityGeoservice) {
@@ -22,10 +24,10 @@ function useGetWMSLayer(geoservice: CommunityGeoservice) {
 
     useEffect(() => {
         if (error) {
-            addAlertMessage(StatusMessage.error, t("loading_layer_error", { layerTitle: geoservice.title }));
+            addAlertMessage(StatusMessage.error, t("loading_layer_error", { layerTitle: geoservice.title }), 3000);
         }
         if (capabilities && !capabilities?.Capability?.Layer) {
-            addAlertMessage(StatusMessage.error, t("loading_layer_error", { layerTitle: geoservice.title }));
+            addAlertMessage(StatusMessage.error, t("loading_layer_error", { layerTitle: geoservice.title }), 3000);
         }
     }, [error, capabilities, geoservice, addAlertMessage, t]);
 
@@ -42,24 +44,25 @@ function useGetWMSLayer(geoservice: CommunityGeoservice) {
                 loading: true,
             },
         });
-        if (capabilities) {
-            let wmsLayerOption = capabilities.Capability.Layer;
-            if (wmsLayerOption && wmsLayerOption.Name !== geoservice.layer) {
-                wmsLayerOption = capabilities.Capability.Layer.Layer.find((l: CapabilityLayer) => l.Name === geoservice.layer);
-            }
-            if (wmsLayerOption) {
-                const wmsSource = new TileWMS({
-                    url: geoservice.url,
-                    params: {
-                        LAYERS: wmsLayerOption.Name,
-                        TILED: true,
-                        VERSION: geoservice.version,
-                    },
-                    serverType: "geoserver",
-                });
-                wmsSource.setUrl(geoservice.url);
-                wmsLayer.setSource(wmsSource);
-                wmsLayer.set("loading", false);
+        let wmsLayerOption = capabilities.Capability.Layer;
+        if (wmsLayerOption && wmsLayerOption.Name !== geoservice.layer) {
+            wmsLayerOption = capabilities.Capability.Layer.Layer.find((l: CapabilityLayer) => l.Name === geoservice.layer);
+        }
+        if (wmsLayerOption) {
+            const wmsSource = new TileWMS({
+                url: geoservice.url,
+                params: {
+                    LAYERS: wmsLayerOption.Name,
+                    TILED: true,
+                    VERSION: geoservice.version,
+                },
+                serverType: "geoserver",
+            });
+            wmsSource.setUrl(geoservice.url);
+            wmsLayer.setSource(wmsSource);
+            wmsLayer.set("loading", false);
+            if (wmsLayerOption.queryable) {
+                wmsLayer.set("queryable", true);
             }
         }
 

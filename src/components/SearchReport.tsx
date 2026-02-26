@@ -9,10 +9,10 @@ const SearchReport = () => {
         const params = new URLSearchParams(window.location.search);
         const search = params.get("search") || "";
         setSearchReport(search);
-    }, []);
+    }, [setSearchReport]);
 
     const handleSearchReport = (value: string) => {
-        setSearchReport(value.toLowerCase());
+        setSearchReport(value);
         setCurrentPage(1);
     };
     return <SearchBar allowEmptySearch={true} onButtonClick={handleSearchReport} />;

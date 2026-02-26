@@ -82,6 +82,7 @@ export async function getFeatureTypesAll(featureTypesIds: FeatureTypeIds[]): Pro
                     if (logoURI) {
                         logoURI = logoURI + `${logoURI?.includes("?") ? "&" : "?"}width=50&height=50`;
                     }
+                    const directionField = style.directionField ? JSON.parse(style.directionField) : undefined;
                     return {
                         name: style.name,
                         label: style.label,
@@ -107,6 +108,7 @@ export async function getFeatureTypesAll(featureTypesIds: FeatureTypeIds[]): Pro
                                 labelXOffset: style.labelXOffset,
                                 labelYOffset: style.labelYOffset,
                                 labelMinZoom: style.labelMinZoom,
+                                directionField: directionField,
                             },
                             ...(style?.children?.map((type: FeatureTypeStyleItemData) => {
                                 let logoURItype = type?.uri ? type.uri?.replace("https://espacecollaboratif.ign.fr/gcms", `${API_URL}/espaceco`) : "";
@@ -193,4 +195,69 @@ export const searchFilteredObjects = async (
     if (!Array.isArray(data)) throw Error(data.message);
 
     return data;
+};
+
+export const getWMSFeatureInfo = async (
+    geoservice: CommunityGeoservice,
+    coordinate: [number, number],
+    viewResolution: number,
+    mapProjCode: string,
+    viewSize: [number, number]
+): Promise<string> => {
+    const url =
+        `${geoservice.url}` +
+        `${geoservice.url.includes("?") ? "&" : "?"}SERVICE=WMS` +
+        `&VERSION=${geoservice.version || "1.3.0"}` +
+        `&REQUEST=GetFeatureInfo` +
+        `&FORMAT=image/png` +
+        `&TRANSPARENT=TRUE` +
+        `&QUERY_LAYERS=${geoservice.layer}` +
+        `&LAYERS=${geoservice.layer}` +
+        `&INFO_FORMAT=text/html` +
+        `&CRS=${mapProjCode}` +
+        `&STYLES=` +
+        `&WIDTH=${viewSize[0]}` +
+        `&HEIGHT=${viewSize[1]}`;
+
+    const halfWidth = (viewResolution * viewSize[0]) / 2;
+    const halfHeight = (viewResolution * viewSize[1]) / 2;
+    const bbox = [coordinate[0] - halfWidth, coordinate[1] - halfHeight, coordinate[0] + halfWidth, coordinate[1] + halfHeight];
+
+    const version = String(geoservice.version || "1.3.0");
+    const bboxParam = version === "1.3.0" ? `&BBOX=${bbox.join(",")}` : `&BBOX=${bbox.join(",")}`;
+    const pixelParam =
+        version === "1.3.0"
+            ? `&I=${Math.floor(viewSize[0] / 2)}&J=${Math.floor(viewSize[1] / 2)}`
+            : `&X=${Math.floor(viewSize[0] / 2)}&Y=${Math.floor(viewSize[1] / 2)}`;
+
+    const featureInfoUrl = url + bboxParam + pixelParam;
+
+    const response = await fetch(featureInfoUrl, { headers: { "X-Requested-With": "XMLHttpRequest" } });
+    return await response.text();
+};
+
+export const getWMTSFeatureInfo = async (
+    geoservice: CommunityGeoservice,
+    tileCoord: [number, number, number],
+    pixelCoord: [number, number],
+    tileMatrixSet: string
+): Promise<string> => {
+    const url =
+        `${geoservice.url}` +
+        `${geoservice.url.includes("?") ? "&" : "?"}SERVICE=WMTS` +
+        `&VERSION=1.0.0` +
+        `&REQUEST=GetFeatureInfo` +
+        `&LAYER=${geoservice.layer}` +
+        `&TILECOL=${tileCoord[1]}` +
+        `&TILEROW=${tileCoord[2]}` +
+        `&TILEMATRIX=${tileCoord[0]}` +
+        `&TILEMATRIXSET=${tileMatrixSet}` +
+        `&FORMAT=${geoservice.format || "image/jpeg"}` +
+        `&STYLE=normal` +
+        `&INFOFORMAT=text/html` +
+        `&I=${Math.floor(pixelCoord[0])}` +
+        `&J=${Math.floor(pixelCoord[1])}`;
+
+    const response = await fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } });
+    return await response.text();
 };

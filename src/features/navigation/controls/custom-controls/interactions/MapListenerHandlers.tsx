@@ -1,37 +1,29 @@
-import { useCallback, useEffect, useMemo, useRef } from "react";
-import { createEmpty, extend } from "ol/extent";
-import {
-    FEATURE_TYPE_GEOSERVICE_PROPERTY,
-    FEATURE_TYPE_SELECTED_PROPERTY,
-    FEATURE_TYPE_NEW_PROPERTY,
-    HIT_DETECTION_TOLERENCE,
-    FEATURE_TYPE_HOVER_PROPERTY,
-} from "@/constants";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
+import { FEATURE_TYPE_HOVER_PROPERTY } from "@/constants";
 import { CommunityGeoservice, InteractionType } from "@/constants/communities/types";
-import { getFeaturesInPixelBySource } from "@/constants/communities/utils";
-import { getClickedMapReport, getReportSketchFeatures, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
-import { showClusterFeatures } from "@/constants/reports/utils/cluster";
-import { useCommunityStore, useContributionStore, useMapStore, useReportStore } from "@/store";
-import { Feature, MapBrowserEvent, Overlay } from "ol";
+import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
+import { useCommunityStore, useMapStore, useReportStore } from "@/store";
+import { Feature, Overlay } from "ol";
 import VectorSource from "ol/source/Vector";
-import VectorLayer from "ol/layer/Vector";
-import WebGLVectorLayer from "ol/layer/WebGLVector";
-import { Style } from "ol/style";
-import { getSelectedFeatureTypeStyle } from "@/constants/styles";
+import { useSingleClickHandler } from "./handlers/useSingleClickHandler";
+import { usePointerMoveHandler } from "./handlers/usePointerMoveHandler";
+import { useRasterWorkingLayer } from "@/hooks/working-layer/useRasterWorkingLayer";
+import { useClusterClickHandler } from "./handlers/useClusterClickHandler";
 
 interface Props {
     handleCloseDrawer: () => void;
 }
 
 const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
-    const { map, mapWorkingLayer, clickedControl, setClickableFeatures, setClickedMapFeature } = useMapStore();
+    const { map, mapWorkingLayer, clickedControl, setClickableFeatures, setClickedMapFeature, setFeatureInfo } = useMapStore();
     const { communityLayers } = useCommunityStore();
     const { reports, selectedReport, editReport, selectedFeatures, setSelectedReport, setSelectedFeatures, drawerOpened } = useReportStore();
-    const { selectedObjects } = useContributionStore();
 
     const tooltipRef = useRef<HTMLDivElement | null>(null);
     const overlayRef = useRef<Overlay | null>(null);
     const hoveredFeatureRef = useRef<Feature | null>(null);
+
+    const { isRasterLayer, isRasterLayerQueryable } = useRasterWorkingLayer();
 
     const reportClusterLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE && layer.getSource() instanceof VectorSource);
     const reportClusterSource = reportClusterLayer?.getSource() as VectorSource;
@@ -68,7 +60,6 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
     const clearHoverState = useCallback(() => {
         if (hoveredFeatureRef.current) {
             hoveredFeatureRef.current.unset(FEATURE_TYPE_HOVER_PROPERTY);
-            hoveredFeatureRef.current.unset(FEATURE_TYPE_SELECTED_PROPERTY);
             hoveredFeatureRef.current.changed();
             hoveredFeatureRef.current = null;
         }
@@ -76,305 +67,66 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
         if (overlayRef.current) {
             overlayRef.current.setPosition(undefined);
         }
+
+        if (tooltipRef.current) {
+            tooltipRef.current.innerHTML = "";
+        }
     }, []);
 
-    const isTooltipDisabled = useCallback(() => {
-        if (!map) return false;
+    const handleClusterClick = useClusterClickHandler({
+        map,
+        reportClusterSource,
+    });
 
-        const activeInteractions = map.getInteractions().getArray();
-        return activeInteractions.some((interaction) => interaction.get("disablesTooltip") === true);
-    }, [map]);
-
-    const handleClusterClick = useCallback(
-        (clusterFeature: Feature): boolean => {
-            if (!map) return false;
-
-            const clusterMembers = clusterFeature.get("features");
-            if (!clusterMembers || clusterMembers.length <= 1) return false;
-
-            const view = map.getView();
-            const currentZoom = view.getZoom();
-            const maxZoom = view.getMaxZoom();
-            const resolution = view.getResolution();
-
-            if (!currentZoom || !maxZoom || !resolution) return false;
-
-            if (currentZoom >= maxZoom) {
-                showClusterFeatures(clusterFeature, resolution, reportClusterSource);
-                return true;
-            }
-            const extent = createEmpty();
-            clusterMembers.forEach((feature: Feature) => {
-                const geom = feature.getGeometry();
-                if (geom) {
-                    extend(extent, geom.getExtent());
-                }
-            });
-
-            const center = view.getCenter();
-            if (!center) return false;
-
-            const extentCenter = [(extent[2] + extent[0]) / 2, (extent[3] + extent[1]) / 2];
-            const dx = extentCenter[0] - center[0];
-            const dy = extentCenter[1] - center[1];
-            const distance = Math.sqrt(dx * dx + dy * dy);
-
-            const duration = Math.min(Math.max(distance * 2, 300), 1000);
-
-            const targetZoom = Math.min(currentZoom + 2, maxZoom);
-
-            view.animate({
-                center: extentCenter,
-                zoom: targetZoom,
-                duration,
-            });
-
-            return true;
-        },
-        [map, reportClusterSource]
-    );
     const currentGeoservice: CommunityGeoservice | undefined = useMemo(
-        () => communityLayers?.find((layer) => layer.geoservice.layer === mapWorkingLayer)?.geoservice,
+        () => communityLayers?.find((layer) => layer?.geoservice?.layer === mapWorkingLayer)?.geoservice,
         [communityLayers, mapWorkingLayer]
     );
 
     const isNotClickable = useMemo(
         () =>
-            clickedControl ||
-            editReport ||
-            selectedFeatures?.find((f) => f?.get("new")) ||
-            (!currentGeoservice?.featureType && mapWorkingLayer !== REPORTS_LAYER_TYPE),
-        [clickedControl, editReport, selectedFeatures, currentGeoservice, mapWorkingLayer]
+            !!(
+                (clickedControl && clickedControl.interaction !== InteractionType.SELECT) ||
+                editReport ||
+                selectedFeatures?.find((f) => f?.get("new")) ||
+                (!currentGeoservice?.featureType && !isRasterLayerQueryable && mapWorkingLayer !== REPORTS_LAYER_TYPE)
+            ),
+        [clickedControl, editReport, selectedFeatures, currentGeoservice, isRasterLayerQueryable, mapWorkingLayer]
     );
 
-    const handleSingleClick = useCallback(
-        (evt: MapBrowserEvent) => {
-            if (!map || isNotClickable) return;
+    const handleSingleClick = useSingleClickHandler({
+        map,
+        isNotClickable,
+        isRasterLayer,
+        clickedControl,
+        currentGeoservice,
+        mapWorkingLayer,
+        clickableSource,
+        reportClusterSource,
+        selectedReport,
+        selectedFeatures,
+        setClickableFeatures,
+        setClickedMapFeature,
+        setFeatureInfo,
+        setSelectedReport,
+        setSelectedFeatures,
+        handleCloseDrawer,
+        handleClusterClick,
+        clearHoverState,
+    });
 
-            clearHoverState();
-
-            const features: { feature: Feature; zIndex: number }[] = [];
-            const selectInteraction = map
-                ?.getInteractions()
-                .getArray()
-                .find((i) => i.get("type") === InteractionType.SELECT || i.get("type") === InteractionType.REMOVE);
-
-            const featuresAtPixel = map?.getFeaturesAtPixel(evt.pixel);
-            if (!featuresAtPixel?.length) return;
-
-            const featuresAt = getFeaturesInPixelBySource(map!, clickableSource, evt.pixel, HIT_DETECTION_TOLERENCE);
-
-            if (featuresAt && featuresAt.length && mapWorkingLayer !== REPORTS_LAYER_TYPE) {
-                setClickableFeatures(featuresAt);
-                if (featuresAt.length > 1) {
-                    return;
-                }
-            }
-
-            if (selectInteraction) return;
-
-            featuresAtPixel?.forEach((feature) => {
-                const clickedFeature = feature as Feature;
-
-                if (clickedFeature.get(FEATURE_TYPE_GEOSERVICE_PROPERTY)?.layer !== mapWorkingLayer && mapWorkingLayer !== REPORTS_LAYER_TYPE) return;
-
-                if (mapWorkingLayer === REPORTS_LAYER_TYPE && clickedFeature.get("features")) {
-                    const featureStyle = clickedFeature.getStyle();
-
-                    const isPopOut = Array.isArray(featureStyle) && featureStyle.length > 1;
-
-                    if (isPopOut) {
-                        getClickedMapReport({
-                            feature: clickedFeature,
-                            map,
-                            pixel: evt.pixel,
-                            clusterSource: reportClusterSource,
-                            features,
-                            handleCloseDrawer,
-                        });
-                        return;
-                    }
-
-                    const handled = handleClusterClick(clickedFeature);
-                    if (handled) {
-                        return;
-                    }
-                    getClickedMapReport({
-                        feature: clickedFeature,
-                        map,
-                        pixel: evt.pixel,
-                        clusterSource: reportClusterSource,
-                        features,
-                        handleCloseDrawer,
-                    });
-                } else {
-                    const currentFeatureStyle = clickedFeature.getStyle() as Style;
-                    const currentZIndex = currentFeatureStyle && "getStyle" in currentFeatureStyle ? (currentFeatureStyle?.getZIndex() ?? 1) : 1;
-                    features.push({
-                        feature: clickedFeature,
-                        zIndex: currentZIndex,
-                    });
-                }
-            });
-
-            const topFeature = features[0];
-            if (topFeature) {
-                if (mapWorkingLayer === REPORTS_LAYER_TYPE) {
-                    if (selectedReport) {
-                        const reportFeatures = reportClusterSource.getFeatures().filter((f) => f.get("reportData")?.id === selectedReport.id);
-                        reportClusterSource.removeFeatures(reportFeatures?.filter((f) => !f.get("main")));
-                    }
-                    const report = topFeature.feature.get("reportData");
-                    if (report) {
-                        const selectedReportFeatures = getReportSketchFeatures(report);
-                        reportClusterSource?.addFeatures(selectedReportFeatures);
-                        setSelectedFeatures([topFeature.feature, ...selectedReportFeatures]);
-                        setSelectedReport(report);
-                    }
-                } else {
-                    if (!selectInteraction) setClickedMapFeature(topFeature.feature);
-                }
-            }
-        },
-        [
-            map,
-            reportClusterSource,
-            selectedReport,
-            mapWorkingLayer,
-            clickableSource,
-            isNotClickable,
-            handleCloseDrawer,
-            handleClusterClick,
-            setSelectedReport,
-            setSelectedFeatures,
-            setClickedMapFeature,
-            setClickableFeatures,
-            clearHoverState,
-        ]
-    );
-
-    const handlePointerMove = useCallback(
-        (evt: MapBrowserEvent) => {
-            if (!map || isNotClickable) return;
-
-            const features = map.getFeaturesAtPixel(evt.pixel, {
-                layerFilter: (layer) => {
-                    return layer.get("name") === mapWorkingLayer || layer.get("type") === mapWorkingLayer;
-                },
-                hitTolerance: HIT_DETECTION_TOLERENCE,
-            });
-
-            const feature = features?.find((f) => {
-                if (mapWorkingLayer === REPORTS_LAYER_TYPE) {
-                    const fCluster = f.get("features");
-                    if (fCluster?.length > 1) return fCluster[0];
-                    return fCluster?.find((fc: Feature) => fc.get("reportData") || fc.get("new"));
-                } else if (clickableSource?.hasFeature(f as Feature)) {
-                    return f;
-                }
-                return null;
-            }) as Feature;
-
-            const targetElement = map.getTargetElement();
-            if (targetElement) {
-                if (feature) {
-                    if (selectedFeatures.length && !selectedFeatures.includes(feature) && selectedFeatures.find((f) => f.get("new"))) {
-                        targetElement.style.cursor = "";
-                    } else {
-                        targetElement.style.cursor = "pointer";
-                    }
-                } else {
-                    targetElement.style.cursor = "";
-                }
-            }
-
-            if (isTooltipDisabled()) {
-                clearHoverState();
-                return;
-            }
-
-            const workingLayer = map
-                .getAllLayers()
-                .find(
-                    (layer) =>
-                        (layer.get("name") === mapWorkingLayer || layer.get("type") === mapWorkingLayer) &&
-                        (layer instanceof VectorLayer || layer instanceof WebGLVectorLayer)
-                );
-
-            if (!workingLayer) {
-                clearHoverState();
-                return;
-            }
-
-            const source = workingLayer.getSource() as VectorSource;
-            const featuresAt = getFeaturesInPixelBySource(map, source, evt.pixel, HIT_DETECTION_TOLERENCE);
-
-            if (!featuresAt || featuresAt.length === 0) {
-                clearHoverState();
-                return;
-            }
-
-            let hoverFeature = featuresAt[0];
-
-            if (mapWorkingLayer === REPORTS_LAYER_TYPE && hoverFeature.get("features")) {
-                const clusterMembers = hoverFeature.get("features");
-                if (clusterMembers && clusterMembers.length === 1) {
-                    hoverFeature = clusterMembers[0];
-                } else if (clusterMembers && clusterMembers.length > 1) {
-                    clearHoverState();
-                    return;
-                }
-            }
-
-            if (hoverFeature.get(FEATURE_TYPE_NEW_PROPERTY) || selectedObjects.some((obj) => obj === hoverFeature)) {
-                clearHoverState();
-                return;
-            }
-            if (hoveredFeatureRef.current && hoveredFeatureRef.current !== hoverFeature) {
-                clearHoverState();
-            }
-
-            if (hoveredFeatureRef.current !== hoverFeature) {
-                hoveredFeatureRef.current = hoverFeature;
-
-                const geoservice = hoverFeature.get(FEATURE_TYPE_GEOSERVICE_PROPERTY);
-                const featureType = geoservice?.featureType || hoverFeature.get("featureType");
-
-                if (featureType) {
-                    const selectedStyle = getSelectedFeatureTypeStyle(featureType, geoservice?.styles?.[0] || { name: "default", types: [] });
-                    if (selectedStyle) {
-                        hoverFeature.set(FEATURE_TYPE_HOVER_PROPERTY, true);
-                        hoverFeature.set(FEATURE_TYPE_SELECTED_PROPERTY, true);
-                        hoverFeature.setStyle(selectedStyle);
-                        hoverFeature.changed();
-                    }
-                }
-            }
-
-            if (tooltipRef.current && overlayRef.current) {
-                const featureName =
-                    hoverFeature.get("nom") ||
-                    hoverFeature.get("name") ||
-                    hoverFeature.get("titre") ||
-                    hoverFeature.get("title") ||
-                    hoverFeature.get("libelle") ||
-                    hoverFeature.get("description");
-
-                const featureId = hoverFeature.getId();
-
-                tooltipRef.current.innerHTML = `
-            <div class="map-hover-tooltip__title">
-                ${featureName}
-            </div>
-            <div class="map-hover-tooltip__id">
-                ID: ${featureId}
-            </div>
-        `;
-                overlayRef.current.setPosition(evt.coordinate);
-            }
-        },
-        [map, selectedFeatures, selectedObjects, mapWorkingLayer, clickableSource, isNotClickable, isTooltipDisabled, clearHoverState]
-    );
+    const handlePointerMove = usePointerMoveHandler({
+        map,
+        isNotClickable,
+        mapWorkingLayer,
+        clickableSource,
+        selectedFeatures,
+        currentGeoservice,
+        clearHoverState,
+        hoveredFeatureRef,
+        overlayRef,
+        tooltipRef,
+    });
 
     const handleClusterChange = useCallback(() => {
         if (!selectedReport || !drawerOpened) return;

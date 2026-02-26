@@ -109,7 +109,7 @@ const ReportDrawer = () => {
     useEffect(() => {
         if (!drawerOpened) {
             document.addEventListener("create-report-event", handleDrawingAdd);
-            if (selectedReport && !drawerOpened) {
+            if (selectedReport) {
                 setDrawerOpened(true);
             }
         } else {
@@ -147,7 +147,7 @@ const ReportDrawer = () => {
         } else {
             setEditReport(false);
         }
-    }, [drawerOpened, selectedReport, isAdmin, isOwner, editReport]);
+    }, [drawerOpened, selectedReport, isAdmin, isOwner, editReport, setEditReport]);
 
     const [searchParams] = useSearchParams();
     const reportIdParam = searchParams.get("report");

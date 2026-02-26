@@ -136,7 +136,7 @@ const FilterAndSortReport = () => {
         if (isErrorReport) {
             addAlertMessage(StatusMessage.error, t("loading_error"));
         }
-    }, [isErrorReport, addAlertMessage]);
+    }, [isErrorReport, addAlertMessage, t]);
 
     const onChangeOpeningDate = (index: number) => {
         setSortOpeningDateIndex(index);
@@ -201,18 +201,18 @@ const FilterAndSortReport = () => {
         <>
             <form ref={formRef} className="filter-report">
                 <div>
-                    <p className="report-subTitle">Trier par : </p>
+                    <p className="report-subTitle">{t("sortBy")}: </p>
                     <div className="sort-report__wrapper">
                         <SelectComponent
                             name="sortByDateCreation"
-                            label="Date de création"
+                            label={t("dateCreation")}
                             value={sortOpeningDateIndex}
                             options={sortOptions}
                             onChange={onChangeOpeningDate}
                         />
                         <SelectComponent
                             name="sortByDateMAJ"
-                            label="Date de mise à jour"
+                            label={t("dateUpdating")}
                             value={sortUpdatingDateIndex}
                             options={sortOptions}
                             onChange={onChangeUpdatingDate}
@@ -221,13 +221,13 @@ const FilterAndSortReport = () => {
                 </div>
 
                 <div>
-                    <p className="report-subTitle">Filtrer par :</p>
+                    <p className="report-subTitle">{t("filterBy")}: </p>
                     <div className="filter-report__wrapper">
                         <SelectComponent
                             name="status"
                             label="Statut"
                             value={statusIndex}
-                            defaultOption="Sélectionner une option"
+                            defaultOption={t("selectOption")}
                             options={statusOptions}
                             onChange={setStatusIndex}
                         />
@@ -235,7 +235,7 @@ const FilterAndSortReport = () => {
                             name="theme"
                             label="Thème"
                             value={themeIndex}
-                            defaultOption="Sélectionner une option"
+                            defaultOption={t("selectOption")}
                             options={themeOptions}
                             onChange={setThemeIndex}
                         />
@@ -255,7 +255,7 @@ const FilterAndSortReport = () => {
                             className="filter-report__select"
                             label="Département"
                             nativeInputProps={{
-                                placeholder: "Sélectionner une option",
+                                placeholder: t("selectOption"),
                                 name: "departement",
                                 type: "number",
                                 max: 2,
@@ -268,10 +268,10 @@ const FilterAndSortReport = () => {
 
                 <div className="sumbit">
                     <Button type="submit" onClick={resetFiltersAndSort} priority="secondary">
-                        Effacer
+                        {t("reset")}
                     </Button>
                     <Button type="submit" onClick={handleSubmit}>
-                        Appliquer
+                        {t("apply")}
                     </Button>
                 </div>
             </form>

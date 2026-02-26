@@ -5,7 +5,7 @@ import Select from "@codegouvfr/react-dsfr/Select";
 import { useCallback, useMemo, useState } from "react";
 import ChoiceValueComponent from "./ChoiceValueComponent";
 import OperatorComponent from "./OperatorComponent";
-import { Rule } from "@/constants/contributions/types";
+import { Rule } from "@/constants/savedSearches/types";
 import useOperatorList from "@/hooks/working-layer/searchObjects/useOperatorList";
 import { getOperators } from "@/constants/working-layer/utils";
 import { TranslationFunction } from "i18nifty/typeUtils/TranslationFunction";
@@ -28,7 +28,7 @@ const RuleComponent: React.FC<RuleProps> = ({ t, rule, className, onDelete, onCh
     const [choiceValue, setChoiceValue] = useState<string[]>(rule.values ?? []);
 
     const geoservice: CommunityGeoservice | undefined = useMemo(
-        () => communityLayers?.find((layer) => layer.geoservice.layer === mapWorkingLayer)?.geoservice,
+        () => communityLayers?.find((layer) => layer?.geoservice?.layer === mapWorkingLayer)?.geoservice,
         [communityLayers, mapWorkingLayer]
     );
 
@@ -99,7 +99,7 @@ const RuleComponent: React.FC<RuleProps> = ({ t, rule, className, onDelete, onCh
                 </>
             )}
 
-            <Button size="small" iconId="ri-delete-bin-2-fill" title="" priority="tertiary" onClick={onDelete} style={{ color: "red" }}>
+            <Button size="small" iconId="fr-icon-delete-line" title="" priority="tertiary" onClick={onDelete}>
                 {t("delete")}
             </Button>
         </div>

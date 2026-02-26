@@ -1,11 +1,12 @@
+import { useState } from "react";
+import { Fragment } from "react/jsx-runtime";
+import { useTranslation } from "@/i18n";
+import { useCommunityStore, useReportStore } from "@/store";
+import { PostThemeReport } from "@/constants/reports/types";
+import { CommunityTheme } from "@/constants/communities/types";
+import { Checkbox } from "@codegouvfr/react-dsfr/Checkbox";
 import Input from "@codegouvfr/react-dsfr/Input";
 import Select from "@codegouvfr/react-dsfr/Select";
-import { Checkbox } from "@codegouvfr/react-dsfr/Checkbox";
-import { Fragment } from "react/jsx-runtime";
-import { CommunityTheme } from "@/constants/communities/types";
-import { PostThemeReport } from "@/constants/reports/types";
-import { useCommunityStore, useReportStore } from "@/store";
-import { useTranslation } from "@/i18n";
 
 interface ThemeProps {
     theme: CommunityTheme;
@@ -14,6 +15,7 @@ interface ThemeProps {
 }
 
 const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeThemeAttributes }) => {
+    const [inputState, setinputState] = useState<boolean>(false);
     const { community } = useCommunityStore();
     const { isShowReport } = useReportStore();
 
@@ -60,8 +62,14 @@ const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeTheme
                             <Input
                                 key={item.type + index}
                                 label={item.name + (item.mandatory ? " *" : "")}
-                                state={item.mandatory && !themeAttributes[item.name] && !isShowReport() ? "error" : "default"}
-                                stateRelatedMessage={item.mandatory && !themeAttributes[item.name] && !isShowReport() ? t("mandatory_field") : ""}
+                                state={(item.mandatory && !themeAttributes[item.name] && !isShowReport()) || !inputState ? "error" : "default"}
+                                stateRelatedMessage={
+                                    item.mandatory && !themeAttributes[item.name] && !isShowReport()
+                                        ? t("mandatory_field")
+                                        : !inputState
+                                          ? t("integer_status")
+                                          : ""
+                                }
                                 hintText={isShowReport() ? "" : item.help}
                                 disabled={isShowReport()}
                                 nativeInputProps={{
@@ -72,7 +80,9 @@ const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeTheme
                                     step: "1",
                                     defaultValue: themeAttributes ? themeAttributes[item.name] : item.default,
                                     onChange: (e) => {
+                                        const numValue = Number(e.target.value);
                                         handleChange(item.name, e.target.value);
+                                        setinputState(e.target.value === "" || Number.isInteger(numValue));
                                     },
                                 }}
                             />

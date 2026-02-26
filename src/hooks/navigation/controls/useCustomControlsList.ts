@@ -1,5 +1,4 @@
 import {
-    CommunityGeoservice,
     CommunityLayerFunctionalityType,
     CommunityLayerRoleType,
     CustomControlItem,
@@ -9,6 +8,7 @@ import {
 import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import { ComponentKey } from "@/i18n/types";
 import { useCommunityStore, useMapStore } from "@/store";
+import { useRasterWorkingLayer } from "@/hooks/working-layer/useRasterWorkingLayer";
 import { TranslationFunction } from "i18nifty/typeUtils/TranslationFunction";
 import { useMemo } from "react";
 
@@ -17,14 +17,9 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
     const { community, communityLayers } = useCommunityStore();
 
     const communityEditableLayers = useMemo(() => communityLayers?.filter((l) => l.role !== CommunityLayerRoleType.VISU), [communityLayers]);
-    const currentCommunityLayer = useMemo(() => communityLayers?.find((l) => l.geoservice.layer === mapWorkingLayer), [communityLayers, mapWorkingLayer]);
+    const currentCommunityLayer = useMemo(() => communityLayers?.find((l) => l?.geoservice?.layer === mapWorkingLayer), [communityLayers, mapWorkingLayer]);
 
-    const geoservice: CommunityGeoservice | undefined = useMemo(
-        () => communityLayers?.find((layer) => layer.geoservice.layer === mapWorkingLayer)?.geoservice,
-        [communityLayers, mapWorkingLayer]
-    );
-
-    const queryableColumns = useMemo(() => geoservice?.columns.filter((col) => col.queryable), [geoservice]);
+    const { isRasterLayer, isRasterLayerQueryable } = useRasterWorkingLayer();
 
     const constrolsList: CustomControlItem[] = useMemo(() => {
         return [
@@ -33,21 +28,21 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
                 title: t("selector"),
                 target: "drawing-tool-point-",
                 icon: "ri-cursor-line",
-                disabled: false,
+                disabled: (isRasterLayer && !isRasterLayerQueryable) || mapWorkingLayer === REPORTS_LAYER_TYPE,
                 enabled: true,
                 interaction: InteractionType.SELECT,
             },
             {
-                id: 9,
+                id: 1,
                 title: "Rechercher par attributs",
                 target: "",
                 icon: "ri-search-line",
-                disabled: !queryableColumns?.length,
+                disabled: !currentCommunityLayer?.geoservice.featureType || mapWorkingLayer === REPORTS_LAYER_TYPE,
                 enabled: !!community?.functionalities?.includes(CommunityLayerFunctionalityType.SEARCH),
                 interaction: InteractionType.SEARCH,
             },
             {
-                id: 1,
+                id: 2,
                 title: t("create_report"),
                 target: "drawing-tool-point-",
                 icon: "ri-map-pin-add-line",
@@ -56,7 +51,7 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
                 interaction: null,
             },
             {
-                id: 2,
+                id: 3,
                 title: t("add_object"),
                 target: currentCommunityLayer?.geoservice.featureType ?? "",
                 icon: "ri-pen-nib-line",
@@ -65,7 +60,7 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
                 interaction: InteractionType.ADD_OBJECT,
             },
             {
-                id: 3,
+                id: 4,
                 title: clickedMapFeature ? t("modify_object") : t("please_select_object"),
                 target: "drawing-tool-edit-",
                 icon: "ri-edit-line",
@@ -74,7 +69,7 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
                 interaction: InteractionType.MODIFY,
             },
             {
-                id: 4,
+                id: 5,
                 title: t("delete_object"),
                 target: "drawing-tool-remove-",
                 icon: "ri-delete-bin-line",
@@ -83,16 +78,36 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
                 interaction: InteractionType.REMOVE,
             },
             {
-                id: 5,
+                id: 6,
                 title: t("measure_distance"),
                 target: "GPshowMeasureLengthPicto-",
                 icon: "ri-ruler-line",
-                disabled: currentCommunityLayer?.role === CommunityLayerRoleType.VISU || mapWorkingLayer === REPORTS_LAYER_TYPE,
-                enabled: !!communityEditableLayers?.length && !!community?.functionalities?.includes(CommunityLayerFunctionalityType.MEASURE_DISTANCE),
+                disabled: false,
+                enabled:
+                    !!community?.functionalities?.includes(CommunityLayerFunctionalityType.MEASURE_DISTANCE) ||
+                    !!community?.functionalities?.includes(CommunityLayerFunctionalityType.MEASURE_DISTANCE_DEPRECIATED),
                 interaction: null,
             },
             {
-                id: 6,
+                id: 7,
+                title: t("measure_area"),
+                target: "GPshowMeasureAreaPicto-",
+                icon: "ri-ruler-2-line",
+                disabled: false,
+                enabled: !!community?.functionalities?.includes(CommunityLayerFunctionalityType.MEASURE_AREA),
+                interaction: null,
+            },
+            {
+                id: 8,
+                title: t("measure_azim"),
+                target: "GPshowMeasureAzimuthPicto-",
+                icon: "ri-compasses-2-fill",
+                disabled: false,
+                interaction: null,
+                enabled: !!community?.functionalities?.includes(CommunityLayerFunctionalityType.MEASURE_AZIMUTH),
+            },
+            {
+                id: 9,
                 title: "Copier un objet",
                 target: "",
                 icon: "ri-file-copy-2-fill",
@@ -101,7 +116,7 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
                 interaction: InteractionType.COPY_OBJECT,
             },
             {
-                id: 7,
+                id: 10,
                 title: "Déplacer un objet",
                 target: "",
                 icon: "ri-drag-move-2-fill",
@@ -110,7 +125,7 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
                 interaction: InteractionType.TRANSLATE_OBJECT,
             },
             {
-                id: 8,
+                id: 11,
                 title: t("cut_object"),
                 target: "drawing-tool-edit-",
                 icon: "ri-scissors-cut-line",
@@ -125,11 +140,12 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
     }, [
         community,
         currentCommunityLayer?.geoservice.featureType,
-        queryableColumns,
         currentCommunityLayer?.role,
         mapWorkingLayer,
         communityEditableLayers,
         clickedMapFeature,
+        isRasterLayer,
+        isRasterLayerQueryable,
         t,
     ]);
 

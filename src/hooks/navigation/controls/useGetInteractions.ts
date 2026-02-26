@@ -1,5 +1,5 @@
 import { useCommunityStore, useMapStore } from "@/store";
-import { Collection } from "ol";
+import { Collection, Feature } from "ol";
 import { platformModifierKeyOnly, click, shiftKeyOnly } from "ol/events/condition";
 import { Draw, Modify, Select, Snap, Translate, DragBox } from "ol/interaction";
 import VectorLayer from "ol/layer/Vector";
@@ -16,7 +16,7 @@ const useGetInteractions = () => {
         .find((layer) => layer.get("name") === mapWorkingLayer && (layer instanceof VectorLayer || layer instanceof WebGLVectorLayer));
     const clickableSource = clickableLayer?.getSource() as VectorSource;
 
-    const currentCommunityLayer = communityLayers?.find((layer) => layer.geoservice.layer === mapWorkingLayer);
+    const currentCommunityLayer = communityLayers?.find((layer) => layer?.geoservice?.layer === mapWorkingLayer);
 
     const snapto = currentCommunityLayer?.snapto?.split(",").map((l) => Number(l));
     const snapToLayers = communityLayers?.filter((layer) => snapto?.includes(layer.geoservice.id)).map((layer) => layer.geoservice.layer);
@@ -47,11 +47,13 @@ const useGetInteractions = () => {
         return drag;
     }, []);
 
+    const modifyFeatures = useMemo(() => selectInteraction.getFeatures(), [selectInteraction]);
+
     const modifyInteraction = useMemo(() => {
-        const modify = new Modify({ features: selectInteraction.getFeatures() });
+        const modify = new Modify({ features: modifyFeatures });
         modify.set("disablesTooltip", true);
         return modify;
-    }, [selectInteraction]);
+    }, [modifyFeatures]);
 
     const drawPointInteraction = useMemo(() => {
         const draw = new Draw({ type: "Point" });
@@ -72,11 +74,13 @@ const useGetInteractions = () => {
         return draw;
     }, []);
 
+    const translateFeatures = useMemo(() => new Collection<Feature>(clickedMapFeature ? [clickedMapFeature] : []), [clickedMapFeature]);
+
     const translateInteraction = useMemo(() => {
-        const translate = new Translate({ features: new Collection(clickedMapFeature ? [clickedMapFeature] : []) });
+        const translate = new Translate({ features: translateFeatures });
         translate.set("disablesTooltip", true);
         return translate;
-    }, [clickedMapFeature]);
+    }, [translateFeatures]);
 
     const splitInteraction = useMemo(() => {
         const split = new Modify({
@@ -97,10 +101,12 @@ const useGetInteractions = () => {
         selectInteraction,
         dragInteraction,
         modifyInteraction,
+        modifyFeatures,
         drawPointInteraction,
         drawLineInteraction,
         drawPolygonInteraction,
         translateInteraction,
+        translateFeatures,
         splitInteraction,
         snapInteraction,
     };

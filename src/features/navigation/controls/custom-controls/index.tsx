@@ -24,10 +24,17 @@ const CustomControls = () => {
 
     const { t } = useTranslation({ CustomControls });
 
-    const constrolsList = useCustomControlsList(t);
+    const controlsList = useCustomControlsList(t);
 
     const interactions = useGetInteractions();
     const interactionsFuncs = useGetInteractionsFuncs(interactions);
+
+    useEffect(() => {
+        const selectControl = controlsList.find((c) => c.interaction === InteractionType.SELECT);
+        if (clickedControl?.interaction === InteractionType.SELECT && selectControl?.disabled) {
+            setClickedControl(null);
+        }
+    }, [controlsList, clickedControl, setClickedControl]);
 
     const clickToolButton = useCallback(() => {
         if (!clickedControl || clickedControl?.interaction || clickedControl?.disabled) return;
@@ -43,14 +50,18 @@ const CustomControls = () => {
     const onConfirm = useCallback(
         (control: CustomControlItem) => {
             interactionsFuncs.handleClick(control);
-            interactions.selectInteraction.getFeatures().clear();
+
+            if (control.interaction !== InteractionType.MODIFY && control.interaction !== InteractionType.TRANSLATE_OBJECT) {
+                interactions.selectInteraction.getFeatures().clear();
+                selectedObjects.forEach((feat) => {
+                    feat.unset(FEATURE_TYPE_SELECTED_PROPERTY);
+                });
+                setSelectedObjects([]);
+                setWorkingLayerDrawerOpened(false);
+                setClickedMapFeature(null);
+            }
+
             setClickedControl(control?.id === clickedControl?.id ? null : control);
-            selectedObjects.forEach((feat) => {
-                feat.unset(FEATURE_TYPE_SELECTED_PROPERTY);
-            });
-            setSelectedObjects([]);
-            setWorkingLayerDrawerOpened(false);
-            setClickedMapFeature(null);
             prevClickedControl = null;
         },
         [
@@ -86,11 +97,31 @@ const CustomControls = () => {
         };
     }, [clickToolButton]);
 
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape" && clickedControl) {
+                if (clickedControl.interaction === InteractionType.SELECT && selectedObjects.length > 1) {
+                    return;
+                }
+                if (clickedControl.target) {
+                    const controlButton = document.querySelector(`button[id^='${clickedControl.target}']`) as HTMLButtonElement;
+                    if (controlButton?.classList.contains("active")) {
+                        controlButton.click();
+                    }
+                }
+                setClickedControl(null);
+            }
+        };
+
+        document.addEventListener("keydown", handleKeyDown);
+        return () => document.removeEventListener("keydown", handleKeyDown);
+    }, [clickedControl, setClickedControl, selectedObjects]);
+
     return (
         <>
             <div className="custom-controls">
                 <div className="control-btns">
-                    {constrolsList.map((control) => {
+                    {controlsList.map((control) => {
                         return <ButtonControl key={`custom-control-${control.id}`} control={control} onClick={onClick} />;
                     })}
                 </div>

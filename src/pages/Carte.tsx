@@ -10,6 +10,7 @@ import AlertComponent from "@/components/AlertComponent";
 import { StatusMessage } from "@/constants/communities/types";
 import { useIsI18nFetching, useTranslation } from "@/i18n";
 import ClickableFeaturesModal from "@/features/working-layer/modal/ClickableFeaturesModal";
+import GetFeatureInfoPopup from "@/features/working-layer/popUp/GetFeatureInfoPopUp";
 
 const Carte: React.FC = () => {
     const params = useParams();
@@ -74,6 +75,7 @@ const Carte: React.FC = () => {
     return (
         <>
             <ClickableFeaturesModal />
+            <GetFeatureInfoPopup />
             <AlertComponent />
             {community && communityLayers && <MainMap />}
         </>

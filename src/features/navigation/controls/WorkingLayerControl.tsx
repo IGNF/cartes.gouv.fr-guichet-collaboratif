@@ -21,7 +21,7 @@ const WorkingLayerControl = () => {
         const layers = mapLayers
             ?.filter((l) => l !== reportLayer)
             .map((layer) => {
-                const communityLayer = communityLayers?.find((lr) => lr.geoservice.layer === layer.name);
+                const communityLayer = communityLayers?.find((lr) => lr?.geoservice?.layer === layer.name);
                 return {
                     value: layer.name,
                     label: `${layer.title} ${communityLayer?.role === CommunityLayerRoleType.VISU ? `[${t("read_only")}]` : ""}`,
@@ -80,7 +80,7 @@ const WorkingLayerControl = () => {
     const handleWorkingLayerChange = useCallback(
         (value: string) => {
             if (!community) return;
-            if (community && localStorageData) {
+            if (localStorageData) {
                 const newLocalData = { ...localStorageData, activeLayer: value };
                 setLocalStorage(community?.name, newLocalData);
             }

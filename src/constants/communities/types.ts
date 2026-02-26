@@ -1,4 +1,5 @@
 import { FrIconClassName, RiIconClassName } from "@codegouvfr/react-dsfr";
+import { Coordinate } from "ol/coordinate";
 import { Extent } from "ol/extent";
 import BaseLayer from "ol/layer/Base";
 import TileLayer from "ol/layer/Tile";
@@ -42,6 +43,12 @@ export type SearchObjectCondition = {
 };
 export type WebGLFilterType = (string | number | (string | number | string[])[] | WebGLFilterType)[];
 
+export type TrafficFlowDirectionField = {
+    attribute: string;
+    sensDirect: string;
+    sensInverse: string;
+};
+
 export type FeatureTypeStyleItem = {
     title: string;
     type?: string;
@@ -65,6 +72,7 @@ export type FeatureTypeStyleItem = {
     labelYOffset?: number;
     labelMinZoom?: number;
     condition?: SearchObjectCondition;
+    directionField?: TrafficFlowDirectionField;
 };
 
 export type FeatureTypeStyleItemData = FeatureTypeStyleItem & {
@@ -73,6 +81,7 @@ export type FeatureTypeStyleItemData = FeatureTypeStyleItem & {
     condition: string;
     uri?: string;
     children?: FeatureTypeStyleItemData[];
+    directionField?: string;
 };
 export type FeatureTypeStyle = {
     name?: string;
@@ -112,7 +121,7 @@ export enum GeoserviceFeatureTypeProp {
 export interface CommunityGeoservice extends LayerGeoservice {
     idName?: string;
     type: string;
-    version: number;
+    version: number | string;
     url: string;
     layer: string;
     format: string;
@@ -125,9 +134,9 @@ export interface CommunityGeoservice extends LayerGeoservice {
     geometryName?: string;
     featureType?: GeoserviceFeatureTypeProp;
     readOnly?: boolean;
+    queryable?: boolean;
     styles?: FeatureTypeStyle[];
     columns: FeatureTypeColumn[];
-    hover?: boolean;
     table?: number;
     database?: number;
 }
@@ -223,26 +232,32 @@ export interface ArrayGeoJSONProps {
 
 export enum CommunityLayerFunctionalityType {
     SEARCH = "search",
-    MEASURE_DISTANCE = "measureDistance",
+    MEASURE_DISTANCE = "measure_distance",
+    MEASURE_DISTANCE_DEPRECIATED = "measureDistance",
     MEASURE_AREA = "measureArea",
+    MEASURE_AZIMUTH = "measureAzimuth",
     GEOREM = "georem",
     MODIFY = "modify",
     TRANSLATE = "translate",
     DRAW = "draw",
     DELETE = "delete",
     SNAP_OBLIG = "snapOblig",
-    SEARCH_LON_LAT = "searchLonlat",
+    SEARCH_LON_LAT = "search_lonlat",
+    SEARCH_LON_LAT_DEPRECIATED = "searchLonlat",
+    LOCATE_CONTROL = "locate_control",
     PRINT = "print",
     DISABLE_GEOREM_LAYER = "disableGeoremLayer",
     DISABLE_ZONES_LAYER = "disableZonesLayer",
     SPLIT = "split",
-    ADRESSE = "adresse",
+    ADRESSE = "search_address",
+    ADRESSE_DEPRECIATED = "adresse",
     ROUTIER = "routier",
     LINEAIRE = "lineaire",
     ITINERAIRE = "itineraire",
     SHORTEST_PATH = "shortestpath",
     COPY_REF = "copyRef",
     TOOLTIP = "tooltip",
+    OVERVIEW = "overview_map_control",
 }
 
 export enum CommunityLayerRoleType {
@@ -299,4 +314,14 @@ export enum OperatorType {
     greater_or_equal = "greater_or_equal",
     between = "between",
     not_between = "not_between",
+}
+
+export const OVERVIEW_MAP_WMTS_LAYER = "GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2";
+export const OVERVIEW_MAP_WMTS_URL = "https://data.geopf.fr/wmts";
+export const OVERVIEW_MAP_WMTS_VERSION = "1.0.0";
+
+export interface FeatureInfo {
+    content: string | null;
+    title: string | null;
+    position: Coordinate | undefined;
 }
