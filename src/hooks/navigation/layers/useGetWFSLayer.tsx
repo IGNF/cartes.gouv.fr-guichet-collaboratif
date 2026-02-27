@@ -14,7 +14,7 @@ import { declareComponentKeys, useTranslation } from "@/i18n";
 import { transformExtent } from "ol/proj";
 import { Extent } from "ol/extent";
 import { arrayToGeoJSON, getGeoJSONProps } from "@/constants/communities/utils";
-import { getTrafficFlowStyles, getWebGLStyle } from "@/constants/styles";
+import { getDirectionStyles, getWebGLStyle } from "@/constants/styles";
 import { FEATURE_TYPE_SELECTED_PROPERTY, LAYER_FEATURE_TYPE, LAYER_SWITCHER_INFO_DIV, TILE_MAX_FEATURES } from "@/constants";
 import VectorLayer from "ol/layer/Vector";
 import { Stroke, Style } from "ol/style";
@@ -215,7 +215,7 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
             }
 
             if (typeLabelStyle?.directionField) {
-                styles.push(...getTrafficFlowStyles(ft, typeLabelStyle.directionField, resolution));
+                styles.push(...getDirectionStyles(ft, typeLabelStyle.directionField, resolution));
             }
 
             return styles.length > 0 ? styles : undefined;

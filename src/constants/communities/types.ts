@@ -43,7 +43,7 @@ export type SearchObjectCondition = {
 };
 export type WebGLFilterType = (string | number | (string | number | string[])[] | WebGLFilterType)[];
 
-export type TrafficFlowDirectionField = {
+export type DirectionField = {
     attribute: string;
     sensDirect: string;
     sensInverse: string;
@@ -72,7 +72,7 @@ export type FeatureTypeStyleItem = {
     labelYOffset?: number;
     labelMinZoom?: number;
     condition?: SearchObjectCondition;
-    directionField?: TrafficFlowDirectionField;
+    directionField?: DirectionField;
 };
 
 export type FeatureTypeStyleItemData = FeatureTypeStyleItem & {

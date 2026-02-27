@@ -25,7 +25,7 @@ import {
     FeatureTypeStyleItem,
     GeoserviceFeatureTypeProp,
     RegularShapeStyleProps,
-    TrafficFlowDirectionField,
+    DirectionField,
     WebGLFilterType,
 } from "./communities/types";
 import { FlatStyle } from "ol/style/flat";
@@ -668,7 +668,7 @@ export const getWebGLStyle = (geoservice: CommunityGeoservice, selectedStyle?: F
     ];
 };
 
-export const getTrafficFlowStyles = (feature: FeatureLike, directionField: TrafficFlowDirectionField, resolution: number = 1): Style[] => {
+export const getDirectionStyles = (feature: FeatureLike, directionField: DirectionField, resolution: number = 1): Style[] => {
     const attrValue = feature.get(directionField.attribute) as string | undefined;
 
     if (!attrValue) return [];
