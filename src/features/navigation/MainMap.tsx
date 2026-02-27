@@ -14,7 +14,7 @@ import useGpConfig from "@/hooks/navigation/useGpConfig";
 import GetAllLayers from "./layers";
 import { MapLayer, MapLayerSource } from "@/constants/communities/types";
 import { getLonLatFromPoint } from "@/constants/utils";
-import SaveViewHandler from "./SaveViewHandler";
+import SaveViewHandler from "./ViewHandler";
 import ReportDrawer from "../reports/ReportDrawer";
 import { Cluster } from "ol/source";
 import VectorLayer from "ol/layer/Vector";
