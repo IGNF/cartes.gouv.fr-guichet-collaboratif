@@ -9,7 +9,7 @@ export default function useGetCapabilitiesWMS(geoservice: CommunityGeoservice) {
 
     const getCapURL = useMemo(() => {
         if (!map) return "";
-        return `${geoservice.url}${geoservice.url.includes("?") ? "" : "?"}SERVICE=WMS` + `&VERSION=${geoservice.version}` + `&REQUEST=GetCapabilities`;
+        return `${geoservice.url}${geoservice.url.includes("?") ? "" : "?"}` + `&VERSION=${geoservice.version}` + `&REQUEST=GetCapabilities`;
     }, [geoservice, map]);
 
     const queryKey = useMemo(() => [`GP_WMS_GET_CAPABILITIES_${geoservice.url}_${geoservice.version}`], [geoservice]);

@@ -77,6 +77,7 @@ export async function getFeatureTypesAll(featureTypesIds: FeatureTypeIds[]): Pro
                     if (logoURI) {
                         logoURI = logoURI + `${logoURI?.includes("?") ? "&" : "?"}width=50&height=50`;
                     }
+                    const directionField = style.directionField ? JSON.parse(style.directionField) : undefined;
                     return {
                         name: style.name,
                         label: style.label,
@@ -102,6 +103,7 @@ export async function getFeatureTypesAll(featureTypesIds: FeatureTypeIds[]): Pro
                                 labelXOffset: style.labelXOffset,
                                 labelYOffset: style.labelYOffset,
                                 labelMinZoom: style.labelMinZoom,
+                                directionField: directionField,
                             },
                             ...(style?.children?.map((type: FeatureTypeStyleItemData) => {
                                 let logoURItype = type?.uri ? type.uri?.replace("https://espacecollaboratif.ign.fr/gcms", `${API_URL}/espaceco`) : "";

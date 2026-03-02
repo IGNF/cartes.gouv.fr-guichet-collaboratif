@@ -25,9 +25,11 @@ import {
     FeatureTypeStyleItem,
     GeoserviceFeatureTypeProp,
     RegularShapeStyleProps,
+    DirectionField,
     WebGLFilterType,
 } from "./communities/types";
 import { FlatStyle } from "ol/style/flat";
+import chevronImg from "@/img/chevron.png";
 import { getRawWellKnownNames } from "./wellKnownNames";
 import { symbolComparator } from "./mongo_parser";
 import { DEFAULT_STYLE_NAME, FEATURE_TYPE_SELECTED_PROPERTY } from ".";
@@ -664,4 +666,73 @@ export const getWebGLStyle = (geoservice: CommunityGeoservice, selectedStyle?: F
         },
         ...filterSelected,
     ];
+};
+
+export const getDirectionStyles = (feature: FeatureLike, directionField: DirectionField, resolution: number = 1): Style[] => {
+    const attrValue = feature.get(directionField.attribute) as string | undefined;
+
+    if (!attrValue) return [];
+
+    const isDirect = attrValue === directionField.sensInverse;
+    if (!isDirect && attrValue !== directionField.sensDirect) return [];
+
+    const geometry = feature.getGeometry();
+    if (!geometry) return [];
+
+    const geomType = geometry.getType();
+    let lines: Coordinate[][] = [];
+
+    if (geomType === "LineString") {
+        lines = [(geometry as LineString).getCoordinates()];
+    } else {
+        return [];
+    }
+
+    const spacing = 80 * resolution;
+    const styles: Style[] = [];
+
+    for (const coords of lines) {
+        if (coords.length < 2) continue;
+
+        let accumulated = 0;
+        let nextChevronAt = spacing / 2;
+
+        for (let i = 0; i < coords.length - 1; i++) {
+            const start = coords[i];
+            const end = coords[i + 1];
+            const dx = end[0] - start[0];
+            const dy = end[1] - start[1];
+            const segLen = Math.sqrt(dx * dx + dy * dy);
+
+            if (segLen === 0) continue;
+
+            const baseRotation = Math.PI / 2 - Math.atan2(dy, dx);
+            const rotation = isDirect ? baseRotation : baseRotation + Math.PI;
+
+            while (accumulated + segLen >= nextChevronAt) {
+                const t = (nextChevronAt - accumulated) / segLen;
+                const cx = start[0] + t * dx;
+                const cy = start[1] + t * dy;
+
+                styles.push(
+                    new Style({
+                        geometry: new Point([cx, cy]),
+                        image: new Icon({
+                            src: chevronImg,
+                            rotation,
+                            rotateWithView: true,
+                            scale: 0.5,
+                        }),
+                        zIndex: 3,
+                    })
+                );
+
+                nextChevronAt += spacing;
+            }
+
+            accumulated += segLen;
+        }
+    }
+
+    return styles;
 };
