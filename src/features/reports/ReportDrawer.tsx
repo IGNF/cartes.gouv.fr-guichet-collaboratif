@@ -159,7 +159,7 @@ const ReportDrawer = () => {
         } else {
             setEditReport(false);
         }
-    }, [drawerOpened, selectedReport, isAdmin, isOwner, editReport]);
+    }, [drawerOpened, selectedReport, isAdmin, isOwner, setEditReport]);
 
     const [searchParams] = useSearchParams();
     const reportIdParam = searchParams.get("report");
@@ -178,11 +178,12 @@ const ReportDrawer = () => {
         if (hasReportParams()) {
             setTableDrawerOpened(true);
         }
-    }, [setTableDrawerOpened]);
+    }, [setTableDrawerOpened, setEditReport]);
 
     useEffect(() => {
         if (!reportIdParam) return;
-
+        setDrawerOpened(false);
+        setEditReport(false);
         const id = Number(reportIdParam);
         const local = reports.find((r) => Number(r.id) === id);
         if (local) {
@@ -194,11 +195,12 @@ const ReportDrawer = () => {
         (async () => {
             const report = await getCommunityReportById(id);
             if (report) {
+                setSelectedReport(report);
                 showOnMap(report);
                 setDrawerOpened(true);
             }
         })();
-    }, [reportIdParam, reports, setSelectedReport, setDrawerOpened, showOnMap]);
+    }, [reportIdParam, reports, setSelectedReport, setEditReport, setDrawerOpened, showOnMap]);
 
     return (
         <>

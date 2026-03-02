@@ -18,8 +18,6 @@ const ButtonControl: React.FC<Props> = ({ control, onClick }) => {
             arrow
             title={showMapWorkingLayerSelect ? control.title : undefined}
             slots={{ transition: Fade }}
-            enterDelay={0}
-            leaveDelay={0}
             slotProps={{ tooltip: { onClick: () => onClick(control) } }}
             disableInteractive={control.disabled}
         >
