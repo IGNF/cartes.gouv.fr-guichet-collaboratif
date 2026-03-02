@@ -17,10 +17,11 @@ import Button from "@codegouvfr/react-dsfr/Button";
 import { useTranslation } from "@/i18n";
 import MapListnerHandlers from "../navigation/controls/custom-controls/interactions/MapListnerHandlers";
 import { getCommunityReportById } from "@/api/reportsData";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 
 const ReportDrawer = () => {
     const { user } = useUserStore();
+    const navigate = useNavigate();
 
     const {
         reports,
@@ -50,6 +51,7 @@ const ReportDrawer = () => {
 
     const { data: userData } = useGetUserProfileAPI();
     const { t } = useTranslation({ ReportDrawer });
+    const [searchParams] = useSearchParams();
 
     const handleCloseDrawer = useCallback(() => {
         if (!selectedReport) {
@@ -76,6 +78,13 @@ const ReportDrawer = () => {
             removeAlertMessage(isNotified.id);
         }
 
+        if (searchParams.has("report")) {
+            const newParams = new URLSearchParams(searchParams);
+            newParams.delete("report");
+            const newSearch = newParams.toString();
+            navigate(newSearch ? `?${newSearch}` : window.location.pathname, { replace: true });
+        }
+
         showCenterReportButtons(false);
         setDrawerOpened(false);
         setEditReport(false);
@@ -85,6 +94,8 @@ const ReportDrawer = () => {
     }, [
         selectedReport,
         alertMessages,
+        searchParams,
+        navigate,
         setDrawerOpened,
         setEditReport,
         editReport,
@@ -161,7 +172,6 @@ const ReportDrawer = () => {
         }
     }, [drawerOpened, selectedReport, isAdmin, isOwner, setEditReport]);
 
-    const [searchParams] = useSearchParams();
     const reportIdParam = searchParams.get("report");
 
     const clusterLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE);
