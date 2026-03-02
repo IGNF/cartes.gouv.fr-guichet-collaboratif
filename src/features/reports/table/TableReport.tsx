@@ -57,8 +57,6 @@ const TableReport = () => {
         currentPage,
         currentFilters,
         setLimitPerPage,
-        selectedLine,
-        setSelectedLine,
         sortBy,
         setSortBy,
         setCurrentPage,
@@ -66,7 +64,10 @@ const TableReport = () => {
         reportTableWidth,
         toggleSortByDateCreation,
         syncUrlFromState,
+        getSelectedLineCount,
     } = useReportStore();
+
+    const selectedLineCount = getSelectedLineCount();
 
     const { replyReportModal, deleteReportModal } = useModalStore();
     const filters = useMemo(
@@ -107,7 +108,7 @@ const TableReport = () => {
 
     useEffect(() => {
         if (isErrorReport) {
-            addAlertMessage(StatusMessage.error, "Erreur lors du chargement des signalements.", 3000);
+            addAlertMessage(StatusMessage.error, t("error"), 3000);
         }
     }, [isErrorReport, addAlertMessage]);
 
@@ -167,20 +168,12 @@ const TableReport = () => {
         return CreateTableData(exportedData.data, isChecked, onCheckChange, onShowReportOnMap, onShowOnMap);
     }, [exportedData, isChecked, onCheckChange, onShowReportOnMap, onShowOnMap]);
 
-    const checkedLines = useMemo(() => {
-        if (!Array.isArray(selectedLines) || !isChecked) return [];
-        return selectedLines.filter((res) => !!isChecked[String(res.id)]).map((res) => res.exportData);
-    }, [selectedLines, isChecked]);
-
-    const allLinesAreAllowed = checkedLines.some((line) => STATUS_NOT_ALLOWED.includes(line.statusCode));
+    const allLinesAreAllowed = tableData.some((row) => !!isChecked[String(row.id)] && STATUS_NOT_ALLOWED.includes(row.exportData.statusCode));
 
     const downloadedTable = useMemo(() => {
-        if (checkedLines.length > 0) return checkedLines.map((exp) => exp);
-        if (Array.isArray(selectedLines)) {
-            return selectedLines.map((expData) => expData.exportData);
-        }
-        return [];
-    }, [checkedLines, selectedLines]);
+        if (!Array.isArray(selectedLines)) return [];
+        return selectedLines.map((expData) => expData.exportData);
+    }, [selectedLines]);
 
     const tableHeaderToLabel: Record<FilterHeaderKey, string> = {
         x: "X",
@@ -230,12 +223,12 @@ const TableReport = () => {
                     </div>
                     <div className="report-infos-line">
                         <div className="report-nbrSelectedLines">
-                            {selectedLine > 0 ? (
+                            {selectedLineCount > 0 ? (
                                 <>
-                                    Nombre de lignes sélectionnées: <span>{selectedLine}</span>
+                                    {t("selected_lines")} <span>{selectedLineCount}</span>
                                 </>
                             ) : (
-                                "Pas de lignes sélectionnées"
+                                t("no_lines")
                             )}
                         </div>
                         <div className="report-btns">
@@ -281,12 +274,6 @@ const TableReport = () => {
                                                 tableData.forEach((row) => {
                                                     updated[row.id] = allChecked;
                                                 });
-
-                                                if (allChecked) {
-                                                    setSelectedLine(limitPerPage);
-                                                } else {
-                                                    setSelectedLine(0);
-                                                }
                                                 setIsChecked(updated);
                                             },
                                         },
