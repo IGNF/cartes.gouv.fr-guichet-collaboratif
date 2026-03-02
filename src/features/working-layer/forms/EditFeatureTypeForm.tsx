@@ -79,10 +79,16 @@ const EditFeatureTypeForm = ({ onClose }: { onClose?: () => void }) => {
     }, [selectedObjects, setClickedMapFeature, setWorkingLayerDrawerOpened, setFeatureTypeMode, setSelectedObjects, setColumnsToModify]);
 
     const handleSuccess = useCallback(() => {
+        selectedObjects.forEach((feat) => {
+            feat.unset(FEATURE_TYPE_SELECTED_PROPERTY);
+            feat.changed();
+        });
+        setSelectedObjects([]);
+        setColumnsToModify([]);
         setClickedMapFeature(null);
         setWorkingLayerDrawerOpened(false);
         setFeatureTypeMode(FeatureTypeMode.VIEW);
-    }, [setClickedMapFeature, setWorkingLayerDrawerOpened, setFeatureTypeMode]);
+    }, [selectedObjects, setSelectedObjects, setColumnsToModify, setClickedMapFeature, setWorkingLayerDrawerOpened, setFeatureTypeMode]);
 
     const { handleSave, handleDelete } = useFeatureTypeActions({
         clickedMapFeature,

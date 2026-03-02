@@ -45,9 +45,25 @@ const WorkingLayerDrawer = () => {
 
     const onConfirmDeselection = useCallback(() => {
         confirmMultipleDeselectionModal.close();
-        pendingClose.current?.();
+        selectedObjects.forEach((feat) => {
+            feat.unset(FEATURE_TYPE_SELECTED_PROPERTY);
+            feat.changed();
+        });
+        setSelectedObjects([]);
+        setColumnsToModify([]);
+        setClickedMapFeature(null);
+        setWorkingLayerDrawerOpened(false);
+        setFeatureTypeMode(FeatureTypeMode.VIEW);
         pendingClose.current = null;
-    }, [confirmMultipleDeselectionModal]);
+    }, [
+        confirmMultipleDeselectionModal,
+        selectedObjects,
+        setSelectedObjects,
+        setColumnsToModify,
+        setClickedMapFeature,
+        setWorkingLayerDrawerOpened,
+        setFeatureTypeMode,
+    ]);
 
     const drawerWidth = window.innerWidth * (1.2 / 3);
 

@@ -136,10 +136,18 @@ const ContributionsCount: React.FC<Props> = ({ t }) => {
                 featGeometry = featGeometry.replace(" Z", ""); // " Z" car wkt l'ajoute pour les coordonnées 3D
             }
 
+            const validColumnNames = new Set(geoservice.columns.map((c) => c.name));
+            const filteredFeatData: Record<string, unknown> = {};
+            Object.entries(featData).forEach(([key, value]) => {
+                if (validColumnNames.has(key)) {
+                    filteredFeatData[key] = value;
+                }
+            });
+
             const action = {
                 table: geoservice.table,
                 state: contr.type,
-                data: { ...featData, [`${geoservice.geometryName}`]: featGeometry },
+                data: { ...filteredFeatData, [`${geoservice.geometryName}`]: featGeometry },
             };
 
             geomContr.push({
