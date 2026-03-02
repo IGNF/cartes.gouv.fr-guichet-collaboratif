@@ -20,12 +20,6 @@ const WorkingLayerDrawer = () => {
         }
     }, [clickedMapFeature, workingLayerDrawerOpened, setWorkingLayerDrawerOpened]);
 
-    useEffect(() => {
-        if (!clickedMapFeature && workingLayerDrawerOpened) {
-            handleCloseDrawer();
-        }
-    }, [clickedMapFeature]);
-
     const handleCloseDrawer = useCallback(() => {
         if (selectedObjects.length > 1) {
             pendingClose.current = handleCloseDrawer;
@@ -41,7 +35,21 @@ const WorkingLayerDrawer = () => {
         setClickedMapFeature(null);
         setWorkingLayerDrawerOpened(false);
         setFeatureTypeMode(FeatureTypeMode.VIEW);
-    }, [selectedObjects, setClickedMapFeature, setFeatureTypeMode, setSelectedObjects, setWorkingLayerDrawerOpened, setColumnsToModify]);
+    }, [
+        selectedObjects,
+        setClickedMapFeature,
+        setFeatureTypeMode,
+        setSelectedObjects,
+        setWorkingLayerDrawerOpened,
+        setColumnsToModify,
+        confirmMultipleDeselectionModal,
+    ]);
+
+    useEffect(() => {
+        if (!clickedMapFeature && workingLayerDrawerOpened) {
+            handleCloseDrawer();
+        }
+    }, [clickedMapFeature, handleCloseDrawer, workingLayerDrawerOpened]);
 
     const onConfirmDeselection = useCallback(() => {
         confirmMultipleDeselectionModal.close();

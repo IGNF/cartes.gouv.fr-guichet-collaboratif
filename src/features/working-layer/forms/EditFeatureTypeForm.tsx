@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useCallback, memo, useState } from "react";
+import { useEffect, useMemo, useCallback, memo } from "react";
 
 import { EventTypes } from "ol/Observable";
 import { useContributionStore, useMapStore } from "@/store";
@@ -7,7 +7,7 @@ import VectorLayer from "ol/layer/Vector";
 import WebGLVectorLayer from "ol/layer/WebGLVector";
 
 import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_GEOSERVICE_PROPERTY, FEATURE_TYPE_NEW_PROPERTY, FEATURE_TYPE_SELECTED_PROPERTY } from "@/constants";
-import { FeatureTypeFormActionMode, FeatureTypeMode } from "@/constants/contributions/types";
+import { FeatureTypeMode } from "@/constants/contributions/types";
 
 import { CommunityGeoservice, FeatureTypeColumn } from "@/constants/communities/types";
 import { useFeatureTypeValidation } from "@/hooks/working-layer/useFeatureTypeValidation";
@@ -18,7 +18,6 @@ import { FeatureTypeFormFields } from "./FeatureTypeFormFields";
 import { FeatureTypeFormActions } from "./FeatureTypeFormActions";
 import { FeatureTypeFormAutomatic } from "./FeatureTypeFormAutomatic";
 import { useTranslation } from "@/i18n";
-import ConfirmMultipleObjectsActionModal from "./ConfirmMultipleObjectsActionModal";
 
 interface PointDataProps {
     [key: string]: string | number | null;
@@ -27,8 +26,6 @@ interface PointDataProps {
 const EditFeatureTypeForm = ({ onClose }: { onClose?: () => void }) => {
     const { map, mapSwitcher, clickedMapFeature, mapWorkingLayer, setClickedMapFeature, setWorkingLayerDrawerOpened } = useMapStore();
     const { selectedObjects, setSelectedObjects, setFeatureTypeMode, setColumnsToModify } = useContributionStore();
-
-    const [action] = useState<FeatureTypeFormActionMode>(FeatureTypeFormActionMode.CANCEL);
 
     const { t } = useTranslation({ EditFeatureTypeForm });
 
@@ -113,20 +110,6 @@ const EditFeatureTypeForm = ({ onClose }: { onClose?: () => void }) => {
         }
     }, [clickableLayer, handleCancel]);
 
-    const onConfirmModal = useCallback(() => {
-        switch (action) {
-            case FeatureTypeFormActionMode.CANCEL:
-                handleCancel();
-                return;
-            case FeatureTypeFormActionMode.MODIFY:
-                handleSave();
-                return;
-            case FeatureTypeFormActionMode.DELETE:
-                handleDelete();
-                return;
-        }
-    }, [action, handleCancel, handleDelete, handleSave]);
-
     useEffect(() => {
         mapSwitcher?.on("layerswitcher:change:visibility" as EventTypes, handleLayerVisibility);
         return () => {
@@ -171,7 +154,6 @@ const EditFeatureTypeForm = ({ onClose }: { onClose?: () => void }) => {
             <div className="feature-type-form-actions-fixed">
                 <FeatureTypeFormActions onSave={() => handleSave()} onDelete={() => handleDelete()} onCancel={onClose ?? handleCancel} />
             </div>
-            <ConfirmMultipleObjectsActionModal action={action} onConfirm={onConfirmModal} />
         </div>
     );
 };
