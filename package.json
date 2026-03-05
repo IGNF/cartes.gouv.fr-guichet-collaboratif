@@ -5,7 +5,7 @@
     "type": "module",
     "scripts": {
         "predev": "react-dsfr update-icons",
-        "dev": "vite --port 5174",
+        "dev": "vite",
         "prebuild": "react-dsfr update-icons",
         "build": "tsc -b && vite build",
         "preview": "vite preview",
