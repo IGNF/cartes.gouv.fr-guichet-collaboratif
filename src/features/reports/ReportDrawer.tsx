@@ -78,13 +78,6 @@ const ReportDrawer = () => {
             removeAlertMessage(isNotified.id);
         }
 
-        if (searchParams.has("report")) {
-            const newParams = new URLSearchParams(searchParams);
-            newParams.delete("report");
-            const newSearch = newParams.toString();
-            navigate(newSearch ? `?${newSearch}` : window.location.pathname, { replace: true });
-        }
-
         showCenterReportButtons(false);
         setDrawerOpened(false);
         setEditReport(false);
@@ -94,8 +87,6 @@ const ReportDrawer = () => {
     }, [
         selectedReport,
         alertMessages,
-        searchParams,
-        navigate,
         setDrawerOpened,
         setEditReport,
         editReport,
@@ -199,6 +190,10 @@ const ReportDrawer = () => {
         if (local) {
             setSelectedReport(local);
             setDrawerOpened(true);
+            const newParams = new URLSearchParams(searchParams);
+            newParams.delete("report");
+            const newSearch = newParams.toString();
+            navigate(newSearch ? `?${newSearch}` : window.location.pathname, { replace: true });
             return;
         }
 
@@ -208,9 +203,13 @@ const ReportDrawer = () => {
                 setSelectedReport(report);
                 showOnMap(report);
                 setDrawerOpened(true);
+                const newParams = new URLSearchParams(searchParams);
+                newParams.delete("report");
+                const newSearch = newParams.toString();
+                navigate(newSearch ? `?${newSearch}` : window.location.pathname, { replace: true });
             }
         })();
-    }, [reportIdParam, reports, setSelectedReport, setEditReport, setDrawerOpened, showOnMap]);
+    }, [reportIdParam, reports, setSelectedReport, setEditReport, setDrawerOpened, showOnMap, searchParams, navigate]);
 
     return (
         <>
