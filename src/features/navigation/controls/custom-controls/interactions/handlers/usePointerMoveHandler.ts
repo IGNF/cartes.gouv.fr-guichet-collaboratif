@@ -109,8 +109,23 @@ export const usePointerMoveHandler = (props: UsePointerMoveHandlerProps) => {
                                 if (reportData.id != null) {
                                     const fieldDiv = document.createElement("div");
                                     fieldDiv.className = "map-hover-tooltip-field";
-                                    fieldDiv.textContent = `#${reportData.id} - ${reportData.comment}`;
+
+                                    const parts: string[] = [`#${reportData.id}`];
+
+                                    const theme = reportData?.themes?.[0]?.theme;
+                                    if (theme) parts.push(`Theme: ${theme}`);
+
+                                    fieldDiv.innerHTML = parts.join("<br/>");
                                     tooltipRef.current.appendChild(fieldDiv);
+
+                                    const comment = reportData?.comment;
+
+                                    if (comment) {
+                                        const commentDiv = document.createElement("div");
+                                        commentDiv.className = "map-hover-tooltip-comment";
+                                        commentDiv.textContent = comment;
+                                        tooltipRef.current.appendChild(commentDiv);
+                                    }
                                 }
                             }
                         }
