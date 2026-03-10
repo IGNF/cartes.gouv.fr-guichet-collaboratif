@@ -2,9 +2,12 @@ import { Translations } from "@/i18n/types";
 import { declareComponentKeys } from "i18nifty";
 
 export const GetReportsLayerFrTranslations: Translations<"fr">["GetReportsLayer"] = {
+    error: "Erreur lors du chargement des signalements",
     reports_title: "Signalements",
     reports_legend: "Légende signalements",
     report_reply: "Répondre",
+    selected_lines: "Nombre de lignes sélectionnée(s) :",
+    no_lines: "Pas de lignes sélectionnées",
     "tableHeaders.id": "Identifiant",
     "tableHeaders.status": "Statut",
     "tableHeaders.comment": "Commentaire",
@@ -20,9 +23,12 @@ export const GetReportsLayerFrTranslations: Translations<"fr">["GetReportsLayer"
 };
 
 export const GetReportsLayerEnTranslations: Translations<"en">["GetReportsLayer"] = {
+    error: "Error while loading reports",
     reports_title: "Reports",
     reports_legend: "Reports legend",
     report_reply: "Reply",
+    selected_lines: "Number of lines selected:",
+    no_lines: "No lines selected",
     "tableHeaders.id": "ID",
     "tableHeaders.status": "Status",
     "tableHeaders.comment": "Comment",
@@ -38,9 +44,12 @@ export const GetReportsLayerEnTranslations: Translations<"en">["GetReportsLayer"
 };
 
 const { i18n } = declareComponentKeys<
+    | "error"
     | "reports_title"
     | "reports_legend"
     | "report_reply"
+    | "selected_lines"
+    | "no_lines"
     | "tableHeaders.id"
     | "tableHeaders.status"
     | "tableHeaders.comment"

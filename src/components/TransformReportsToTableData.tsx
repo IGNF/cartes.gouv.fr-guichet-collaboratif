@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import VectorSource from "ol/source/Vector";
 import { handleShowOnMap } from "@/constants/utils";
 import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
@@ -15,15 +14,10 @@ const TransformReportsToTableData = (reports: CommunityReport[]) => {
     const { t } = useTranslation({ GetReportsLayer });
     const { localStorageData } = useLocalStorageStore();
     const { map } = useMapStore();
-    const { isChecked, setIsChecked, reportTableWidth, setSelectedLine, setSelectedReport } = useReportStore();
+    const { isChecked, setIsChecked, reportTableWidth, setSelectedReport } = useReportStore();
 
     const clusterLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE);
     const clusterSource = clusterLayer?.getSource() as VectorSource;
-
-    useEffect(() => {
-        const renderSelectedLine = Object.values(isChecked).filter((val) => val === true).length;
-        setSelectedLine(renderSelectedLine);
-    }, [isChecked, setSelectedLine]);
 
     const showOnMap = (report: CommunityReport) => {
         setSelectedReport(report);

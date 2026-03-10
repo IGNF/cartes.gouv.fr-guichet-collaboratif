@@ -17,15 +17,15 @@ import Button from "@codegouvfr/react-dsfr/Button";
 import { useTranslation } from "@/i18n";
 import MapListnerHandlers from "../navigation/controls/custom-controls/interactions/MapListenerHandlers";
 import { getCommunityReportById } from "@/api/reportsData";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 
 const ReportDrawer = () => {
     const { user } = useUserStore();
+    const navigate = useNavigate();
 
     const {
         reports,
         selectedReport,
-        editReport,
         setEditReport,
         setSelectedReport,
         setSelectedFeatures,
@@ -50,6 +50,7 @@ const ReportDrawer = () => {
 
     const { data: userData } = useGetUserProfileAPI();
     const { t } = useTranslation({ ReportDrawer });
+    const [searchParams] = useSearchParams();
 
     const handleCloseDrawer = useCallback(() => {
         if (!selectedReport) {
@@ -147,9 +148,8 @@ const ReportDrawer = () => {
         } else {
             setEditReport(false);
         }
-    }, [drawerOpened, selectedReport, isAdmin, isOwner, editReport, setEditReport]);
+    }, [drawerOpened, selectedReport, isAdmin, isOwner, setEditReport]);
 
-    const [searchParams] = useSearchParams();
     const reportIdParam = searchParams.get("report");
 
     const clusterLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE);
@@ -166,27 +166,37 @@ const ReportDrawer = () => {
         if (hasReportParams()) {
             setTableDrawerOpened(true);
         }
-    }, [setTableDrawerOpened]);
+    }, [setTableDrawerOpened, setEditReport]);
 
     useEffect(() => {
         if (!reportIdParam) return;
-
+        setDrawerOpened(false);
+        setEditReport(false);
         const id = Number(reportIdParam);
         const local = reports.find((r) => Number(r.id) === id);
         if (local) {
             setSelectedReport(local);
             setDrawerOpened(true);
+            const newParams = new URLSearchParams(searchParams);
+            newParams.delete("report");
+            const newSearch = newParams.toString();
+            navigate(newSearch ? `?${newSearch}` : window.location.pathname, { replace: true });
             return;
         }
 
         (async () => {
             const report = await getCommunityReportById(id);
             if (report) {
+                setSelectedReport(report);
                 showOnMap(report);
                 setDrawerOpened(true);
+                const newParams = new URLSearchParams(searchParams);
+                newParams.delete("report");
+                const newSearch = newParams.toString();
+                navigate(newSearch ? `?${newSearch}` : window.location.pathname, { replace: true });
             }
         })();
-    }, [reportIdParam, reports, setSelectedReport, setDrawerOpened, showOnMap]);
+    }, [reportIdParam, reports, setSelectedReport, setEditReport, setDrawerOpened, showOnMap, searchParams, navigate]);
 
     return (
         <>
