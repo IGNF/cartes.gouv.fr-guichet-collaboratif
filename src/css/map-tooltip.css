@@ -1,0 +1,46 @@
+.map-hover-tooltip {
+    position: absolute;
+    background-color: var(--background-default-grey);
+    padding: 0.6rem 1rem;
+    border-radius: 0.4rem;
+    font-size: 0.8rem;
+    font-family: sans-serif;
+    pointer-events: none;
+    z-index: 1000;
+    max-width: 20rem;
+    min-width: 10rem;
+    width: max-content;
+    box-shadow: 0 -0.1rem 0.5rem var(--overlays-shadow);
+}
+
+.map-hover-tooltip-title {
+    font-weight: 800;
+    margin-bottom: 0.3rem;
+    color: var(--text-blue-france);
+}
+
+.map-hover-tooltip-id {
+    font-size: 1rem;
+    opacity: 0.75;
+    color: var(--text-blue-france);
+}
+
+.map-hover-tooltip-field {
+    margin-bottom: 0.3rem;
+    color: var(--text-default);
+    text-overflow: ellipsis;
+    overflow: hidden;
+    flex-direction: column;
+    white-space: normal;
+}
+
+.map-hover-tooltip-comment {
+    color: var(--text-default);
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    white-space: normal;
+    word-break: break-word;
+}

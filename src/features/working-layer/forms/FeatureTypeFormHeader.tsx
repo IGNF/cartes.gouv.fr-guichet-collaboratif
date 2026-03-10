@@ -36,10 +36,13 @@ export const FeatureTypeFormHeader: React.FC<FeatureTypeFormHeaderProps> = ({ ti
 
     const isEditMode = mode === FeatureTypeMode.EDIT;
 
+    const isMultipleObjects = selectedObjects.length > 1;
+    const featureIdDisplay = isMultipleObjects ? t("objects_count", { count: selectedObjects.length }) : featureId;
+
     return (
         <div className="feature-type-form-header">
             <h1 className="feature-type-form-title">
-                {title} : {featureId}
+                {title} : {featureIdDisplay}
             </h1>
             {!isVisuOnly && (
                 <Button
@@ -49,7 +52,7 @@ export const FeatureTypeFormHeader: React.FC<FeatureTypeFormHeaderProps> = ({ ti
                     onClick={() => onModeChange(isEditMode ? FeatureTypeMode.VIEW : FeatureTypeMode.EDIT)}
                 >
                     {isEditMode ? t("back") : t("edit")}{" "}
-                    {featureTypeMode === FeatureTypeMode.VIEW && selectedObjects.length > 1 ? t("objects_count", { count: selectedObjects.length }) : ""}
+                    {featureTypeMode === FeatureTypeMode.VIEW && isMultipleObjects ? t("objects_count", { count: selectedObjects.length }) : ""}
                 </Button>
             )}
             <Button iconId="ri-close-line" className="drawer-close-button" priority="tertiary no outline" onClick={onClose} title={t("close")} />

@@ -18,7 +18,7 @@ import SearchObjectsModal from "@/features/working-layer/modal/searchObjects/Sea
 let prevClickedControl: CustomControlItem | null = null;
 
 const CustomControls = () => {
-    const { clickedControl, setClickedControl, setWorkingLayerDrawerOpened, setClickedMapFeature } = useMapStore();
+    const { clickedControl, setClickedControl, setWorkingLayerDrawerOpened, setClickedMapFeature, workingLayerDrawerOpened } = useMapStore();
     const { selectedObjects, setSelectedObjects } = useContributionStore();
     const { confirmMultipleDeselectionModal } = useModalStore();
 
@@ -31,13 +31,16 @@ const CustomControls = () => {
 
     useEffect(() => {
         const selectControl = controlsList.find((c) => c.interaction === InteractionType.SELECT);
-        if (!clickedControl && selectControl && !selectControl.disabled) {
-            setClickedControl(selectControl);
-        }
         if (clickedControl?.interaction === InteractionType.SELECT && selectControl?.disabled) {
             setClickedControl(null);
         }
     }, [controlsList, clickedControl, setClickedControl]);
+
+    useEffect(() => {
+        if (selectedObjects.length === 0) {
+            interactions.selectInteraction.getFeatures().clear();
+        }
+    }, [selectedObjects, interactions.selectInteraction]);
 
     const clickToolButton = useCallback(() => {
         if (!clickedControl || clickedControl?.interaction || clickedControl?.disabled) return;
@@ -102,7 +105,13 @@ const CustomControls = () => {
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === "Escape" && clickedControl) {
+            if (e.key !== "Escape") return;
+
+            if (workingLayerDrawerOpened) {
+                setClickedMapFeature(null);
+                return;
+            }
+            if (clickedControl) {
                 if (clickedControl.interaction === InteractionType.SELECT && selectedObjects.length > 1) {
                     return;
                 }
@@ -118,7 +127,7 @@ const CustomControls = () => {
 
         document.addEventListener("keydown", handleKeyDown);
         return () => document.removeEventListener("keydown", handleKeyDown);
-    }, [clickedControl, setClickedControl, selectedObjects]);
+    }, [clickedControl, setClickedControl, selectedObjects, workingLayerDrawerOpened, setClickedMapFeature]);
 
     return (
         <>

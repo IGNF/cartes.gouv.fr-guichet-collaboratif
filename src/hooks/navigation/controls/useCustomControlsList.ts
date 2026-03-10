@@ -1,5 +1,4 @@
 import {
-    CommunityGeoservice,
     CommunityLayerFunctionalityType,
     CommunityLayerRoleType,
     CustomControlItem,
@@ -19,13 +18,6 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
 
     const communityEditableLayers = useMemo(() => communityLayers?.filter((l) => l.role !== CommunityLayerRoleType.VISU), [communityLayers]);
     const currentCommunityLayer = useMemo(() => communityLayers?.find((l) => l?.geoservice?.layer === mapWorkingLayer), [communityLayers, mapWorkingLayer]);
-
-    const geoservice: CommunityGeoservice | undefined = useMemo(
-        () => communityLayers?.find((layer) => layer?.geoservice?.layer === mapWorkingLayer)?.geoservice,
-        [communityLayers, mapWorkingLayer]
-    );
-
-    const queryableColumns = useMemo(() => geoservice?.columns.filter((col) => col.queryable), [geoservice]);
 
     const { isRasterLayer, isRasterLayerQueryable } = useRasterWorkingLayer();
 
@@ -148,7 +140,6 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
     }, [
         community,
         currentCommunityLayer?.geoservice.featureType,
-        queryableColumns,
         currentCommunityLayer?.role,
         mapWorkingLayer,
         communityEditableLayers,

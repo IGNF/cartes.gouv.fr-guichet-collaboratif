@@ -93,7 +93,6 @@ export const FeatureTypeFormFields: React.FC<FeatureTypeFormFieldsProps> = ({ co
                                             required: col.required,
                                         }}
                                     >
-                                        <option value="">{t("select_placeholder")}</option>
                                         {col.enum.map((opt, idx) => (
                                             <option key={idx} value={opt ?? ""}>
                                                 {opt ?? t("select_placeholder")}

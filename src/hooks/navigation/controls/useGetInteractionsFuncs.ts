@@ -125,7 +125,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                 }
             }
         },
-        [mapWorkingLayer, saveContribution, setIsModifying, selectInteraction, clickedControl, map]
+        [mapWorkingLayer, saveContribution, setIsModifying, selectInteraction, clickedControl, map, modifyInteraction]
     );
 
     const modifyInteractionFuncStart = useCallback(
@@ -365,7 +365,20 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                 addInteractionToMap(interaction, map!);
             }
         },
-        [map, clickedControl, selectedObjects, selectInteraction, modifyInteraction, searchModal, getInteractionByType, copyInteractionFunc, setSelectedObjects]
+        [
+            map,
+            mapWorkingLayer,
+            clickedControl,
+            selectedObjects,
+            selectInteraction,
+            modifyFeatures,
+            modifyInteraction,
+            translateFeatures,
+            searchModal,
+            getInteractionByType,
+            copyInteractionFunc,
+            setSelectedObjects,
+        ]
     );
 
     useEffect(() => {
