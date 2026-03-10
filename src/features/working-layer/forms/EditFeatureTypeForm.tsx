@@ -1,13 +1,13 @@
-import { useEffect, useMemo, useCallback, memo, useState } from "react";
+import { useEffect, useMemo, useCallback, memo } from "react";
 
 import { EventTypes } from "ol/Observable";
-import { useContributionStore, useMapStore, useModalStore } from "@/store";
+import { useContributionStore, useMapStore } from "@/store";
 import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
 import WebGLVectorLayer from "ol/layer/WebGLVector";
 
 import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_GEOSERVICE_PROPERTY, FEATURE_TYPE_NEW_PROPERTY, FEATURE_TYPE_SELECTED_PROPERTY } from "@/constants";
-import { FeatureTypeFormActionMode, FeatureTypeMode } from "@/constants/contributions/types";
+import { FeatureTypeMode } from "@/constants/contributions/types";
 
 import { CommunityGeoservice, FeatureTypeColumn } from "@/constants/communities/types";
 import { useFeatureTypeValidation } from "@/hooks/working-layer/useFeatureTypeValidation";
@@ -18,17 +18,14 @@ import { FeatureTypeFormFields } from "./FeatureTypeFormFields";
 import { FeatureTypeFormActions } from "./FeatureTypeFormActions";
 import { FeatureTypeFormAutomatic } from "./FeatureTypeFormAutomatic";
 import { useTranslation } from "@/i18n";
-import ConfirmMultipleObjectsActionModal from "./ConfirmMultipleObjectsActionModal";
 
 interface PointDataProps {
     [key: string]: string | number | null;
 }
 
-const EditFeatureTypeForm = () => {
+const EditFeatureTypeForm = ({ onClose }: { onClose?: () => void }) => {
     const { map, mapSwitcher, clickedMapFeature, mapWorkingLayer, setClickedMapFeature, setWorkingLayerDrawerOpened } = useMapStore();
-    const { selectedObjects, setSelectedObjects, setFeatureTypeMode } = useContributionStore();
-    const { confirmMultipleObjectsActionModal } = useModalStore();
-    const [action, setAction] = useState<FeatureTypeFormActionMode>(FeatureTypeFormActionMode.CANCEL);
+    const { selectedObjects, setSelectedObjects, setFeatureTypeMode, setColumnsToModify } = useContributionStore();
 
     const { t } = useTranslation({ EditFeatureTypeForm });
 
@@ -72,16 +69,23 @@ const EditFeatureTypeForm = () => {
             feat.changed();
         });
         setSelectedObjects([]);
+        setColumnsToModify([]);
         setClickedMapFeature(null);
         setWorkingLayerDrawerOpened(false);
         setFeatureTypeMode(FeatureTypeMode.VIEW);
-    }, [selectedObjects, setClickedMapFeature, setWorkingLayerDrawerOpened, setFeatureTypeMode, setSelectedObjects]);
+    }, [selectedObjects, setClickedMapFeature, setWorkingLayerDrawerOpened, setFeatureTypeMode, setSelectedObjects, setColumnsToModify]);
 
     const handleSuccess = useCallback(() => {
+        selectedObjects.forEach((feat) => {
+            feat.unset(FEATURE_TYPE_SELECTED_PROPERTY);
+            feat.changed();
+        });
+        setSelectedObjects([]);
+        setColumnsToModify([]);
         setClickedMapFeature(null);
         setWorkingLayerDrawerOpened(false);
         setFeatureTypeMode(FeatureTypeMode.VIEW);
-    }, [setClickedMapFeature, setWorkingLayerDrawerOpened, setFeatureTypeMode]);
+    }, [selectedObjects, setSelectedObjects, setColumnsToModify, setClickedMapFeature, setWorkingLayerDrawerOpened, setFeatureTypeMode]);
 
     const { handleSave, handleDelete } = useFeatureTypeActions({
         clickedMapFeature,
@@ -100,42 +104,11 @@ const EditFeatureTypeForm = () => {
         [setFeatureTypeMode]
     );
 
-    const handleClose = useCallback(() => {
-        setClickedMapFeature(null);
-        setWorkingLayerDrawerOpened(false);
-    }, [setClickedMapFeature, setWorkingLayerDrawerOpened]);
-
     const handleLayerVisibility = useCallback(() => {
         if (clickableLayer && !clickableLayer.getVisible()) {
             handleCancel();
         }
     }, [clickableLayer, handleCancel]);
-
-    const onConfirmModal = useCallback(() => {
-        switch (action) {
-            case FeatureTypeFormActionMode.CANCEL:
-                handleCancel();
-                return;
-            case FeatureTypeFormActionMode.MODIFY:
-                handleSave();
-                return;
-            case FeatureTypeFormActionMode.DELETE:
-                handleDelete();
-                return;
-        }
-    }, [action, handleCancel, handleDelete, handleSave]);
-
-    const handleClick = useCallback(
-        (action: FeatureTypeFormActionMode) => {
-            if (selectedObjects.length <= 1) {
-                onConfirmModal();
-                return;
-            }
-            setAction(action);
-            confirmMultipleObjectsActionModal.open();
-        },
-        [selectedObjects, confirmMultipleObjectsActionModal, onConfirmModal, setAction]
-    );
 
     useEffect(() => {
         mapSwitcher?.on("layerswitcher:change:visibility" as EventTypes, handleLayerVisibility);
@@ -165,7 +138,7 @@ const EditFeatureTypeForm = () => {
                 featureId={pointData?.[geoserviceData?.idName || "id"] || ""}
                 mode={FeatureTypeMode.EDIT}
                 onModeChange={handleModeChange}
-                onClose={handleClose}
+                onClose={onClose ?? handleCancel}
             />
             <div className="feature-type-form-scrollable">
                 <FeatureTypeFormAutomatic columns={columns} formData={formData} onAutomaticFieldsCalculated={handleAutomaticFieldsCalculated} />
@@ -179,13 +152,8 @@ const EditFeatureTypeForm = () => {
             </div>
 
             <div className="feature-type-form-actions-fixed">
-                <FeatureTypeFormActions
-                    onSave={() => handleClick(FeatureTypeFormActionMode.MODIFY)}
-                    onDelete={() => handleClick(FeatureTypeFormActionMode.DELETE)}
-                    onCancel={() => handleClick(FeatureTypeFormActionMode.CANCEL)}
-                />
+                <FeatureTypeFormActions onSave={() => handleSave()} onDelete={() => handleDelete()} onCancel={onClose ?? handleCancel} />
             </div>
-            <ConfirmMultipleObjectsActionModal action={action} onConfirm={onConfirmModal} />
         </div>
     );
 };

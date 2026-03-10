@@ -19,7 +19,6 @@ export const SearchTableEnTranslations: Translations<"en">["SearchTable"] = {
     actions: "Actions",
     go_to_page: ({ pageNumber }: { pageNumber: number }) => `Go to page number: ${pageNumber}`,
     total_objects: ({ total }: { total: number }) => `${total} object${total > 1 ? "s" : ""} found`,
-
 };
 
 const { i18n } = declareComponentKeys<

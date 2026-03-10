@@ -30,6 +30,7 @@ interface UseSingleClickHandlerProps {
     setSelectedFeatures: (features: Feature[]) => void;
     handleCloseDrawer: () => void;
     handleClusterClick: (clusterFeature: Feature) => boolean;
+    clearHoverState: () => void;
 }
 
 export const useSingleClickHandler = (props: UseSingleClickHandlerProps) => {
@@ -51,12 +52,15 @@ export const useSingleClickHandler = (props: UseSingleClickHandlerProps) => {
         setSelectedFeatures,
         handleCloseDrawer,
         handleClusterClick,
+        clearHoverState,
     } = props;
 
     return useCallback(
         async (evt: MapBrowserEvent) => {
             if (!map || isNotClickable) return;
             if (selectedFeatures?.find((f) => f?.get("new"))) return;
+
+            clearHoverState();
 
             if (isRasterLayer && clickedControl?.interaction === InteractionType.SELECT && currentGeoservice) {
                 if (currentGeoservice.queryable === false) {
@@ -228,6 +232,7 @@ export const useSingleClickHandler = (props: UseSingleClickHandlerProps) => {
             setSelectedFeatures,
             handleCloseDrawer,
             handleClusterClick,
+            clearHoverState,
         ]
     );
 };

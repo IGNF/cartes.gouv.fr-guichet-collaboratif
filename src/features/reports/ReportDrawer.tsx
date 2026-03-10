@@ -15,7 +15,7 @@ import OpenReplyReportModal from "./forms/OpenReplyReportModal";
 import EditReport from "./EditReport";
 import Button from "@codegouvfr/react-dsfr/Button";
 import { useTranslation } from "@/i18n";
-import MapListnerHandlers from "../navigation/controls/custom-controls/interactions/MapListnerHandlers";
+import MapListnerHandlers from "../navigation/controls/custom-controls/interactions/MapListenerHandlers";
 import { getCommunityReportById } from "@/api/reportsData";
 import { useSearchParams } from "react-router-dom";
 
@@ -82,19 +82,7 @@ const ReportDrawer = () => {
         setTableDrawerOpened(false);
         setSelectedReport(null);
         setSelectedFeatures([]);
-    }, [
-        selectedReport,
-        alertMessages,
-        setDrawerOpened,
-        setEditReport,
-        editReport,
-        setTableDrawerOpened,
-        tableDrawerOpened,
-        setSelectedReport,
-        setSelectedFeatures,
-        map,
-        removeAlertMessage,
-    ]);
+    }, [selectedReport, alertMessages, setDrawerOpened, setEditReport, setTableDrawerOpened, setSelectedReport, setSelectedFeatures, map, removeAlertMessage]);
 
     const handleDrawingAdd = useCallback(
         (e: Event) => {
@@ -159,7 +147,7 @@ const ReportDrawer = () => {
         } else {
             setEditReport(false);
         }
-    }, [drawerOpened, selectedReport, isAdmin, isOwner, editReport]);
+    }, [drawerOpened, selectedReport, isAdmin, isOwner, editReport, setEditReport]);
 
     const [searchParams] = useSearchParams();
     const reportIdParam = searchParams.get("report");

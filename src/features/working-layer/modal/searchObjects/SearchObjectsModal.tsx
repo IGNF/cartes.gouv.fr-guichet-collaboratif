@@ -109,7 +109,6 @@ const SearchObjectsModal = () => {
         setSearchResult,
         buildFilterParam,
         mapWorkingLayer,
-        t,
     ]);
 
     useEffect(() => {

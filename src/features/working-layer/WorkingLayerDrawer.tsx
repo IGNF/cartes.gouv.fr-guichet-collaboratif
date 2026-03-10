@@ -1,14 +1,18 @@
 import DrawerComponent from "@/components/DrawerComponent";
-import { useContributionStore, useMapStore } from "@/store";
-import { useCallback, useEffect } from "react";
+import { useContributionStore, useMapStore, useModalStore } from "@/store";
+import { useCallback, useEffect, useRef } from "react";
 import ShowFeatureTypeForm from "./forms/ShowFeatureTypeForm";
 import EditFeatureTypeForm from "./forms/EditFeatureTypeForm";
 import { FeatureTypeMode } from "@/constants/contributions/types";
 import { FEATURE_TYPE_SELECTED_PROPERTY } from "@/constants";
+import ConfirmMultipleDeselection from "@/features/navigation/controls/custom-controls/ConfirmMultipleDeselection";
 
 const WorkingLayerDrawer = () => {
     const { clickedMapFeature, workingLayerDrawerOpened, setWorkingLayerDrawerOpened, setClickedMapFeature } = useMapStore();
     const { featureTypeMode, selectedObjects, setSelectedObjects, setFeatureTypeMode, setColumnsToModify } = useContributionStore();
+    const { confirmMultipleDeselectionModal } = useModalStore();
+
+    const pendingClose = useRef<(() => void) | null>(null);
 
     useEffect(() => {
         if (clickedMapFeature && !workingLayerDrawerOpened) {
@@ -17,6 +21,11 @@ const WorkingLayerDrawer = () => {
     }, [clickedMapFeature, workingLayerDrawerOpened, setWorkingLayerDrawerOpened]);
 
     const handleCloseDrawer = useCallback(() => {
+        if (selectedObjects.length > 1) {
+            pendingClose.current = handleCloseDrawer;
+            confirmMultipleDeselectionModal.open();
+            return;
+        }
         selectedObjects.forEach((feat) => {
             feat.unset(FEATURE_TYPE_SELECTED_PROPERTY);
             feat.changed();
@@ -26,16 +35,59 @@ const WorkingLayerDrawer = () => {
         setClickedMapFeature(null);
         setWorkingLayerDrawerOpened(false);
         setFeatureTypeMode(FeatureTypeMode.VIEW);
-    }, [selectedObjects, setClickedMapFeature, setFeatureTypeMode, setSelectedObjects, setWorkingLayerDrawerOpened, setColumnsToModify]);
+    }, [
+        selectedObjects,
+        setClickedMapFeature,
+        setFeatureTypeMode,
+        setSelectedObjects,
+        setWorkingLayerDrawerOpened,
+        setColumnsToModify,
+        confirmMultipleDeselectionModal,
+    ]);
+
+    useEffect(() => {
+        if (!clickedMapFeature && workingLayerDrawerOpened) {
+            handleCloseDrawer();
+        }
+    }, [clickedMapFeature, handleCloseDrawer, workingLayerDrawerOpened]);
+
+    const onConfirmDeselection = useCallback(() => {
+        confirmMultipleDeselectionModal.close();
+        selectedObjects.forEach((feat) => {
+            feat.unset(FEATURE_TYPE_SELECTED_PROPERTY);
+            feat.changed();
+        });
+        setSelectedObjects([]);
+        setColumnsToModify([]);
+        setClickedMapFeature(null);
+        setWorkingLayerDrawerOpened(false);
+        setFeatureTypeMode(FeatureTypeMode.VIEW);
+        pendingClose.current = null;
+    }, [
+        confirmMultipleDeselectionModal,
+        selectedObjects,
+        setSelectedObjects,
+        setColumnsToModify,
+        setClickedMapFeature,
+        setWorkingLayerDrawerOpened,
+        setFeatureTypeMode,
+    ]);
 
     const drawerWidth = window.innerWidth * (1.2 / 3);
 
     return (
-        <DrawerComponent anchor="left" isOpen={workingLayerDrawerOpened} onClose={handleCloseDrawer}>
-            <div className="working-layer-drawer" style={{ maxWidth: drawerWidth }}>
-                {featureTypeMode === FeatureTypeMode.VIEW ? <ShowFeatureTypeForm /> : <EditFeatureTypeForm />}
-            </div>
-        </DrawerComponent>
+        <>
+            <DrawerComponent anchor="left" isOpen={workingLayerDrawerOpened} onClose={handleCloseDrawer}>
+                <div className="working-layer-drawer" style={{ maxWidth: drawerWidth }}>
+                    {featureTypeMode === FeatureTypeMode.VIEW ? (
+                        <ShowFeatureTypeForm onClose={handleCloseDrawer} />
+                    ) : (
+                        <EditFeatureTypeForm onClose={handleCloseDrawer} />
+                    )}
+                </div>
+            </DrawerComponent>
+            <ConfirmMultipleDeselection onConfirm={onConfirmDeselection} />
+        </>
     );
 };
 
