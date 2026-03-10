@@ -26,7 +26,6 @@ const ReportDrawer = () => {
     const {
         reports,
         selectedReport,
-        editReport,
         setEditReport,
         setSelectedReport,
         setSelectedFeatures,
