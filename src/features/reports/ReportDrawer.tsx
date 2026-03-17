@@ -25,7 +25,6 @@ const ReportDrawer = () => {
     const {
         reports,
         selectedReport,
-        editReport,
         setEditReport,
         setSelectedReport,
         setSelectedFeatures,
@@ -82,19 +81,7 @@ const ReportDrawer = () => {
         setTableDrawerOpened(false);
         setSelectedReport(null);
         setSelectedFeatures([]);
-    }, [
-        selectedReport,
-        alertMessages,
-        setDrawerOpened,
-        setEditReport,
-        editReport,
-        setTableDrawerOpened,
-        tableDrawerOpened,
-        setSelectedReport,
-        setSelectedFeatures,
-        map,
-        removeAlertMessage,
-    ]);
+    }, [selectedReport, alertMessages, setDrawerOpened, setEditReport, setTableDrawerOpened, setSelectedReport, setSelectedFeatures, map, removeAlertMessage]);
 
     const handleDrawingAdd = useCallback(
         (e: Event) => {
@@ -159,7 +146,7 @@ const ReportDrawer = () => {
         } else {
             setEditReport(false);
         }
-    }, [drawerOpened, selectedReport, isAdmin, isOwner, editReport]);
+    }, [drawerOpened, selectedReport, isAdmin, isOwner, setEditReport]);
 
     const [searchParams] = useSearchParams();
     const reportIdParam = searchParams.get("report");

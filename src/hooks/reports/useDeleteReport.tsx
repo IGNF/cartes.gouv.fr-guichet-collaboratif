@@ -53,7 +53,7 @@ export const useDeleteReport = ({ handleCloseDrawer }: UseDeleteReportProps) => 
                 return false;
             }
         },
-        [addAlertMessage, map, reports, setReports, t, setDrawerOpened]
+        [addAlertMessage, map, reports, setReports, t, setDrawerOpened, handleCloseDrawer]
     );
 
     return { deleteReport };

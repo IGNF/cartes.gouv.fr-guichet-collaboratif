@@ -22,7 +22,7 @@ let lastPointedFeat: Feature | null = null;
 const useGetInteractionsFuncs = (props: InteractionsProps) => {
     const { map, mapWorkingLayer, clickedControl, setClickedControl, setClickedMapFeature } = useMapStore();
     const { contributions, selectedObjects, saveContribution, setIsModifying, setSelectedObjects } = useContributionStore();
-    const { confirmCopyModal, searchModal } = useModalStore();
+    const { confirmCopyModal, searchModal, exportMapModal } = useModalStore();
     const { communityLayers } = useCommunityStore();
 
     const currentCommunityLayer = useMemo(() => communityLayers?.find((l) => l?.geoservice?.layer === mapWorkingLayer), [communityLayers, mapWorkingLayer]);
@@ -339,6 +339,10 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             if (control.interaction === InteractionType.COPY_OBJECT) {
                 copyInteractionFunc();
             }
+            if (control.interaction === InteractionType.EXPORT_IMAGE) {
+                exportMapModal.open();
+                return;
+            }
             if (control?.id === clickedControl?.id) {
                 setSelectedObjects([]);
                 removeInteractionFromMap(control.interaction, map!);
@@ -365,7 +369,20 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                 addInteractionToMap(interaction, map!);
             }
         },
-        [map, clickedControl, selectedObjects, selectInteraction, modifyInteraction, searchModal, getInteractionByType, copyInteractionFunc, setSelectedObjects]
+        [
+            map,
+            clickedControl,
+            selectedObjects,
+            selectInteraction,
+            searchModal,
+            getInteractionByType,
+            copyInteractionFunc,
+            setSelectedObjects,
+            exportMapModal,
+            mapWorkingLayer,
+            modifyFeatures,
+            translateFeatures,
+        ]
     );
 
     useEffect(() => {

@@ -95,7 +95,7 @@ const ViewHandler: React.FC = () => {
         if (z !== undefined || community?.zoom !== undefined) {
             view.setZoom(z ?? community?.zoom ?? 10);
         }
-    }, [locationParam, map]);
+    }, [locationParam, map, community?.zoom]);
 
     const onChange = useCallback(() => {
         if (timer) clearTimeout(timer);

@@ -136,7 +136,7 @@ const FilterAndSortReport = () => {
         if (isErrorReport) {
             addAlertMessage(StatusMessage.error, t("loading_error"));
         }
-    }, [isErrorReport, addAlertMessage]);
+    }, [isErrorReport, addAlertMessage, t]);
 
     const onChangeOpeningDate = (index: number) => {
         setSortOpeningDateIndex(index);

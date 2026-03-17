@@ -39,7 +39,7 @@ const ReviewContributions = () => {
             setCurrentPosition(position);
             setClickedMapFeature(nextContribution.feature);
         },
-        [contributions, setClickedMapFeature]
+        [contributions, setClickedMapFeature, contrToReview.length]
     );
 
     useEffect(() => {

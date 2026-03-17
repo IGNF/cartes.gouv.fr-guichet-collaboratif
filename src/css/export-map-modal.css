@@ -1,0 +1,172 @@
+.fr-modal--export-map .fr-grid-row > div {
+    flex: 0 0 min(88vw, 74rem);
+    max-width: min(88vw, 74rem);
+    width: min(88vw, 74rem);
+}
+
+.export-map-page {
+    display: flex;
+    flex-direction: row;
+    gap: 1.5rem;
+    height: clamp(20rem, 65vh, 32rem);
+    min-height: 0;
+}
+
+.export-map-form {
+    flex: 0 0 15.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow-x: hidden;
+    overflow-y: auto;
+    gap: 0.25rem;
+    padding-right: 0.1rem;
+}
+
+.export-map-section-label {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--text-label-grey);
+}
+
+.fr-modal--export-map .export-map-form {
+    .fr-select-group,
+    .fr-input-group,
+    .fr-checkbox-group {
+        margin-bottom: 0.3rem;
+    }
+
+    .fr-label {
+        margin-bottom: 0.3rem;
+        font-size: 0.9rem;
+    }
+
+    .fr-select,
+    .fr-input {
+        min-height: 2rem;
+        padding-top: 0.1rem;
+        padding-bottom: 0.1rem;
+    }
+
+    .fr-checkbox-group {
+        row-gap: 0.15rem;
+    }
+}
+
+.export-map-orientation {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.export-map-orientation-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    padding: 0.3rem 0.35rem;
+    border: 1px solid var(--border-default-grey);
+    border-radius: 0.25rem;
+    background: var(--background-default-grey);
+    color: var(--text-default-grey);
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition:
+        border-color 0.15s,
+        background 0.15s,
+        color 0.15s;
+}
+
+.export-map-orientation-btn.active {
+    border-color: var(--border-active-blue-france);
+    color: var(--text-active-blue-france);
+}
+
+.orientation-icon {
+    display: block;
+    border: 1px solid currentColor;
+    border-radius: 1px;
+    background: var(--background-alt-blue-france);
+    opacity: 0.8;
+}
+
+.portrait-icon {
+    width: 0.7rem;
+    height: 0.9rem;
+}
+
+.landscape-icon {
+    width: 0.9rem;
+    height: 0.7rem;
+}
+
+.export-map-preview-wrapper {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 0;
+    overflow: hidden;
+    background: var(--background-alt-grey);
+    border-radius: 0.2rem;
+    padding: 1rem;
+}
+
+.export-map-paper {
+    max-width: 100%;
+    max-height: 100%;
+    height: 100%;
+    background: var(--background-default-grey);
+    box-shadow:
+        0 0 0 1px var(--text-title-grey),
+        0 4px 24px var(--text-title-grey);
+    border-radius: 1px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.export-map-paper-inner {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.export-map-preview-title {
+    flex: 0 0 auto;
+    padding: 0.4rem 0.7rem;
+    background: var(--background-default-grey);
+    border-bottom: 1px solid var(--border-active-blue-france);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-title-grey);
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.export-map-preview-map {
+    flex: 1;
+    position: relative;
+    min-height: 0;
+}
+
+.export-map-preview-map .ol-scale-line {
+    right: unset;
+    left: 0.25rem;
+    bottom: 0.25rem;
+    transform: scale(0.75);
+    transform-origin: bottom left;
+}
+
+.export-map-preview-map .ol-scale-line-inner {
+    height: 100%;
+}
+
+.export-map-preview-map .ol-zoom,
+.export-map-preview-map .ol-attribution {
+    display: none;
+}

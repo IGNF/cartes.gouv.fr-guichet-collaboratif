@@ -9,7 +9,7 @@ const SearchReport = () => {
         const params = new URLSearchParams(window.location.search);
         const search = params.get("search") || "";
         setSearchReport(search);
-    }, []);
+    }, [setSearchReport]);
 
     const handleSearchReport = (value: string) => {
         setSearchReport(value);
