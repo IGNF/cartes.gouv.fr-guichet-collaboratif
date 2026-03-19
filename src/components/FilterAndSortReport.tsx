@@ -165,7 +165,6 @@ const FilterAndSortReport = () => {
         const form = (e.target as HTMLButtonElement).form;
         if (!form) return;
         const formData = new FormData(form);
-
         const newFilters = {
             status: statusOptions[statusIndex] || "",
             theme: themeOptions[themeIndex] || "",
@@ -225,7 +224,7 @@ const FilterAndSortReport = () => {
                     <div className="filter-report__wrapper">
                         <SelectComponent
                             name="status"
-                            label="Statut"
+                            label={t("status")}
                             value={statusIndex}
                             defaultOption={t("selectOption")}
                             options={statusOptions}
@@ -233,7 +232,7 @@ const FilterAndSortReport = () => {
                         />
                         <SelectComponent
                             name="theme"
-                            label="Thème"
+                            label={t("theme")}
                             value={themeIndex}
                             defaultOption={t("selectOption")}
                             options={themeOptions}
@@ -242,24 +241,27 @@ const FilterAndSortReport = () => {
 
                         <Input
                             className="filter-report__select"
-                            label="Auteur"
+                            label={t("author")}
                             nativeInputProps={{
                                 name: "author",
                                 type: "number",
-                                inputMode: "numeric",
-                                pattern: "[0-9]*",
+                                min: 1,
+                                step: 1,
+                                placeholder: t("author_placeholder"),
                                 defaultValue: currentFilters.author ?? "",
+                                onBlur: (e) => {
+                                    e.currentTarget.value = String(parseInt(e.currentTarget.value, 10) || "");
+                                },
                             }}
                         />
                         <Input
                             className="filter-report__select"
-                            label="Département"
+                            label={t("departement")}
                             nativeInputProps={{
-                                placeholder: t("selectOption"),
+                                placeholder: t("depatement_placeholder"),
                                 name: "departement",
-                                type: "number",
-                                max: 2,
-                                multiple: true,
+                                type: "text",
+                                pattern: "^([02][1-9]|2[AB]|[1345678][0-9]|9[012345]|97[12346])$",
                                 defaultValue: currentFilters.departement ?? "",
                             }}
                         />

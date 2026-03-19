@@ -30,8 +30,7 @@ interface ReportStore {
     setLimitPerPage: (limitPerPage: number) => void;
     reportTableWidth: number;
     setReportTableWidth: (reportTableWidth: number) => void;
-    selectedLine: number;
-    setSelectedLine: (selectedLine: number) => void;
+    getSelectedLineCount: () => number;
     sortOrder: "ASC" | "DESC" | undefined;
     sortBy: string;
     setSortBy: (sortBy: string) => void;
@@ -115,8 +114,7 @@ export const useReportStore = create<ReportStore>((set, get) => ({
     },
     reportTableWidth: window.innerWidth * (2 / 3),
     setReportTableWidth: (reportTableWidth: number) => set({ reportTableWidth }),
-    selectedLine: 0,
-    setSelectedLine: (selectedLine: number) => set({ selectedLine }),
+    getSelectedLineCount: () => Object.values(get().isChecked).filter(Boolean).length,
     sortOrder: undefined,
     sortBy: "",
     setSortBy: (sortBy) => set({ sortBy }),

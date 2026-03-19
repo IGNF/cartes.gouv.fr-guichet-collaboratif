@@ -332,67 +332,64 @@ export const featureTypeSelectedPolygonStyle = (isDefaultStyle: boolean = false)
 };
 
 export const featureDefaultStyle = (type: GeoserviceFeatureTypeProp = GeoserviceFeatureTypeProp.POINT): FeatureTypeStyle => {
-    if (type === GeoserviceFeatureTypeProp.LINE) {
-        return {
+    const defaults: Record<GeoserviceFeatureTypeProp, FeatureTypeStyle> = {
+        [GeoserviceFeatureTypeProp.POINT]: {
             name: DEFAULT_STYLE_NAME,
             types: [
                 {
-                    title: "Par défaut",
-                    type: undefined,
-                    featureType: type,
+                    title: "Par défaut - Point",
+                    type: "circle" as const,
+                    featureType: GeoserviceFeatureTypeProp.POINT,
+                    pointRadius: 6,
+                    fillColor: FILL_COLOR,
+                    fillOpacity: 0.4,
+                    strokeColor: POINT_COLOR,
+                    strokeWidth: 2,
+                    strokeOpacity: 1,
+                    strokeDashstyle: undefined,
+                    strokeLinecap: undefined,
+                },
+            ],
+        },
+        [GeoserviceFeatureTypeProp.LINE]: {
+            name: DEFAULT_STYLE_NAME,
+            types: [
+                {
+                    title: "Par défaut - Ligne",
+                    type: "line" as const,
+                    featureType: GeoserviceFeatureTypeProp.LINE,
                     pointRadius: 0,
                     fillColor: "",
                     fillOpacity: 0,
                     strokeColor: POLYGON_LINE_COLOR,
-                    strokeWidth: 3,
-                    strokeDashstyle: undefined,
-                    strokeLinecap: "round",
+                    strokeWidth: 2,
                     strokeOpacity: 1,
+                    strokeDashstyle: undefined,
+                    strokeLinecap: "round" as const,
                 },
             ],
-        };
-    }
-    if (type === GeoserviceFeatureTypeProp.POLYGON) {
-        return {
+        },
+        [GeoserviceFeatureTypeProp.POLYGON]: {
             name: DEFAULT_STYLE_NAME,
             types: [
                 {
-                    title: "Par défaut",
-                    type: undefined,
-                    featureType: type,
+                    title: "Par défaut - Polygone",
+                    type: "polygon" as const,
+                    featureType: GeoserviceFeatureTypeProp.POLYGON,
                     pointRadius: 0,
                     fillColor: FILL_COLOR,
                     fillOpacity: 0.4,
                     strokeColor: POLYGON_LINE_COLOR,
                     strokeWidth: 2,
-                    strokeDashstyle: undefined,
-                    strokeLinecap: "butt",
                     strokeOpacity: 1,
+                    strokeDashstyle: undefined,
+                    strokeLinecap: undefined,
                 },
             ],
-        };
-    }
-
-    return {
-        name: DEFAULT_STYLE_NAME,
-        types: [
-            {
-                title: "Par défaut",
-                type: "circle",
-                featureType: type,
-                pointRadius: 6,
-                fillColor: FILL_COLOR,
-                fillOpacity: 0.4,
-                strokeColor: POINT_COLOR,
-                strokeWidth: 2,
-                strokeDashstyle: undefined,
-                strokeLinecap: undefined,
-                strokeOpacity: 1,
-            },
-        ],
+        },
     };
+    return defaults[type] || defaults[GeoserviceFeatureTypeProp.POINT];
 };
-
 export const getSelectedFeatureTypeStyle = (type: string, style: FeatureTypeStyle) => {
     const isDefaultStyle = style.name === featureDefaultStyle().name;
     if (type === GeoserviceFeatureTypeProp.POINT) return featureTypeSelectedPointCircleStyle(isDefaultStyle);

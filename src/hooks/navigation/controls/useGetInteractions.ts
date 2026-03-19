@@ -8,7 +8,7 @@ import VectorSource from "ol/source/Vector";
 import { useMemo } from "react";
 
 const useGetInteractions = () => {
-    const { map, mapWorkingLayer } = useMapStore();
+    const { map, mapWorkingLayer, clickedMapFeature } = useMapStore();
     const { communityLayers } = useCommunityStore();
 
     const clickableLayer = map
@@ -41,32 +41,56 @@ const useGetInteractions = () => {
         [clickableSource]
     );
 
-    const dragInteraction = useMemo(() => new DragBox({ condition: shiftKeyOnly }), []);
-
-    const modifyFeatures = useMemo(() => {
-        return new Collection<Feature>();
+    const dragInteraction = useMemo(() => {
+        const drag = new DragBox({ condition: shiftKeyOnly });
+        drag.set("disablesTooltip", true);
+        return drag;
     }, []);
-    const modifyInteraction = useMemo(() => {
-        return new Modify({
-            features: modifyFeatures,
-            source: clickableSource,
-        });
-    }, [modifyFeatures, clickableSource]);
-    const drawPointInteraction = useMemo(() => new Draw({ type: "Point" }), []);
-    const drawLineInteraction = useMemo(() => new Draw({ type: "LineString" }), []);
-    const drawPolygonInteraction = useMemo(() => new Draw({ type: "Polygon" }), []);
 
-    const translateFeatures = useMemo(() => new Collection<Feature>(), []);
-    const translateInteraction = useMemo(() => new Translate({ features: translateFeatures }), [translateFeatures]);
-    const splitInteraction = useMemo(
-        () =>
-            new Modify({
-                features: new Collection(clickableSource?.getFeatures() ?? []),
-                condition: click,
-                pixelTolerance: 10,
-            }),
-        [clickableSource]
-    );
+    const modifyFeatures = useMemo(() => selectInteraction.getFeatures(), [selectInteraction]);
+
+    const modifyInteraction = useMemo(() => {
+        const modify = new Modify({ features: modifyFeatures });
+        modify.set("disablesTooltip", true);
+        return modify;
+    }, [modifyFeatures]);
+
+    const drawPointInteraction = useMemo(() => {
+        const draw = new Draw({ type: "Point" });
+        draw.set("disablesTooltip", true);
+        draw.set("disableSelect", true);
+        return draw;
+    }, []);
+
+    const drawLineInteraction = useMemo(() => {
+        const draw = new Draw({ type: "LineString" });
+        draw.set("disablesTooltip", true);
+        return draw;
+    }, []);
+
+    const drawPolygonInteraction = useMemo(() => {
+        const draw = new Draw({ type: "Polygon" });
+        draw.set("disablesTooltip", true);
+        return draw;
+    }, []);
+
+    const translateFeatures = useMemo(() => new Collection<Feature>(clickedMapFeature ? [clickedMapFeature] : []), [clickedMapFeature]);
+
+    const translateInteraction = useMemo(() => {
+        const translate = new Translate({ features: translateFeatures });
+        translate.set("disablesTooltip", true);
+        return translate;
+    }, [translateFeatures]);
+
+    const splitInteraction = useMemo(() => {
+        const split = new Modify({
+            features: new Collection(clickableSource?.getFeatures() ?? []),
+            condition: click,
+            pixelTolerance: 10,
+        });
+        split.set("disablesTooltip", true);
+        return split;
+    }, [clickableSource]);
 
     const snapInteraction = useMemo(
         () => new Snap({ source: clickableSource, features: new Collection(snapToFeatures), intersection: true }),

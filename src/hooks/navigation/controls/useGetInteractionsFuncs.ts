@@ -125,7 +125,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                 }
             }
         },
-        [mapWorkingLayer, saveContribution, setIsModifying, selectInteraction, clickedControl, map]
+        [mapWorkingLayer, saveContribution, setIsModifying, selectInteraction, clickedControl, map, modifyInteraction]
     );
 
     const modifyInteractionFuncStart = useCallback(
@@ -371,9 +371,13 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
         },
         [
             map,
+            mapWorkingLayer,
             clickedControl,
             selectedObjects,
             selectInteraction,
+            modifyFeatures,
+            modifyInteraction,
+            translateFeatures,
             searchModal,
             getInteractionByType,
             copyInteractionFunc,

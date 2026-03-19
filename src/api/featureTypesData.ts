@@ -28,6 +28,7 @@ export async function getFeatureTypesAll(featureTypesIds: FeatureTypeIds[]): Pro
             } else if (geometryColumn.type.includes("Line")) {
                 geomType = GeoserviceFeatureTypeProp.LINE;
             }
+
             const data: CommunityGeoservice = {
                 idName: res.data.id_name,
                 id: res.data.id,
