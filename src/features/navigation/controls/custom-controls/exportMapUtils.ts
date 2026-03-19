@@ -34,15 +34,18 @@ const PAPER_SIZES_MM: Record<string, [number, number]> = {
 };
 
 const FALLBACK_SIZE = "A4";
+const SCALE_BAR_REFERENCE_WIDTH_MM = 210;
+const PDF_JPEG_QUALITY = 0.98;
 
 const DRAW = {
     TITLE_HEIGHT_PX: 44,
     TITLE_FONT_SCALE: 0.05,
-    SCALE_BAR_FONT_SIZE: 10,
-    SCALE_BAR_PADDING: 4,
-    SCALE_BAR_OFFSET_X: 10,
-    SCALE_BAR_OFFSET_Y: 20,
-    SCALE_BAR_MIN_HEIGHT: 14,
+    SCALE_BAR_WIDTH_FRACTION: 0.15,
+    SCALE_BAR_HEIGHT_MM: 6,
+    SCALE_BAR_FONT_SIZE_MM: 3.5,
+    SCALE_BAR_PADDING_MM: 1.5,
+    SCALE_BAR_OFFSET_X_MM: 5,
+    SCALE_BAR_OFFSET_Y_MM: 8,
     BORDER_LINE_WIDTH: 2,
     SCALE_LINE_WIDTH: 1.5,
     TITLE_BORDER_COLOR: "rgba(0, 0, 145, 1)",
@@ -77,6 +80,11 @@ const getPaperPx = (dimensions: string, orientation: PAGE_ORIENTATION, pr: numbe
 const marginToPx = (marginMm: number, dimensions: string, orientation: PAGE_ORIENTATION, paperWPx: number): number => {
     const [wMm] = getPaperMm(dimensions, orientation);
     return Math.round(marginMm * (paperWPx / wMm));
+};
+
+const getFormatScale = (dimensions: string, orientation: PAGE_ORIENTATION): number => {
+    const [wMm] = getPaperMm(dimensions, orientation);
+    return wMm / SCALE_BAR_REFERENCE_WIDTH_MM;
 };
 
 const withTranslation = (ctx: CanvasRenderingContext2D, x: number, y: number, draw: () => void) => {
@@ -158,13 +166,20 @@ const drawTitle = (ctx: CanvasRenderingContext2D, text: string, w: number, h: nu
     ctx.stroke();
 };
 
-const drawScaleBar = (ctx: CanvasRenderingContext2D, mapEl: HTMLElement, canvasH: number, pr: number) => {
+const drawScaleBar = (ctx: CanvasRenderingContext2D, mapEl: HTMLElement, canvasW: number, canvasH: number, pr: number, formatScale: number) => {
     const inner = mapEl.querySelector<HTMLElement>(".ol-scale-line-inner");
     if (!inner) return;
     const text = inner.textContent ?? "";
-    const [w, h] = [inner.offsetWidth * pr, Math.max(inner.offsetHeight, DRAW.SCALE_BAR_MIN_HEIGHT) * pr];
-    const [x, y] = [DRAW.SCALE_BAR_OFFSET_X * pr, canvasH - h - DRAW.SCALE_BAR_OFFSET_Y * pr];
-    const pad = DRAW.SCALE_BAR_PADDING * pr;
+
+    const mmToPx = (mm: number) => (mm / SCALE_BAR_REFERENCE_WIDTH_MM) * (canvasW / formatScale) * formatScale;
+
+    const w = canvasW * DRAW.SCALE_BAR_WIDTH_FRACTION;
+    const h = mmToPx(DRAW.SCALE_BAR_HEIGHT_MM);
+    const fontSize = mmToPx(DRAW.SCALE_BAR_FONT_SIZE_MM);
+    const pad = mmToPx(DRAW.SCALE_BAR_PADDING_MM);
+    const x = mmToPx(DRAW.SCALE_BAR_OFFSET_X_MM);
+    const y = canvasH - h - mmToPx(DRAW.SCALE_BAR_OFFSET_Y_MM);
+
     ctx.fillStyle = DRAW.SCALE_BAR_BG;
     ctx.fillRect(x - pad, y - pad, w + pad * 2, h + pad * 2);
     ctx.strokeStyle = DRAW.SCALE_BAR_STROKE;
@@ -175,7 +190,7 @@ const drawScaleBar = (ctx: CanvasRenderingContext2D, mapEl: HTMLElement, canvasH
     ctx.lineTo(x + w, y + h);
     ctx.lineTo(x + w, y);
     ctx.stroke();
-    ctx.font = `bold ${DRAW.SCALE_BAR_FONT_SIZE * pr}px Arial, sans-serif`;
+    ctx.font = `bold ${fontSize}px Arial, sans-serif`;
     ctx.fillStyle = DRAW.SCALE_BAR_TEXT;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
@@ -203,13 +218,14 @@ const buildOutputCanvas = (
     const [paperW, paperH] = getPaperPx(dimensions, orientation, pr);
     const marginPx = marginToPx(margin, dimensions, orientation, paperW);
     const titleH = hasTitle && title.trim() ? Math.round(DRAW.TITLE_HEIGHT_PX * pr) : 0;
+    const formatScale = getFormatScale(dimensions, orientation);
 
     const out = document.createElement("canvas");
     out.width = paperW;
     out.height = paperH;
     const ctx = out.getContext("2d")!;
 
-    ctx.fillStyle = "rgba(255, 255, 255, 1)";
+    ctx.fillStyle = DRAW.TITLE_BG_COLOR;
     ctx.fillRect(0, 0, paperW, paperH);
 
     const innerW = paperW - marginPx * 2;
@@ -218,7 +234,9 @@ const buildOutputCanvas = (
     const mapArea = { x: marginPx, y: marginPx + titleH, w: innerW, h: paperH - marginPx * 2 - titleH };
     ctx.drawImage(previewCanvas, mapArea.x, mapArea.y, mapArea.w, mapArea.h);
 
-    if (hasScale) withTranslation(ctx, mapArea.x, mapArea.y, () => drawScaleBar(ctx, previewEl, mapArea.h, pr));
+    if (hasScale) {
+        withTranslation(ctx, mapArea.x, mapArea.y, () => drawScaleBar(ctx, previewEl, mapArea.w, mapArea.h, pr, formatScale));
+    }
 
     return out;
 };
@@ -226,17 +244,21 @@ const buildOutputCanvas = (
 const saveAsPdf = (canvas: HTMLCanvasElement, dimensions: string, orientation: PAGE_ORIENTATION, title: string, pr: number) => {
     const pxToMm = 25.4 / 96 / pr;
     const [wMm, hMm] = [canvas.width * pxToMm, canvas.height * pxToMm];
-    const doc = new jsPDF({ orientation: orientation === "landscape" ? "landscape" : "portrait", unit: "mm", format: dimensions.toLocaleLowerCase() });
+    const doc = new jsPDF({
+        orientation: orientation === "landscape" ? "landscape" : "portrait",
+        unit: "mm",
+        format: dimensions.toLocaleLowerCase(),
+    });
     const [dw, dh] = [doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight()];
     const s = Math.min(dw / wMm, dh / hMm);
-    doc.addImage(canvas.toDataURL("image/png"), "PNG", (dw - wMm * s) / 2, (dh - hMm * s) / 2, wMm * s, hMm * s);
+    doc.addImage(canvas.toDataURL("image/jpeg", PDF_JPEG_QUALITY), "JPEG", (dw - wMm * s) / 2, (dh - hMm * s) / 2, wMm * s, hMm * s);
     doc.save(`${title}.pdf`);
 };
 
 const saveAsImage = (canvas: HTMLCanvasElement, format: Exclude<EXPORT_FORMAT, "PDF">, title: string) => {
     const a = document.createElement("a");
     a.download = title + FILE_EXT[format];
-    a.href = canvas.toDataURL(MIME_TYPE[format], format === "JPEG" ? 0.99 : undefined);
+    a.href = canvas.toDataURL(MIME_TYPE[format], format === "JPEG" ? 0.98 : undefined);
     a.click();
 };
 
