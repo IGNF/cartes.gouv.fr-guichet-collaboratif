@@ -40,15 +40,16 @@ const PDF_JPEG_QUALITY = 0.98;
 const DRAW = {
     TITLE_HEIGHT_PX: 44,
     TITLE_FONT_SCALE: 0.05,
+    TITLE_SEPARATOR_HEIGHT_PX: 2,
     SCALE_BAR_WIDTH_FRACTION: 0.15,
     SCALE_BAR_HEIGHT_MM: 6,
     SCALE_BAR_FONT_SIZE_MM: 3.5,
     SCALE_BAR_PADDING_MM: 1.5,
     SCALE_BAR_OFFSET_X_MM: 5,
     SCALE_BAR_OFFSET_Y_MM: 8,
-    BORDER_LINE_WIDTH: 2,
+    BORDER_LINE_WIDTH: 3,
     SCALE_LINE_WIDTH: 1.5,
-    TITLE_BORDER_COLOR: "rgba(0, 0, 145, 1)",
+    TITLE_BORDER_COLOR: "rgba(0, 0, 0, 1)",
     TITLE_BG_COLOR: "rgba(255, 255, 255, 1)",
     TITLE_TEXT_COLOR: "rgba(22, 22, 22, 1)",
     SCALE_BAR_BG: "rgba(255, 255, 255, 0.85)",
@@ -158,22 +159,21 @@ const drawTitle = (ctx: CanvasRenderingContext2D, text: string, w: number, h: nu
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText(text, w / 2, h / 2);
-    ctx.strokeStyle = DRAW.TITLE_BORDER_COLOR;
-    ctx.lineWidth = DRAW.BORDER_LINE_WIDTH * pr;
-    ctx.beginPath();
-    ctx.moveTo(0, h - pr);
-    ctx.lineTo(w, h - pr);
-    ctx.stroke();
+    const separatorHeight = Math.max(1, Math.round(DRAW.TITLE_SEPARATOR_HEIGHT_PX * pr));
+    ctx.fillStyle = DRAW.TITLE_BORDER_COLOR;
+    ctx.fillRect(0, h - separatorHeight, w, separatorHeight);
 };
 
 const drawScaleBar = (ctx: CanvasRenderingContext2D, mapEl: HTMLElement, canvasW: number, canvasH: number, pr: number, formatScale: number) => {
-    const inner = mapEl.querySelector<HTMLElement>(".ol-scale-line-inner");
+    const inner = mapEl.querySelector<HTMLElement>(".export-preview-scale-line-inner");
     if (!inner) return;
     const text = inner.textContent ?? "";
 
     const mmToPx = (mm: number) => (mm / SCALE_BAR_REFERENCE_WIDTH_MM) * (canvasW / formatScale) * formatScale;
 
-    const w = canvasW * DRAW.SCALE_BAR_WIDTH_FRACTION;
+    const olWidthPx = parseFloat(inner.style.width) || 0;
+    const mapViewportW = mapEl.querySelector<HTMLElement>(".ol-viewport")?.getBoundingClientRect().width || 1;
+    const w = olWidthPx > 0 ? canvasW * (olWidthPx / mapViewportW) : canvasW * DRAW.SCALE_BAR_WIDTH_FRACTION;
     const h = mmToPx(DRAW.SCALE_BAR_HEIGHT_MM);
     const fontSize = mmToPx(DRAW.SCALE_BAR_FONT_SIZE_MM);
     const pad = mmToPx(DRAW.SCALE_BAR_PADDING_MM);
@@ -276,7 +276,7 @@ export const exportMap = (_mainMap: OlMap, { format, previewMap, ...opts }: Expo
 
 export const createPreviewMap = (target: HTMLDivElement, mainMap: OlMap) => {
     const view = mainMap.getView();
-    const scaleControl = new ScaleLine({ units: "metric" });
+    const scaleControl = new ScaleLine({ units: "metric", className: "export-preview-scale-line" });
     const previewMap = new OlMap({
         target,
         layers: cloneLayers(mainMap),
