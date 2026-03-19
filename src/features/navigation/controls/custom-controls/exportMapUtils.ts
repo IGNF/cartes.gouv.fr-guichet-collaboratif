@@ -17,9 +17,9 @@ export const PAPER_RATIO = 210 / 297;
 export const EXPORT_SIZE_OPTIONS = ["A4", "A3", "A2", "A1", "A0", "A5", "B4", "B5"];
 
 export const MARGIN_OPTIONS = [
-    { value: "0", label: "Pas de marge - 0mm" },
-    { value: "5", label: "Petite marge - 5mm" },
-    { value: "10", label: "Moyenne marge - 10mm" },
+    { value: "0", translation_key: "margin_small" },
+    { value: "5", translation_key: "margin_medium" },
+    { value: "10", translation_key: "margin_big" },
 ] as const;
 
 const PAPER_SIZES_MM: Record<string, [number, number]> = {

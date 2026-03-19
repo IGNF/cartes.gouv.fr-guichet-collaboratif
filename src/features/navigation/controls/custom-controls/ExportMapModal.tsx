@@ -1,6 +1,7 @@
 import ModaleComponent from "@/components/ModaleComponent";
 import { useMapStore, useModalStore } from "@/store";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "@/i18n";
 import Select from "@codegouvfr/react-dsfr/Select";
 import Input from "@codegouvfr/react-dsfr/Input";
 import Checkbox from "@codegouvfr/react-dsfr/Checkbox";
@@ -13,10 +14,12 @@ const ExportMapModal: React.FC = () => {
     const { map, setClickedControl } = useMapStore();
     const { exportMapModal } = useModalStore();
 
+    const { t } = useTranslation({ ExportMapModal });
+
     const [orientation, setOrientation] = useState<PAGE_ORIENTATION>("portrait");
     const [dimensions, setDimensions] = useState("A4");
     const [margin, setMargin] = useState(5);
-    const [title, setTitle] = useState("Ma carte");
+    const [title, setTitle] = useState(t("default_title"));
     const [hasTitle, setHasTitle] = useState(true);
     const [hasScale, setHasScale] = useState(true);
     const [format, setFormat] = useState<EXPORT_FORMAT>("PNG");
@@ -80,15 +83,15 @@ const ExportMapModal: React.FC = () => {
     return (
         <ModaleComponent
             modal={exportMapModal}
-            title="Imprimer une carte"
+            title={t("title")}
             size="large"
             onConfirm={handleConfirm}
-            confirmText="Imprimer la carte"
+            confirmText={t("validate")}
             className="fr-modal--export-map"
         >
             <div className="export-map-page">
                 <div className="export-map-form">
-                    <p className="export-map-section-label">Mise en Page</p>
+                    <p className="export-map-section-label">{t("layout")}</p>
                     <div className="export-map-orientation">
                         {(["portrait", "landscape"] as PAGE_ORIENTATION[]).map((o) => (
                             <button
@@ -98,7 +101,7 @@ const ExportMapModal: React.FC = () => {
                                 onClick={() => setOrientation(o)}
                             >
                                 <span className={`orientation-icon ${o}-icon`} />
-                                {o === "portrait" ? "Portrait" : "Paysage"}
+                                {o === "portrait" ? t("portrait") : t("landscape")}
                             </button>
                         ))}
                     </div>
@@ -108,24 +111,24 @@ const ExportMapModal: React.FC = () => {
                             <option key={s}>{s}</option>
                         ))}
                     </Select>
-                    <Select label="Marge" nativeSelectProps={{ value: String(margin), onChange: (e) => setMargin(Number(e.target.value)) }}>
+                    <Select label={t("margin")} nativeSelectProps={{ value: String(margin), onChange: (e) => setMargin(Number(e.target.value)) }}>
                         {MARGIN_OPTIONS.map((o) => (
                             <option key={o.value} value={o.value}>
-                                {o.label}
+                                {t(o.translation_key)}
                             </option>
                         ))}
                     </Select>
                     <div className="export-map-divider" />
-                    <Input label="Titre de la carte" disabled={!hasTitle} nativeInputProps={{ value: title, onChange: (e) => setTitle(e.target.value) }} />
+                    <Input label={t("title_input")} disabled={!hasTitle} nativeInputProps={{ value: title, onChange: (e) => setTitle(e.target.value) }} />
                     <Checkbox
                         options={[
-                            { label: "Désactiver le titre", nativeInputProps: { checked: !hasTitle, onChange: () => setHasTitle((v) => !v) } },
-                            { label: "Désactiver l'échelle", nativeInputProps: { checked: !hasScale, onChange: () => setHasScale((v) => !v) } },
+                            { label: t("hide_title"), nativeInputProps: { checked: !hasTitle, onChange: () => setHasTitle((v) => !v) } },
+                            { label: t("hide_scale"), nativeInputProps: { checked: !hasScale, onChange: () => setHasScale((v) => !v) } },
                         ]}
                     />
                     <div className="export-map-divider" />
                     <Select
-                        label="Format d'export"
+                        label={t("export_format")}
                         nativeSelectProps={{
                             value: format,
                             onChange: (e) => setFormat(e.target.value as EXPORT_FORMAT),
