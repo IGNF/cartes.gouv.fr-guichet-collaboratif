@@ -7,19 +7,19 @@ import Checkbox from "@codegouvfr/react-dsfr/Checkbox";
 import { useIsModalOpen } from "@codegouvfr/react-dsfr/Modal/useIsModalOpen";
 import OlMap from "ol/Map";
 import { ScaleLine } from "ol/control";
-import { createPreviewMap, exportMap, MARGIN_OPTIONS, ExportSizeOption, PAPER_RATIO, type PageOrientation, type ExportFormat } from "./exportMapUtils";
+import { createPreviewMap, exportMap, MARGIN_OPTIONS, EXPORT_SIZE_OPTIONS, PAPER_RATIO, type PAGE_ORIENTATION, type EXPORT_FORMAT } from "./exportMapUtils";
 
 const ExportMapModal: React.FC = () => {
     const { map, setClickedControl } = useMapStore();
     const { exportMapModal } = useModalStore();
 
-    const [orientation, setOrientation] = useState<PageOrientation>("portrait");
+    const [orientation, setOrientation] = useState<PAGE_ORIENTATION>("portrait");
     const [dimensions, setDimensions] = useState("A4");
     const [margin, setMargin] = useState(5);
     const [title, setTitle] = useState("Ma carte");
     const [hasTitle, setHasTitle] = useState(true);
     const [hasScale, setHasScale] = useState(true);
-    const [format, setFormat] = useState<ExportFormat>("PNG");
+    const [format, setFormat] = useState<EXPORT_FORMAT>("PNG");
 
     const previewRef = useRef<HTMLDivElement>(null);
     const previewMapRef = useRef<OlMap | null>(null);
@@ -90,7 +90,7 @@ const ExportMapModal: React.FC = () => {
                 <div className="export-map-form">
                     <p className="export-map-section-label">Mise en Page</p>
                     <div className="export-map-orientation">
-                        {(["portrait", "landscape"] as PageOrientation[]).map((o) => (
+                        {(["portrait", "landscape"] as PAGE_ORIENTATION[]).map((o) => (
                             <button
                                 key={o}
                                 type="button"
@@ -104,7 +104,7 @@ const ExportMapModal: React.FC = () => {
                     </div>
                     <div className="export-map-divider" />
                     <Select label="Dimensions" nativeSelectProps={{ value: dimensions, onChange: (e) => setDimensions(e.target.value) }}>
-                        {ExportSizeOption.map((s) => (
+                        {EXPORT_SIZE_OPTIONS.map((s) => (
                             <option key={s}>{s}</option>
                         ))}
                     </Select>
@@ -124,8 +124,14 @@ const ExportMapModal: React.FC = () => {
                         ]}
                     />
                     <div className="export-map-divider" />
-                    <Select label="Format d'export" nativeSelectProps={{ value: format, onChange: (e) => setFormat(e.target.value as ExportFormat) }}>
-                        {(["PNG", "JPEG", "PDF"] as ExportFormat[]).map((f) => (
+                    <Select
+                        label="Format d'export"
+                        nativeSelectProps={{
+                            value: format,
+                            onChange: (e) => setFormat(e.target.value as EXPORT_FORMAT),
+                        }}
+                    >
+                        {(["PNG", "JPEG", "PDF"] as EXPORT_FORMAT[]).map((f) => (
                             <option key={f}>{f}</option>
                         ))}
                     </Select>
