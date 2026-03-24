@@ -9,6 +9,8 @@ import { changeFeatureTypeStyle } from "@/constants/utils";
 import { useTranslation } from "@/i18n";
 import { LAYER_FEATURE_TYPE } from "@/constants";
 import WebGLVectorLayer from "ol/layer/WebGLVector";
+import { FeatureTypeStyleItem } from "@/constants/communities/types";
+import { POLYGON_LINE_COLOR } from "@/constants/colors";
 
 const FeatureTypeLayerLegends = () => {
     const { communityLayers } = useCommunityStore();
@@ -51,6 +53,45 @@ const FeatureTypeLayerLegends = () => {
         if (closeButton) closeButton.click();
     };
 
+    const createLineSVG = (type: FeatureTypeStyleItem): string => {
+        const ns = "http://www.w3.org/2000/svg";
+        const svg = document.createElementNS(ns, "svg");
+        svg.setAttribute("width", "50");
+        svg.setAttribute("height", "12");
+
+        const line = document.createElementNS(ns, "line");
+        line.setAttribute("x1", "0");
+        line.setAttribute("y1", "6");
+        line.setAttribute("x2", "50");
+        line.setAttribute("y2", "6");
+        line.setAttribute("stroke", type.strokeColor ?? POLYGON_LINE_COLOR);
+        line.setAttribute("stroke-width", String(type.strokeWidth ?? 2));
+        line.setAttribute("stroke-opacity", String(type.strokeOpacity ?? 1));
+        svg.appendChild(line);
+
+        return `data:image/svg+xml;base64,${btoa(new XMLSerializer().serializeToString(svg))}`;
+    };
+
+    const createPolygonSVG = (type: FeatureTypeStyleItem): string => {
+        const ns = "http://www.w3.org/2000/svg";
+        const svg = document.createElementNS(ns, "svg");
+        svg.setAttribute("width", "50");
+        svg.setAttribute("height", "50");
+
+        const rect = document.createElementNS(ns, "rect");
+        rect.setAttribute("x", "1");
+        rect.setAttribute("y", "1");
+        rect.setAttribute("width", "48");
+        rect.setAttribute("height", "48");
+        rect.setAttribute("fill", type.fillColor ?? "none");
+        rect.setAttribute("fill-opacity", String(type.fillOpacity ?? 0.4));
+        rect.setAttribute("stroke", type.strokeColor ?? POLYGON_LINE_COLOR);
+        rect.setAttribute("stroke-width", String(type.strokeWidth ?? 2));
+        svg.appendChild(rect);
+
+        return `data:image/svg+xml;base64,${btoa(new XMLSerializer().serializeToString(svg))}`;
+    };
+
     return (
         <div className="feature-type-legends">
             <Select
@@ -75,11 +116,14 @@ const FeatureTypeLayerLegends = () => {
                 {currentStyle?.types?.map((type, index) => {
                     let imgSrc = type.logo;
                     let imgWidth = 50;
-                    if (!imgSrc) {
+                    if (type.featureType === "line") {
+                        imgSrc = createLineSVG(type);
+                    } else if (type.featureType === "polygon") {
+                        imgSrc = createPolygonSVG(type);
+                    } else {
                         imgSrc = (getWellKnownNames(type)[1] as HTMLImageElement).src;
                         if (type.pointRadius) imgWidth = type.pointRadius * 2;
                     }
-
                     return (
                         <div key={`feature_type_${index}`}>
                             <div className="feature-type-image">

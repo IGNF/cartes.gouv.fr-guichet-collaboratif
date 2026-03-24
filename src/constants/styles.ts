@@ -473,9 +473,15 @@ export const getStyleWebGLDefault: (newStyle?: FeatureTypeStyleItem | undefined)
     const hasStrokeColor = newStyle?.strokeColor && newStyle.strokeColor.trim() !== "";
     const hasFillColor = newStyle?.fillColor && newStyle.fillColor.trim() !== "";
 
-    const strokeColor = hasStrokeColor ? hexToRgba(newStyle!.strokeColor, newStyle!.strokeOpacity) : POLYGON_LINE_COLOR;
+    const isRgba = (color: string) => /^rgba?\(/.test(color.trim());
 
-    const fillColor = hasFillColor ? hexToRgba(newStyle!.fillColor, newStyle!.fillOpacity) : FILL_COLOR;
+    const strokeColor = hasStrokeColor
+        ? isRgba(newStyle!.strokeColor!)
+            ? newStyle!.strokeColor!
+            : hexToRgba(newStyle!.strokeColor, newStyle!.strokeOpacity)
+        : POLYGON_LINE_COLOR;
+
+    const fillColor = hasFillColor ? (isRgba(newStyle!.fillColor!) ? newStyle!.fillColor! : hexToRgba(newStyle!.fillColor, newStyle!.fillOpacity)) : FILL_COLOR;
 
     return {
         "stroke-color": strokeColor,
