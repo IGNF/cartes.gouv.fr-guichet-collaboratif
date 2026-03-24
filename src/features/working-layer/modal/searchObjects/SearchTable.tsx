@@ -18,6 +18,8 @@ import WebGLVectorLayer from "ol/layer/WebGLVector";
 import VectorSource from "ol/source/Vector";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+const PAGE_SIZE = 10;
+
 interface Props {
     geoservice: CommunityGeoservice;
 }
@@ -177,8 +179,8 @@ const SearchTable: React.FC<Props> = ({ geoservice }) => {
     );
 
     useEffect(() => {
-        if (page !== 0) setPage(1);
-    }, [searchResult, page, setPage]);
+        setPage(1);
+    }, [searchResult]);
 
     const handleDeleteObject = useCallback(
         (item: SearchResultItem) => {
@@ -268,9 +270,9 @@ const SearchTable: React.FC<Props> = ({ geoservice }) => {
     );
 
     const totalItems = searchResult.length;
-    const totalPages = Math.ceil(totalItems / 20);
+    const totalPages = Math.ceil(totalItems / PAGE_SIZE);
 
-    const currentPageItems = sortedSearchResult.slice((page - 1) * 20, (page - 1) * 20 + 20);
+    const currentPageItems = sortedSearchResult.slice((page - 1) * PAGE_SIZE, (page - 1) * PAGE_SIZE + PAGE_SIZE);
 
     return (
         <>
@@ -378,7 +380,7 @@ const SearchTable: React.FC<Props> = ({ geoservice }) => {
                     </div>
                 </>
             )}
-            {totalItems > 20 && (
+            {totalItems > PAGE_SIZE && (
                 <Pagination
                     key={page}
                     count={totalPages}
