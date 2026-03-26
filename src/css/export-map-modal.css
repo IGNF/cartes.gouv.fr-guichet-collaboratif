@@ -29,28 +29,26 @@
     color: var(--text-label-grey);
 }
 
-.fr-modal--export-map .export-map-form {
-    .fr-select-group,
-    .fr-input-group,
-    .fr-checkbox-group {
-        margin-bottom: 0.3rem;
-    }
+.fr-modal--export-map .export-map-form .fr-select-group,
+.fr-modal--export-map .export-map-form .fr-input-group,
+.fr-modal--export-map .export-map-form .fr-checkbox-group {
+    margin-bottom: 0.3rem;
+}
 
-    .fr-label {
-        margin-bottom: 0.3rem;
-        font-size: 0.9rem;
-    }
+.fr-modal--export-map .export-map-form .fr-label {
+    margin-bottom: 0.3rem;
+    font-size: 0.9rem;
+}
 
-    .fr-select,
-    .fr-input {
-        min-height: 2rem;
-        padding-top: 0.1rem;
-        padding-bottom: 0.1rem;
-    }
+.fr-modal--export-map .export-map-form .fr-select,
+.fr-modal--export-map .export-map-form .fr-input {
+    min-height: 2rem;
+    padding-top: 0.1rem;
+    padding-bottom: 0.1rem;
+}
 
-    .fr-checkbox-group {
-        row-gap: 0.15rem;
-    }
+.fr-modal--export-map .export-map-form .fr-checkbox-group {
+    row-gap: 0.15rem;
 }
 
 .export-map-orientation {

@@ -6,7 +6,6 @@ import VectorLayer from "ol/layer/Vector";
 import WebGLVectorLayer from "ol/layer/WebGLVector";
 import LayerGroup from "ol/layer/Group";
 import ImageLayer from "ol/layer/Image";
-import type { FlatStyleLike } from "ol/style/flat";
 import { jsPDF } from "jspdf";
 
 export type PAGE_ORIENTATION = "portrait" | "landscape";
@@ -67,6 +66,11 @@ const FILE_EXT: Record<Exclude<EXPORT_FORMAT, "PDF">, string> = {
     JPEG: ".jpeg",
 };
 
+const checkedFilename = (filename: string): string => {
+    const sanitized = filename.replace(/[/\\:*?"<>|]/g, "").trim();
+    return sanitized || "export";
+};
+
 const getPaperMm = (dimensions: string, orientation: PAGE_ORIENTATION): [number, number] => {
     const [pw, ph] = PAPER_SIZES_MM[dimensions] ?? PAPER_SIZES_MM[FALLBACK_SIZE];
     return orientation === "landscape" ? [ph, pw] : [pw, ph];
@@ -103,7 +107,7 @@ const cloneSingleLayer = (layer: import("ol/layer/Base").default) => {
             return new WebGLVectorLayer({
                 ...p,
                 source: (layer as WebGLVectorLayer).getSource() ?? undefined,
-                style: (layer as unknown as { style_: FlatStyleLike }).style_,
+                style: (layer as WebGLVectorLayer).get("style") ?? undefined,
             });
         if (layer instanceof VectorLayer) return new VectorLayer({ ...p, source: layer.getSource() ?? undefined, style: layer.getStyle() ?? undefined });
         if (layer instanceof ImageLayer) return new ImageLayer({ ...p, source: layer.getSource() ?? undefined });
@@ -252,13 +256,17 @@ const saveAsPdf = (canvas: HTMLCanvasElement, dimensions: string, orientation: P
     const [dw, dh] = [doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight()];
     const s = Math.min(dw / wMm, dh / hMm);
     doc.addImage(canvas.toDataURL("image/jpeg", PDF_JPEG_QUALITY), "JPEG", (dw - wMm * s) / 2, (dh - hMm * s) / 2, wMm * s, hMm * s);
-    doc.save(`${title}.pdf`);
+    doc.save(`${checkedFilename(title)}.pdf`);
 };
 
 const saveAsImage = (canvas: HTMLCanvasElement, format: Exclude<EXPORT_FORMAT, "PDF">, title: string) => {
     const a = document.createElement("a");
-    a.download = title + FILE_EXT[format];
-    a.href = canvas.toDataURL(MIME_TYPE[format], format === "JPEG" ? 0.98 : undefined);
+    a.download = checkedFilename(title) + FILE_EXT[format];
+    try {
+        a.href = canvas.toDataURL(MIME_TYPE[format], format === "JPEG" ? 0.98 : undefined);
+    } catch {
+        return null;
+    }
     a.click();
 };
 

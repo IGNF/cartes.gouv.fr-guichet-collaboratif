@@ -31,7 +31,7 @@ export const ExportMapModalEnTranslations: Translations<"en">["ExportMapModal"] 
     margin: "Margin",
     margin_small: "No margin - 0mm",
     margin_medium: "Small margin - 5mm",
-    margin_big: "Average Margin- 10mm",
+    margin_big: "Average Margin - 10mm",
     default_title: "My map",
 };
 

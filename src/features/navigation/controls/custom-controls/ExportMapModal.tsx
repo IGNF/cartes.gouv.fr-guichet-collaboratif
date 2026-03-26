@@ -98,6 +98,7 @@ const ExportMapModal: React.FC = () => {
                                 key={o}
                                 type="button"
                                 className={`export-map-orientation-btn${orientation === o ? " active" : ""}`}
+                                aria-pressed={orientation === o}
                                 onClick={() => setOrientation(o)}
                             >
                                 <span className={`orientation-icon ${o}-icon`} />
@@ -105,7 +106,6 @@ const ExportMapModal: React.FC = () => {
                             </button>
                         ))}
                     </div>
-                    <div className="export-map-divider" />
                     <Select label="Dimensions" nativeSelectProps={{ value: dimensions, onChange: (e) => setDimensions(e.target.value) }}>
                         {EXPORT_SIZE_OPTIONS.map((s) => (
                             <option key={s}>{s}</option>
@@ -118,7 +118,6 @@ const ExportMapModal: React.FC = () => {
                             </option>
                         ))}
                     </Select>
-                    <div className="export-map-divider" />
                     <Input label={t("title_input")} disabled={!hasTitle} nativeInputProps={{ value: title, onChange: (e) => setTitle(e.target.value) }} />
                     <Checkbox
                         options={[
@@ -126,7 +125,6 @@ const ExportMapModal: React.FC = () => {
                             { label: t("hide_scale"), nativeInputProps: { checked: !hasScale, onChange: () => setHasScale((v) => !v) } },
                         ]}
                     />
-                    <div className="export-map-divider" />
                     <Select
                         label={t("export_format")}
                         nativeSelectProps={{
