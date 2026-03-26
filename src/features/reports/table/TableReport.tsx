@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "@/i18n";
 import VectorSource from "ol/source/Vector";
-import { getCommunityReportById, getAllReportsForExport } from "@/api/reportsData";
+import { getCommunityReportById, getAllReportsForExport, getTableReports } from "@/api/reportsData";
 import { useReportStore, useModalStore, useMapStore, useLocalStorageStore } from "@/store";
 import { useCommunityStore } from "@/store/useCommunityStore";
 import { handleShowOnMap, STATUS_NOT_ALLOWED } from "@/constants/utils";
@@ -20,7 +20,6 @@ import { SelectComponent } from "@/components/FilterAndSortReport";
 import PaginationReport from "./PaginationReport";
 import ConfirmDeleteReportModal from "../forms/ConfirmDeleteReportModal";
 import CreateTableData from "./CreateTableData";
-import { getTableReports } from "@/api/reportsData";
 
 type FilterHeaderKey =
     | "x"
@@ -102,7 +101,7 @@ const TableReport = () => {
 
     useEffect(() => {
         if (isErrorReport) addAlertMessage(StatusMessage.error, t("error"), 3000);
-    }, [isErrorReport, addAlertMessage]);
+    }, [isErrorReport, addAlertMessage, t]);
 
     useEffect(() => {
         if (reports) {
@@ -176,7 +175,7 @@ const TableReport = () => {
             const linesToExport = hasSelection
                 ? tableData.filter((line) => !!isChecked[String(line.id)])
                 : CreateTableData(
-                      await getAllReportsForExport(community.id, filters, searchReport, sortBy),
+                      applyFiltersToReports(await getAllReportsForExport(community.id, filters, searchReport, sortBy), currentFilters, searchReport),
                       isChecked,
                       onCheckChange,
                       onShowReportOnMap,
