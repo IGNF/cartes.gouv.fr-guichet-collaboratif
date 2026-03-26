@@ -87,6 +87,7 @@ const FeatureTypeLayerLegends = () => {
         rect.setAttribute("fill-opacity", String(type.fillOpacity ?? 0.4));
         rect.setAttribute("stroke", type.strokeColor ?? POLYGON_LINE_COLOR);
         rect.setAttribute("stroke-width", String(type.strokeWidth ?? 2));
+        rect.setAttribute("stroke-opacity", String(type.strokeOpacity ?? 1));
         svg.appendChild(rect);
 
         return `data:image/svg+xml;base64,${btoa(new XMLSerializer().serializeToString(svg))}`;
