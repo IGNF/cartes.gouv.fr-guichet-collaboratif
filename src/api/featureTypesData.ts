@@ -1,13 +1,14 @@
 import { CommunityGeoservice, FeatureTypeColumn, FeatureTypeIds, FeatureTypeStyleItemData, GeoserviceFeatureTypeProp } from "@/constants/communities/types";
-import { API_URL, DATABASE_API_URL } from "@/constants/urls";
-import { axiosApi } from ".";
+import { DATABASE_API_URL } from "@/constants/urls";
+import { getAxiosApi } from ".";
 import { featureDefaultStyle } from "@/constants/styles";
 import { transformExtent } from "ol/proj";
 import { QueryClient } from "@tanstack/react-query";
 import { Extent } from "ol/extent";
 
-export function getFeatureTypeById(featureTypesId: FeatureTypeIds) {
-    return axiosApi.get(`${DATABASE_API_URL}/${featureTypesId.database}/tables/${featureTypesId.table}`);
+export async function getFeatureTypeById(featureTypesId: FeatureTypeIds) {
+    const api = await getAxiosApi();
+    return api.get(`${DATABASE_API_URL}/${featureTypesId.database}/tables/${featureTypesId.table}`);
 }
 
 export async function getFeatureTypesAll(featureTypesIds: FeatureTypeIds[]): Promise<CommunityGeoservice[]> {
@@ -36,7 +37,7 @@ export async function getFeatureTypesAll(featureTypesIds: FeatureTypeIds[]): Pro
                 title: res.data.title,
                 type: "WFS",
                 version: res.data.version || 0,
-                url: res.data.wfs.replace("https://espacecollaboratif.ign.fr/gcms/api", `${API_URL}/espaceco`),
+                url: res.data.wfs,
                 layer: res.data.name,
                 format: "JSON",
                 extent: res.data.map_extent || "",
@@ -74,7 +75,7 @@ export async function getFeatureTypesAll(featureTypesIds: FeatureTypeIds[]): Pro
 
             if (styles.length) {
                 data.styles = styles.map((style: FeatureTypeStyleItemData) => {
-                    let logoURI = style?.uri ? style.uri?.replace("https://espacecollaboratif.ign.fr/gcms", `${API_URL}/espaceco`) : "";
+                    let logoURI = style?.uri;
                     if (logoURI) {
                         logoURI = logoURI + `${logoURI?.includes("?") ? "&" : "?"}width=50&height=50`;
                     }
@@ -107,7 +108,7 @@ export async function getFeatureTypesAll(featureTypesIds: FeatureTypeIds[]): Pro
                                 directionField: directionField,
                             },
                             ...(style?.children?.map((type: FeatureTypeStyleItemData) => {
-                                let logoURItype = type?.uri ? type.uri?.replace("https://espacecollaboratif.ign.fr/gcms", `${API_URL}/espaceco`) : "";
+                                let logoURItype = type?.uri;
                                 if (logoURItype) {
                                     logoURItype = logoURItype + `${logoURItype?.includes("?") ? "&" : "?"}width=50&height=50`;
                                 }
@@ -178,12 +179,9 @@ export const searchFilteredObjects = async (
     const data = await queryClient.fetchQuery({
         queryKey: [queryKey],
         queryFn: async () => {
-            return await fetch(wfsUrl, { headers: { "X-Requested-With": "XMLHttpRequest" } })
-                .then((response) => response.json())
-
-                .catch(() => {
-                    throw Error;
-                });
+            const api = await getAxiosApi();
+            const { data } = await api.get(wfsUrl);
+            return data;
         },
         retry: 1,
     });
@@ -228,8 +226,9 @@ export const getWMSFeatureInfo = async (
 
     const featureInfoUrl = url + bboxParam + pixelParam;
 
-    const response = await fetch(featureInfoUrl, { headers: { "X-Requested-With": "XMLHttpRequest" } });
-    return await response.text();
+    const api = await getAxiosApi();
+    const response = await api.get(featureInfoUrl);
+    return response.data;
 };
 
 export const getWMTSFeatureInfo = async (
@@ -254,6 +253,9 @@ export const getWMTSFeatureInfo = async (
         `&I=${Math.floor(pixelCoord[0])}` +
         `&J=${Math.floor(pixelCoord[1])}`;
 
-    const response = await fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } });
-    return await response.text();
+    const api = await getAxiosApi();
+    const { data } = await api.get(url, { responseType: "text" });
+    console.info(data);
+
+    return data;
 };

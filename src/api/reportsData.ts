@@ -7,7 +7,7 @@ import { useCommunityStore } from "@/store/useCommunityStore";
 import { useUserStore } from "@/store/useUserStore";
 import { useReportStore } from "@/store/useReportStore";
 import { CommunityReport, FilterState, PostReport, reportData, SketchReport, StatusKey, Reply } from "@/constants/reports/types";
-import { axiosApi } from ".";
+import { getAxiosApi } from ".";
 
 export const isDigital = (value: string): boolean => {
     const regex = /^[1-9]\d*$/;
@@ -78,7 +78,8 @@ export async function getTableReports(
     if (sortBy) {
         url += `&sort=${encodeURIComponent(sortBy)}`;
     }
-    const res = await axiosApi.get(url);
+    const api = await getAxiosApi();
+    const res = await api.get(url);
     const contentRange = res.headers["content-range"];
 
     const { total, currentPage: parsedCurrentPage } = parseContentRange(contentRange);
@@ -97,10 +98,11 @@ export async function postReportsReply(reportsIds: number | number[], body: Repl
     try {
         const idsArray = Array.isArray(reportsIds) ? reportsIds : [reportsIds];
 
+        const api = await getAxiosApi();
         const results = await Promise.all(
             idsArray.map(async (reportId) => {
                 const urlReply = `${REPORTS_API_URL}/${reportId}/replies`;
-                const response = await axiosApi.post(urlReply, body, {
+                const response = await api.post(urlReply, body, {
                     headers: {
                         "Content-Type": "application/json",
                         Accept: "application/json",
@@ -117,8 +119,9 @@ export async function postReportsReply(reportsIds: number | number[], body: Repl
 }
 
 export async function getCommunityThemes(communityId: number): Promise<string[]> {
+    const api = await getAxiosApi();
     const url = `${REPORTS_API_URL}?communities=${communityId}&fields=attributes`;
-    const res = await axiosApi.get(url);
+    const res = await api.get(url);
 
     const reports: Array<{ attributes: Array<{ theme: string }> }> = res.data ?? [];
 
@@ -133,8 +136,9 @@ export async function getCommunityReports(communityId: number, extent: Extent): 
     const boxExtent = transformExtent(extent, "EPSG:3857", "EPSG:4326");
     if (!isFinite(boxExtent[0]) || isEmpty(boxExtent)) return null;
     const limit = 100;
+    const api = await getAxiosApi();
     const data = [];
-    const res = await axiosApi.get(`${REPORTS_API_URL}?communities=${communityId}` + `&limit=${limit}` + `&box=${boxExtent}`);
+    const res = await api.get(`${REPORTS_API_URL}?communities=${communityId}` + `&limit=${limit}` + `&box=${boxExtent}`);
     if (!res.data || (res.status !== 200 && res.status !== 206)) return null;
 
     data.push(...res.data);
@@ -144,7 +148,7 @@ export async function getCommunityReports(communityId: number, extent: Extent): 
     if (pages.length > 0) {
         const resAll = await Promise.all(
             pages.map((page) =>
-                axiosApi.get(
+                api.get(
                     `${REPORTS_API_URL}?communities=${communityId}` +
                         `&limit=${limit}` +
                         `&page=${page}` +
@@ -184,7 +188,8 @@ export async function getCommunityReports(communityId: number, extent: Extent): 
 }
 
 export async function getCommunityReportById(reportId: number): Promise<CommunityReport | null> {
-    const res = await axiosApi.get(`${REPORTS_API_URL}/${reportId}`);
+    const api = await getAxiosApi();
+    const res = await api.get(`${REPORTS_API_URL}/${reportId}`);
 
     if (!res.data || res.status !== 200) return null;
     const report: reportData = res.data;
@@ -211,7 +216,8 @@ export async function getCommunityReportById(reportId: number): Promise<Communit
 }
 
 export async function postCommunityReport(report: PostReport): Promise<CommunityReport | null> {
-    const res = await axiosApi.post(`${REPORTS_API_URL}`, report);
+    const api = await getAxiosApi();
+    const res = await api.post(`${REPORTS_API_URL}`, report);
 
     if (!res.data || res.status !== 200) return null;
 
@@ -239,7 +245,8 @@ export async function postCommunityReport(report: PostReport): Promise<Community
 }
 
 export async function updateCommunityReport(report: PostReport, reportId: number): Promise<CommunityReport | null> {
-    const res = await axiosApi.patch(`${REPORTS_API_URL}/${reportId}`, report);
+    const api = await getAxiosApi();
+    const res = await api.patch(`${REPORTS_API_URL}/${reportId}`, report);
 
     if (!res.data || res.status !== 200) return null;
 
@@ -266,7 +273,8 @@ export async function updateCommunityReport(report: PostReport, reportId: number
 }
 
 export async function deleteCommunityReportAPI(report: CommunityReport): Promise<boolean> {
-    const res = await axiosApi.delete(`${REPORTS_API_URL}/${report.id}`);
+    const api = await getAxiosApi();
+    const res = await api.delete(`${REPORTS_API_URL}/${report.id}`);
 
     if (res.status !== 204) return false;
 

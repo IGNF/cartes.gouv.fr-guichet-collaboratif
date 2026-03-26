@@ -1,4 +1,5 @@
 import { defineConfig, loadEnv } from "vite";
+import { oidcSpa } from "oidc-spa/vite-plugin";
 import tsconfigPaths from "vite-tsconfig-paths";
 import { join, resolve } from "path";
 import react from "@vitejs/plugin-react-swc";
@@ -9,7 +10,16 @@ export default defineConfig((mode) => {
     const BASE_URL = env.VITE_BASE_URL || "";
     const FRONT_URL = env.VITE_FRONT_URL || "";
     return {
-        plugins: [react(), tsconfigPaths()],
+        plugins: [
+            react(),
+            tsconfigPaths(),
+            oidcSpa({
+                // See: https://docs.oidc-spa.dev/v/v10/security-features/browser-runtime-freeze
+                browserRuntimeFreeze: {
+                    enabled: true,
+                },
+            }),
+        ],
         inlineConfig: {
             envFile: "/",
         },

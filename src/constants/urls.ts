@@ -1,7 +1,7 @@
 export const BASE_URL = import.meta.env.VITE_BASE_URL;
 export const FRONT_URL = import.meta.env.VITE_FRONT_URL;
 export const SERVER_URL = import.meta.env.VITE_SERVER_URL;
-export const API_URL = BASE_URL + "/api";
+export const API_URL = SERVER_URL + "/gcms/api";
 
 const FRONT_BASE_URL = BASE_URL + FRONT_URL;
 
@@ -12,15 +12,14 @@ export const PAGE_404_URL = FRONT_BASE_URL + "/page-404";
 export const LIST_COMMUNITIES_URL = SERVER_URL + "/front-office";
 export const DOWNLOAD_DOCUMENT_URL = SERVER_URL + "/document/download";
 
-export const LOGIN_URL = BASE_URL + "/login";
-export const LOGOUT_URL = BASE_URL + "/logout?app=guichet-collaboratif";
-
-export const USER_PROFILE_API_URL = API_URL + "/espaceco/user/me";
+export const USER_PROFILE_API_URL = API_URL + "/users/me";
 export const USERS_API_URL = API_URL + "/users";
-export const COMMUNITIES_API_URL = API_URL + "/espaceco/community";
-export const GEOSERVICES_API_URL = API_URL + "/espaceco/geoservice";
-export const DATABASE_API_URL = API_URL + "/espaceco/databases";
-export const GRIDS_API_URL = API_URL + "/espaceco/grids";
+export const COMMUNITIES_API_URL = API_URL + "/communities";
+export const GEOSERVICES_API_URL = API_URL + "/geoservices";
+export const DATABASE_API_URL = API_URL + "/databases";
+export const GRIDS_API_URL = API_URL + "/grids";
 
-export const REPORTS_API_URL = API_URL + "/espaceco/reports";
-export const REPORTS_WFS_API_URL = API_URL + "/espaceco/reports/wfs";
+export const REPORTS_API_URL = API_URL + "/reports";
+export const REPORTS_WFS_API_URL = API_URL + "/reports/wfs";
+
+export const CARTESGOUV_DISCOVER = BASE_URL + "/decouvrir";
