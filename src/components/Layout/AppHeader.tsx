@@ -40,14 +40,14 @@ const AppHeader: React.FC = () => {
                         },
                         text: user.name,
                     },
-                    {
+                    isUserLoggedIn && {
                         iconId: "fr-icon-logout-box-r-line",
                         buttonProps: {
                             onClick: () => {
-                                if (isUserLoggedIn) logout({ redirectTo: "specific url", url: CARTESGOUV_DISCOVER });
+                                logout({ redirectTo: "specific url", url: CARTESGOUV_DISCOVER });
                             },
                         },
-                        text: isUserLoggedIn ? t("logout") : t("login"),
+                        text: t("logout"),
                     },
                     <LanguageSelect />,
                 ]}

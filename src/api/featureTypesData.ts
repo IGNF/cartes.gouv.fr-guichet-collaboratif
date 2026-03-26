@@ -255,7 +255,6 @@ export const getWMTSFeatureInfo = async (
 
     const api = await getAxiosApi();
     const { data } = await api.get(url, { responseType: "text" });
-    console.info(data);
 
     return data;
 };

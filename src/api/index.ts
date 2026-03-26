@@ -1,5 +1,5 @@
 import { getOidc } from "@/oidc";
-import axios, { AxiosInstance } from "axios";
+import axios, { AxiosInstance, AxiosRequestHeaders } from "axios";
 
 async function createAxiosApi() {
     const oidc = await getOidc();
@@ -9,6 +9,9 @@ async function createAxiosApi() {
     instance.interceptors.request.use(async (config) => {
         if (oidc.isUserLoggedIn) {
             const accessToken = await oidc.getAccessToken();
+            if (!config.headers) {
+                config.headers = {} as AxiosRequestHeaders;
+            }
             config.headers.Authorization = `Bearer ${accessToken}`;
         }
         return config;
