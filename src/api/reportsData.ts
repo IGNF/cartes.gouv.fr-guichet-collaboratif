@@ -93,6 +93,28 @@ export async function getTableReports(
     };
 }
 
+const EXPORT_BATCH_SIZE = 100;
+
+export async function getAllReportsForExport(
+    communityId: number,
+    filters?: FilterState,
+    searchReport: string = "",
+    sortBy: string = ""
+): Promise<CommunityReport[]> {
+    const first = await getTableReports(communityId, undefined, 1, filters, searchReport, sortBy);
+    const firstData = Array.isArray(first.data) ? first.data : [];
+    const pageSize = firstData.length > 0 ? firstData.length : EXPORT_BATCH_SIZE;
+    const totalPages = Math.ceil(first.total / pageSize);
+
+    if (totalPages <= 1) return firstData;
+
+    const rest = await Promise.all(
+        Array.from({ length: totalPages - 1 }, (_, i) => getTableReports(communityId, undefined, i + 2, filters, searchReport, sortBy))
+    );
+
+    return [...firstData, ...rest.flatMap((page) => (Array.isArray(page.data) ? page.data : []))];
+}
+
 export async function postReportsReply(reportsIds: number | number[], body: Reply): Promise<Reply[] | null> {
     try {
         const idsArray = Array.isArray(reportsIds) ? reportsIds : [reportsIds];
