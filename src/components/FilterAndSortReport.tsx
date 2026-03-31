@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { StatusMessage } from "@/constants/communities/types";
-import { REPORT_STATUS_LIST } from "@/constants/utils";
+import { REPORT_STATUS_LIST, reportImgStatus } from "@/constants/utils";
 import { getCommunityThemes, getTableReports } from "@/api/reportsData";
 import { useCommunityStore, useReportStore } from "@/store";
 import Button from "@codegouvfr/react-dsfr/Button";
@@ -99,6 +99,8 @@ const FilterAndSortReport = () => {
 
     const reports = useMemo(() => data?.data ?? [], [data]);
     const statusOptions = useMemo(() => [...new Set(REPORT_STATUS_LIST)], []);
+    const statusLabels = useMemo(() => statusOptions.map((status) => reportImgStatus[status]?.text ?? status), [statusOptions]);
+
     const themeOptions = useMemo(() => [...new Set(themes)], [themes]);
     const sortOptions = [t("newToOld"), t("oldToNew")];
 
@@ -227,7 +229,7 @@ const FilterAndSortReport = () => {
                             label={t("status")}
                             value={statusIndex}
                             defaultOption={t("selectOption")}
-                            options={statusOptions}
+                            options={statusLabels}
                             onChange={setStatusIndex}
                         />
                         <SelectComponent

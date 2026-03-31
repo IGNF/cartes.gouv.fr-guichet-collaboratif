@@ -110,7 +110,7 @@ const TableReport = () => {
         if (isErrorReport) {
             addAlertMessage(StatusMessage.error, t("error"), 3000);
         }
-    }, [isErrorReport, addAlertMessage]);
+    }, [isErrorReport, addAlertMessage, t]);
 
     useEffect(() => {
         if (reports) {

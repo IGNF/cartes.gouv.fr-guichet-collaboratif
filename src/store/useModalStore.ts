@@ -16,6 +16,7 @@ interface ModalState {
     searchModal: ReturnType<typeof createModal>;
     confirmDeleteObjectSearchModal: ReturnType<typeof createModal>;
     confirmDeleteSavedSearchModal: ReturnType<typeof createModal>;
+    exportMapModal: ReturnType<typeof createModal>;
 }
 
 const modalConfigs = [
@@ -34,6 +35,7 @@ const modalConfigs = [
     { key: "searchModal", id: "search-modal" },
     { key: "confirmDeleteObjectSearchModal", id: "confirm-delete-object-search-modal" },
     { key: "confirmDeleteSavedSearchModal", id: "confirm-delete-saved-search-modal" },
+    { key: "exportMapModal", id: "export-map-modal" },
 ];
 
 const modals = modalConfigs.reduce((acc, { key, id }) => {
