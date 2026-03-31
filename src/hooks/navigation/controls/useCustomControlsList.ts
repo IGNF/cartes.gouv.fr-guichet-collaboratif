@@ -136,6 +136,15 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
                 enabled: !!communityEditableLayers?.length && !!community?.functionalities?.includes(CommunityLayerFunctionalityType.SPLIT),
                 interaction: InteractionType.SPLIT_LINE,
             },
+            {
+                id: 12,
+                title: t("export_image"),
+                target: "",
+                icon: "ri-printer-line",
+                disabled: false,
+                enabled: true,
+                interaction: InteractionType.EXPORT_IMAGE,
+            },
         ];
     }, [
         community,

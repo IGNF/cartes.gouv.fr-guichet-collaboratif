@@ -178,7 +178,7 @@ const SearchTable: React.FC<Props> = ({ geoservice }) => {
 
     useEffect(() => {
         if (page !== 0) setPage(1);
-    }, [searchResult, page, setPage]);
+    }, [searchResult, page]);
 
     const handleDeleteObject = useCallback(
         (item: SearchResultItem) => {
