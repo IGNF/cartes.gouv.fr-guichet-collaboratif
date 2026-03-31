@@ -14,6 +14,7 @@ import { CustomControlItem, InteractionType } from "@/constants/communities/type
 import { FEATURE_TYPE_SELECTED_PROPERTY } from "@/constants";
 import ConfirmMultipleDeselection from "./ConfirmMultipleDeselection";
 import SearchObjectsModal from "@/features/working-layer/modal/searchObjects/SearchObjectsModal";
+import ExportMapModal from "./ExportMapModal";
 
 let prevClickedControl: CustomControlItem | null = null;
 
@@ -147,6 +148,7 @@ const CustomControls = () => {
             <ConfirmCopyModal />
             <ConfirmMultipleDeselection onConfirm={() => onConfirm(prevClickedControl!)} />
             <SearchObjectsModal />
+            <ExportMapModal />
         </>
     );
 };

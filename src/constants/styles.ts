@@ -473,9 +473,34 @@ export const getStyleWebGLDefault: (newStyle?: FeatureTypeStyleItem | undefined)
     const hasStrokeColor = newStyle?.strokeColor && newStyle.strokeColor.trim() !== "";
     const hasFillColor = newStyle?.fillColor && newStyle.fillColor.trim() !== "";
 
-    const strokeColor = hasStrokeColor ? hexToRgba(newStyle!.strokeColor, newStyle!.strokeOpacity) : POLYGON_LINE_COLOR;
+    const checkRgba = (color: string, fallback: string): string => {
+        const trimmed = color.trim();
 
-    const fillColor = hasFillColor ? hexToRgba(newStyle!.fillColor, newStyle!.fillOpacity) : FILL_COLOR;
+        const RGB_RE = /^rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/i;
+        const RGBA_RE = /^rgba\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(0|1|0?\.\d+)\s*\)$/i;
+
+        const m = RGB_RE.exec(trimmed) ?? RGBA_RE.exec(trimmed);
+        if (!m) return fallback;
+
+        const [r, g, b] = [Number(m[1]), Number(m[2]), Number(m[3])];
+        if (r > 255 || g > 255 || b > 255) return fallback;
+
+        return trimmed;
+    };
+
+    const isRgba = (color: string) => /^rgba?\(/i.test(color.trim());
+
+    const strokeColor = hasStrokeColor
+        ? isRgba(newStyle!.strokeColor!)
+            ? checkRgba(newStyle!.strokeColor!, POLYGON_LINE_COLOR)
+            : hexToRgba(newStyle!.strokeColor, newStyle!.strokeOpacity)
+        : POLYGON_LINE_COLOR;
+
+    const fillColor = hasFillColor
+        ? isRgba(newStyle!.fillColor!)
+            ? checkRgba(newStyle!.fillColor!, FILL_COLOR)
+            : hexToRgba(newStyle!.fillColor, newStyle!.fillOpacity)
+        : FILL_COLOR;
 
     return {
         "stroke-color": strokeColor,

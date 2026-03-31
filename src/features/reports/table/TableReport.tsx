@@ -100,7 +100,9 @@ const TableReport = () => {
     const totalPages = Math.ceil(total / limitPerPage);
 
     useEffect(() => {
-        if (isErrorReport) addAlertMessage(StatusMessage.error, t("error"), 3000);
+        if (isErrorReport) {
+            addAlertMessage(StatusMessage.error, t("error"), 3000);
+        }
     }, [isErrorReport, addAlertMessage, t]);
 
     useEffect(() => {

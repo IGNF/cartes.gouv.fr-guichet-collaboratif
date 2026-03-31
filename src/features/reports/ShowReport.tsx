@@ -38,17 +38,20 @@ const ShowReport: React.FC<Props> = ({ handleCloseDrawer }) => {
     const { data: repliesData } = useGetReportReplies(reportId);
     const repliesRes = useMemo(() => repliesData?.replies ?? [], [repliesData]);
 
-    const handleToolClick = useCallback((tool: ReportTool | undefined) => {
-        if (!tool) return;
-        const toolButton = document.querySelector(`button[id*="${tool.name}"]`) as HTMLButtonElement | null;
-        if (toolButton) {
-            toolButton.click();
-            setClickedTool({
-                name: tool.name,
-                clicked: clickedTool?.name === tool.name ? !clickedTool.clicked : true,
-            });
-        }
-    }, []);
+    const handleToolClick = useCallback(
+        (tool: ReportTool | undefined) => {
+            if (!tool) return;
+            const toolButton = document.querySelector(`button[id*="${tool.name}"]`) as HTMLButtonElement | null;
+            if (toolButton) {
+                toolButton.click();
+                setClickedTool({
+                    name: tool.name,
+                    clicked: clickedTool?.name === tool.name ? !clickedTool.clicked : true,
+                });
+            }
+        },
+        [clickedTool, setClickedTool]
+    );
 
     const { deleteReport } = useDeleteReport({ handleCloseDrawer });
     if (!community || !selectedReport) return null;
