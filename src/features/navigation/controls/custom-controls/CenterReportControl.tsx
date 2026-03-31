@@ -24,24 +24,19 @@ const CenterReportControl = () => {
     const mainPointFeature = selectedFeatures?.find((f) => f.get("main"));
 
     const handleCenterToReport = useCallback(() => {
+        const mapView = map?.getView();
+        if (!mapView || !mainPointFeature) return;
+
         const geometry: GeometryFeatueParams = mainPointFeature?.getGeometry() as GeometryFeatueParams;
+        const extent = geometry?.getExtent();
 
-        const featureCenter = getCenter(geometry?.getExtent() || []);
-        map?.getView().setCenter(featureCenter);
-    }, [map, mainPointFeature]);
+        if (!extent || extent.length !== 4) return;
 
-    const handleReportToCenter = useCallback(() => {
-        const viewCenter = map?.getView().getCenter();
-
-        if (!viewCenter || !mainPointFeature) return;
-        const geometry: GeometryFeatueParams = mainPointFeature?.getGeometry() as GeometryFeatueParams;
-
-        const geomExtent = geometry?.getExtent() || [];
-        const geomCenter = getCenter(geomExtent);
-        const deltaX = viewCenter[0] - geomCenter[0];
-        const deltaY = viewCenter[1] - geomCenter[1];
-        geometry?.translate(deltaX, deltaY);
-        setCenter(viewCenter);
+        const featureCenter = getCenter(extent);
+        mapView.animate({
+            center: featureCenter,
+            duration: 450,
+        });
     }, [map, mainPointFeature]);
 
     const onCenterChange = useCallback(() => {
@@ -58,7 +53,7 @@ const CenterReportControl = () => {
             }
 
             if (!isNotified) {
-                addAlertMessage(StatusMessage.info, <CenterMessage onClick={handleReportToCenter} />);
+                addAlertMessage(StatusMessage.info, <CenterMessage onClick={handleCenterToReport} />);
             }
         } else {
             if (isNotified) {
@@ -68,7 +63,7 @@ const CenterReportControl = () => {
             setShowCenterReportButtons(false);
         }
         setCenter([]);
-    }, [map, mainPointFeature, alertMessages, addAlertMessage, removeAlertMessage, handleReportToCenter, setShowCenterReportButtons]);
+    }, [map, mainPointFeature, alertMessages, addAlertMessage, removeAlertMessage, handleCenterToReport, setShowCenterReportButtons]);
 
     useEffect(() => {
         if (debounced.length) {
@@ -112,14 +107,14 @@ const CenterReportControl = () => {
                 arrow
                 title={t("report_to_center_title")}
                 slots={{ transition: Fade }}
-                slotProps={{ tooltip: { onClick: handleReportToCenter } }}
+                slotProps={{ tooltip: { onClick: handleCenterToReport } }}
             >
                 <Button
                     iconId="ri-focus-line"
                     className="btn-show-drawer fr-icon--sm"
                     priority={"tertiary no outline"}
                     title=""
-                    onClick={handleReportToCenter}
+                    onClick={handleCenterToReport}
                 />
             </Tooltip>
         </div>
