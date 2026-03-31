@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { CSVLink } from "react-csv";
 import { useTranslation } from "@/i18n";
 import VectorSource from "ol/source/Vector";
-import { getCommunityReportById, getTableReports } from "@/api/reportsData";
+import { getCommunityReportById, getAllReportsForExport, getTableReports } from "@/api/reportsData";
 import { useReportStore, useModalStore, useMapStore, useLocalStorageStore } from "@/store";
 import { useCommunityStore } from "@/store/useCommunityStore";
 import { handleShowOnMap, STATUS_NOT_ALLOWED } from "@/constants/utils";
@@ -40,6 +39,7 @@ type FilterHeaderKey =
 
 const TableReport = () => {
     const [sortOrder, setSortOrder] = useState<"ASC" | "DESC" | undefined>(undefined);
+    const [isPreparingExport, setIsPreparingExport] = useState(false);
     const { t } = useTranslation({ GetReportsLayer });
     const { map } = useMapStore();
     const { localStorageData } = useLocalStorageStore();
@@ -68,8 +68,8 @@ const TableReport = () => {
     } = useReportStore();
 
     const selectedLineCount = getSelectedLineCount();
-
     const { replyReportModal, deleteReportModal } = useModalStore();
+
     const filters = useMemo(
         () => ({
             status: currentFilters.status,
@@ -81,30 +81,23 @@ const TableReport = () => {
         }),
         [currentFilters]
     );
+
     const {
         data,
         isLoading,
         error: isErrorReport,
     } = useQuery({
         queryKey: ["reports", community?.id, limitPerPage, currentPage, filters, searchReport, sortBy, sortOrder],
-        queryFn: () => {
-            return community
+        queryFn: () =>
+            community
                 ? getTableReports(community.id, limitPerPage, currentPage, filters, searchReport, sortBy)
-                : Promise.resolve({ data: [], total: 0, currentPage: 1 });
-        },
+                : Promise.resolve({ data: [], total: 0, currentPage: 1 }),
         enabled: !!community,
     });
 
     const reports = useMemo(() => (Array.isArray(data?.data) ? data.data : []), [data]);
     const total = data?.total ?? 10;
     const totalPages = Math.ceil(total / limitPerPage);
-    const { data: exportedData } = useQuery({
-        queryKey: ["reports-export", community?.id, filters, searchReport, sortBy],
-        queryFn: () => {
-            return community ? getTableReports(community.id, total, 1, filters, searchReport, sortBy) : Promise.resolve({ data: [], total: 0, currentPage: 1 });
-        },
-        enabled: !!community,
-    });
 
     useEffect(() => {
         if (isErrorReport) {
@@ -115,7 +108,6 @@ const TableReport = () => {
     useEffect(() => {
         if (reports) {
             const filtered = applyFiltersToReports(reports, currentFilters, searchReport);
-
             setFilteredReports(
                 filtered,
                 currentFilters.status !== "" ||
@@ -128,9 +120,7 @@ const TableReport = () => {
     }, [reports, currentFilters, searchReport, setFilteredReports, setIsChecked]);
 
     const onShowOnMap = useCallback(
-        (report: CommunityReport) => {
-            handleShowOnMap(report, map, clusterSource, localStorageData, t, reportTableWidth);
-        },
+        (report: CommunityReport) => handleShowOnMap(report, map, clusterSource, localStorageData, t, reportTableWidth),
         [map, clusterSource, localStorageData, t, reportTableWidth]
     );
 
@@ -138,42 +128,22 @@ const TableReport = () => {
         async (report: CommunityReport) => {
             const fullReport = await getCommunityReportById(report.id);
             if (!fullReport) return;
-
             setSelectedReport(fullReport);
             handleShowOnMap(fullReport, map, clusterSource, localStorageData, t, reportTableWidth);
         },
         [setSelectedReport, map, clusterSource, localStorageData, t, reportTableWidth]
     );
 
-    const onCheckChange = useCallback(
-        (id: number, checked: boolean) => {
-            setIsChecked({
-                ...isChecked,
-                [id]: checked,
-            });
-        },
-        [isChecked, setIsChecked]
-    );
-    const reportsToUse = useMemo(() => {
-        return filteredReports.length > 0 ? filteredReports : (reports ?? []);
-    }, [filteredReports, reports]);
+    const onCheckChange = useCallback((id: number, checked: boolean) => setIsChecked({ ...isChecked, [id]: checked }), [isChecked, setIsChecked]);
+
+    const reportsToUse = useMemo(() => (filteredReports.length > 0 ? filteredReports : (reports ?? [])), [filteredReports, reports]);
 
     const tableData = useMemo(
         () => CreateTableData(reportsToUse, isChecked, onCheckChange, onShowReportOnMap, onShowOnMap),
         [reportsToUse, isChecked, onCheckChange, onShowReportOnMap, onShowOnMap]
     );
 
-    const selectedLines = useMemo(() => {
-        if (!exportedData || !Array.isArray(exportedData.data)) return [];
-        return CreateTableData(exportedData.data, isChecked, onCheckChange, onShowReportOnMap, onShowOnMap);
-    }, [exportedData, isChecked, onCheckChange, onShowReportOnMap, onShowOnMap]);
-
     const allLinesAreAllowed = tableData.some((row) => !!isChecked[String(row.id)] && STATUS_NOT_ALLOWED.includes(row.exportData.statusCode));
-
-    const downloadedTable = useMemo(() => {
-        if (!Array.isArray(selectedLines)) return [];
-        return selectedLines.map((expData) => expData.exportData);
-    }, [selectedLines]);
 
     const tableHeaderToLabel: Record<FilterHeaderKey, string> = {
         x: "X",
@@ -193,30 +163,67 @@ const TableReport = () => {
     };
 
     const tableHeader = (Object.entries(tableHeaderToLabel) as [FilterHeaderKey, string][]).map(([key, label]) => ({
-        key: key,
+        key,
         label,
     }));
+
+    const onDownloadCsv = useCallback(async () => {
+        if (!community) return;
+        try {
+            setIsPreparingExport(true);
+
+            const hasSelection = Object.values(isChecked).some(Boolean);
+
+            const linesToExport = hasSelection
+                ? tableData.filter((line) => !!isChecked[String(line.id)])
+                : CreateTableData(
+                      applyFiltersToReports(await getAllReportsForExport(community.id, filters, searchReport, sortBy), currentFilters, searchReport),
+                      isChecked,
+                      onCheckChange,
+                      onShowReportOnMap,
+                      onShowOnMap
+                  );
+
+            const downloadedTable = linesToExport.map((line) => line.exportData);
+
+            const escapeCsvValue = (value: unknown) => `"${String(value ?? "").replace(/"/g, '""')}"`;
+            const csv = [
+                tableHeader.map((h) => escapeCsvValue(h.label)).join(";"),
+                ...downloadedTable.map((line) => tableHeader.map((h) => escapeCsvValue(line[h.key])).join(";")),
+            ].join("\n");
+
+            const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8;" });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute("download", "export-reports.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        } catch {
+            addAlertMessage(StatusMessage.error, t("error"), 3000);
+        } finally {
+            setIsPreparingExport(false);
+        }
+    }, [community, filters, searchReport, sortBy, isChecked, onCheckChange, onShowReportOnMap, onShowOnMap, tableHeader, addAlertMessage, t]);
 
     const sortByStatus = () => {
         setSortOrder((prev) => {
             const newOrder = prev === "ASC" ? "DESC" : "ASC";
-            const sortParams = `status:${newOrder}`;
-            setSortBy(sortParams);
+            setSortBy(`status:${newOrder}`);
             setCurrentPage(1);
             return newOrder;
         });
     };
-    const sortByDateCreation = () => {
-        toggleSortByDateCreation();
-    };
 
     return (
         <>
-            {isLoading && <LoaderComponent />}
+            {(isLoading || isPreparingExport) && <LoaderComponent />}
             {isLoading || filteredReports.length > 0 ? (
                 <>
                     <div className="report-textResult fr-mt-5v">
-                        Résultats{" "}
+                        {t("result_count")}{" "}
                         <Badge severity="info" noIcon>
                             {total}
                         </Badge>
@@ -232,19 +239,21 @@ const TableReport = () => {
                             )}
                         </div>
                         <div className="report-btns">
-                            <CSVLink
-                                className="fr-btn fr-btn--secondary report-download__btn fr-icon-download-line fr-icon--sm"
-                                headers={tableHeader}
-                                data={downloadedTable}
-                                filename="export-reports.csv"
-                                separator=";"
-                            ></CSVLink>
+                            <Button
+                                type="button"
+                                className="report-download__btn"
+                                iconId="fr-icon-download-line"
+                                title={t("export_button")}
+                                priority="secondary"
+                                disabled={isPreparingExport}
+                                onClick={onDownloadCsv}
+                            />
                             <Button
                                 type="button"
                                 nativeButtonProps={deleteReportModal.buttonProps}
                                 iconId="fr-icon-delete-line"
                                 className="fr-icon--sm"
-                                title="Supprimer un signalement"
+                                title={t("delete_button")}
                                 priority="secondary"
                                 disabled={!isChecked || !Object.values(isChecked).some(Boolean)}
                             />
@@ -265,7 +274,7 @@ const TableReport = () => {
                             <Checkbox
                                 options={[
                                     {
-                                        label: <span className="fr-sr-only">Séléctionner tous les signalements de la page courante.</span>,
+                                        label: <span className="fr-sr-only">{t("select_all")}</span>,
                                         nativeInputProps: {
                                             checked: tableData.every((row) => !!isChecked[row.id]),
                                             onChange: (e) => {
@@ -286,18 +295,18 @@ const TableReport = () => {
                             <Button
                                 type="button"
                                 className="table-report__sort"
-                                onClick={sortByDateCreation}
+                                onClick={() => toggleSortByDateCreation()}
                                 title="Trier par date de création"
                                 priority="tertiary no outline"
                             >
-                                Création <span className="fr-icon-arrow-up-down-line fr-icon--sm" aria-hidden="true"></span>
+                                {t("creation")} <span className="fr-icon-arrow-up-down-line fr-icon--sm" aria-hidden="true" />
                             </Button>,
                             "Commune (département)",
                             <Button type="button" className="table-report__sort" title="Trier par thème" priority="tertiary no outline">
-                                Thème
+                                {t("theme")}
                             </Button>,
                             <Button type="button" className="table-report__sort" onClick={sortByStatus} title="Trier par statut" priority="tertiary no outline">
-                                Statut <span className="fr-icon-arrow-up-down-line fr-icon--sm fr-ml-1w" aria-hidden="true"></span>
+                                {t("status")} <span className="fr-icon-arrow-up-down-line fr-icon--sm fr-ml-1w" aria-hidden="true" />
                             </Button>,
                             "Actions",
                         ]}
@@ -311,16 +320,15 @@ const TableReport = () => {
                                 syncUrlFromState();
                             }}
                             name="limit"
-                            defaultOption="Nombre de ligne par page"
+                            defaultOption={t("results_per_page")}
                             options={REPORT_TABLE_LIMIT_OPTIONS}
                         />
                         <PaginationReport totalPages={totalPages} currentPage={currentPage} />
                     </div>
                 </>
             ) : (
-                <div> Aucun résultat ne correspond à votre recherche.</div>
+                <div>{t("no_result")}</div>
             )}
-
             <ConfirmDeleteReportModal />
         </>
     );
