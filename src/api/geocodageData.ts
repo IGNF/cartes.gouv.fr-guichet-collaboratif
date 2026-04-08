@@ -1,4 +1,4 @@
-import { axiosApi } from ".";
+import { getAxiosApi } from ".";
 import { Feature } from "ol";
 import { Geometry, Point, LineString, Polygon } from "ol/geom";
 import { transform } from "ol/proj";
@@ -58,7 +58,8 @@ export interface AltitudeResponse {
 
 export async function getCommuneAutocomplete(searchText: string): Promise<CommuneResult[]> {
     try {
-        const response = await axiosApi.get<AutocompleteResponse>("https://data.geopf.fr/geocodage/completion", {
+        const api = await getAxiosApi();
+        const response = await api.get<AutocompleteResponse>("https://data.geopf.fr/geocodage/completion", {
             params: {
                 text: searchText,
                 type: "PositionOfInterest",
@@ -74,7 +75,8 @@ export async function getCommuneAutocomplete(searchText: string): Promise<Commun
 }
 export async function reverseGeocode(lon: number, lat: number): Promise<ReverseGeocodeResponse["features"][0] | null> {
     try {
-        const response = await axiosApi.get<ReverseGeocodeResponse>("https://data.geopf.fr/geocodage/reverse", {
+        const api = await getAxiosApi();
+        const response = await api.get<ReverseGeocodeResponse>("https://data.geopf.fr/geocodage/reverse", {
             params: {
                 lon,
                 lat,
@@ -116,7 +118,8 @@ export async function getAddressFromCoords(lon: number, lat: number) {
 
 export async function getCadastreFromCoords(lon: number, lat: number): Promise<CadastreResponse["features"][0] | null> {
     try {
-        const response = await axiosApi.get<CadastreResponse>("https://data.geopf.fr/wfs/ows", {
+        const api = await getAxiosApi();
+        const response = await api.get<CadastreResponse>("https://data.geopf.fr/wfs/ows", {
             params: {
                 service: "WFS",
                 version: "2.0.0",
@@ -136,7 +139,8 @@ export async function getCadastreFromCoords(lon: number, lat: number): Promise<C
 
 export async function getAltitudeFromCoords(lon: number, lat: number): Promise<number | null> {
     try {
-        const response = await axiosApi.get<AltitudeResponse>("https://data.geopf.fr/altimetrie/1.0/calcul/alti/rest/elevation.json", {
+        const api = await getAxiosApi();
+        const response = await api.get<AltitudeResponse>("https://data.geopf.fr/altimetrie/1.0/calcul/alti/rest/elevation.json", {
             params: {
                 lon,
                 lat,

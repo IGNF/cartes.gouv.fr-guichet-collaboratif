@@ -1,6 +1,5 @@
 import { useParams } from "react-router-dom";
 import NotFound from "./NotFound";
-import NotConnected from "./NotConnected";
 import { useEffect, useState } from "react";
 import { useCommunityStore, useLocalStorageStore, useUserStore } from "@/store";
 import { isDigital, useGetCommunityByIdAPI } from "@/api/communityData";
@@ -17,7 +16,7 @@ const Carte: React.FC = () => {
     const [communityNotFound, setCommunityNotFound] = useState(false);
 
     const { community, communityLayers, isLoadingCommunity, setCommunity, setCommunityLayers, setIsLoadingCommunity, addAlertMessage } = useCommunityStore();
-    const { user, isLoadingUser, setUser, setIsLoadingUser } = useUserStore();
+    const { isLoadingUser, setUser, setIsLoadingUser } = useUserStore();
     const { initLocalStorage } = useLocalStorageStore();
 
     const communityId = params.communityId || "";
@@ -64,8 +63,6 @@ const Carte: React.FC = () => {
 
     if (!isDigital(communityId) || communityNotFound) {
         return <NotFound />;
-    } else if (!isLoadingUser && !user) {
-        return <NotConnected />;
     } else if (isLoadingUser) {
         return <div className="container">{t("loading_user")}</div>;
     } else if (isLoadingCommunity || isTranslationFetching) {

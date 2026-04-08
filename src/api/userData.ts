@@ -2,10 +2,11 @@ import { USER_PROFILE_API_URL } from "@/constants/urls";
 import { useQuery } from "@tanstack/react-query";
 import { useUserStore } from "@/store/useUserStore";
 import { User, UserAPIData } from "@/constants/user/types";
-import { axiosApi } from ".";
+import { getAxiosApi } from ".";
 
 async function getUserProfile(): Promise<User> {
-    const res = await axiosApi.get(USER_PROFILE_API_URL);
+    const api = await getAxiosApi();
+    const res = await api.get(USER_PROFILE_API_URL);
     if (res.status > 206) {
         return null;
     }

@@ -17,7 +17,6 @@ export type ComponentKey =
     | import("../components/Layout/locale/MapToolbar.locale").I18n
     | import("../components/locale/DrawerComponent.locale").I18n
     | import("../components/locale/FilterAndSortReport.locale").I18n
-    | import("../pages/locale/NotConnected.locale").I18n
     | import("../pages/locale/NotFound.locale").I18n
     | import("../pages/locale/Carte.locale").I18n
     | import("../features/contributions/locale/ContributionList.locale").I18n
