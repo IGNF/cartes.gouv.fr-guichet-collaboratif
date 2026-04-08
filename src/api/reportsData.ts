@@ -219,7 +219,7 @@ export async function postCommunityReport(report: PostReport): Promise<Community
     const api = await getAxiosApi();
     const res = await api.post(`${REPORTS_API_URL}`, report);
 
-    if (!res.data || res.status !== 200) return null;
+    if (!res.data || res.status !== 201) return null;
 
     const newReport: reportData = res.data;
 
