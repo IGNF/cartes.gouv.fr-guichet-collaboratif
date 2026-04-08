@@ -47,10 +47,9 @@ const CenterReportControl = () => {
 
         const isFeatureVisible = intersects(viewExtent, geometry?.getExtent() || []);
         const isNotified = getCenterReportMessage(alertMessages);
+
         if (!isFeatureVisible) {
-            if (mainPointFeature) {
-                setShowCenterReportButtons(true);
-            }
+            setShowCenterReportButtons(true);
 
             if (!isNotified) {
                 addAlertMessage(StatusMessage.info, <CenterMessage onClick={handleCenterToReport} />);
@@ -59,30 +58,38 @@ const CenterReportControl = () => {
             if (isNotified) {
                 removeAlertMessage(isNotified.id);
             }
-
             setShowCenterReportButtons(false);
         }
-        setCenter([]);
     }, [map, mainPointFeature, alertMessages, addAlertMessage, removeAlertMessage, handleCenterToReport, setShowCenterReportButtons]);
+
+    const handleMapCenterChange = useCallback(() => {
+        const nextCenter = map?.getView()?.getCenter();
+        if (!nextCenter) return;
+
+        setCenter((prev) => {
+            if (prev.length === 2 && prev[0] === nextCenter[0] && prev[1] === nextCenter[1]) {
+                return prev;
+            }
+            return [nextCenter[0], nextCenter[1]];
+        });
+    }, [map]);
 
     useEffect(() => {
         if (debounced.length) {
             onCenterChange();
         }
-    }, [debounced, selectedFeatures, mainPointFeature, onCenterChange]);
+    }, [debounced, onCenterChange]);
 
     useEffect(() => {
         const mapView = map?.getView();
-        mapView?.on("change:center", () => {
-            setCenter(mapView.getCenter()?.map((c) => c) || []);
-        });
+        if (!mapView) return;
+
+        mapView.on("change:center", handleMapCenterChange);
 
         return () => {
-            mapView?.un("change:center", () => {
-                setCenter(mapView.getCenter()?.map((c) => c) || []);
-            });
+            mapView.un("change:center", handleMapCenterChange);
         };
-    });
+    }, [map, handleMapCenterChange]);
 
     if (!showCenterReportButtons) return null;
     return (
