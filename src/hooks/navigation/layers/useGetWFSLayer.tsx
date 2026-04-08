@@ -21,6 +21,7 @@ import { Stroke, Style } from "ol/style";
 import Text from "ol/style/Text";
 import { LayerGroupSource } from "@/classes/LayerGroupSource";
 import { ObjectEvent } from "ol/Object";
+import { getAxiosApi } from "@/api";
 
 function useGetWFSLayer(geoservice: CommunityGeoservice) {
     const { addAlertMessage } = useCommunityStore();
@@ -88,12 +89,9 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
                 const data: GeoJSONProps | ArrayGeoJSONProps[] = await queryClient.fetchQuery({
                     queryKey: queryKey,
                     queryFn: async () => {
-                        return await fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
-                            .then((response) => response.json())
-
-                            .catch(() => {
-                                throw Error;
-                            });
+                        const api = await getAxiosApi();
+                        const { data } = await api.get(url);
+                        return data;
                     },
                     retry: 1,
                 });
