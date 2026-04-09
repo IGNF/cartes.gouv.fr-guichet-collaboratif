@@ -297,7 +297,8 @@ button[id^="GPshowDrawingPicto-"]::after {
 }
 
 button[id^="drawing-tool-import-"]::after {
-    mask: url("../../img/reports/import-file.svg") center no-repeat;
+    -webkit-mask: url("../img/reports/import_file.svg") center no-repeat;
+    mask: url("../img/reports/import_file.svg") center no-repeat;
 }
 
 #position-container-top-right {
