@@ -1,5 +1,4 @@
-import { useEffect, useMemo } from "react";
-import { getTableReports } from "@/api/reportsData";
+import { useMemo } from "react";
 import { useCommunityStore, useReportStore } from "@/store";
 import { reportImgStatus } from "@/constants/utils";
 import { StatusKey } from "@/constants/reports/types";
@@ -10,31 +9,17 @@ interface ReportFiltersProps {
     reportStatus: string;
 }
 const ReportFiltersComponent = ({ reportStatus }: ReportFiltersProps) => {
-    const {
-        reports,
-        currentFilters,
-        selectedReport,
-        setCurrentFilters,
-        setFilteredReports,
-        setDrawerOpened,
-        setTableDrawerOpened,
-        setIsChecked,
-        filteredReports,
-        isChecked,
-    } = useReportStore();
-
-    const reportsToUse = useMemo(() => {
-        return filteredReports.length > 0 ? filteredReports : (reports ?? []);
-    }, [filteredReports, reports]);
-    const tableData = useMemo(() => CreateTableData(reportsToUse, isChecked), [reportsToUse, isChecked]);
+    const { reports, currentFilters, selectedReport, setCurrentFilters, setDrawerOpened, setTableDrawerOpened, setIsChecked, isChecked } = useReportStore();
 
     const { community } = useCommunityStore();
+
+    const tableData = useMemo(() => CreateTableData(reports ?? [], isChecked), [reports, isChecked]);
 
     const checkedIds = useMemo(() => {
         return tableData.filter((res) => res.id === selectedReport?.id).map((tab) => tab.original);
     }, [tableData, selectedReport]);
 
-    const currentReport = checkedIds.length === 1 ? checkedIds[0] : null;
+    const currentReport = checkedIds.length === 1 ? checkedIds[0] : (selectedReport ?? null);
 
     const author = currentReport?.author?.username || "-";
     const date = currentReport?.opening_date ? new Date(currentReport?.opening_date).toLocaleDateString() : "-";
@@ -53,15 +38,6 @@ const ReportFiltersComponent = ({ reportStatus }: ReportFiltersProps) => {
 
         return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
     }
-
-    useEffect(() => {
-        async function fetchReports() {
-            if (!community) return;
-            const { data } = await getTableReports(community.id, 100, 1);
-            setFilteredReports(data, true);
-        }
-        fetchReports();
-    }, [community, setFilteredReports]);
 
     return (
         <ul className="fr-links-group report-filter__container fr-mb-6v fr-mt-4v">
