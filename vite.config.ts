@@ -17,7 +17,7 @@ export default defineConfig((mode) => {
                 // Voir : https://docs.oidc-spa.dev/v/v10/security-features/browser-runtime-freeze
                 browserRuntimeFreeze: {
                     enabled: true,
-                    excludes: ["Array"], // nécessaire pour le script d'analytics
+                    excludes: ["Array", "Promise"], // nécessaire pour le script d'analytics
                 },
             }),
         ],
