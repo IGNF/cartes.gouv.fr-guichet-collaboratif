@@ -13,7 +13,7 @@ import { TranslationFunction } from "i18nifty/typeUtils/TranslationFunction";
 import { useMemo } from "react";
 
 const useCustomControlsList = (t: TranslationFunction<"CustomControls", ComponentKey>): CustomControlItem[] => {
-    const { mapWorkingLayer, clickedMapFeature } = useMapStore();
+    const { mapWorkingLayer, clickedMapFeature, clickedControl } = useMapStore();
     const { community, communityLayers } = useCommunityStore();
 
     const communityEditableLayers = useMemo(() => communityLayers?.filter((l) => l.role !== CommunityLayerRoleType.VISU), [communityLayers]);
@@ -108,10 +108,13 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
             },
             {
                 id: 9,
-                title: "Copier un objet",
+                title: clickedControl?.interaction === InteractionType.COPY_OBJECT ? "paste_object" : "copy_object",
                 target: "",
-                icon: "ri-file-copy-2-fill",
-                disabled: currentCommunityLayer?.role === CommunityLayerRoleType.VISU || mapWorkingLayer === REPORTS_LAYER_TYPE || !clickedMapFeature,
+                icon: clickedControl?.interaction === InteractionType.COPY_OBJECT ? "ri-clipboard-fill" : "ri-file-copy-2-fill",
+                disabled:
+                    currentCommunityLayer?.role === CommunityLayerRoleType.VISU ||
+                    mapWorkingLayer === REPORTS_LAYER_TYPE ||
+                    (!clickedMapFeature && !(clickedControl?.interaction === InteractionType.COPY_OBJECT)),
                 enabled: !!communityEditableLayers?.length && !!community?.functionalities?.includes(CommunityLayerFunctionalityType.COPY_REF),
                 interaction: InteractionType.COPY_OBJECT,
             },

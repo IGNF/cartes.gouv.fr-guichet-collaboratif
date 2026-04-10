@@ -12,17 +12,20 @@ import { addFeatureProperties, addInteractionToMap, isPointOnSegment, removeInte
 import { GeometryFeatueParams } from "@/constants/reports/types";
 import { Coordinate } from "ol/coordinate";
 import { useCommunityStore, useContributionStore, useMapStore, useModalStore } from "@/store";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { CustomControlItem, InteractionType } from "@/constants/communities/types";
 import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
+import { SimpleGeometry } from "ol/geom";
 
 let initialFeat: Feature | null = null;
 let lastPointedFeat: Feature | null = null;
 
+let clipboardFeature: Feature | null = null;
+
 const useGetInteractionsFuncs = (props: InteractionsProps) => {
-    const { map, mapWorkingLayer, clickedControl, setClickedControl, setClickedMapFeature } = useMapStore();
+    const { map, mapWorkingLayer, clickedControl, clickedMapFeature, setClickedControl, setClickedMapFeature } = useMapStore();
     const { contributions, selectedObjects, saveContribution, setIsModifying, setSelectedObjects } = useContributionStore();
-    const { confirmCopyModal, searchModal } = useModalStore();
+    const { searchModal } = useModalStore();
     const { communityLayers } = useCommunityStore();
 
     const currentCommunityLayer = useMemo(() => communityLayers?.find((l) => l?.geoservice?.layer === mapWorkingLayer), [communityLayers, mapWorkingLayer]);
@@ -53,6 +56,8 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
         translateFeatures,
         splitInteraction,
     } = props;
+
+    const registeredPasteHandlerRef = useRef<((e: MapBrowserEvent) => void) | null>(null);
 
     const selectInteractionFunc = useCallback(
         (e: SelectEvent) => {
@@ -169,9 +174,85 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
         [currentMapWorkingSource, currentCommunityLayer?.geoservice, contributions, mapWorkingLayer, saveContribution]
     );
 
-    const copyInteractionFunc = useCallback(() => {
-        confirmCopyModal.open();
-    }, [confirmCopyModal]);
+    const pasteInteractionFunc = useCallback(
+        (e: MapBrowserEvent) => {
+            if (!clipboardFeature || !currentMapWorkingSource) return;
+
+            const geoservice = currentCommunityLayer?.geoservice;
+            const geometryNameColumn = geoservice?.columns.find((col) => col.name === geoservice.geometryName);
+
+            const pastedFeature = clipboardFeature.clone();
+
+            const geometry = pastedFeature.getGeometry() as SimpleGeometry | undefined;
+            if (geometry) {
+                const extent = geometry.getExtent();
+                const centerX = (extent[0] + extent[2]) / 2;
+                const centerY = (extent[1] + extent[3]) / 2;
+                geometry.translate(e.coordinate[0] - centerX, e.coordinate[1] - centerY);
+            }
+
+            const createdContributions = contributions.filter((contr) => contr.type === ContributionType.CREATE);
+            const sourceFeatureTypeData = pastedFeature.get(FEATURE_TYPE_DATA_PROPERTY);
+
+            if (sourceFeatureTypeData && typeof sourceFeatureTypeData === "object") {
+                const nextFeatureTypeData = {
+                    ...sourceFeatureTypeData,
+                };
+                if (geoservice?.idName) {
+                    nextFeatureTypeData[`${geoservice.idName}`] = createdContributions.length + 1;
+                    pastedFeature.set(`${geoservice.idName}`, createdContributions.length + 1);
+                }
+                pastedFeature.set(FEATURE_TYPE_DATA_PROPERTY, nextFeatureTypeData);
+            } else {
+                addFeatureProperties(pastedFeature, geoservice, createdContributions);
+            }
+
+            pastedFeature.set(FEATURE_TYPE_NEW_PROPERTY, true);
+            if (geometryNameColumn?.is3d) setFeatNewCoords(pastedFeature);
+
+            currentMapWorkingSource.addFeature(pastedFeature);
+            saveContribution(pastedFeature, ContributionType.CREATE, null, mapWorkingLayer);
+            setClickedMapFeature(pastedFeature);
+            setSelectedObjects([]);
+            setClickedControl(null);
+            if (registeredPasteHandlerRef.current) {
+                map?.on("singleclick", registeredPasteHandlerRef.current);
+                registeredPasteHandlerRef.current = null;
+            }
+            clipboardFeature = null;
+        },
+        [
+            currentMapWorkingSource,
+            currentCommunityLayer?.geoservice,
+            contributions,
+            mapWorkingLayer,
+            saveContribution,
+            setClickedMapFeature,
+            setClickedControl,
+            setSelectedObjects,
+            map,
+            clickedControl,
+        ]
+    );
+
+    const copyInteractionFunc = useCallback((): boolean => {
+        const features = selectInteraction.getFeatures().getArray();
+        const sourceFeature = features[0] ?? clickedMapFeature;
+
+        if (!sourceFeature) {
+            return false;
+        }
+
+        if (registeredPasteHandlerRef.current) {
+            map?.un("singleclick", registeredPasteHandlerRef.current);
+            registeredPasteHandlerRef.current = null;
+        }
+        clipboardFeature = null;
+        clipboardFeature = sourceFeature.clone();
+        map?.on("singleclick", pasteInteractionFunc);
+        registeredPasteHandlerRef.current = pasteInteractionFunc;
+        return true;
+    }, [selectInteraction, clickedMapFeature, map, pasteInteractionFunc, mapWorkingLayer]);
 
     const splitLineInteractionFuncPointer = useCallback(
         (e: MapBrowserEvent) => {
@@ -238,8 +319,8 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                 originalFeatGeometry?.setCoordinates(newCoordsOriginal);
                 createdFeatGeometry?.setCoordinates(newCoordsCreated);
 
-                createdFeat.set(FEATURE_TYPE_DATA_PROPERTY, {
-                    ...createdFeat.get(FEATURE_TYPE_DATA_PROPERTY),
+                createdFeat.set("featureTypeData", {
+                    ...createdFeat.get("featureTypeData"),
                     [`${currentCommunityLayer?.geoservice.idName}`]: contributions.filter((contr) => contr.type === ContributionType.CREATE).length + 1,
                 });
 
@@ -336,9 +417,36 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                     feat.unset(FEATURE_TYPE_SELECTED_PROPERTY);
                 });
             }
-            if (control.interaction === InteractionType.COPY_OBJECT) {
-                copyInteractionFunc();
+
+            if (clipboardFeature && control.interaction !== InteractionType.COPY_OBJECT) {
+                if (registeredPasteHandlerRef.current) {
+                    map?.un("singleclick", registeredPasteHandlerRef.current);
+                    registeredPasteHandlerRef.current = null;
+                }
+                clipboardFeature = null;
             }
+
+            if (control.interaction === InteractionType.COPY_OBJECT) {
+                if (control?.id === clickedControl?.id) {
+                    if (registeredPasteHandlerRef.current) {
+                        map?.un("singleclick", registeredPasteHandlerRef.current);
+                        registeredPasteHandlerRef.current = null;
+                    }
+                    clipboardFeature = null;
+                    setSelectedObjects([]);
+                    setClickedControl(null);
+                } else {
+                    removeInteractionFromMap(clickedControl?.interaction ?? null, map!);
+                    const copyReady = copyInteractionFunc();
+                    if (copyReady) {
+                        setClickedControl(control);
+                    } else {
+                        setClickedControl(null);
+                    }
+                }
+                return;
+            }
+
             if (control?.id === clickedControl?.id) {
                 setSelectedObjects([]);
                 removeInteractionFromMap(control.interaction, map!);
@@ -377,9 +485,21 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             searchModal,
             getInteractionByType,
             copyInteractionFunc,
+            pasteInteractionFunc,
             setSelectedObjects,
+            setClickedControl,
         ]
     );
+
+    useEffect(() => {
+        return () => {
+            if (registeredPasteHandlerRef.current) {
+                map?.un("singleclick", registeredPasteHandlerRef.current);
+                registeredPasteHandlerRef.current = null;
+            }
+            clipboardFeature = null;
+        };
+    }, [map]);
 
     useEffect(() => {
         selectedObjects.forEach((feat) => {
@@ -403,6 +523,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
         modifyInteractionFuncStart,
         drawInteractionFunc,
         copyInteractionFunc,
+        pasteInteractionFunc,
         splitLineInteractionFuncEnd,
         splitLineInteractionFuncPointer,
         getInteractionByType,

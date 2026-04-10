@@ -5,7 +5,6 @@ import AllReportsControl from "./AllReportsControl";
 import { useTranslation } from "@/i18n";
 import useCustomControlsList from "@/hooks/navigation/controls/useCustomControlsList";
 import CenterReportControl from "./CenterReportControl";
-import ConfirmCopyModal from "./ConfirmCopyModal";
 import AddOrRemoveSnapInteraction from "./interactions/AddOrRemoveSnapInteraction";
 import useGetInteractionsFuncs from "@/hooks/navigation/controls/useGetInteractionsFuncs";
 import AddOrRemoveMapControlInteraction from "./interactions/AddOrRemoveMapControlInteraction";
@@ -57,7 +56,11 @@ const CustomControls = () => {
         (control: CustomControlItem) => {
             interactionsFuncs.handleClick(control);
 
-            if (control.interaction !== InteractionType.MODIFY && control.interaction !== InteractionType.TRANSLATE_OBJECT) {
+            if (
+                control.interaction !== InteractionType.MODIFY &&
+                control.interaction !== InteractionType.TRANSLATE_OBJECT &&
+                control.interaction !== InteractionType.COPY_OBJECT
+            ) {
                 interactions.selectInteraction.getFeatures().clear();
                 selectedObjects.forEach((feat) => {
                     feat.unset(FEATURE_TYPE_SELECTED_PROPERTY);
@@ -67,7 +70,9 @@ const CustomControls = () => {
                 setClickedMapFeature(null);
             }
 
-            setClickedControl(control?.id === clickedControl?.id ? null : control);
+            if (!control.interaction) {
+                setClickedControl(control?.id === clickedControl?.id ? null : control);
+            }
             prevClickedControl = null;
         },
         [
@@ -144,7 +149,6 @@ const CustomControls = () => {
             </div>
             <AddOrRemoveMapControlInteraction {...interactionsFuncs} {...interactions} />
             <AddOrRemoveSnapInteraction {...interactions} />
-            <ConfirmCopyModal />
             <ConfirmMultipleDeselection onConfirm={() => onConfirm(prevClickedControl!)} />
             <SearchObjectsModal />
         </>
