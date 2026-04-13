@@ -55,7 +55,6 @@ const CustomControls = () => {
     const onConfirm = useCallback(
         (control: CustomControlItem) => {
             interactionsFuncs.handleClick(control);
-
             if (
                 control.interaction !== InteractionType.MODIFY &&
                 control.interaction !== InteractionType.TRANSLATE_OBJECT &&
@@ -70,9 +69,7 @@ const CustomControls = () => {
                 setClickedMapFeature(null);
             }
 
-            if (!control.interaction) {
-                setClickedControl(control?.id === clickedControl?.id ? null : control);
-            }
+            setClickedControl(control?.id === clickedControl?.id ? null : control);
             prevClickedControl = null;
         },
         [
@@ -110,8 +107,9 @@ const CustomControls = () => {
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key !== "Escape") return;
-
+            if (e.key !== "Escape") {
+                return;
+            }
             if (workingLayerDrawerOpened) {
                 setClickedMapFeature(null);
                 return;

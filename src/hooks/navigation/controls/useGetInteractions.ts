@@ -55,24 +55,35 @@ const useGetInteractions = () => {
         return modify;
     }, [modifyFeatures]);
 
+    const isEventInsideMapViewport = useMemo(
+        () => (evt: { originalEvent?: Event }) => {
+            const viewport = map?.getViewport();
+            if (!viewport || !evt?.originalEvent) return false;
+            const target = evt.originalEvent.target;
+
+            return target instanceof Node ? viewport.contains(target) : false;
+        },
+        [map]
+    );
+
     const drawPointInteraction = useMemo(() => {
-        const draw = new Draw({ type: "Point" });
+        const draw = new Draw({ type: "Point", condition: isEventInsideMapViewport });
         draw.set("disablesTooltip", true);
         draw.set("disableSelect", true);
         return draw;
-    }, []);
+    }, [isEventInsideMapViewport]);
 
     const drawLineInteraction = useMemo(() => {
-        const draw = new Draw({ type: "LineString" });
+        const draw = new Draw({ type: "LineString", condition: isEventInsideMapViewport });
         draw.set("disablesTooltip", true);
         return draw;
-    }, []);
+    }, [isEventInsideMapViewport]);
 
     const drawPolygonInteraction = useMemo(() => {
-        const draw = new Draw({ type: "Polygon" });
+        const draw = new Draw({ type: "Polygon", condition: isEventInsideMapViewport });
         draw.set("disablesTooltip", true);
         return draw;
-    }, []);
+    }, [isEventInsideMapViewport]);
 
     const translateFeatures = useMemo(() => new Collection<Feature>(clickedMapFeature ? [clickedMapFeature] : []), [clickedMapFeature]);
 

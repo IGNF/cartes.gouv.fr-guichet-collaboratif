@@ -169,9 +169,10 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                 if (geometryNameColumn?.is3d) setFeatNewCoords(feature);
                 currentMapWorkingSource.addFeature(feature);
                 saveContribution(feature, ContributionType.CREATE, initialFeat, mapWorkingLayer);
+                setClickedMapFeature(feature);
             }
         },
-        [currentMapWorkingSource, currentCommunityLayer?.geoservice, contributions, mapWorkingLayer, saveContribution]
+        [currentMapWorkingSource, currentCommunityLayer?.geoservice, contributions, mapWorkingLayer, saveContribution, setClickedMapFeature]
     );
 
     const pasteInteractionFunc = useCallback(
@@ -216,7 +217,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             setSelectedObjects([]);
             setClickedControl(null);
             if (registeredPasteHandlerRef.current) {
-                map?.on("singleclick", registeredPasteHandlerRef.current);
+                map?.un("singleclick", registeredPasteHandlerRef.current);
                 registeredPasteHandlerRef.current = null;
             }
             clipboardFeature = null;
