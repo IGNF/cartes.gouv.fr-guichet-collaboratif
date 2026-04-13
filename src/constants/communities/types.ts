@@ -275,6 +275,7 @@ export enum InteractionType {
     COPY_OBJECT = "copy_object",
     TRANSLATE_OBJECT = "translate_object",
     SPLIT_LINE = "split_line",
+    EXPORT_IMAGE = "export_image",
 }
 
 export type CustomControlItem = {

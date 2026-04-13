@@ -4,6 +4,7 @@
     font-size: 1.75rem;
     line-height: 2.25rem;
 }
+
 .page-title {
     display: block;
     text-align: center;
@@ -60,6 +61,7 @@
         transform: translateX(100%);
         opacity: 0;
     }
+
     100% {
         transform: translateX(0);
         opacity: 1;
@@ -70,6 +72,7 @@
     display: flex;
     justify-content: end;
 }
+
 .drawer-close > button.ri-close-line {
     flex-direction: row-reverse;
     align-items: center;
@@ -114,6 +117,7 @@
     margin-bottom: 10px;
     align-items: center;
 }
+
 .visuallyhidden {
     border: 0;
     clip: rect(0 0 0 0);
@@ -124,6 +128,7 @@
     position: absolute;
     width: 1px;
 }
+
 .visuallyhidden.focusable:active,
 .visuallyhidden.focusable:focus {
     clip: auto;
@@ -143,10 +148,13 @@
     right: 62px;
     left: unset;
     padding-bottom: 4px;
+    background-color: var(--background-default-grey);
 }
 
-.ol-scale-line-inner {
-    height: 100%;
+html[data-fr-theme="dark"] .ol-scale-line-inner {
+    color: var(--text-action-high-blue-france);
+    border-color: var(--text-action-high-blue-france);
+    background: var(--background-default-grey);
 }
 
 div[id^="GPtoolbox-measure-main-"],
