@@ -30,6 +30,7 @@ export type ComponentKey =
     | import("../features/navigation/controls/locale/CatalogControl.locale").I18n
     | import("../features/navigation/controls/custom-controls/locale/CenterReportControl.locale").I18n
     | import("../features/navigation/controls/custom-controls/locale/ConfirmMultipleDeselection.locale").I18n
+    | import("../features/navigation/controls/custom-controls/locale/ExportMapModal.locale").I18n
     | import("../features/navigation/controls/locale/useGetMapControls.locale").I18n
     | import("../features/navigation/controls/locale/WorkingLayerControl.locale").I18n
     | import("../features/navigation/controls/locale/WorkingLayerLabelMap.locale").I18n

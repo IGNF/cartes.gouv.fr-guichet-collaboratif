@@ -1,0 +1,189 @@
+.fr-modal--export-map .fr-grid-row > div {
+    flex: 0 0 min(88vw, 74rem);
+    max-width: min(88vw, 74rem);
+    width: min(88vw, 74rem);
+}
+
+.export-map-page {
+    display: flex;
+    flex-direction: row;
+    gap: 1.5rem;
+    height: clamp(20rem, 65vh, 32rem);
+    min-height: 0;
+}
+
+.export-map-form {
+    flex: 0 0 15.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow-x: hidden;
+    overflow-y: auto;
+    gap: 0.25rem;
+    padding-right: 0.1rem;
+}
+
+.export-map-section-label {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--text-label-grey);
+}
+
+.fr-modal--export-map .export-map-form .fr-select-group,
+.fr-modal--export-map .export-map-form .fr-input-group,
+.fr-modal--export-map .export-map-form .fr-checkbox-group {
+    margin-bottom: 0.3rem;
+}
+
+.fr-modal--export-map .export-map-form .fr-label {
+    margin-bottom: 0.3rem;
+    font-size: 0.9rem;
+}
+
+.fr-modal--export-map .export-map-form .fr-select,
+.fr-modal--export-map .export-map-form .fr-input {
+    min-height: 2rem;
+    padding-top: 0.1rem;
+    padding-bottom: 0.1rem;
+}
+
+.fr-modal--export-map .export-map-form .fr-checkbox-group {
+    row-gap: 0.15rem;
+}
+
+.export-map-orientation {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.export-map-orientation-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    padding: 0.3rem 0.35rem;
+    border: 0.06rem solid var(--border-default-grey);
+    border-radius: 0.25rem;
+    background: var(--background-default-grey);
+    color: var(--text-default-grey);
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition:
+        border-color 0.15s,
+        background 0.15s,
+        color 0.15s;
+}
+
+.export-map-orientation-btn.active {
+    border-color: var(--border-active-blue-france);
+    color: var(--text-active-blue-france);
+}
+
+.orientation-icon {
+    display: block;
+    border: 1px solid currentColor;
+    border-radius: 1px;
+    background: var(--background-alt-blue-france);
+    opacity: 0.8;
+}
+
+.portrait-icon {
+    width: 0.7rem;
+    height: 0.9rem;
+}
+
+.landscape-icon {
+    width: 0.9rem;
+    height: 0.7rem;
+}
+
+.export-map-preview-wrapper {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 0;
+    overflow: hidden;
+    border-radius: 0.2rem;
+    padding: 1rem;
+}
+
+.export-map-paper {
+    max-width: 100%;
+    max-height: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 1);
+    border-radius: 1px;
+    display: flex;
+    flex-direction: column;
+}
+
+.export-map-paper-inner {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    box-shadow:
+        0 0.01rem 0.4rem var(--border-active-blue-france),
+        0 0.02rem 1.2rem var(--border-active-blue-france);
+    border-radius: 1px;
+}
+
+.export-map-preview-title {
+    flex: 0 0 auto;
+    padding: 0.4rem 0.7rem;
+    background: rgba(255, 255, 255, 1);
+    border-bottom: 0.06rem solid rgba(17, 17, 17, 1);
+    font-size: 1rem;
+    font-weight: 700;
+    color: rgba(22, 22, 22, 1);
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.export-map-preview-map {
+    flex: 1;
+    position: relative;
+    min-height: 0;
+}
+
+.export-map-preview-map .export-preview-scale-line {
+    position: absolute;
+    left: 0.5rem;
+    bottom: 0.5rem;
+    right: unset;
+    top: unset;
+    padding: 0.1rem;
+    border-radius: 0.3rem;
+    background: rgba(255, 255, 255, 0.7);
+    border: none;
+    transform: none;
+    transform-origin: initial;
+}
+
+.export-map-preview-map .export-preview-scale-line-inner {
+    margin: 0.0625rem;
+    border: 0.01rem solid rgba(17, 17, 17, 1);
+    border-top: none;
+    background: rgba(255, 255, 255, 0);
+    color: rgba(17, 17, 17, 1);
+    font-size: 0.6rem;
+    font-weight: 400;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    line-height: 1.2;
+    white-space: nowrap;
+    padding: 0;
+    height: auto;
+    box-sizing: border-box;
+    will-change: contents, width;
+}
+
+.export-map-preview-map .ol-zoom,
+.export-map-preview-map .ol-attribution {
+    display: none;
+}
