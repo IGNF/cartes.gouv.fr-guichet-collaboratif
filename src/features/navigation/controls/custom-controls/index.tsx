@@ -37,7 +37,7 @@ const CustomControls = () => {
 
     useEffect(() => {
         if (selectedObjects.length === 0) {
-            interactions.selectInteraction.getFeatures().clear();
+            interactions.selectInteraction.clearSelection();
         }
     }, [selectedObjects, interactions.selectInteraction]);
 
@@ -60,7 +60,7 @@ const CustomControls = () => {
                 control.interaction !== InteractionType.TRANSLATE_OBJECT &&
                 control.interaction !== InteractionType.COPY_OBJECT
             ) {
-                interactions.selectInteraction.getFeatures().clear();
+                interactions.selectInteraction.clearSelection();
                 selectedObjects.forEach((feat) => {
                     feat.unset(FEATURE_TYPE_SELECTED_PROPERTY);
                 });
@@ -107,9 +107,7 @@ const CustomControls = () => {
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key !== "Escape") {
-                return;
-            }
+            if (e.key !== "Escape") return;
             if (workingLayerDrawerOpened) {
                 setClickedMapFeature(null);
                 return;

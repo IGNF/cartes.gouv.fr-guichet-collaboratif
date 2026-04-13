@@ -34,9 +34,8 @@ const useGetInteractions = () => {
                 toggleCondition: platformModifierKeyOnly,
                 addCondition: platformModifierKeyOnly,
                 removeCondition: platformModifierKeyOnly,
-                features: new Collection(clickableSource?.getFeatures() ?? []),
                 multi: true,
-                filter: (feat) => clickableSource.hasFeature(feat),
+                filter: (feat) => clickableSource?.hasFeature(feat) ?? false,
             }),
         [clickableSource]
     );
@@ -60,7 +59,6 @@ const useGetInteractions = () => {
             const viewport = map?.getViewport();
             if (!viewport || !evt?.originalEvent) return false;
             const target = evt.originalEvent.target;
-
             return target instanceof Node ? viewport.contains(target) : false;
         },
         [map]

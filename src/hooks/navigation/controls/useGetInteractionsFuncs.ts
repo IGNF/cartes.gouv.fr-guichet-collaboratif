@@ -19,7 +19,6 @@ import { SimpleGeometry } from "ol/geom";
 
 let initialFeat: Feature | null = null;
 let lastPointedFeat: Feature | null = null;
-
 let clipboardFeature: Feature | null = null;
 
 const useGetInteractionsFuncs = (props: InteractionsProps) => {
@@ -85,14 +84,14 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
     const dragInteractionFunc = useCallback(() => {
         const extent = dragInteraction.getGeometry().getExtent();
         if (!extent) return;
-        const selectInteractionFeatures = selectInteraction.getFeatures();
         const featuresAtExtent = clickableSource?.getFeaturesInExtent(extent);
 
         featuresAtExtent.forEach((feat) => {
-            if (selectInteractionFeatures.getArray().includes(feat)) return;
-            selectInteractionFeatures.push(feat);
+            if (!selectInteraction.getFeatures().getArray().includes(feat)) {
+                selectInteraction.selectFeature(feat);
+            }
         });
-        const newSelectedObjects = selectInteractionFeatures.getArray();
+        const newSelectedObjects = selectInteraction.getFeatures().getArray();
         setSelectedObjects(newSelectedObjects);
         if (newSelectedObjects.length > 0) {
             setClickedMapFeature(newSelectedObjects[0]);
@@ -101,9 +100,10 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
 
     const removeInteractionFunc = useCallback(
         (e: SelectEvent) => {
-            selectInteraction.getFeatures().clear();
+            selectInteraction.clearSelection();
             const features = e.selected;
             const feat = features[0];
+            if (!feat) return;
             if (currentMapWorkingSource) {
                 currentMapWorkingSource?.removeFeature(feat);
                 saveContribution(feat, ContributionType.DELETE, initialFeat, mapWorkingLayer);
@@ -117,7 +117,22 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             setIsModifying(false);
             const features = e.features.getArray();
             const feat = features[0];
-            saveContribution(feat, ContributionType.MODIFY, initialFeat, mapWorkingLayer);
+            if (!feat || !initialFeat) {
+                initialFeat = null;
+                selectInteraction.setActive(true);
+                return;
+            }
+
+            const currentGeom = feat.getGeometry();
+            const initialGeom = initialFeat.getGeometry();
+            const currentCoords = (currentGeom as GeometryFeatueParams | null)?.getCoordinates?.();
+            const initialCoords = (initialGeom as GeometryFeatueParams | null)?.getCoordinates?.();
+            const hasGeometryChanged =
+                currentCoords !== undefined && initialCoords !== undefined && JSON.stringify(currentCoords) !== JSON.stringify(initialCoords);
+
+            if (hasGeometryChanged) {
+                saveContribution(feat, ContributionType.MODIFY, initialFeat, mapWorkingLayer);
+            }
             initialFeat = null;
             selectInteraction.setActive(true);
             if (clickedControl?.interaction === InteractionType.TRANSLATE_OBJECT) {
@@ -138,8 +153,11 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             setIsModifying(true);
             const features = e.features.getArray();
             const feat = features[0];
+            if (!feat) {
+                setIsModifying(false);
+                return;
+            }
             initialFeat = feat.clone();
-            saveContribution(feat, ContributionType.MODIFY, initialFeat, mapWorkingLayer);
 
             if (clickedControl?.interaction === InteractionType.TRANSLATE_OBJECT) {
                 const dragPan = map
@@ -151,7 +169,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                 }
             }
         },
-        [mapWorkingLayer, saveContribution, setIsModifying, clickedControl, map]
+        [setIsModifying, clickedControl, map]
     );
 
     const drawInteractionFunc = useCallback(
@@ -196,9 +214,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             const sourceFeatureTypeData = pastedFeature.get(FEATURE_TYPE_DATA_PROPERTY);
 
             if (sourceFeatureTypeData && typeof sourceFeatureTypeData === "object") {
-                const nextFeatureTypeData = {
-                    ...sourceFeatureTypeData,
-                };
+                const nextFeatureTypeData = { ...sourceFeatureTypeData };
                 if (geoservice?.idName) {
                     nextFeatureTypeData[`${geoservice.idName}`] = createdContributions.length + 1;
                     pastedFeature.set(`${geoservice.idName}`, createdContributions.length + 1);
@@ -232,7 +248,6 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             setClickedControl,
             setSelectedObjects,
             map,
-            clickedControl,
         ]
     );
 
@@ -240,27 +255,22 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
         const features = selectInteraction.getFeatures().getArray();
         const sourceFeature = features[0] ?? clickedMapFeature;
 
-        if (!sourceFeature) {
-            return false;
-        }
+        if (!sourceFeature) return false;
 
         if (registeredPasteHandlerRef.current) {
             map?.un("singleclick", registeredPasteHandlerRef.current);
             registeredPasteHandlerRef.current = null;
         }
-        clipboardFeature = null;
         clipboardFeature = sourceFeature.clone();
         map?.on("singleclick", pasteInteractionFunc);
         registeredPasteHandlerRef.current = pasteInteractionFunc;
         return true;
-    }, [selectInteraction, clickedMapFeature, map, pasteInteractionFunc, mapWorkingLayer]);
+    }, [selectInteraction, clickedMapFeature, map, pasteInteractionFunc]);
 
     const splitLineInteractionFuncPointer = useCallback(
         (e: MapBrowserEvent) => {
             const features = map?.getFeaturesAtPixel(e.pixel, {
-                layerFilter: (layer) => {
-                    return layer.get("name") === mapWorkingLayer;
-                },
+                layerFilter: (layer) => layer.get("name") === mapWorkingLayer,
                 hitTolerance: POINTER_HIT_DETECTION_TOLERENCE,
             });
 
@@ -282,9 +292,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
     const splitLineInteractionFuncEnd = useCallback(
         (e: MapBrowserEvent) => {
             const features = map?.getFeaturesAtPixel(e.pixel, {
-                layerFilter: (layer) => {
-                    return layer.get("name") === mapWorkingLayer;
-                },
+                layerFilter: (layer) => layer.get("name") === mapWorkingLayer,
                 hitTolerance: 1,
             });
 
@@ -301,11 +309,9 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                 const newCoords = originalFeatGeometry?.getClosestPoint(e.coordinate) as Coordinate;
 
                 let splitIntex = 0;
-
                 for (let i = 0; i < originalFeatGeometryCoords.length; i++) {
                     const start = originalFeatGeometryCoords[i] as Coordinate;
                     const end = originalFeatGeometryCoords[i + 1] as Coordinate;
-
                     if (isPointOnSegment(start, end, newCoords)) {
                         splitIntex = i;
                         break;
@@ -316,17 +322,15 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                 const newCoordsCreated = [newCoords, ...originalFeatGeometryCoords.slice(splitIntex + 1)];
 
                 clickableSource.removeFeature(originalFeat);
-
                 originalFeatGeometry?.setCoordinates(newCoordsOriginal);
                 createdFeatGeometry?.setCoordinates(newCoordsCreated);
 
-                createdFeat.set("featureTypeData", {
-                    ...createdFeat.get("featureTypeData"),
+                createdFeat.set(FEATURE_TYPE_DATA_PROPERTY, {
+                    ...createdFeat.get(FEATURE_TYPE_DATA_PROPERTY),
                     [`${currentCommunityLayer?.geoservice.idName}`]: contributions.filter((contr) => contr.type === ContributionType.CREATE).length + 1,
                 });
 
                 originalFeat.unset(FEATURE_TYPE_SELECTED_PROPERTY);
-
                 clickableSource.addFeatures([originalFeat, createdFeat]);
 
                 saveContribution(originalFeat, ContributionType.MODIFY, initialFeat, mapWorkingLayer);
@@ -344,6 +348,16 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
         (type: string | null, target: string): CustomInteraction => {
             if (!clickableLayer || !clickableSource) return null;
             let interaction: CustomInteraction;
+
+            selectInteraction.un("select", selectInteractionFunc);
+            selectInteraction.un("select", removeInteractionFunc);
+            modifyInteraction.un("modifystart", modifyInteractionFuncStart);
+            modifyInteraction.un("modifyend", modifyInteractionFunc);
+            translateInteraction.un("translatestart", modifyInteractionFuncStart);
+            translateInteraction.un("translateend", modifyInteractionFunc);
+            drawPointInteraction.un("drawend", drawInteractionFunc);
+            drawLineInteraction.un("drawend", drawInteractionFunc);
+            drawPolygonInteraction.un("drawend", drawInteractionFunc);
 
             switch (type) {
                 case InteractionType.SELECT:
@@ -411,7 +425,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                 }
             }
             if (control.interaction === InteractionType.REMOVE) {
-                selectInteraction.getFeatures().clear();
+                selectInteraction.clearSelection();
             }
             if (control.interaction !== InteractionType.MODIFY && control.interaction !== InteractionType.TRANSLATE_OBJECT) {
                 selectedObjects.forEach((feat) => {
@@ -439,11 +453,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                 } else {
                     removeInteractionFromMap(clickedControl?.interaction ?? null, map!);
                     const copyReady = copyInteractionFunc();
-                    if (copyReady) {
-                        setClickedControl(control);
-                    } else {
-                        setClickedControl(null);
-                    }
+                    setClickedControl(copyReady ? control : null);
                 }
                 return;
             }
@@ -454,9 +464,10 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             } else {
                 removeInteractionFromMap(clickedControl?.interaction ?? null, map!);
 
-                if (control.interaction === InteractionType.MODIFY && selectedObjects.length > 0) {
+                if (control.interaction === InteractionType.MODIFY) {
                     modifyFeatures.clear();
-                    selectedObjects.forEach((feat) => {
+                    const featsToModify = selectedObjects.length > 0 ? selectedObjects : clickedMapFeature ? [clickedMapFeature] : [];
+                    featsToModify.forEach((feat) => {
                         modifyFeatures.push(feat);
                     });
                     selectInteraction.setActive(false);
@@ -478,6 +489,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             map,
             mapWorkingLayer,
             clickedControl,
+            clickedMapFeature,
             selectedObjects,
             selectInteraction,
             modifyFeatures,
