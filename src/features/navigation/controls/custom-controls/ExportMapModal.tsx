@@ -83,15 +83,6 @@ const ExportMapModal: React.FC = () => {
             })
         );
 
-        if (format !== "PDF") {
-            void exportPromise.catch((error) => {
-                const errorMessage = error instanceof Error ? error.message : String(error);
-                addAlertMessage(StatusMessage.error, `${t("error_status")} : ${errorMessage}`, 5000);
-            });
-            addAlertMessage(StatusMessage.success, t("success_status"), 5000);
-            return;
-        }
-
         void exportPromise
             .then(() => {
                 addAlertMessage(StatusMessage.success, t("success_status"), 5000);
