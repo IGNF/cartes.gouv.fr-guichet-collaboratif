@@ -2,7 +2,6 @@ import type { Translations } from "../types";
 import { AppHeaderEnTranslations } from "@/components/Layout/locale/AppHeader.locale";
 import { MapToolbarEnTranslations } from "@/components/Layout/locale/MapToolbar.locale";
 import { AppFooterEnTranslations } from "@/components/Layout/locale/AppFooter.locale";
-import { NotConnectedEnTranslations } from "@/pages/locale/NotConnected.locale";
 import { NotFoundEnTranslations } from "@/pages/locale/NotFound.locale";
 import { CarteEnTranslations } from "@/pages/locale/Carte.locale";
 import { GetReportsLayerEnTranslations } from "@/features/navigation/layers/locale/GetReportsLayer.locale";
@@ -70,7 +69,6 @@ export const translations: Translations<"en"> = {
     MapToolbar: MapToolbarEnTranslations,
     DrawerComponent: DrawerComponentEnTranslations,
     FilterAndSortReport: FilterAndSortReportEnTranslations,
-    NotConnected: NotConnectedEnTranslations,
     NotFound: NotFoundEnTranslations,
     Carte: CarteEnTranslations,
     GetReportsLayer: GetReportsLayerEnTranslations,

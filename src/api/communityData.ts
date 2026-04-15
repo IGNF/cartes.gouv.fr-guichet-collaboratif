@@ -4,8 +4,9 @@ import { QueryClient, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useUserStore } from "@/store/useUserStore";
 import { getGeoserviceAll } from "./geoservicesData";
 import { Community, CommunityGeoservice, CommunityGrids, CommunityLayer, layerData } from "@/constants/communities/types";
-import { axiosApi } from ".";
+import { getAxiosApi } from ".";
 import { getFeatureTypesAll } from "./featureTypesData";
+import { parseContentRange } from "@/constants/utils";
 import { LAYER_FEATURE_TYPE, DEFAULT_COMMUNITY_MIN_ZOOM, DEFAULT_COMMUNITY_MAX_ZOOM } from "@/constants";
 import { User } from "@/constants/user/types";
 
@@ -17,8 +18,9 @@ export const isDigital = (value: string): boolean => {
 };
 
 async function getCommunityGrids(grids: string[]): Promise<CommunityGrids[]> {
+    const api = await getAxiosApi();
     const resAll = await Promise.all(
-        grids.map((gridName) => axiosApi.get(`${GRIDS_API_URL}/${gridName}?fields[]=name` + `&fields[]=title` + `&fields[]=type` + `&fields[]=extent`))
+        grids.map((gridName) => api.get(`${GRIDS_API_URL}/${gridName}?fields[]=name` + `&fields[]=title` + `&fields[]=type` + `&fields[]=extent`))
     );
     return resAll.map((res) => {
         return {
@@ -31,10 +33,20 @@ async function getCommunityGrids(grids: string[]): Promise<CommunityGrids[]> {
 }
 
 async function getCommunityLayers(communityId: string): Promise<CommunityLayer[]> {
-    const res = await axiosApi.get(`${COMMUNITIES_API_URL}/${communityId}/layer/get_all`);
+    const api = await getAxiosApi();
+    const limit = 100;
+    const res = await api.get(`${COMMUNITIES_API_URL}/${communityId}/layers?limit=${limit}&page=1`);
 
-    if (!res.data || res.status !== 200) return [];
-    const layers = res.data;
+    if (!res.data || (res.status !== 200 && res.status !== 206)) return [];
+
+    const { total, limitPerPage } = parseContentRange(res.headers["content-range"]);
+    const remainingPages = Array.from({ length: Math.ceil(total / limitPerPage) - 1 }, (_, i) => i + 2);
+    const layers = [...res.data];
+
+    if (remainingPages.length > 0) {
+        const resAll = await Promise.all(remainingPages.map((page) => api.get(`${COMMUNITIES_API_URL}/${communityId}/layers?limit=${limit}&page=${page}`)));
+        resAll.forEach((r) => layers.push(...r.data));
+    }
     const layersGeoservice = layers.filter((layer: layerData) => layer.type === "geoservice");
     const layersFeatureType = layers.filter((layer: layerData) => layer.type === LAYER_FEATURE_TYPE);
     const geoservicesIds = layersGeoservice.map((layer: layerData) => layer?.geoservice?.id);
@@ -127,7 +139,8 @@ const defineZoomlvl = (layers: CommunityLayer[], providedMinZoom?: number | null
 };
 
 async function getCommunityById(communityId: string, user: User): Promise<[Community, CommunityLayer[]] | null> {
-    const res = await axiosApi.get(`${COMMUNITIES_API_URL}/${communityId}`);
+    const api = await getAxiosApi();
+    const res = await api.get(`${COMMUNITIES_API_URL}/${communityId}`);
 
     if (res.status === 403) {
         window.location.href = LIST_COMMUNITIES_URL;

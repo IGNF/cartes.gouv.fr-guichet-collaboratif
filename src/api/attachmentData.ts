@@ -1,13 +1,14 @@
 import { REPORTS_API_URL } from "@/constants/urls";
-import { axiosApi } from ".";
+import { getAxiosApi } from ".";
 import { CommunityReport, attachmentData } from "@/constants/reports/types";
 
 export async function postCommunityReportAttachments(report: CommunityReport, files: File[]): Promise<attachmentData[] | null> {
+    const api = await getAxiosApi();
     const formData = new FormData();
     files.forEach((file, index) => {
         formData.append(`document${index}`, file);
     });
-    const res = await axiosApi.post(`${REPORTS_API_URL}/${report.id}/attachments`, formData);
+    const res = await api.post(`${REPORTS_API_URL}/${report.id}/attachments`, formData);
     if (!res.data || res.status !== 200) return null;
 
     const newAttachments: attachmentData[] = res.data;
@@ -21,8 +22,9 @@ export async function postCommunityReportAttachments(report: CommunityReport, fi
     }));
 }
 
-function deleteAttachment(reportsId: number, attachmentId: number) {
-    return axiosApi.delete(`${REPORTS_API_URL}/${reportsId}/attachments/${attachmentId}`);
+async function deleteAttachment(reportsId: number, attachmentId: number) {
+    const api = await getAxiosApi();
+    return api.delete(`${REPORTS_API_URL}/${reportsId}/attachments/${attachmentId}`);
 }
 
 export async function deleteCommunityReportAttachment(reportsId: number, attachmentId: number): Promise<boolean> {
