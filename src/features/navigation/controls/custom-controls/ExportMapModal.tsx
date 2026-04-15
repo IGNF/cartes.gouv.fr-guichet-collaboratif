@@ -1,7 +1,8 @@
 import ModaleComponent from "@/components/ModaleComponent";
-import { useMapStore, useModalStore } from "@/store";
+import { useMapStore, useModalStore, useCommunityStore } from "@/store";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "@/i18n";
+import { StatusMessage } from "@/constants/communities/types";
 import Select from "@codegouvfr/react-dsfr/Select";
 import Input from "@codegouvfr/react-dsfr/Input";
 import Checkbox from "@codegouvfr/react-dsfr/Checkbox";
@@ -13,6 +14,7 @@ import { createPreviewMap, exportMap, MARGIN_OPTIONS, EXPORT_SIZE_OPTIONS, PAPER
 const ExportMapModal: React.FC = () => {
     const { map, setClickedControl } = useMapStore();
     const { exportMapModal } = useModalStore();
+    const { addAlertMessage } = useCommunityStore();
 
     const { t } = useTranslation({ ExportMapModal });
 
@@ -68,16 +70,36 @@ const ExportMapModal: React.FC = () => {
 
     const handleConfirm = () => {
         if (!map || !previewMapRef.current) return;
-        exportMap(map, {
-            orientation,
-            dimensions,
-            margin,
-            title,
-            hasTitle,
-            hasScale,
-            format,
-            previewMap: previewMapRef.current,
-        });
+        const exportPromise = Promise.resolve(
+            exportMap(map, {
+                orientation,
+                dimensions,
+                margin,
+                title,
+                hasTitle,
+                hasScale,
+                format,
+                previewMap: previewMapRef.current,
+            })
+        );
+
+        if (format !== "PDF") {
+            void exportPromise.catch((error) => {
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                addAlertMessage(StatusMessage.error, `${t("error_status")} : ${errorMessage}`, 5000);
+            });
+            addAlertMessage(StatusMessage.success, t("success_status"), 5000);
+            return;
+        }
+
+        void exportPromise
+            .then(() => {
+                addAlertMessage(StatusMessage.success, t("success_status"), 5000);
+            })
+            .catch((error) => {
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                addAlertMessage(StatusMessage.error, `${t("error_status")}: ${errorMessage}`, 5000);
+            });
     };
 
     return (
