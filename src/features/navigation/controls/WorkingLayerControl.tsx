@@ -10,7 +10,7 @@ import { CommunityLayerRoleType } from "@/constants/communities/types";
 
 const WorkingLayerControl = () => {
     const { community, mapLayers, communityLayers } = useCommunityStore();
-    const { map, mapWorkingLayer, showMapWorkingLayerSelect, setMapWorkingLayer, setShowMapWorkingLayerSelect } = useMapStore();
+    const { map, mapSwitcher, mapWorkingLayer, showMapWorkingLayerSelect, setMapWorkingLayer, setShowMapWorkingLayerSelect } = useMapStore();
     const { localStorageData, setLocalStorage } = useLocalStorageStore();
 
     const { t } = useTranslation({ WorkingLayerControl });
@@ -31,6 +31,22 @@ const WorkingLayerControl = () => {
         if (reportLayer) layers.push({ value: reportLayer?.name, label: reportLayer?.title });
         return layers;
     }, [mapLayers, reportLayer, communityLayers, t]);
+
+    const getLayerVisibilityButton = useCallback(
+        (layerName: string) => {
+            const targetLayer = mapLayers.find((layer) => layer.name === layerName);
+            if (!targetLayer) return null;
+
+            const switcherControl = document.querySelector('div[id^="GPlayerSwitcher-"]');
+            return switcherControl?.querySelector(`button[id^='GPvisibilityPicto_ID_${targetLayer.order}-']`);
+        },
+        [mapLayers]
+    );
+
+    const refreshLayerSwitcherState = useCallback(() => {
+        mapSwitcher?.changed();
+        map?.render();
+    }, [map, mapSwitcher]);
 
     const layerSwitcherButton = document.querySelector("button[id^='GPshowLayersListPicto-']");
 
@@ -63,6 +79,28 @@ const WorkingLayerControl = () => {
     }, [mapWorkingLayer, workingLayers, localStorageData, setMapWorkingLayer]);
 
     useEffect(() => {
+        if (!mapWorkingLayer || !map) return;
+
+        const mapLayer = map
+            .getLayers()
+            .getArray()
+            .find((layer) => layer.get("name") === mapWorkingLayer || layer.get("type") === mapWorkingLayer);
+
+        if (!mapLayer) return;
+
+        if (!mapLayer.getVisible()) {
+            const visibilityButton = getLayerVisibilityButton(mapWorkingLayer);
+            if (visibilityButton instanceof HTMLButtonElement) {
+                visibilityButton.click();
+            } else {
+                mapLayer.setVisible(true);
+            }
+        }
+
+        refreshLayerSwitcherState();
+    }, [getLayerVisibilityButton, map, mapWorkingLayer, refreshLayerSwitcherState]);
+
+    useEffect(() => {
         if (layerSwitcherButton) {
             layerSwitcherButton.addEventListener("click", handleLayerSwitcherClick);
             layerSwitcherButton.addEventListener("mouseover", handleLayerSwitcherMouseOver);
@@ -85,17 +123,9 @@ const WorkingLayerControl = () => {
                 setLocalStorage(community?.name, newLocalData);
             }
 
-            const mapLayer = map
-                ?.getLayers()
-                .getArray()
-                .find((layer) => layer.get("name") === value || layer.get("type") === value);
-            if (mapLayer && !mapLayer.getVisible()) {
-                mapLayer.setVisible(true);
-            }
-
             setMapWorkingLayer(value);
         },
-        [community, localStorageData, map, setLocalStorage, setMapWorkingLayer]
+        [community, localStorageData, setLocalStorage, setMapWorkingLayer]
     );
 
     if (!showMapWorkingLayerSelect) return null;
