@@ -34,7 +34,7 @@ type FilterHeaderKey =
     | "closing_date"
     | "attributs"
     | "document"
-    | "departement"
+    | "commune"
     | "reply";
 
 const TableReport = () => {
@@ -159,7 +159,7 @@ const TableReport = () => {
         updating_date: t("tableHeaders.updating_date"),
         closing_date: t("tableHeaders.closing_date"),
         attributs: t("tableHeaders.attributs"),
-        departement: t("tableHeaders.departement"),
+        commune: t("tableHeaders.commune"),
         document: t("tableHeaders.document"),
         reply: t("tableHeaders.reply"),
     };
@@ -350,16 +350,16 @@ const TableReport = () => {
                                 type="button"
                                 className="table-report__sort"
                                 onClick={() => toggleSortByDateCreation()}
-                                title="Trier par date de création"
+                                title={t("creation_sort")}
                                 priority="tertiary no outline"
                             >
-                                {t("creation")} <span className="fr-icon-arrow-up-down-line fr-icon--sm" aria-hidden="true" />
+                                {t("creation")} <span className="fr-icon-arrow-up-down-line fr-icon--sm fr-ml-1w" aria-hidden="true" />
                             </Button>,
-                            "Commune (département)",
-                            <Button type="button" className="table-report__sort" title="Trier par thème" priority="tertiary no outline">
-                                {t("theme")}
+                            t("tableHeaders.commune"),
+                            <Button type="button" className="table-report__sort" title={t("theme_sort")} priority="tertiary no outline">
+                                {t("theme")} <span className="fr-icon-arrow-up-down-line fr-icon--sm fr-ml-1w" aria-hidden="true" />
                             </Button>,
-                            <Button type="button" className="table-report__sort" onClick={sortByStatus} title="Trier par statut" priority="tertiary no outline">
+                            <Button type="button" className="table-report__sort" onClick={sortByStatus} title={t("status_sort")} priority="tertiary no outline">
                                 {t("status")} <span className="fr-icon-arrow-up-down-line fr-icon--sm fr-ml-1w" aria-hidden="true" />
                             </Button>,
                             "Actions",

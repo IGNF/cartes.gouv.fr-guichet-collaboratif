@@ -11,8 +11,11 @@ export const GetReportsLayerFrTranslations: Translations<"fr">["GetReportsLayer"
     no_result: "Aucun résultat ne correspond à votre recherche.",
     result_count: "Nombre de résultats :",
     theme: "Thème",
+    theme_sort: "Trier par thème",
     creation: "Création",
+    creation_sort: "Trier par date de création",
     status: "Statut",
+    status_sort: "Trier par statut",
     select_all: "Sélectionner tous les signalements de la page courante.",
     delete_button: "Supprimer un signalement",
     export_button: "Exporter le(s) signalement(s)",
@@ -26,7 +29,7 @@ export const GetReportsLayerFrTranslations: Translations<"fr">["GetReportsLayer"
     "tableHeaders.updating_date": "Date de mise à jour",
     "tableHeaders.closing_date": "Date de fermeture",
     "tableHeaders.attributs": "Attributs",
-    "tableHeaders.departement": "Département",
+    "tableHeaders.commune": "Commune (Code INSEE)",
     "tableHeaders.document": "Document",
     "tableHeaders.reply": "Réponse",
 };
@@ -41,8 +44,11 @@ export const GetReportsLayerEnTranslations: Translations<"en">["GetReportsLayer"
     no_result: "No results match your search.",
     result_count: "Result number:",
     theme: "Theme",
+    theme_sort: "Sort by theme",
     creation: "Creation",
+    creation_sort: "Sort by creation date",
     status: "Status",
+    status_sort: "Sort by status",
     select_all: "Select all reports on the current page.",
     delete_button: "Delete a report",
     export_button: "Export a report",
@@ -56,7 +62,7 @@ export const GetReportsLayerEnTranslations: Translations<"en">["GetReportsLayer"
     "tableHeaders.updating_date": "Update date",
     "tableHeaders.closing_date": "Closing date",
     "tableHeaders.attributs": "Attributes",
-    "tableHeaders.departement": "Department",
+    "tableHeaders.commune": "Commune (INSEE code)",
     "tableHeaders.document": "Document",
     "tableHeaders.reply": "Reply",
 };
@@ -71,8 +77,11 @@ const { i18n } = declareComponentKeys<
     | "no_result"
     | "result_count"
     | "theme"
+    | "theme_sort"
     | "creation"
+    | "creation_sort"
     | "status"
+    | "status_sort"
     | "select_all"
     | "delete_button"
     | "export_button"
@@ -86,7 +95,7 @@ const { i18n } = declareComponentKeys<
     | "tableHeaders.updating_date"
     | "tableHeaders.closing_date"
     | "tableHeaders.attributs"
-    | "tableHeaders.departement"
+    | "tableHeaders.commune"
     | "tableHeaders.document"
     | "tableHeaders.reply"
 >()("GetReportsLayer");

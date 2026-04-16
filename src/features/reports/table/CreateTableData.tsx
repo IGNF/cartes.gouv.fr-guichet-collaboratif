@@ -24,7 +24,7 @@ const CreateTableData = (
         const closing_date = report.closing_date ? new Date(report.closing_date).toLocaleDateString() : "-";
         const attributs = JSON.stringify(report.attributes, null, 2);
         const document = report.attachments.map((attachment) => `/document/download/${attachment.id}`).join(";");
-        const departement = report.commune ? `${report.commune.title} (${report.departement?.name})` : "-";
+        const commune = report.commune ? `${report.commune.title} (${report.commune?.name})` : "-";
         const status = report.status || "-";
         const comment = report.comment || "-";
         const statusText = reportImgStatus[status as StatusKey].text;
@@ -51,7 +51,7 @@ const CreateTableData = (
                 closing_date,
                 attributs: attributs,
                 document,
-                departement,
+                commune,
                 statusCode: report.status || "-",
                 reply,
             },
@@ -72,7 +72,7 @@ const CreateTableData = (
                 report.id,
                 author,
                 date,
-                departement,
+                commune,
                 <Tag>{report.attributes && report.attributes.length > 0 ? report.attributes.map((attr) => attr.theme || "").join(", ") : "-"}</Tag>,
                 <Badge severity="info" noIcon>
                     {statusText || "-"}
