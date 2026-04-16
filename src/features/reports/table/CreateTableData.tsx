@@ -4,6 +4,7 @@ import Badge from "@codegouvfr/react-dsfr/Badge";
 import Button from "@codegouvfr/react-dsfr/Button";
 import Checkbox from "@codegouvfr/react-dsfr/Checkbox";
 import Tag from "@codegouvfr/react-dsfr/Tag";
+import { SERVER_URL } from "@/constants/urls";
 
 const CreateTableData = (
     reports: CommunityReport[],
@@ -23,7 +24,7 @@ const CreateTableData = (
         const updating_date = report.updating_date ? new Date(report.updating_date).toLocaleDateString() : "-";
         const closing_date = report.closing_date ? new Date(report.closing_date).toLocaleDateString() : "-";
         const attributs = JSON.stringify(report.attributes, null, 2);
-        const document = report.attachments.map((attachment) => `/document/download/${attachment.id}`).join(";");
+        const document = report.attachments.map((attachment) => `${SERVER_URL}/document/download/${attachment.id}`).join(";");
         const commune = report.commune ? `${report.commune.title} (${report.commune?.name})` : "-";
         const status = report.status || "-";
         const comment = report.comment || "-";
