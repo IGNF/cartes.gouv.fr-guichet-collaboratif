@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "@/i18n";
 import VectorSource from "ol/source/Vector";
 import { getCommunityReportById, getAllReportsForExport, getTableReports } from "@/api/reportsData";
@@ -41,6 +41,7 @@ const TableReport = () => {
     const [sortOrder, setSortOrder] = useState<"ASC" | "DESC" | undefined>(undefined);
     const [isPreparingExport, setIsPreparingExport] = useState(false);
     const { t } = useTranslation({ GetReportsLayer });
+    const queryClient = useQueryClient();
     const { map } = useMapStore();
     const { localStorageData } = useLocalStorageStore();
     const clusterLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE);
@@ -48,6 +49,7 @@ const TableReport = () => {
 
     const { community, addAlertMessage } = useCommunityStore();
     const {
+        reports: storedReports,
         limitPerPage,
         filteredReports,
         setFilteredReports,
@@ -171,20 +173,56 @@ const TableReport = () => {
         if (!community) return;
         try {
             setIsPreparingExport(true);
+            const selectedIds = new Set(
+                Object.entries(isChecked)
+                    .filter(([, checked]) => checked)
+                    .map(([id]) => Number(id))
+            );
 
-            const hasSelection = Object.values(isChecked).some(Boolean);
+            let reportsToExport: CommunityReport[] = [];
 
-            const linesToExport = hasSelection
-                ? tableData.filter((line) => !!isChecked[String(line.id)])
-                : CreateTableData(
-                      applyFiltersToReports(await getAllReportsForExport(community.id, filters, searchReport, sortBy), currentFilters, searchReport),
-                      isChecked,
-                      onCheckChange,
-                      onShowReportOnMap,
-                      onShowOnMap
-                  );
+            if (selectedIds.size > 0) {
+                const selectedIdList = Array.from(selectedIds);
+                const reportById = new Map<number, CommunityReport>();
 
-            const downloadedTable = linesToExport.map((line) => line.exportData);
+                const addReports = (items: CommunityReport[] | undefined) => {
+                    if (!Array.isArray(items)) return;
+                    items.forEach((report) => {
+                        if (selectedIds.has(report.id) && !reportById.has(report.id)) {
+                            reportById.set(report.id, report);
+                        }
+                    });
+                };
+
+                addReports(reportsToUse);
+                addReports(storedReports);
+
+                const cachedQueries = queryClient.getQueriesData<{ data: CommunityReport[] }>({
+                    queryKey: ["reports", community.id],
+                });
+                cachedQueries.forEach(([, queryData]) => addReports(queryData?.data));
+
+                const missingIds = selectedIdList.filter((id) => !reportById.has(id));
+                if (missingIds.length > 0) {
+                    const missingReports = await Promise.all(missingIds.map((id) => getCommunityReportById(id)));
+                    missingReports.forEach((report) => {
+                        if (report) reportById.set(report.id, report);
+                    });
+                }
+
+                reportsToExport = selectedIdList.map((id) => reportById.get(id)).filter((report): report is CommunityReport => !!report);
+            } else {
+                const allReportsForExport = applyFiltersToReports(
+                    await getAllReportsForExport(community.id, filters, searchReport, sortBy),
+                    currentFilters,
+                    searchReport
+                );
+                reportsToExport = allReportsForExport;
+            }
+
+            if (reportsToExport.length === 0) return;
+
+            const downloadedTable = CreateTableData(reportsToExport, isChecked, onCheckChange, onShowReportOnMap, onShowOnMap).map((line) => line.exportData);
 
             const escapeCsvValue = (value: unknown) => `"${String(value ?? "").replace(/"/g, '""')}"`;
             const csv = [
@@ -206,7 +244,23 @@ const TableReport = () => {
         } finally {
             setIsPreparingExport(false);
         }
-    }, [community, filters, searchReport, sortBy, isChecked, onCheckChange, onShowReportOnMap, onShowOnMap, tableHeader, addAlertMessage, t]);
+    }, [
+        community,
+        filters,
+        searchReport,
+        sortBy,
+        isChecked,
+        onCheckChange,
+        onShowReportOnMap,
+        onShowOnMap,
+        tableHeader,
+        addAlertMessage,
+        t,
+        reportsToUse,
+        currentFilters,
+        storedReports,
+        queryClient,
+    ]);
 
     const sortByStatus = () => {
         setSortOrder((prev) => {

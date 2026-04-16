@@ -8,6 +8,7 @@ import VectorSource from "ol/source/Vector";
 export type Severity = "success" | "info" | "warning" | "error" | "new";
 export type StatusKey = "submit" | "pending0" | "pending" | "pending1" | "pending2" | "valid" | "valid0" | "reject" | "reject0" | "test";
 export type SketchType = "Point" | "Ligne" | "MultiPolygone";
+
 export enum SketchFeatureType {
     Point = "Point",
     LineString = "Ligne",
@@ -19,6 +20,7 @@ export enum SketchFeatureType {
     GeometryCollection = "GeometryCollection",
     Circle = "Circle",
 }
+
 export type ParamsReport = {
     feature: Feature;
     geomType: string;
@@ -29,6 +31,7 @@ export type MutationReportParams = {
     reportId: number;
     body: Reply;
 };
+
 type CommuneData = {
     name: string;
     title: string;
@@ -41,12 +44,14 @@ type AuthorData = {
     id: number;
     username: string;
 };
+
 type DepartementData = {
     name: string;
     title: string;
 };
 
 export type CoordinateType = number[] | number[][] | number[][][];
+
 export type GeometryFeatueParams =
     | (Geometry & { getCoordinates: () => Coordinate | Coordinate[] | Coordinate[][] | Coordinate[][][]; setCoordinates: (coords: CoordinateType) => void })
     | undefined;
@@ -76,6 +81,7 @@ export interface CommunityReport {
     attributes?: CommunityTheme[];
     replies?: Reply[];
 }
+
 export enum SortType {
     ASC = "ASC",
     DESC = "DESC",
@@ -90,6 +96,7 @@ export type Reply = {
     status: string;
     date?: string;
 };
+
 export interface Replies {
     replies: Reply[];
 }
@@ -127,6 +134,7 @@ export type attachmentData = {
     mime_type: string;
     uri: string;
 };
+
 export type reportData = {
     id: number;
     geometry: string;
@@ -182,6 +190,7 @@ export enum toolNames {
     remove = "drawing-tool-remove",
     import = "drawing-tool-import",
 }
+
 export interface ReportTool {
     type: string;
     name: string;
