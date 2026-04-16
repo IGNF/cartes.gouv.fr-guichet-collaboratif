@@ -11,7 +11,8 @@ const CreateTableData = (
     isChecked?: Record<number, boolean>,
     onCheckChange?: (id: number, checked: boolean) => void,
     onShowReportOnMap?: (report: CommunityReport) => void,
-    onShowReport?: (report: CommunityReport) => void
+    onShowReport?: (report: CommunityReport) => void,
+    t?: (key: string) => string
 ) => {
     if (!Array.isArray(reports) || reports.length === 0) {
         return [];
@@ -61,7 +62,7 @@ const CreateTableData = (
                     key={"check-" + report.id}
                     options={[
                         {
-                            label: <span className="fr-sr-only">Sélectionner un signalement</span>,
+                            label: <span className="fr-sr-only">{t?.("select") ?? "Sélectionner un signalement"}</span>,
                             nativeInputProps: {
                                 checked: isChecked && !!isChecked[report.id],
                                 onChange: (e) => onCheckChange && onCheckChange(report.id, e.target.checked),
@@ -85,7 +86,7 @@ const CreateTableData = (
                             iconId="fr-icon-road-map-line"
                             className="fr-icon--sm fr-mr-7v"
                             priority="tertiary no outline"
-                            title="Afficher sur la carte"
+                            title={t?.("show_map") ?? "Afficher sur la carte"}
                             onClick={() => onShowReport(report)}
                         />
                     )}
@@ -94,7 +95,7 @@ const CreateTableData = (
                             iconId="fr-icon-arrow-right-line"
                             className="fr-icon--sm"
                             priority="tertiary no outline"
-                            title="Afficher le signalement"
+                            title={t?.("show_report") ?? "Afficher le signalement"}
                             onClick={() => onShowReportOnMap(report)}
                         />
                     )}

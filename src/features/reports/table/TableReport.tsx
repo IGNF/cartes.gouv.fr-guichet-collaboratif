@@ -141,7 +141,7 @@ const TableReport = () => {
     const reportsToUse = useMemo(() => (filteredReports.length > 0 ? filteredReports : (reports ?? [])), [filteredReports, reports]);
 
     const tableData = useMemo(
-        () => CreateTableData(reportsToUse, isChecked, onCheckChange, onShowReportOnMap, onShowOnMap),
+        () => CreateTableData(reportsToUse, isChecked, onCheckChange, onShowReportOnMap, onShowOnMap, t),
         [reportsToUse, isChecked, onCheckChange, onShowReportOnMap, onShowOnMap]
     );
 

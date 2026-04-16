@@ -20,6 +20,9 @@ export const GetReportsLayerFrTranslations: Translations<"fr">["GetReportsLayer"
     delete_button: "Supprimer un signalement",
     export_button: "Exporter le(s) signalement(s)",
     results_per_page: "Nombre de lignes par page",
+    select: "Sélectionner un signalement",
+    show_map: "Afficher sur la carte",
+    show_report: "Afficher le signalement",
     "tableHeaders.id": "Identifiant",
     "tableHeaders.status": "Statut",
     "tableHeaders.comment": "Commentaire",
@@ -53,6 +56,9 @@ export const GetReportsLayerEnTranslations: Translations<"en">["GetReportsLayer"
     delete_button: "Delete a report",
     export_button: "Export a report",
     results_per_page: "Number of lines per page",
+    select: "Select a report",
+    show_map: "Show on map",
+    show_report: "Show report",
     "tableHeaders.id": "ID",
     "tableHeaders.status": "Status",
     "tableHeaders.comment": "Comment",
@@ -86,6 +92,9 @@ const { i18n } = declareComponentKeys<
     | "delete_button"
     | "export_button"
     | "results_per_page"
+    | "select"
+    | "show_map"
+    | "show_report"
     | "tableHeaders.id"
     | "tableHeaders.status"
     | "tableHeaders.comment"
