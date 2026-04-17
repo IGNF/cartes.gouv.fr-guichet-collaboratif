@@ -29,10 +29,10 @@ const ReviewContributions = () => {
 
     const setCurrentContribution = useCallback(
         (position: number) => {
-            const clamped = position > contrToReview.length - 1 ? 0 : position < 0 ? contrToReview.length - 1 : position;
+            const pos = position > contrToReview.length - 1 ? 0 : position < 0 ? contrToReview.length - 1 : position;
 
-            setCurrentPosition(clamped);
-            setClickedMapFeature(contrToReview[clamped].feature);
+            setCurrentPosition(pos);
+            setClickedMapFeature(contrToReview[pos].feature);
         },
         [contrToReview, setClickedMapFeature]
     );
