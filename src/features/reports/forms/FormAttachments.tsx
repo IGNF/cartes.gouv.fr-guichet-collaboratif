@@ -53,7 +53,7 @@ const FormAttachments = () => {
         [t]
     );
     const { community, addAlertMessage } = useCommunityStore();
-    const { reports, selectedReport, setReports } = useReportStore();
+    const { reports, selectedReport, setSelectedReport, setReports } = useReportStore();
 
     const removeFile = (file: File) => {
         const newFilesUploaded = filesUploaded?.filter((fileUploaded) => fileUploaded !== file);
@@ -85,7 +85,7 @@ const FormAttachments = () => {
                 if (!attachmentsUploaded || !attachmentsUploaded.length) {
                     addAlertMessage(StatusMessage.error, "report_document_uploaded_error");
                 } else {
-                    selectedReport.attachments = attachmentsUploaded;
+                    setSelectedReport({ ...selectedReport, attachments: attachmentsUploaded });
                     addAlertMessage(StatusMessage.success, t("report_document_uploaded_success"));
                 }
             }

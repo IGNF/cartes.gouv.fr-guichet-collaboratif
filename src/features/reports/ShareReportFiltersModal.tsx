@@ -1,35 +1,30 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "@/i18n";
 import { useCommunityStore, useModalStore, useReportStore } from "@/store";
 import Button from "@codegouvfr/react-dsfr/Button";
 import Input from "@codegouvfr/react-dsfr/Input";
 import ModaleComponent from "@/components/ModaleComponent";
 import Tag from "@codegouvfr/react-dsfr/Tag";
-import { layerData, StatusMessage } from "@/constants/communities/types";
+import { StatusMessage } from "@/constants/communities/types";
 import ShareReportModal from "./ShareReportModal";
-import { LAYER_FEATURE_TYPE } from "@/constants";
 
 const ShareReportFiltersModal = () => {
     const [showToast, setShowToast] = useState<boolean>(false);
-    const [shareUrl, setShareUrl] = useState("");
 
     const { t } = useTranslation({ ShareReportModal });
 
-    const { addAlertMessage, communityLayers } = useCommunityStore();
+    const { addAlertMessage } = useCommunityStore();
     const { shareReportFilters } = useModalStore();
-    const { activeTable, syncUrlFromState } = useReportStore();
+    const { syncUrlFromState } = useReportStore();
 
     const baseUrl = useMemo(() => `${window.location.origin}${window.location.pathname}`, []);
     const url = useMemo(() => baseUrl + syncUrlFromState(), [baseUrl, syncUrlFromState]);
 
-    const currentGeoservice = useMemo(() => communityLayers?.find((layer: layerData) => layer.type === LAYER_FEATURE_TYPE), [communityLayers]);
-
-    useEffect(() => {
+    const shareUrl = useMemo(() => {
         const baseParams = new URL(url).search;
 
-        const newUrl = `${baseUrl}${baseParams}&view=reports`;
-        setShareUrl(newUrl);
-    }, [activeTable, baseUrl, currentGeoservice, url]);
+        return `${baseUrl}${baseParams}&view=reports`;
+    }, [baseUrl, url]);
 
     const handleCopy = async () => {
         if (!shareUrl) return;

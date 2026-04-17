@@ -29,29 +29,26 @@ const ReviewContributions = () => {
 
     const setCurrentContribution = useCallback(
         (position: number) => {
-            if (position > contrToReview.length - 1) {
-                position = 0;
-            }
-            if (position < 0) {
-                position = contrToReview.length - 1;
-            }
-            const nextContribution = contributions[position];
-            setCurrentPosition(position);
-            setClickedMapFeature(nextContribution.feature);
+            const clamped = position > contrToReview.length - 1 ? 0 : position < 0 ? contrToReview.length - 1 : position;
+
+            setCurrentPosition(clamped);
+            setClickedMapFeature(contrToReview[clamped].feature);
         },
-        [contributions, setClickedMapFeature, contrToReview]
+        [contrToReview, setClickedMapFeature]
     );
 
-    useEffect(() => {
-        const clickedMapContribution = contrToReview.find((c) => c.feature === clickedMapFeature);
-        const currentIndex = contrToReview.indexOf(clickedMapContribution!);
-        const currentContribution = contrToReview[currentIndex ?? currentPosition];
-        const feature = currentContribution?.feature;
-        if (feature) {
-            handleCenterToFeature(map, feature);
-            if (currentIndex !== -1) setCurrentContribution(currentIndex);
+    const currentIndex = useMemo(() => {
+        if (clickedMapFeature) {
+            const i = contrToReview.findIndex((c) => c.feature === clickedMapFeature);
+            if (i !== -1) return i;
         }
-    }, [currentPosition, contrToReview, map, clickedMapFeature, setClickedMapFeature, setCurrentContribution]);
+        return currentPosition;
+    }, [clickedMapFeature, contrToReview, currentPosition]);
+
+    useEffect(() => {
+        const feature = contrToReview[currentIndex]?.feature;
+        if (feature) handleCenterToFeature(map, feature);
+    }, [currentIndex, contrToReview, map]);
 
     const total = contrToReview.length;
 
