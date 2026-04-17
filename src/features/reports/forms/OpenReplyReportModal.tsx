@@ -21,7 +21,6 @@ const OpenReplyReportModal: React.FC<Props> = ({ onClose }) => {
     const queryClient = useQueryClient();
 
     const { t } = useTranslation({ OpenReplyReportModal });
-    const [selectedReportId, setSelectedReportId] = useState<number[]>();
 
     const [status, setStatus] = useState("");
     const [content, setContent] = useState("");
@@ -56,23 +55,18 @@ const OpenReplyReportModal: React.FC<Props> = ({ onClose }) => {
     });
 
     useEffect(() => {
-        if (checkedIds.length > 0 && (selectedReportId?.length !== checkedIds.length || !checkedIds.every((id, index) => id === selectedReportId[index]))) {
-            setSelectedReportId(checkedIds);
-        }
-    }, [checkedIds, selectedReportId]);
-
-    useEffect(() => {
         setSelectedReport(selectedReport);
     }, [reports, selectedReport, setSelectedReport]);
 
-    const replay_title = `${selectedReportId?.length === 1 ? t("openReplay_title") + selectedReportId : t("openReplies_title")}`;
+    const replay_title = `${checkedIds.length === 1 ? t("openReplay_title") + checkedIds[0] : t("openReplies_title")}`;
+
     return (
         <ModaleComponent
             modal={replyReportModal}
             title={replay_title}
             onClose={onClose}
             onConfirm={async () => {
-                mutation.mutate({ reportsId: selectedReportId || [], body: { title: "", content, status } });
+                mutation.mutate({ reportsId: checkedIds, body: { title: "", content, status } });
             }}
             cancelText={t("back_to_reports")}
             confirmText={t("send_report")}

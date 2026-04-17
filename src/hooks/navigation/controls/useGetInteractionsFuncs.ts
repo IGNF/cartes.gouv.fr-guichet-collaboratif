@@ -294,7 +294,6 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                     map?.on("pointermove", splitLineInteractionFuncPointer);
                     break;
                 default:
-                    interaction = null;
                     return null;
             }
             if (interaction) interaction.set("type", type);
