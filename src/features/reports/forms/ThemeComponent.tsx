@@ -37,7 +37,7 @@ const ThemeComponent: React.FC<Props> = ({
                     label: theme.theme,
                     nativeInputProps: {
                         checked: selectedTheme?.theme === theme.theme,
-                        onClick: () => {
+                        onChange: () => {
                             setSelectedTheme(theme);
                             onChangeThemeAttributes({});
                         },
