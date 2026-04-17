@@ -24,7 +24,7 @@ let clipboardFeature: Feature | null = null;
 const useGetInteractionsFuncs = (props: InteractionsProps) => {
     const { map, mapWorkingLayer, clickedControl, clickedMapFeature, setClickedControl, setClickedMapFeature } = useMapStore();
     const { contributions, selectedObjects, saveContribution, setIsModifying, setSelectedObjects } = useContributionStore();
-    const { searchModal } = useModalStore();
+    const { searchModal, exportMapModal } = useModalStore();
     const { communityLayers } = useCommunityStore();
 
     const currentCommunityLayer = useMemo(() => communityLayers?.find((l) => l?.geoservice?.layer === mapWorkingLayer), [communityLayers, mapWorkingLayer]);
@@ -426,6 +426,11 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             }
             if (control.interaction === InteractionType.REMOVE) {
                 selectInteraction.clearSelection();
+            }
+
+            if (control.interaction === InteractionType.EXPORT_IMAGE) {
+                exportMapModal.open();
+                return;
             }
             if (control.interaction !== InteractionType.MODIFY && control.interaction !== InteractionType.TRANSLATE_OBJECT) {
                 selectedObjects.forEach((feat) => {

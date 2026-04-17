@@ -108,7 +108,7 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
             },
             {
                 id: 9,
-                title: clickedControl?.interaction === InteractionType.COPY_OBJECT ? "paste_object" : "copy_object",
+                title: clickedControl?.interaction === InteractionType.COPY_OBJECT ? t("paste_object") : t("copy_object"),
                 target: "",
                 icon: clickedControl?.interaction === InteractionType.COPY_OBJECT ? "ri-clipboard-fill" : "ri-file-copy-2-fill",
                 disabled:
