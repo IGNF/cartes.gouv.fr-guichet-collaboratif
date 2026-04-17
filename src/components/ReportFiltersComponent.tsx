@@ -1,5 +1,4 @@
-import { useEffect, useMemo } from "react";
-import { getTableReports } from "@/api/reportsData";
+import { useMemo } from "react";
 import { useCommunityStore, useReportStore } from "@/store";
 import { reportImgStatus } from "@/constants/utils";
 import { StatusKey } from "@/constants/reports/types";
@@ -10,31 +9,17 @@ interface ReportFiltersProps {
     reportStatus: string;
 }
 const ReportFiltersComponent = ({ reportStatus }: ReportFiltersProps) => {
-    const {
-        reports,
-        currentFilters,
-        selectedReport,
-        setCurrentFilters,
-        setFilteredReports,
-        setDrawerOpened,
-        setTableDrawerOpened,
-        setIsChecked,
-        filteredReports,
-        isChecked,
-    } = useReportStore();
-
-    const reportsToUse = useMemo(() => {
-        return filteredReports.length > 0 ? filteredReports : (reports ?? []);
-    }, [filteredReports, reports]);
-    const tableData = useMemo(() => CreateTableData(reportsToUse, isChecked), [reportsToUse, isChecked]);
+    const { reports, currentFilters, selectedReport, setCurrentFilters, setDrawerOpened, setTableDrawerOpened, setIsChecked, isChecked } = useReportStore();
 
     const { community } = useCommunityStore();
+
+    const tableData = useMemo(() => CreateTableData(reports ?? [], isChecked), [reports, isChecked]);
 
     const checkedIds = useMemo(() => {
         return tableData.filter((res) => res.id === selectedReport?.id).map((tab) => tab.original);
     }, [tableData, selectedReport]);
 
-    const currentReport = checkedIds.length === 1 ? checkedIds[0] : null;
+    const currentReport = checkedIds.length === 1 ? checkedIds[0] : (selectedReport ?? null);
 
     const author = currentReport?.author?.username || "-";
     const date = currentReport?.opening_date ? new Date(currentReport?.opening_date).toLocaleDateString() : "-";
@@ -47,21 +32,19 @@ const ReportFiltersComponent = ({ reportStatus }: ReportFiltersProps) => {
 
     const statusLabel = reportImgStatus[reportStatus as StatusKey]?.text || "";
 
+    const applyReportFilter = (updatedFilters: typeof currentFilters) => {
+        setCurrentFilters(updatedFilters);
+        setDrawerOpened(false);
+        setTableDrawerOpened(true);
+        setIsChecked({});
+    };
+
     function convertDateToIso(dateStr: string): string {
         const [day, month, year] = dateStr.split("/");
         if (!day || !month || !year) return "";
 
         return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
     }
-
-    useEffect(() => {
-        async function fetchReports() {
-            if (!community) return;
-            const { data } = await getTableReports(community.id, 100, 1);
-            setFilteredReports(data, true);
-        }
-        fetchReports();
-    }, [community, setFilteredReports]);
 
     return (
         <ul className="fr-links-group report-filter__container fr-mb-6v fr-mt-4v">
@@ -73,11 +56,8 @@ const ReportFiltersComponent = ({ reportStatus }: ReportFiltersProps) => {
                     onClick={async (e: React.MouseEvent) => {
                         e.preventDefault();
                         if (!community) return;
-                        const authorFilter = selectedReport?.author?.id ?? null;
-                        setCurrentFilters({ ...currentFilters, author: authorFilter });
-                        setDrawerOpened(false);
-                        setTableDrawerOpened(true);
-                        setIsChecked({});
+                        const authorFilter = currentReport?.author?.id ?? null;
+                        applyReportFilter({ ...currentFilters, author: authorFilter });
                     }}
                 >
                     {author}
@@ -92,10 +72,7 @@ const ReportFiltersComponent = ({ reportStatus }: ReportFiltersProps) => {
                         e.preventDefault();
                         if (!community) return;
                         const dateFilter = convertDateToIso(date ?? "");
-                        setCurrentFilters({ ...currentFilters, opening_date: dateFilter });
-                        setDrawerOpened(false);
-                        setTableDrawerOpened(true);
-                        setIsChecked({});
+                        applyReportFilter({ ...currentFilters, opening_date: dateFilter });
                     }}
                 >
                     {date}
@@ -109,11 +86,8 @@ const ReportFiltersComponent = ({ reportStatus }: ReportFiltersProps) => {
                     onClick={async (e: React.MouseEvent) => {
                         e.preventDefault();
                         if (!community) return;
-                        const communeFilter = selectedReport?.commune?.name ?? "";
-                        setCurrentFilters({ ...currentFilters, commune: communeFilter });
-                        setDrawerOpened(false);
-                        setTableDrawerOpened(true);
-                        setIsChecked({});
+                        const communeFilter = currentReport?.commune?.name ?? "";
+                        applyReportFilter({ ...currentFilters, commune: communeFilter });
                     }}
                 >
                     {commune}
@@ -127,11 +101,8 @@ const ReportFiltersComponent = ({ reportStatus }: ReportFiltersProps) => {
                     onClick={async (e: React.MouseEvent) => {
                         e.preventDefault();
                         if (!community) return;
-                        const departementFilter = selectedReport?.departement?.name;
-                        setCurrentFilters({ ...currentFilters, departement: departementFilter });
-                        setDrawerOpened(false);
-                        setTableDrawerOpened(true);
-                        setIsChecked({});
+                        const departementFilter = currentReport?.departement?.name;
+                        applyReportFilter({ ...currentFilters, departement: departementFilter });
                     }}
                 >
                     {departement}
@@ -146,11 +117,8 @@ const ReportFiltersComponent = ({ reportStatus }: ReportFiltersProps) => {
                         onClick: async (e: React.MouseEvent) => {
                             e.preventDefault();
                             if (!community) return;
-                            const themeFilter = selectedReport?.themes?.[0].theme ?? "";
-                            setCurrentFilters({ ...currentFilters, theme: themeFilter });
-                            setDrawerOpened(false);
-                            setTableDrawerOpened(true);
-                            setIsChecked({});
+                            const themeFilter = currentReport?.themes?.[0].theme ?? "";
+                            applyReportFilter({ ...currentFilters, theme: themeFilter });
                         },
                     }}
                 >
@@ -164,10 +132,7 @@ const ReportFiltersComponent = ({ reportStatus }: ReportFiltersProps) => {
                     onClick={async (e: React.MouseEvent) => {
                         e.preventDefault();
                         if (!community) return;
-                        setCurrentFilters({ ...currentFilters, status: status });
-                        setDrawerOpened(false);
-                        setTableDrawerOpened(true);
-                        setIsChecked({});
+                        applyReportFilter({ ...currentFilters, status: status });
                     }}
                 >
                     <Badge severity="info" noIcon>
