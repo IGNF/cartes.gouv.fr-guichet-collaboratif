@@ -19,8 +19,11 @@ const TableReportDrawer = ({ handleCloseDrawer }: Props) => {
     const { reportTableWidth, setCurrentFilters, setCurrentPage, setLimitPerPage, setSortBy, setSearchReport } = useReportStore();
 
     useEffect(() => {
-        const { status, theme, author, departement, search, sortBy, page, limit } = getReportQueryParams();
+        if (!hasReportParams()) {
+            return;
+        }
 
+        const { status, theme, author, departement, search, sortBy, page, limit } = getReportQueryParams();
         setCurrentFilters({ status, theme, author, departement });
         setSearchReport(search);
         setSortBy(sortBy);

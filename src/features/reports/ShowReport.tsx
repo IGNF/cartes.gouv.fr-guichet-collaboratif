@@ -105,6 +105,7 @@ const ShowReport: React.FC<Props> = ({ handleCloseDrawer }) => {
                                     label: reportTheme?.theme,
                                     nativeInputProps: {
                                         checked: true,
+                                        readOnly: true,
                                     },
                                 },
                             ]}
