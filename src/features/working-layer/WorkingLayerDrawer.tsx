@@ -20,12 +20,7 @@ const WorkingLayerDrawer = () => {
         }
     }, [clickedMapFeature, workingLayerDrawerOpened, setWorkingLayerDrawerOpened]);
 
-    const handleCloseDrawer = useCallback(() => {
-        if (selectedObjects.length > 1) {
-            pendingClose.current = handleCloseDrawer;
-            confirmMultipleDeselectionModal.open();
-            return;
-        }
+    const closeDrawer = useCallback(() => {
         selectedObjects.forEach((feat) => {
             feat.unset(FEATURE_TYPE_SELECTED_PROPERTY);
             feat.changed();
@@ -35,15 +30,16 @@ const WorkingLayerDrawer = () => {
         setClickedMapFeature(null);
         setWorkingLayerDrawerOpened(false);
         setFeatureTypeMode(FeatureTypeMode.VIEW);
-    }, [
-        selectedObjects,
-        setClickedMapFeature,
-        setFeatureTypeMode,
-        setSelectedObjects,
-        setWorkingLayerDrawerOpened,
-        setColumnsToModify,
-        confirmMultipleDeselectionModal,
-    ]);
+    }, [selectedObjects, setSelectedObjects, setColumnsToModify, setClickedMapFeature, setWorkingLayerDrawerOpened, setFeatureTypeMode]);
+
+    const handleCloseDrawer = useCallback(() => {
+        if (selectedObjects.length > 1) {
+            pendingClose.current = closeDrawer;
+            confirmMultipleDeselectionModal.open();
+            return;
+        }
+        closeDrawer();
+    }, [selectedObjects.length, closeDrawer, confirmMultipleDeselectionModal]);
 
     useEffect(() => {
         if (!clickedMapFeature && workingLayerDrawerOpened) {
@@ -53,25 +49,9 @@ const WorkingLayerDrawer = () => {
 
     const onConfirmDeselection = useCallback(() => {
         confirmMultipleDeselectionModal.close();
-        selectedObjects.forEach((feat) => {
-            feat.unset(FEATURE_TYPE_SELECTED_PROPERTY);
-            feat.changed();
-        });
-        setSelectedObjects([]);
-        setColumnsToModify([]);
-        setClickedMapFeature(null);
-        setWorkingLayerDrawerOpened(false);
-        setFeatureTypeMode(FeatureTypeMode.VIEW);
+        closeDrawer();
         pendingClose.current = null;
-    }, [
-        confirmMultipleDeselectionModal,
-        selectedObjects,
-        setSelectedObjects,
-        setColumnsToModify,
-        setClickedMapFeature,
-        setWorkingLayerDrawerOpened,
-        setFeatureTypeMode,
-    ]);
+    }, [confirmMultipleDeselectionModal, closeDrawer]);
 
     const drawerWidth = window.innerWidth * (1.2 / 3);
 
