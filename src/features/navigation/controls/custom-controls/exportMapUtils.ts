@@ -104,6 +104,7 @@ const canvasToBytes = (canvas: HTMLCanvasElement, type: string, quality?: number
         canvas.toBlob(
             (blob) => {
                 if (!blob) {
+                    reject(new Error("Impossible de générer le fichier, blob null"));
                     return;
                 }
 
@@ -304,7 +305,7 @@ export const exportMap = (_mainMap: OlMap, { format, previewMap, ...opts }: Expo
     const previewEl = previewMap.getTargetElement() as HTMLElement;
     const previewCanvas = compositeCanvases(previewEl);
     if (!previewCanvas) {
-        throw new Error("aucun canvas");
+        return Promise.reject(new Error("Impossible de générer le fichier, aucun canvas trouvé"));
     }
 
     const pr = window.devicePixelRatio || 1;
