@@ -3,46 +3,24 @@
     top: 0;
     right: 0;
 }
-
 .report-deleteShare__wrapper {
     position: absolute;
     top: 0;
     right: 0;
-    background-color: var(--background-default-grey);
+    background-color: rgba(0, 0, 0, 0.04);
 }
-
 .report-deleteShare__container {
     position: absolute;
     top: 0;
     right: 40px;
-    box-shadow: 0px 2px 6px 0px var(--grey-975-75);
-    background-color: var(--background-default-grey) !important;
+    box-shadow: 0px 2px 6px 0px var(--shadow-color);
 }
-
 .report-deleteShare__container > button {
     position: relative;
     display: block;
-    background-color: var(--background-default-grey);
+    background-color: #fff;
     width: 100%;
 }
-
-.report-deleteShare__container .fr-btn--tertiary-no-outline {
-    --idle: var(--background-default-grey);
-    --hover: var(--background-default-grey-hover);
-    --active: var(--background-default-grey-active);
-    background-color: var(--background-default-grey);
-}
-
-.report-deleteShare__container .fr-btn--tertiary-no-outline:hover,
-.report-deleteShare__container .fr-btn--tertiary-no-outline:focus,
-.report-deleteShare__container .fr-btn--tertiary-no-outline:focus-visible {
-    background-color: var(--background-default-grey-hover) !important;
-}
-
-.report-deleteShare__container .fr-btn--tertiary-no-outline:active {
-    background-color: var(--background-default-grey-active) !important;
-}
-
 .report-deleteShare__container > button:first-child::after {
     content: "";
     position: absolute;
@@ -52,5 +30,5 @@
     margin: auto;
     width: calc(100% - 8px);
     height: 1px;
-    background-color: var(--border-default-grey);
+    background: rgba(221, 221, 221, 1);
 }
