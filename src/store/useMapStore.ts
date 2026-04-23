@@ -1,4 +1,5 @@
 import { CustomControlItem, FeatureInfo, FeatureTypeSelectedStyle } from "@/constants/communities/types";
+import { NamedPositionCandidate } from "@/constants/localStorage/types";
 import { ClickedTool } from "@/constants/reports/types";
 import LayerSwitcher from "geopf-extensions-openlayers/src/packages/Controls/LayerSwitcher/LayerSwitcher";
 import { Feature, Map } from "ol";
@@ -16,6 +17,7 @@ interface MapStore {
     clickedControl: CustomControlItem | null;
     showMapWorkingLayerSelect: boolean;
     showCenterReportButtons: boolean;
+    namedPositionCandidate: NamedPositionCandidate | null;
     featureInfo: FeatureInfo;
     setMap: (map: Map | null, mapSwitcher: LayerSwitcher | null) => void;
     setFeatureTypeSelectedStyle: ({ layer, selectedStyle }: FeatureTypeSelectedStyle) => void;
@@ -26,6 +28,7 @@ interface MapStore {
     setClickedControl: (control: CustomControlItem | null) => void;
     setShowMapWorkingLayerSelect: (show: boolean) => void;
     setShowCenterReportButtons: (show: boolean) => void;
+    setNamedPositionCandidate: (candidate: NamedPositionCandidate | null) => void;
     setFeatureInfo: (content: string | null, title: string | null, position?: Coordinate) => void;
     clickedTool: ClickedTool;
     setClickedTool: (tool: ClickedTool) => void;
@@ -42,6 +45,7 @@ export const useMapStore = create<MapStore>((set, get) => ({
     clickedControl: null,
     showMapWorkingLayerSelect: true,
     showCenterReportButtons: false,
+    namedPositionCandidate: null,
     featureInfo: {
         content: null,
         title: null,
@@ -75,6 +79,7 @@ export const useMapStore = create<MapStore>((set, get) => ({
     setClickedControl: (control) => set({ clickedControl: control }),
     setShowMapWorkingLayerSelect: (show) => set({ showMapWorkingLayerSelect: show }),
     setShowCenterReportButtons: (show) => set({ showCenterReportButtons: show }),
+    setNamedPositionCandidate: (candidate) => set({ namedPositionCandidate: candidate }),
     setFeatureInfo: (content, title, position) =>
         set((state) => ({
             featureInfo: {

@@ -1,0 +1,256 @@
+[id^="GPsearchEngine-Advanced"] .GPNamedPositionOpenButton {
+    width: 100%;
+    justify-content: flex-start;
+    margin: 0 0 0.75rem;
+}
+
+[id^="GPsearchEngine"] .GPNamedPositionSection {
+    margin: 0;
+    padding: 0;
+    border-top: 0.0625rem solid var(--border-default-grey);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+[id^="GPsearchEngine"] .GPNamedPositionTitle {
+    margin: 0;
+    padding: 0.75rem 0.75rem 0.625rem;
+    font-size: 0.94rem;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--text-default-title);
+    background: transparent;
+}
+
+[id^="GPsearchEngine"] .GPNamedPositionList {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    max-height: 17.5rem;
+    overflow-y: auto;
+}
+
+[id^="GPsearchEngine"] .GPNamedPositionItem {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    border-top: 0.06rem solid var(--border-default-grey);
+    padding: 0;
+}
+
+[id^="GPsearchEngine"] .GPNamedPositionItem:hover {
+    background: transparent;
+}
+
+[id^="GPsearchEngine"] .GPNamedPositionSelect {
+    flex: 1;
+    border: 0;
+    border-radius: 0;
+    background-color: transparent;
+    padding: 0.6rem 0.75rem;
+    text-align: left;
+    font-weight: 400;
+    font-size: 0.94rem;
+    line-height: 1.4;
+    color: var(--text-action-high-blue-france);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+[id^="GPsearchEngine"] .GPNamedPositionSelect:hover,
+[id^="GPsearchEngine"] .GPNamedPositionSelect:focus-visible {
+    background: var(--background-alt-grey);
+}
+
+[id^="GPsearchEngine"] .GPNamedPositionSelect:focus-visible {
+    outline: 0.125rem solid var(--border-action-high-blue-france);
+    outline-offset: -0.125rem;
+}
+
+[id^="GPsearchEngine"] .GPNamedPositionDelete {
+    flex: 0 0 auto;
+    min-height: 100%;
+    min-width: 2.5rem;
+    padding: 0.6rem 0.75rem;
+    background: transparent;
+    border-radius: 0;
+    border-left: 0.06rem solid var(--border-default-grey);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.15s ease;
+    color: var(--text-action-high-blue-france);
+}
+
+[id^="GPsearchEngine"] .GPNamedPositionDelete:hover {
+    background: var(--background-alt-grey);
+}
+
+[id^="GPsearchEngine"] .GPNamedPositionDelete:focus-visible {
+    outline: 0.125rem solid var(--border-action-high-blue-france);
+    outline-offset: -0.125rem;
+}
+
+[id^="GPsearchEngine"] .GPNamedPositionEmpty {
+    margin: 0;
+    padding: 0.75rem;
+    border: 0;
+    border-top: 0.0625rem solid var(--border-default-grey);
+    border-radius: 0;
+    color: var(--text-mention-grey);
+    font-size: 0.87rem;
+    text-align: center;
+    background: transparent;
+}
+
+.NamedPositionModalBackdrop {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: var(--overlay-shadwow);
+    z-index: 999999;
+}
+
+.NamedPositionModalBackdrop.is-open {
+    display: flex;
+}
+
+.NamedPositionModal {
+    width: min(80vw, 50rem);
+    height: min(90vh, 43.75rem);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    background: var(--background-default-grey);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    box-shadow: 0 0.375rem 1.125rem var(--overlay-shadwow);
+}
+
+.NamedPositionModalTitle {
+    margin: 0 0 1rem;
+}
+
+.NamedPositionModalForm {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.NamedPositionSourceFieldset {
+    margin: 0;
+}
+
+.NamedPositionSourceFieldset .fr-fieldset__legend {
+    margin-bottom: 0.5rem;
+}
+
+.NamedPositionSourceOptions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+.NamedPositionSourceOptions .fr-radio-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    margin-bottom: 0;
+}
+
+.NamedPositionSourceOptions .fr-label {
+    white-space: normal;
+}
+
+.NamedPositionSourceContent {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.NamedPositionSelectedResultHint {
+    margin: 0;
+    color: var(--text-mention-grey);
+}
+
+.NamedPositionAutocompleteLoading {
+    margin: 0;
+    color: var(--text-mention-grey);
+}
+
+.NamedPositionAutocompleteList {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border: 0.0625rem solid var(--border-default-grey);
+    border-radius: 0.25rem;
+    max-height: 12rem;
+    overflow-y: auto;
+}
+
+.NamedPositionAutocompleteItem + .NamedPositionAutocompleteItem {
+    border-top: 0.0625rem solid var(--border-default-grey);
+}
+
+.NamedPositionAutocompleteItem > button {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    text-align: left;
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+}
+
+.NamedPositionAutocompleteItem > button:hover,
+.NamedPositionAutocompleteItem > button:focus-visible {
+    background: var(--background-alt-grey);
+}
+
+.NamedPositionManualCoordinates {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.NamedPositionModalActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+.NamedPositionModalError {
+    margin: 0;
+    color: var(--text-default-error);
+}
+
+@media (max-width: 36rem) {
+    .NamedPositionModal {
+        width: min(95vw, 37.5rem);
+        height: min(95vh, 40.5rem);
+    }
+
+    .NamedPositionManualCoordinates {
+        grid-template-columns: 1fr;
+    }
+
+    .NamedPositionModalActions {
+        flex-direction: column-reverse;
+        align-items: stretch;
+    }
+}

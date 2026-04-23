@@ -1,4 +1,3 @@
-import SearchEngineAdvanced from "geopf-extensions-openlayers/src/packages/Controls/SearchEngine/SearchEngineAdvanced.js";
 import CoordinateAdvancedSearch from "geopf-extensions-openlayers/src/packages/Controls/SearchEngine/CoordinateAdvancedSearch.js";
 import GeoportalOverviewMap from "geopf-extensions-openlayers/src/packages/Controls/OverviewMap/GeoportalOverviewMap.js";
 import { Control } from "ol/control";
@@ -12,6 +11,7 @@ import { translateSearchEngineControl, translateZoomControl } from "@/constants/
 import { useCommunityStore, useMapStore } from "@/store";
 import { CommunityLayerFunctionalityType } from "@/constants/communities/types";
 import useGetOverviewMapLayer from "@/hooks/navigation/layers/useGetOverviewMapLayer";
+import NamedPositionSearchEngineControl from "@/features/navigation/controls/GuichetSearchEngineControl";
 import AbstractAdvancedSearch from "geopf-extensions-openlayers/src/packages/Controls/SearchEngine/AbstractAdvancedSearch";
 
 const useToolsControl = (): Control[] => {
@@ -41,6 +41,29 @@ const useToolsControl = (): Control[] => {
 
     const hasMiniMap = community?.functionalities?.includes(CommunityLayerFunctionalityType.OVERVIEW);
 
+    const namedPositionTexts = {
+        openModalButton: t("open_button"),
+        favoritesTitle: t("favorites_title"),
+        emptyFavorites: t("empty_favorites"),
+        removeFavorite: t("remove_favorite"),
+        modalTitle: t("modal_title"),
+        positionNameLabel: t("name_label"),
+        sourceLabel: t("source_label"),
+        sourceSelectedResult: t("source_selected_result"),
+        sourceMapCenter: t("source_map_center"),
+        sourceManualCoordinates: t("source_manual_coordinates"),
+        longitudeLabel: t("longitude_label"),
+        latitudeLabel: t("latitude_label"),
+        saveButton: t("save_button"),
+        cancelButton: t("cancel_button"),
+        defaultPositionName: t("default_name"),
+        selectedResultUnavailable: t("error_selected_result_unavailable"),
+        errorEmptyName: t("error_empty_name"),
+        errorInvalidCoordinates: t("error_invalid_coordinates"),
+        errorDuplicateName: t("error_duplicate_name"),
+        errorDuplicateCoordinates: t("error_duplicate_coordinates"),
+    };
+
     // const hasLocateControl = community?.functionalities?.includes(CommunityLayerFunctionalityType.LOCATE_CONTROL);
 
     useEffect(() => {
@@ -67,7 +90,7 @@ const useToolsControl = (): Control[] => {
     }, [hasMiniMap, overviewMapLayer, map]);
 
     return [
-        new SearchEngineAdvanced({
+        new NamedPositionSearchEngineControl({
             displayButtonAdvancedSearch: advancedSearchForms.length > 0,
             apiKey: "essentiels",
             zoomTo: "auto",
@@ -77,6 +100,7 @@ const useToolsControl = (): Control[] => {
             baseSearchOptions: {
                 searchService: hasAddressSearch ? undefined : { autocomplete: false },
             },
+            namedPositionTexts,
         }),
         new GeoportalZoom({ position: "bottom-right" }),
         new MeasureLength({}),

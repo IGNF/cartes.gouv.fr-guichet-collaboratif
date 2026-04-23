@@ -58,6 +58,7 @@ const ViewHandler: React.FC = () => {
             searchExtent: "",
             searchMax: 20,
             searchRoot: null,
+            namedPositions: localStorageData?.namedPositions ?? [],
         };
 
         if (!isEqual(newLocalStorageData, localStorageData)) {
