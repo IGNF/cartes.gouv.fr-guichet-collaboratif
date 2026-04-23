@@ -38,6 +38,7 @@ const NamedPositionModal: React.FC = () => {
     const [isLoadingLocation, setIsLoadingLocation] = useState(false);
     const [fieldErrors, setFieldErrors] = useState<NamedPositionFieldErrors>(EMPTY_FIELD_ERRORS);
     const keepValuesOnNextOpenRef = useRef(false);
+    const clearValuesOnNextOpenRef = useRef(false);
     const locationRequestIdRef = useRef(0);
 
     const debouncedLocationQuery = useDebounce(locationQuery, 300);
@@ -86,6 +87,19 @@ const NamedPositionModal: React.FC = () => {
         setFieldErrors(EMPTY_FIELD_ERRORS);
     }, [getMapCenterCandidate, namedPositionCandidate]);
 
+    const clearForNextOpen = useCallback(() => {
+        locationRequestIdRef.current += 1;
+        setPositionName("");
+        setSource("map_center");
+        setLongitude("");
+        setLatitude("");
+        setLocationQuery("");
+        setLocationSuggestions([]);
+        setSelectedLocation(null);
+        setIsLoadingLocation(false);
+        setFieldErrors(EMPTY_FIELD_ERRORS);
+    }, []);
+
     useEffect(() => {
         if (source !== "selected_result") {
             setLocationSuggestions([]);
@@ -133,6 +147,12 @@ const NamedPositionModal: React.FC = () => {
 
     useIsModalOpen(namedPositionModal, {
         onDisclose: () => {
+            if (clearValuesOnNextOpenRef.current) {
+                clearValuesOnNextOpenRef.current = false;
+                clearForNextOpen();
+                return;
+            }
+
             if (keepValuesOnNextOpenRef.current) {
                 keepValuesOnNextOpenRef.current = false;
                 return;
@@ -142,7 +162,6 @@ const NamedPositionModal: React.FC = () => {
         },
         onConceal: () => {
             locationRequestIdRef.current += 1;
-            keepValuesOnNextOpenRef.current = false;
         },
     });
 
@@ -255,6 +274,7 @@ const NamedPositionModal: React.FC = () => {
         }
 
         setFieldErrors(EMPTY_FIELD_ERRORS);
+        clearValuesOnNextOpenRef.current = true;
 
         setNamedPositionCandidate({
             name: result.value.name,

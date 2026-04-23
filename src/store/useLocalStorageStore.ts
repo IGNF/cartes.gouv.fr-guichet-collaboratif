@@ -6,13 +6,7 @@ import {
     NamedPosition,
     NAMED_POSITION_UPDATED_EVENT,
 } from "@/constants/localStorage/types";
-import {
-    areNamedPositionCoordinatesEqual,
-    createDefaultLocalStorageData,
-    createNamedPosition,
-    normalizeLocalStorageData,
-    sanitizeNamedPositionName,
-} from "@/constants/localStorage/utils";
+import { createDefaultLocalStorageData, createNamedPosition, normalizeLocalStorageData, sanitizeNamedPositionName } from "@/constants/localStorage/utils";
 import { create } from "zustand";
 
 interface LocalStorageStore {
@@ -68,11 +62,6 @@ const validateNamedPositionInput = (data: LocalStorageData, input: AddNamedPosit
     const hasDuplicateName = data.namedPositions.some((position) => sanitizeNamedPositionName(position.name).toLowerCase() === name.toLowerCase());
     if (hasDuplicateName) {
         return { ok: false, reason: "DUPLICATE_NAME" };
-    }
-
-    const hasDuplicateCoordinates = data.namedPositions.some((position) => areNamedPositionCoordinatesEqual(position.coordinates, input.coordinates));
-    if (hasDuplicateCoordinates) {
-        return { ok: false, reason: "DUPLICATE_COORDINATES" };
     }
 
     return {
