@@ -1,8 +1,7 @@
 import { defineConfig, loadEnv } from "vite";
 import { oidcSpa } from "oidc-spa/vite-plugin";
-import tsconfigPaths from "vite-tsconfig-paths";
 import { join, resolve } from "path";
-import react from "@vitejs/plugin-react-swc";
+import react from "@vitejs/plugin-react";
 
 // https://vite.dev/config/
 export default defineConfig((mode) => {
@@ -12,14 +11,14 @@ export default defineConfig((mode) => {
     return {
         plugins: [
             react(),
-            tsconfigPaths(),
             oidcSpa({
                 // Voir : https://docs.oidc-spa.dev/v/v10/security-features/browser-runtime-freeze
                 browserRuntimeFreeze: {
                     enabled: true,
                     excludes: [
                         "Array", // nécessaire pour le script d'analytics
-                        "XMLHttpRequest", // nécessaire pour geopf-extensions-openlayers (recherche de lieu)
+                        "XMLHttpRequest",
+                        "Promise", // nécessaire pour geopf-extensions-openlayers (recherche de lieu)
                     ],
                 },
             }),
@@ -33,8 +32,16 @@ export default defineConfig((mode) => {
             cors: false,
         },
         resolve: {
+            tsconfigPaths: true,
             alias: {
                 "@": resolve(join(__dirname, "src")),
+            },
+        },
+        css: {
+            lightningcss: {
+                // Permet de compiler suite à l'erreur @media screen and (min-width: 0\0) and (min-resolution: 72dpi)
+                // Provenant du dsfr
+                errorRecovery: true,
             },
         },
     };
