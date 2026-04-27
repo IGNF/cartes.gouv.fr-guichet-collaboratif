@@ -9,7 +9,7 @@ export const ToolsControlFrTranslations: Translations<"fr">["ToolsControl"] = {
     empty_favorites: "Aucune position favorite enregistrée.",
     remove_favorite: "Retirer des favoris",
     modal_title: "Ajouter une position favorite",
-    modal_helper_text: "Retrouvez vos positions préférées en cliqaunt dans la barre de recherche centrale de la carte",
+    modal_helper_text: "Retrouvez vos positions préférées en cliquant dans la barre de recherche centrale de la carte",
     name_label: "Nom",
     source_label: "Choisissez une source",
     source_selected_result: "Effectuez une recherche",
@@ -20,14 +20,13 @@ export const ToolsControlFrTranslations: Translations<"fr">["ToolsControl"] = {
     save_button: "Enregistrer la position",
     cancel_button: "Annuler",
     default_name: "Position favorite",
-    error_selected_result_unavailable: "Aucun resultat de recherche selectionne.",
+    error_selected_result_unavailable: "Aucun résultat de recherche selectionné.",
     location_search_placeholder: "Rechercher un lieu, une adresse, ...",
     location_suggestions_loading: "Chargement des suggestions...",
     error_select_location: "Selectionnez une suggestion de lieu.",
     error_empty_name: "Le nom de la position est obligatoire.",
     error_invalid_coordinates: "Les coordonnees saisies sont invalides.",
     error_duplicate_name: "Une position avec ce nom existe deja.",
-    error_duplicate_coordinates: "Une position avec ces coordonnees existe deja.",
     save_success: "Position favorite enregistree.",
 };
 
@@ -39,7 +38,7 @@ export const ToolsControlEnTranslations: Translations<"en">["ToolsControl"] = {
     empty_favorites: "No favourite position yet.",
     remove_favorite: "Remove from favourites",
     modal_title: "Add favourite position",
-    modal_helper_text: "Find your favorite positions again by clicking in the central search bar of the map",
+    modal_helper_text: "Find your favourite positions again by clicking in the central search bar of the map",
     name_label: "Name",
     source_label: "Choose a source",
     source_selected_result: "Search a place",
@@ -57,7 +56,6 @@ export const ToolsControlEnTranslations: Translations<"en">["ToolsControl"] = {
     error_empty_name: "Position name is required.",
     error_invalid_coordinates: "The coordinates are invalid.",
     error_duplicate_name: "A position with this name already exists.",
-    error_duplicate_coordinates: "A position with these coordinates already exists.",
     save_success: "Starred position saved.",
 };
 
@@ -87,7 +85,6 @@ const { i18n } = declareComponentKeys<
     | "error_empty_name"
     | "error_invalid_coordinates"
     | "error_duplicate_name"
-    | "error_duplicate_coordinates"
     | "save_success"
 >()("ToolsControl");
 export type I18n = typeof i18n;

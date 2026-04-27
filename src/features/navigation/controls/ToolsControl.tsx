@@ -61,7 +61,6 @@ const useToolsControl = (): Control[] => {
         errorEmptyName: t("error_empty_name"),
         errorInvalidCoordinates: t("error_invalid_coordinates"),
         errorDuplicateName: t("error_duplicate_name"),
-        errorDuplicateCoordinates: t("error_duplicate_coordinates"),
     };
 
     // const hasLocateControl = community?.functionalities?.includes(CommunityLayerFunctionalityType.LOCATE_CONTROL);

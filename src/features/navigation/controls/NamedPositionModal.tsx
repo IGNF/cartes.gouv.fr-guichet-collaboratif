@@ -61,7 +61,7 @@ const NamedPositionModal: React.FC = () => {
         return {
             name: t("default_name"),
             coordinates,
-            zoom: map.getView().getZoom() || DEFAULT_NAMED_POSITION_ZOOM,
+            zoom: map.getView().getZoom() ?? DEFAULT_NAMED_POSITION_ZOOM,
         };
     }, [map, t]);
 
@@ -268,8 +268,6 @@ const NamedPositionModal: React.FC = () => {
                 showValidationError("positionName", t("error_duplicate_name"));
                 return;
             }
-
-            showValidationError("coordinates", t("error_duplicate_coordinates"));
             return;
         }
 
@@ -324,7 +322,7 @@ const NamedPositionModal: React.FC = () => {
             setNamedPositionCandidate({
                 name: suggestion.fulltext,
                 coordinates: [suggestion.x, suggestion.y],
-                zoom: map?.getView().getZoom() || DEFAULT_NAMED_POSITION_ZOOM,
+                zoom: map?.getView().getZoom() ?? DEFAULT_NAMED_POSITION_ZOOM,
             });
         },
         [clearFieldError, map, positionName, setNamedPositionCandidate]

@@ -65,7 +65,6 @@ export default class NamedPositionSearchEngineControl extends SearchEngineAdvanc
     private cleanups: Array<() => void> = [];
     private favoritesSection: HTMLDivElement | null = null;
     private favoritesList: HTMLUListElement | null = null;
-    private favoritesEmpty: HTMLParagraphElement | null = null;
     private lastSaveCandidate: NamedPositionCandidate | null = null;
 
     constructor(options: NamedPositionSearchEngineOptions) {
@@ -117,8 +116,44 @@ export default class NamedPositionSearchEngineControl extends SearchEngineAdvanc
             window.removeEventListener(NAMED_POSITION_UPDATED_EVENT, onNamedPositionUpdate as EventListener);
         });
 
+        const onKeyDown = (event: KeyboardEvent) => {
+            if (event.key !== "Escape") {
+                return;
+            }
+
+            this.closeSearchPanels();
+        };
+
+        document.addEventListener("keydown", onKeyDown);
+
+        this.cleanups.push(() => {
+            document.removeEventListener("keydown", onKeyDown);
+        });
+
         this.renderFavoritesSection("history");
         this.isNamedPositionUiReady = true;
+    }
+
+    private closeSearchPanels() {
+        if (this.advancedBtn?.getAttribute("aria-expanded") === "true") {
+            this.listenToClick = false;
+            this.advancedBtn.setAttribute("aria-expanded", "false");
+            this.closeAllSections();
+        }
+
+        const baseSearchEngine = this.getBaseSearchEngine();
+        if (!baseSearchEngine) {
+            return;
+        }
+
+        const activeElement = document.activeElement;
+        if (activeElement instanceof HTMLElement && this.element.contains(activeElement)) {
+            activeElement.blur();
+        }
+
+        if (baseSearchEngine.input === document.activeElement) {
+            baseSearchEngine.input.blur();
+        }
     }
 
     private teardownNamedPositionUi() {
@@ -133,7 +168,6 @@ export default class NamedPositionSearchEngineControl extends SearchEngineAdvanc
         this.favoritesSection?.remove();
         this.favoritesSection = null;
         this.favoritesList = null;
-        this.favoritesEmpty = null;
 
         this.lastSaveCandidate = null;
         useMapStore.getState().setNamedPositionCandidate(null);
@@ -214,19 +248,13 @@ export default class NamedPositionSearchEngineControl extends SearchEngineAdvanc
         const list = document.createElement("ul");
         list.className = "GPNamedPositionList";
 
-        const emptyState = document.createElement("p");
-        emptyState.className = "GPNamedPositionEmpty";
-        emptyState.textContent = this.namedPositionTexts.emptyFavorites;
-
         section.appendChild(title);
         section.appendChild(list);
-        section.appendChild(emptyState);
 
         baseSearchEngine.acContainer.insertBefore(section, baseSearchEngine.autocompleteFooter);
 
         this.favoritesSection = section;
         this.favoritesList = list;
-        this.favoritesEmpty = emptyState;
     }
 
     private openModal = () => {
@@ -241,7 +269,7 @@ export default class NamedPositionSearchEngineControl extends SearchEngineAdvanc
         }
 
         const name = typeof event.title === "string" && event.title.trim().length > 0 ? event.title.trim() : this.namedPositionTexts.defaultPositionName;
-        const zoom = this.getMap()?.getView().getZoom() || DEFAULT_NAMED_POSITION_ZOOM;
+        const zoom = this.getMap()?.getView().getZoom() ?? DEFAULT_NAMED_POSITION_ZOOM;
 
         this.lastSaveCandidate = { name, coordinates: position, zoom };
         useMapStore.getState().setNamedPositionCandidate(this.lastSaveCandidate);
@@ -261,7 +289,7 @@ export default class NamedPositionSearchEngineControl extends SearchEngineAdvanc
         const title = typeof rawFeatureTitle === "string" && rawFeatureTitle.trim().length > 0 ? rawFeatureTitle.trim() : "";
         const inputTitle = this.getBaseSearchEngine()?.input?.value?.trim() || "";
         const name = title || inputTitle || this.namedPositionTexts.defaultPositionName;
-        const zoom = this.getMap()?.getView().getZoom() || DEFAULT_NAMED_POSITION_ZOOM;
+        const zoom = this.getMap()?.getView().getZoom() ?? DEFAULT_NAMED_POSITION_ZOOM;
 
         this.lastSaveCandidate = { name, coordinates: position, zoom };
         useMapStore.getState().setNamedPositionCandidate(this.lastSaveCandidate);
@@ -312,9 +340,8 @@ export default class NamedPositionSearchEngineControl extends SearchEngineAdvanc
     private renderFavoritesSection(type?: string) {
         const favoritesSection = this.favoritesSection;
         const favoritesList = this.favoritesList;
-        const favoritesEmpty = this.favoritesEmpty;
 
-        if (!favoritesSection || !favoritesList || !favoritesEmpty) {
+        if (!favoritesSection || !favoritesList) {
             return;
         }
 
@@ -328,7 +355,6 @@ export default class NamedPositionSearchEngineControl extends SearchEngineAdvanc
         }
 
         favoritesList.innerHTML = "";
-        favoritesEmpty.classList.add("gpf-hidden");
 
         namedPositions.forEach((namedPosition) => {
             favoritesList.appendChild(this.createFavoriteItem(namedPosition));
