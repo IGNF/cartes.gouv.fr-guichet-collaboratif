@@ -44,5 +44,37 @@ export default defineConfig((mode) => {
                 errorRecovery: true,
             },
         },
+        build: {
+            chunkSizeWarningLimit: 1500,
+            rolldownOptions: {
+                output: {
+                    codeSplitting: true,
+                    manualChunks(id) {
+                        if (!id.includes("node_modules")) return;
+
+                        if (id.includes("/ol/") || id.includes("geopf-extensions-openlayers")) {
+                            return "map-vendor";
+                        }
+                        if (id.includes("@gouvfr/dsfr")) {
+                            return "dsfr-vendor";
+                        }
+
+                        if (id.includes("react") || id.includes("react-dom") || id.includes("react-router")) {
+                            return "react-vendor";
+                        }
+
+                        if (id.includes("@tanstack")) {
+                            return "query-vendor";
+                        }
+
+                        if (id.includes("oidc-spa") || id.includes("geoportal-access-lib")) {
+                            return "auth-vendor";
+                        }
+
+                        return "vendor";
+                    },
+                },
+            },
+        },
     };
 });

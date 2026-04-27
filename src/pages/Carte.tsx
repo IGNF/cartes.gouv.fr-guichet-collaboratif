@@ -1,15 +1,17 @@
 import { useParams } from "react-router-dom";
 import NotFound from "./NotFound";
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { useCommunityStore, useLocalStorageStore, useUserStore } from "@/store";
 import { isDigital, useGetCommunityByIdAPI } from "@/api/communityData";
 import { useGetUserProfileAPI } from "@/api/userData";
-import MainMap from "@/features/navigation/MainMap";
 import AlertComponent from "@/components/AlertComponent";
 import { StatusMessage } from "@/constants/communities/types";
 import { useTranslation } from "@/i18n";
+import LoaderComponent from "@/components/LoaderComponent";
 import ClickableFeaturesModal from "@/features/working-layer/modal/ClickableFeaturesModal";
 import GetFeatureInfoPopup from "@/features/working-layer/popUp/GetFeatureInfoPopUp";
+
+const MainMap = lazy(() => import("@/features/navigation/MainMap"));
 
 const Carte: React.FC = () => {
     const params = useParams();
@@ -71,7 +73,11 @@ const Carte: React.FC = () => {
             <ClickableFeaturesModal />
             <GetFeatureInfoPopup />
             <AlertComponent />
-            {community && communityLayers && <MainMap />}
+            {community && communityLayers && (
+                <Suspense fallback={<LoaderComponent />}>
+                    <MainMap />
+                </Suspense>
+            )}
         </>
     );
 };
