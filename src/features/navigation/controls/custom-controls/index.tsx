@@ -5,7 +5,6 @@ import AllReportsControl from "./AllReportsControl";
 import { useTranslation } from "@/i18n";
 import useCustomControlsList from "@/hooks/navigation/controls/useCustomControlsList";
 import CenterReportControl from "./CenterReportControl";
-import ConfirmCopyModal from "./ConfirmCopyModal";
 import AddOrRemoveSnapInteraction from "./interactions/AddOrRemoveSnapInteraction";
 import useGetInteractionsFuncs from "@/hooks/navigation/controls/useGetInteractionsFuncs";
 import AddOrRemoveMapControlInteraction from "./interactions/AddOrRemoveMapControlInteraction";
@@ -39,7 +38,7 @@ const CustomControls = () => {
 
     useEffect(() => {
         if (selectedObjects.length === 0) {
-            interactions.selectInteraction.getFeatures().clear();
+            interactions.selectInteraction.clearSelection();
         }
     }, [selectedObjects, interactions.selectInteraction]);
 
@@ -57,9 +56,12 @@ const CustomControls = () => {
     const onConfirm = useCallback(
         (control: CustomControlItem) => {
             interactionsFuncs.handleClick(control);
-
-            if (control.interaction !== InteractionType.MODIFY && control.interaction !== InteractionType.TRANSLATE_OBJECT) {
-                interactions.selectInteraction.getFeatures().clear();
+            if (
+                control.interaction !== InteractionType.MODIFY &&
+                control.interaction !== InteractionType.TRANSLATE_OBJECT &&
+                control.interaction !== InteractionType.COPY_OBJECT
+            ) {
+                interactions.selectInteraction.clearSelection();
                 selectedObjects.forEach((feat) => {
                     feat.unset(FEATURE_TYPE_SELECTED_PROPERTY);
                 });
@@ -107,7 +109,6 @@ const CustomControls = () => {
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key !== "Escape") return;
-
             if (workingLayerDrawerOpened) {
                 setClickedMapFeature(null);
                 return;
@@ -145,7 +146,6 @@ const CustomControls = () => {
             </div>
             <AddOrRemoveMapControlInteraction {...interactionsFuncs} {...interactions} />
             <AddOrRemoveSnapInteraction {...interactions} />
-            <ConfirmCopyModal />
             <ConfirmMultipleDeselection onConfirm={() => onConfirm(prevClickedControl!)} />
             <SearchObjectsModal />
             <ExportMapModal />

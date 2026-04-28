@@ -3,7 +3,8 @@ import { Feature, MapBrowserEvent, Map, Overlay } from "ol";
 import VectorSource from "ol/source/Vector";
 import { HIT_DETECTION_TOLERENCE, FEATURE_TYPE_HOVER_PROPERTY, FEATURE_TYPE_DATA_PROPERTY } from "@/constants";
 import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
-import { CommunityGeoservice } from "@/constants/communities/types";
+import { CommunityGeoservice, InteractionType } from "@/constants/communities/types";
+import { useMapStore } from "@/store";
 
 interface UsePointerMoveHandlerProps {
     map: Map | null;
@@ -31,6 +32,7 @@ export const usePointerMoveHandler = (props: UsePointerMoveHandlerProps) => {
         overlayRef,
         tooltipRef,
     } = props;
+    const { clickedControl } = useMapStore();
 
     return useCallback(
         (evt: MapBrowserEvent) => {
@@ -42,28 +44,49 @@ export const usePointerMoveHandler = (props: UsePointerMoveHandlerProps) => {
             const activeInteractions = map?.getInteractions().getArray();
             const tooltipDisabled = activeInteractions?.some((interaction) => interaction.get("disablesTooltip") === true);
 
+            const getHoveredFeature = () => {
+                const featuresAtPixel = map?.getFeaturesAtPixel(evt.pixel, {
+                    layerFilter: (layer) => {
+                        return layer.get("name") === mapWorkingLayer || layer.get("type") === mapWorkingLayer;
+                    },
+                    hitTolerance: HIT_DETECTION_TOLERENCE,
+                });
+
+                return featuresAtPixel?.find((f) => {
+                    if (mapWorkingLayer === REPORTS_LAYER_TYPE) {
+                        const fCluster = f.get("features");
+                        if (fCluster?.length > 1) return fCluster[0];
+                        return fCluster?.find((fc: Feature) => fc.get("reportData") || fc.get("new"));
+                    }
+                    if (clickableSource?.hasFeature(f as Feature)) {
+                        return f;
+                    }
+                    return null;
+                }) as Feature | undefined;
+            };
+
             if (tooltipDisabled) {
+                const targetElement = map?.getTargetElement();
+                const hoveredFeature = getHoveredFeature();
+
+                if (
+                    targetElement &&
+                    hoveredFeature &&
+                    (clickedControl?.interaction === InteractionType.MODIFY ||
+                        clickedControl?.interaction === InteractionType.SELECT ||
+                        clickedControl?.interaction === InteractionType.REMOVE ||
+                        clickedControl?.interaction === InteractionType.TRANSLATE_OBJECT ||
+                        clickedControl?.interaction === InteractionType.COPY_OBJECT)
+                ) {
+                    targetElement.style.cursor = "pointer";
+                } else if (targetElement) {
+                    targetElement.style.cursor = "";
+                }
                 clearHoverState();
                 return;
             }
 
-            const features = map?.getFeaturesAtPixel(evt.pixel, {
-                layerFilter: (layer) => {
-                    return layer.get("name") === mapWorkingLayer || layer.get("type") === mapWorkingLayer;
-                },
-                hitTolerance: HIT_DETECTION_TOLERENCE,
-            });
-
-            const feature = features?.find((f) => {
-                if (mapWorkingLayer === REPORTS_LAYER_TYPE) {
-                    const fCluster = f.get("features");
-                    if (fCluster?.length > 1) return fCluster[0];
-                    return fCluster?.find((fc: Feature) => fc.get("reportData") || fc.get("new"));
-                } else if (clickableSource?.hasFeature(f as Feature)) {
-                    return f;
-                }
-                return null;
-            }) as Feature | undefined;
+            const feature = getHoveredFeature();
 
             const targetElement = map?.getTargetElement();
 
@@ -157,6 +180,18 @@ export const usePointerMoveHandler = (props: UsePointerMoveHandlerProps) => {
                 overlayRef.current.setPosition(evt.coordinate);
             }
         },
-        [map, isNotClickable, mapWorkingLayer, clickableSource, selectedFeatures, currentGeoservice, clearHoverState, hoveredFeatureRef, overlayRef, tooltipRef]
+        [
+            map,
+            isNotClickable,
+            clickedControl,
+            mapWorkingLayer,
+            clickableSource,
+            selectedFeatures,
+            currentGeoservice,
+            clearHoverState,
+            hoveredFeatureRef,
+            overlayRef,
+            tooltipRef,
+        ]
     );
 };

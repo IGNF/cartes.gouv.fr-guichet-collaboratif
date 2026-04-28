@@ -21,7 +21,7 @@ export const MARGIN_OPTIONS = [
     { value: "10", translation_key: "margin_big" },
 ] as const;
 
-const PAPER_SIZES_MM: Record<string, [number, number]> = {
+export const PAPER_SIZES_MM: Record<string, [number, number]> = {
     A0: [841, 1189],
     A1: [594, 841],
     A2: [420, 594],

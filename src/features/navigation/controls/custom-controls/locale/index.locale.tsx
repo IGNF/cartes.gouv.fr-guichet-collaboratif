@@ -13,6 +13,8 @@ export const CustomControlsFrTranslations: Translations<"fr">["CustomControls"] 
     measure_azim: "Mesurer un azimut",
     please_select_object: "Veuillez sélectionner un objet",
     export_image: "Exporter la carte en image",
+    copy_object: "Copier un objet",
+    paste_object: "Coller un objet",
 };
 
 export const CustomControlsEnTranslations: Translations<"en">["CustomControls"] = {
@@ -27,6 +29,8 @@ export const CustomControlsEnTranslations: Translations<"en">["CustomControls"] 
     measure_azim: "Measure an azimuth",
     please_select_object: "Please select an object",
     export_image: "Export map as an image",
+    copy_object: "Copy an object",
+    paste_object: "Paste an object",
 };
 
 const { i18n } = declareComponentKeys<
@@ -41,5 +45,7 @@ const { i18n } = declareComponentKeys<
     | "measure_azim"
     | "please_select_object"
     | "export_image"
+    | "copy_object"
+    | "paste_object"
 >()("CustomControls");
 export type I18n = typeof i18n;
