@@ -4,12 +4,15 @@ import { addInteractionToMap, removeInteractionFromMap } from "@/constants/contr
 import { useContributionStore, useMapStore } from "@/store";
 import { useRasterWorkingLayer } from "@/hooks/working-layer/useRasterWorkingLayer";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 const AddOrRemoveMapControlInteraction = (props: InteractionsFuncsProps & InteractionsProps) => {
-    const { map, clickedControl, mapWorkingLayer, clickedMapFeature } = useMapStore();
+    const { map, clickedControl } = useMapStore();
     const { isModifying } = useContributionStore();
     const { isRasterLayer } = useRasterWorkingLayer();
+    const isModifyingRef = useRef(isModifying);
+
+    isModifyingRef.current = isModifying;
 
     useEffect(() => {
         if (!isModifying && clickedControl && clickedControl.interaction) {
@@ -24,6 +27,9 @@ const AddOrRemoveMapControlInteraction = (props: InteractionsFuncsProps & Intera
         }
         return () => {
             if (!isModifying && clickedControl && clickedControl.interaction) {
+                if (!isModifyingRef.current) {
+                    removeInteractionFromMap(clickedControl.interaction, map!);
+                }
                 map?.un("singleclick", props.splitLineInteractionFuncEnd);
                 map?.un("pointermove", props.splitLineInteractionFuncPointer);
                 map?.removeInteraction(props.dragInteraction);
@@ -31,7 +37,7 @@ const AddOrRemoveMapControlInteraction = (props: InteractionsFuncsProps & Intera
                 props.dragInteraction.setActive(false);
             }
         };
-    }, [clickedControl, map, mapWorkingLayer, isModifying, clickedMapFeature, isRasterLayer, props]);
+    }, [clickedControl, map, isModifying, isRasterLayer, props]);
     return null;
 };
 
