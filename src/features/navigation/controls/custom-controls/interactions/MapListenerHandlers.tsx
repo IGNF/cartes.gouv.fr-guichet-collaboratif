@@ -86,7 +86,12 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
     const isNotClickable = useMemo(
         () =>
             !!(
-                (clickedControl && clickedControl.interaction !== InteractionType.SELECT) ||
+                (clickedControl &&
+                    clickedControl.interaction !== InteractionType.SELECT &&
+                    clickedControl.interaction !== InteractionType.REMOVE &&
+                    clickedControl.interaction !== InteractionType.MODIFY &&
+                    clickedControl.interaction !== InteractionType.TRANSLATE_OBJECT &&
+                    clickedControl.interaction !== InteractionType.COPY_OBJECT) ||
                 editReport ||
                 selectedFeatures?.find((f) => f?.get("new")) ||
                 (!currentGeoservice?.featureType && !isRasterLayerQueryable && mapWorkingLayer !== REPORTS_LAYER_TYPE)
