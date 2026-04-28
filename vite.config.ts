@@ -17,8 +17,7 @@ export default defineConfig((mode) => {
                     enabled: true,
                     excludes: [
                         "Array", // nécessaire pour le script d'analytics
-                        "XMLHttpRequest",
-                        "Promise", // nécessaire pour geopf-extensions-openlayers (recherche de lieu)
+                        "XMLHttpRequest", // nécessaire pour geopf-extensions-openlayers (recherche de lieu)
                     ],
                 },
             }),

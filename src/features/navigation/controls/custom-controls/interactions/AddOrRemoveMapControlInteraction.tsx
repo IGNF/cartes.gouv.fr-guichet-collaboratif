@@ -7,31 +7,54 @@ import { useRasterWorkingLayer } from "@/hooks/working-layer/useRasterWorkingLay
 import { useEffect } from "react";
 
 const AddOrRemoveMapControlInteraction = (props: InteractionsFuncsProps & InteractionsProps) => {
-    const { map, clickedControl, mapWorkingLayer, clickedMapFeature } = useMapStore();
+    const { map, clickedControl } = useMapStore();
     const { isModifying } = useContributionStore();
     const { isRasterLayer } = useRasterWorkingLayer();
 
     useEffect(() => {
-        if (!isModifying && clickedControl && clickedControl.interaction) {
+        const shouldManageInteraction = !isModifying && clickedControl?.interaction;
+        let didAddInteractions = false;
+        let handleBoxEnd: (() => void) | undefined;
+
+        if (shouldManageInteraction) {
             removeInteractionFromMap(clickedControl.interaction, map!);
             const clickedInteraction = props.getInteractionByType(clickedControl.interaction, clickedControl.target);
             addInteractionToMap(clickedInteraction, map!);
+
+            didAddInteractions = true;
+
             if (clickedControl.interaction === InteractionType.SELECT && !isRasterLayer) {
+                handleBoxEnd = () => props.dragInteractionFunc();
                 map?.addInteraction(props.dragInteraction);
-                props.dragInteraction.on(["boxend"], () => props.dragInteractionFunc());
+                props.dragInteraction.on(["boxend"], handleBoxEnd);
                 props.dragInteraction.setActive(true);
+
+                return () => {
+                    if (didAddInteractions) {
+                        removeInteractionFromMap(clickedControl.interaction, map!);
+                        if (handleBoxEnd) {
+                            props.dragInteraction.un(["boxend"], handleBoxEnd);
+                        }
+                        map?.removeInteraction(props.dragInteraction);
+                        props.dragInteraction.setActive(false);
+                    }
+                };
             }
         }
+
         return () => {
-            if (!isModifying && clickedControl && clickedControl.interaction) {
+            if (didAddInteractions && clickedControl?.interaction) {
+                removeInteractionFromMap(clickedControl.interaction, map!);
                 map?.un("singleclick", props.splitLineInteractionFuncEnd);
                 map?.un("pointermove", props.splitLineInteractionFuncPointer);
                 map?.removeInteraction(props.dragInteraction);
-                props.dragInteraction.un(["boxend"], () => props.dragInteractionFunc());
+                if (handleBoxEnd) {
+                    props.dragInteraction.un(["boxend"], handleBoxEnd);
+                }
                 props.dragInteraction.setActive(false);
             }
         };
-    }, [clickedControl, map, mapWorkingLayer, isModifying, clickedMapFeature, isRasterLayer, props]);
+    }, [clickedControl, map, isModifying, isRasterLayer, props]);
     return null;
 };
 

@@ -50,6 +50,7 @@ export const useContributionStore = create<ContributionStore>((set, get) => ({
     setSearchResult: (result) => set({ searchResult: result, searchResultPage: 1 }),
     setSearchItemToDelete: (item) => set({ searchItemToDelete: item }),
     saveContribution: (feat, type, initialFeat, mapWorkingLayer) => {
+        if (!feat) return;
         const { contributions, setContributions } = get();
         const contrExist = contributions.find((contr) => contr.feature === feat);
 

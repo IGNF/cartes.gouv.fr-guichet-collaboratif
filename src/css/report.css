@@ -56,6 +56,10 @@
     color: var(--grey-200-850);
 }
 
+.table-report__table table th {
+    white-space: nowrap;
+}
+
 .table-report__table table thead td:first-child,
 .table-report__table table thead th:first-child {
     width: 100px;

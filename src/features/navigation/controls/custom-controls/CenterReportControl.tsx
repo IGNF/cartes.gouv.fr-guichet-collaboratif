@@ -72,22 +72,25 @@ const CenterReportControl = () => {
 
     useEffect(() => {
         if (debounced.length) {
-            onCenterChange();
+            const frameId = requestAnimationFrame(() => {
+                onCenterChange();
+            });
+            return () => cancelAnimationFrame(frameId);
         }
     }, [debounced, selectedFeatures, mainPointFeature, onCenterChange]);
 
     useEffect(() => {
         const mapView = map?.getView();
-        mapView?.on("change:center", () => {
+        if (!mapView) return;
+        const handleCenterChange = () => {
             setCenter(mapView.getCenter()?.map((c) => c) || []);
-        });
+        };
+        mapView.on("change:center", handleCenterChange);
 
         return () => {
-            mapView?.un("change:center", () => {
-                setCenter(mapView.getCenter()?.map((c) => c) || []);
-            });
+            mapView.un("change:center", handleCenterChange);
         };
-    });
+    }, [map]);
 
     if (!showCenterReportButtons) return null;
     return (

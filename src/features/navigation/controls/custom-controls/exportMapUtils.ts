@@ -21,7 +21,7 @@ export const MARGIN_OPTIONS = [
     { value: "10", translation_key: "margin_big" },
 ] as const;
 
-const PAPER_SIZES_MM: Record<string, [number, number]> = {
+export const PAPER_SIZES_MM: Record<string, [number, number]> = {
     A0: [841, 1189],
     A1: [594, 841],
     A2: [420, 594],
@@ -104,7 +104,6 @@ const canvasToBytes = (canvas: HTMLCanvasElement, type: string, quality?: number
         canvas.toBlob(
             (blob) => {
                 if (!blob) {
-                    reject(new Error("Impossible de générer le fichier, blob null"));
                     return;
                 }
 
@@ -305,7 +304,7 @@ export const exportMap = (_mainMap: OlMap, { format, previewMap, ...opts }: Expo
     const previewEl = previewMap.getTargetElement() as HTMLElement;
     const previewCanvas = compositeCanvases(previewEl);
     if (!previewCanvas) {
-        return Promise.reject(new Error("Impossible de générer le fichier, aucun canvas trouvé"));
+        throw new Error("aucun canvas");
     }
 
     const pr = window.devicePixelRatio || 1;

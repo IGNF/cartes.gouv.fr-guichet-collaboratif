@@ -9,16 +9,16 @@ import ConfirmMultipleDeselection from "@/features/navigation/controls/custom-co
 
 const WorkingLayerDrawer = () => {
     const { clickedMapFeature, workingLayerDrawerOpened, setWorkingLayerDrawerOpened, setClickedMapFeature } = useMapStore();
-    const { featureTypeMode, selectedObjects, setSelectedObjects, setFeatureTypeMode, setColumnsToModify } = useContributionStore();
+    const { featureTypeMode, isReviewContribution, selectedObjects, setSelectedObjects, setFeatureTypeMode, setColumnsToModify } = useContributionStore();
     const { confirmMultipleDeselectionModal } = useModalStore();
 
     const pendingClose = useRef<(() => void) | null>(null);
 
     useEffect(() => {
-        if (clickedMapFeature && !workingLayerDrawerOpened) {
+        if (clickedMapFeature && !workingLayerDrawerOpened && !isReviewContribution) {
             setWorkingLayerDrawerOpened(true);
         }
-    }, [clickedMapFeature, workingLayerDrawerOpened, setWorkingLayerDrawerOpened]);
+    }, [clickedMapFeature, workingLayerDrawerOpened, isReviewContribution, setWorkingLayerDrawerOpened]);
 
     const closeDrawer = useCallback(() => {
         selectedObjects.forEach((feat) => {
