@@ -20,7 +20,6 @@ export default defineConfig((mode) => {
                     excludes: [
                         "Array", // nécessaire pour le script d'analytics
                         "XMLHttpRequest", // nécessaire pour geopf-extensions-openlayers (recherche de lieu)
-                        "Promise", //Mandatory until jsPdf library is there
                     ],
                 },
             }),
