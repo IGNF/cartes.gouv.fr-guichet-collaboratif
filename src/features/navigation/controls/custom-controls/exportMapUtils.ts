@@ -6,7 +6,7 @@ import VectorLayer from "ol/layer/Vector";
 import WebGLVectorLayer from "ol/layer/WebGLVector";
 import LayerGroup from "ol/layer/Group";
 import ImageLayer from "ol/layer/Image";
-import { jsPDF } from "jspdf";
+import { PDFDocument } from "pdf-lib";
 
 export type PAGE_ORIENTATION = "portrait" | "landscape";
 export type EXPORT_FORMAT = "PNG" | "JPEG" | "PDF";
@@ -21,7 +21,7 @@ export const MARGIN_OPTIONS = [
     { value: "10", translation_key: "margin_big" },
 ] as const;
 
-const PAPER_SIZES_MM: Record<string, [number, number]> = {
+export const PAPER_SIZES_MM: Record<string, [number, number]> = {
     A0: [841, 1189],
     A1: [594, 841],
     A2: [420, 594],
@@ -97,6 +97,30 @@ const withTranslation = (ctx: CanvasRenderingContext2D, x: number, y: number, dr
     ctx.translate(x, y);
     draw();
     ctx.restore();
+};
+
+const canvasToBytes = (canvas: HTMLCanvasElement, type: string, quality?: number): Promise<Uint8Array> =>
+    new Promise((resolve, reject) => {
+        canvas.toBlob(
+            (blob) => {
+                if (!blob) {
+                    return;
+                }
+
+                blob.arrayBuffer().then((buffer) => resolve(new Uint8Array(buffer)), reject);
+            },
+            type,
+            quality
+        );
+    });
+
+const triggerDownload = (blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 0);
 };
 
 const cloneSingleLayer = (layer: import("ol/layer/Base").default) => {
@@ -245,18 +269,24 @@ const buildOutputCanvas = (
     return out;
 };
 
-const saveAsPdf = (canvas: HTMLCanvasElement, dimensions: string, orientation: PAGE_ORIENTATION, title: string, pr: number) => {
-    const pxToMm = 25.4 / 96 / pr;
-    const [wMm, hMm] = [canvas.width * pxToMm, canvas.height * pxToMm];
-    const doc = new jsPDF({
-        orientation: orientation === "landscape" ? "landscape" : "portrait",
-        unit: "mm",
-        format: dimensions.toLocaleLowerCase(),
+const saveAsPdf = async (canvas: HTMLCanvasElement, dimensions: string, orientation: PAGE_ORIENTATION, title: string) => {
+    const [pageWidthMm, pageHeightMm] = getPaperMm(dimensions, orientation);
+    const mmToPt = (mm: number) => (mm / 25.4) * 72;
+    const pdf = await PDFDocument.create();
+    const page = pdf.addPage([mmToPt(pageWidthMm), mmToPt(pageHeightMm)]);
+    const imageBytes = await canvasToBytes(canvas, "image/jpeg", PDF_JPEG_QUALITY);
+    const image = await pdf.embedJpg(imageBytes);
+
+    page.drawImage(image, {
+        x: 0,
+        y: 0,
+        width: page.getWidth(),
+        height: page.getHeight(),
     });
-    const [dw, dh] = [doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight()];
-    const s = Math.min(dw / wMm, dh / hMm);
-    doc.addImage(canvas.toDataURL("image/jpeg", PDF_JPEG_QUALITY), "JPEG", (dw - wMm * s) / 2, (dh - hMm * s) / 2, wMm * s, hMm * s);
-    doc.save(`${checkedFilename(title)}.pdf`);
+
+    const pdfBytes = await pdf.save();
+    const blob = new Blob([new Uint8Array(pdfBytes)], { type: "application/pdf" });
+    triggerDownload(blob, `${checkedFilename(title)}.pdf`);
 };
 
 const saveAsImage = (canvas: HTMLCanvasElement, format: Exclude<EXPORT_FORMAT, "PDF">, title: string) => {
@@ -273,13 +303,19 @@ const saveAsImage = (canvas: HTMLCanvasElement, format: Exclude<EXPORT_FORMAT, "
 export const exportMap = (_mainMap: OlMap, { format, previewMap, ...opts }: ExportOpts) => {
     const previewEl = previewMap.getTargetElement() as HTMLElement;
     const previewCanvas = compositeCanvases(previewEl);
-    if (!previewCanvas) return;
+    if (!previewCanvas) {
+        throw new Error("aucun canvas");
+    }
 
     const pr = window.devicePixelRatio || 1;
     const out = buildOutputCanvas(previewCanvas, previewEl, opts, pr);
 
-    if (format === "PDF") saveAsPdf(out, opts.dimensions, opts.orientation, opts.title, pr);
-    else saveAsImage(out, format, opts.title);
+    if (format === "PDF") {
+        return saveAsPdf(out, opts.dimensions, opts.orientation, opts.title);
+    } else {
+        saveAsImage(out, format, opts.title);
+        return;
+    }
 };
 
 export const createPreviewMap = (target: HTMLDivElement, mainMap: OlMap) => {

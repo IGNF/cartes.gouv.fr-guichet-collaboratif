@@ -12,10 +12,12 @@ export const ExportMapModalFrTranslations: Translations<"fr">["ExportMapModal"] 
     hide_scale: "Désactiver l'échelle",
     export_format: "Format d'export",
     margin: "Marge",
-    margin_small: "Pas de marge - 0mm",
-    margin_medium: "Petite marge - 5mm",
-    margin_big: "Moyenne marge - 10mm",
+    margin_small: "Aucune - 0mm",
+    margin_medium: "Petite - 5mm",
+    margin_big: "Grande - 10mm",
     default_title: "Ma carte",
+    success_status: "Export réussi",
+    error_status: "Erreur lors de l'export",
 };
 
 export const ExportMapModalEnTranslations: Translations<"en">["ExportMapModal"] = {
@@ -29,10 +31,12 @@ export const ExportMapModalEnTranslations: Translations<"en">["ExportMapModal"] 
     hide_scale: "Disable scale",
     export_format: "Export format",
     margin: "Margin",
-    margin_small: "No margin - 0mm",
-    margin_medium: "Small margin - 5mm",
-    margin_big: "Average Margin - 10mm",
+    margin_small: "None - 0mm",
+    margin_medium: "Small - 5mm",
+    margin_big: "Large - 10mm",
     default_title: "My map",
+    success_status: "Export successful",
+    error_status: "Error during export",
 };
 
 const { i18n } = declareComponentKeys<
@@ -50,5 +54,7 @@ const { i18n } = declareComponentKeys<
     | "margin_medium"
     | "margin_big"
     | "default_title"
+    | "success_status"
+    | "error_status"
 >()("ExportMapModal");
 export type I18n = typeof i18n;
