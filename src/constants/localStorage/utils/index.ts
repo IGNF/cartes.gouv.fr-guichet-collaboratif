@@ -1,8 +1,6 @@
 import { Group } from "@/constants/savedSearches/types";
 import { DEFAULT_NAMED_POSITION_ZOOM, LocalStorageData, NamedPosition } from "../types";
 
-const DUPLICATE_COORDINATE_EPSILON = 1e-6;
-
 const MIN_LONGITUDE = -180;
 const MAX_LONGITUDE = 180;
 const MIN_LATITUDE = -90;
@@ -112,13 +110,6 @@ export const normalizeLocalStorageData = (value: unknown): LocalStorageData | nu
 };
 
 export const sanitizeNamedPositionName = normalizeName;
-
-export const areNamedPositionCoordinatesEqual = (first: [number, number], second: [number, number]) => {
-    const lonDiff = Math.abs(first[0] - second[0]);
-    const latDiff = Math.abs(first[1] - second[1]);
-
-    return lonDiff <= DUPLICATE_COORDINATE_EPSILON && latDiff <= DUPLICATE_COORDINATE_EPSILON;
-};
 
 export const createNamedPosition = (name: string, coordinates: [number, number], zoom?: number): NamedPosition => ({
     id: generateNamedPositionId(),

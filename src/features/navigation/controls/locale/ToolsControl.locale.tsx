@@ -25,9 +25,9 @@ export const ToolsControlFrTranslations: Translations<"fr">["ToolsControl"] = {
     location_suggestions_loading: "Chargement des suggestions...",
     error_select_location: "Selectionnez une suggestion de lieu.",
     error_empty_name: "Le nom de la position est obligatoire.",
-    error_invalid_coordinates: "Les coordonnees saisies sont invalides.",
+    error_invalid_coordinates: "Les coordonnées saisies sont invalides.",
     error_duplicate_name: "Une position avec ce nom existe deja.",
-    save_success: "Position favorite enregistree.",
+    save_success: "Position favorite enregistrée.",
 };
 
 export const ToolsControlEnTranslations: Translations<"en">["ToolsControl"] = {
