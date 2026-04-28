@@ -9,7 +9,16 @@ import Checkbox from "@codegouvfr/react-dsfr/Checkbox";
 import { useIsModalOpen } from "@codegouvfr/react-dsfr/Modal/useIsModalOpen";
 import OlMap from "ol/Map";
 import { ScaleLine } from "ol/control";
-import { createPreviewMap, exportMap, MARGIN_OPTIONS, EXPORT_SIZE_OPTIONS, PAPER_RATIO, type PAGE_ORIENTATION, type EXPORT_FORMAT } from "./exportMapUtils";
+import {
+    createPreviewMap,
+    exportMap,
+    MARGIN_OPTIONS,
+    EXPORT_SIZE_OPTIONS,
+    PAPER_SIZES_MM,
+    PAPER_RATIO,
+    type PAGE_ORIENTATION,
+    type EXPORT_FORMAT,
+} from "./exportMapUtils";
 
 const ExportMapModal: React.FC = () => {
     const { map, setClickedControl } = useMapStore();
@@ -121,7 +130,9 @@ const ExportMapModal: React.FC = () => {
                     </div>
                     <Select label="Dimensions" nativeSelectProps={{ value: dimensions, onChange: (e) => setDimensions(e.target.value) }}>
                         {EXPORT_SIZE_OPTIONS.map((s) => (
-                            <option key={s}>{s}</option>
+                            <option key={s}>
+                                {s} - {PAPER_SIZES_MM[s][0]} × {PAPER_SIZES_MM[s][1]} mm
+                            </option>
                         ))}
                     </Select>
                     <Select label={t("margin")} nativeSelectProps={{ value: String(margin), onChange: (e) => setMargin(Number(e.target.value)) }}>
