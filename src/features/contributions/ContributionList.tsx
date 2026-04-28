@@ -7,7 +7,7 @@ import Button from "@codegouvfr/react-dsfr/Button";
 import Checkbox from "@codegouvfr/react-dsfr/Checkbox";
 import { createModal } from "@codegouvfr/react-dsfr/Modal";
 import { useIsModalOpen } from "@codegouvfr/react-dsfr/Modal/useIsModalOpen";
-import { ChangeEvent, useCallback, useEffect } from "react";
+import { ChangeEvent, useCallback, useEffect, useMemo } from "react";
 
 const modal = createModal({
     id: "contribution-list-modal",
@@ -27,8 +27,14 @@ const ContributionList = () => {
         },
     });
 
+    const validContributions = useMemo(() => contributions.filter((contr) => !!contr?.feature), [contributions]);
+    const validContrToCancel = useMemo(() => contrToCancel.filter((contr) => !!contr?.feature), [contrToCancel]);
+
     const getContributionTitle = useCallback(
         (contr: Contribution, index: number) => {
+            if (!contr?.feature) {
+                return "";
+            }
             const featData = contr.feature.get(FEATURE_TYPE_DATA_PROPERTY);
             const featGeoservice: CommunityGeoservice = contr.feature.get(FEATURE_TYPE_GEOSERVICE_PROPERTY);
             const featId = featData ? featData[`${featGeoservice?.idName}`] : null;
@@ -48,6 +54,7 @@ const ContributionList = () => {
 
     const cancelContribution = useCallback(
         (e: ChangeEvent<HTMLInputElement>, contr: Contribution) => {
+            if (!contr?.feature) return;
             let newContrToCancel = [...contrToCancel, contr];
             if (!e.target.checked) {
                 newContrToCancel = contrToCancel.filter((c) => c !== contr);
@@ -61,16 +68,17 @@ const ContributionList = () => {
     const cancelAllContributions = useCallback(
         (e: ChangeEvent<HTMLInputElement>) => {
             if (e.target.checked) {
-                setContrToCancel(contributions);
+                setContrToCancel(validContributions);
             } else {
                 setContrToCancel([]);
             }
         },
-        [contributions, setContrToCancel]
+        [validContributions, setContrToCancel]
     );
 
     const showContribution = useCallback(
         (contr: Contribution) => {
+            if (!contr?.feature) return;
             setClickedMapFeature(contr.feature);
         },
         [setClickedMapFeature]
@@ -101,11 +109,11 @@ const ContributionList = () => {
                     onClick: () => confirmResetContributionModal.open(),
                     children: t("cancel"),
                     priority: "secondary",
-                    disabled: !contrToCancel.length,
+                    disabled: !validContrToCancel.length,
                 },
             ]}
         >
-            {isReviewContribution && contributions.length > 0 && (
+            {isReviewContribution && validContributions.length > 0 && (
                 <div className="content">
                     <div className="line">
                         <Checkbox
@@ -114,14 +122,14 @@ const ContributionList = () => {
                                 {
                                     label: t("cancel_all"),
                                     nativeInputProps: {
-                                        checked: contrToCancel.length === contributions.length,
+                                        checked: validContrToCancel.length === validContributions.length,
                                         onChange: (e) => cancelAllContributions(e),
                                     },
                                 },
                             ]}
                         />
                     </div>
-                    {contributions.map((contr, index) => (
+                    {validContributions.map((contr, index) => (
                         <div key={`contributions-item_${index}`} className="line">
                             <Button
                                 priority={clickedMapFeature === contr.feature ? "secondary" : "tertiary no outline"}
@@ -134,7 +142,7 @@ const ContributionList = () => {
                                     {
                                         label: "",
                                         nativeInputProps: {
-                                            checked: contrToCancel.includes(contr),
+                                            checked: validContrToCancel.includes(contr),
                                             onChange: (e) => cancelContribution(e, contr),
                                         },
                                     },
