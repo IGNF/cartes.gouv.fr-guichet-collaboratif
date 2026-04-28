@@ -4,13 +4,15 @@ import Badge from "@codegouvfr/react-dsfr/Badge";
 import Button from "@codegouvfr/react-dsfr/Button";
 import Checkbox from "@codegouvfr/react-dsfr/Checkbox";
 import Tag from "@codegouvfr/react-dsfr/Tag";
+import { SERVER_URL } from "@/constants/urls";
 
 const CreateTableData = (
     reports: CommunityReport[],
     isChecked?: Record<number, boolean>,
     onCheckChange?: (id: number, checked: boolean) => void,
     onShowReportOnMap?: (report: CommunityReport) => void,
-    onShowReport?: (report: CommunityReport) => void
+    onShowReport?: (report: CommunityReport) => void,
+    t?: (key: string) => string
 ) => {
     if (!Array.isArray(reports) || reports.length === 0) {
         return [];
@@ -23,8 +25,8 @@ const CreateTableData = (
         const updating_date = report.updating_date ? new Date(report.updating_date).toLocaleDateString() : "-";
         const closing_date = report.closing_date ? new Date(report.closing_date).toLocaleDateString() : "-";
         const attributs = JSON.stringify(report.attributes, null, 2);
-        const document = report.attachments.map((attachment) => `/document/download/${attachment.id}`).join(";");
-        const departement = report.commune ? `${report.commune.title} (${report.departement?.name})` : "-";
+        const document = report.attachments.map((attachment) => `${SERVER_URL}/document/download/${attachment.id}`).join(";");
+        const commune = report.commune ? `${report.commune.title} (${report.commune?.name})` : "-";
         const status = report.status || "-";
         const comment = report.comment || "-";
         const statusText = reportImgStatus[status as StatusKey].text;
@@ -51,7 +53,7 @@ const CreateTableData = (
                 closing_date,
                 attributs: attributs,
                 document,
-                departement,
+                commune,
                 statusCode: report.status || "-",
                 reply,
             },
@@ -60,7 +62,7 @@ const CreateTableData = (
                     key={"check-" + report.id}
                     options={[
                         {
-                            label: <span className="fr-sr-only">Sélectionner un signalement</span>,
+                            label: <span className="fr-sr-only">{t?.("select") ?? "Sélectionner un signalement"}</span>,
                             nativeInputProps: {
                                 checked: isChecked && !!isChecked[report.id],
                                 onChange: (e) => onCheckChange && onCheckChange(report.id, e.target.checked),
@@ -72,7 +74,7 @@ const CreateTableData = (
                 report.id,
                 author,
                 date,
-                departement,
+                commune,
                 <Tag>{report.attributes && report.attributes.length > 0 ? report.attributes.map((attr) => attr.theme || "").join(", ") : "-"}</Tag>,
                 <Badge severity="info" noIcon>
                     {statusText || "-"}
@@ -84,7 +86,7 @@ const CreateTableData = (
                             iconId="fr-icon-road-map-line"
                             className="fr-icon--sm fr-mr-7v"
                             priority="tertiary no outline"
-                            title="Afficher sur la carte"
+                            title={t?.("show_map") ?? "Afficher sur la carte"}
                             onClick={() => onShowReport(report)}
                         />
                     )}
@@ -93,7 +95,7 @@ const CreateTableData = (
                             iconId="fr-icon-arrow-right-line"
                             className="fr-icon--sm"
                             priority="tertiary no outline"
-                            title="Afficher le signalement"
+                            title={t?.("show_report") ?? "Afficher le signalement"}
                             onClick={() => onShowReportOnMap(report)}
                         />
                     )}
