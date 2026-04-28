@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo } from "react";
 import { useCommunityStore } from "@/store/useCommunityStore";
+import { useContributionStore } from "@/store/useContributionStore";
 import VectorSource, { VectorSourceEvent } from "ol/source/Vector";
 import WebGLVectorLayer from "ol/layer/WebGLVector";
 import { Collection, Feature } from "ol";
@@ -22,9 +23,13 @@ import Text from "ol/style/Text";
 import { LayerGroupSource } from "@/classes/LayerGroupSource";
 import { ObjectEvent } from "ol/Object";
 import { getAxiosApi } from "@/api";
+import { ContributionType } from "@/constants/contributions/types";
+import { FEATURE_TYPE_DATA_PROPERTY } from "@/constants";
+import { useRef } from "react";
 
 function useGetWFSLayer(geoservice: CommunityGeoservice) {
     const { addAlertMessage } = useCommunityStore();
+    const { contributions } = useContributionStore();
     const { map, featureTypeSelectedStyle, setFeatureTypeSelectedStyle } = useMapStore();
 
     const queryClient = useQueryClient();
@@ -47,6 +52,25 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
 
     const selectedStyle = featureTypeSelectedStyle.find((style) => style.layer === geoservice.layer);
 
+    const deletedFeatureKeysRef = useRef<Set<string>>(new Set());
+
+    useEffect(() => {
+        const deletedKeys = new Set<string>();
+
+        contributions
+            .filter((contr) => contr.type === ContributionType.DELETE && contr.layer === geoservice.layer)
+            .forEach((contr) => {
+                const featData = contr.feature.get(FEATURE_TYPE_DATA_PROPERTY) as Record<string, unknown> | undefined;
+                const idName = geoservice.idName;
+                const featureKey = idName ? featData?.[idName] : contr.feature.getId();
+                if (featureKey !== undefined && featureKey !== null && featureKey !== "") {
+                    deletedKeys.add(String(featureKey));
+                }
+            });
+
+        deletedFeatureKeysRef.current = deletedKeys;
+    }, [contributions, geoservice.layer, geoservice.idName]);
+
     const addFeaturesToSource = useCallback(
         (wfsSource: VectorSource, data: GeoJSONProps | ArrayGeoJSONProps[]) => {
             let newData;
@@ -61,7 +85,17 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
                 featureProjection: mapProjCode,
             });
 
-            wfsSource.addFeatures(features);
+            const filteredFeatures = features.filter((feature) => {
+                const featData = feature.get(FEATURE_TYPE_DATA_PROPERTY) as Record<string, unknown> | undefined;
+                const idName = geoservice.idName;
+                const featureKey = idName ? featData?.[idName] : feature.getId();
+                if (featureKey === undefined || featureKey === null || featureKey === "") {
+                    return true;
+                }
+                return !deletedFeatureKeysRef.current.has(String(featureKey));
+            });
+
+            wfsSource.addFeatures(filteredFeatures);
         },
         [geoProjCode, mapProjCode, geoservice]
     );
