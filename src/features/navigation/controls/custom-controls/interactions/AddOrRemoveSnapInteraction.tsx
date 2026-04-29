@@ -4,12 +4,7 @@ import { useCommunityStore, useMapStore } from "@/store";
 import { useEffect, useMemo } from "react";
 
 const isEditInteraction = (interaction: InteractionType | null | undefined): boolean => {
-    return (
-        interaction === InteractionType.ADD_OBJECT ||
-        interaction === InteractionType.MODIFY ||
-        interaction === InteractionType.TRANSLATE_OBJECT ||
-        interaction === InteractionType.SPLIT_LINE
-    );
+    return interaction === InteractionType.ADD_OBJECT || interaction === InteractionType.MODIFY || interaction === InteractionType.TRANSLATE_OBJECT;
 };
 
 const SnapInteractionEffect = (props: InteractionsProps) => {

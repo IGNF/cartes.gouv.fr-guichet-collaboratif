@@ -507,6 +507,19 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             setClickedControl,
         ]
     );
+    const deleteSelectedObjects = useCallback(
+        (features: Feature[]) => {
+            if (!currentMapWorkingSource) return;
+            features.forEach((feat) => {
+                currentMapWorkingSource.removeFeature(feat);
+                saveContribution(feat, ContributionType.DELETE, feat, mapWorkingLayer);
+                feat.unset(FEATURE_TYPE_SELECTED_PROPERTY);
+            });
+            setSelectedObjects([]);
+            setClickedMapFeature(null);
+        },
+        [currentMapWorkingSource, mapWorkingLayer, saveContribution, setSelectedObjects, setClickedMapFeature]
+    );
 
     useEffect(() => {
         return () => {
@@ -545,6 +558,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
         splitLineInteractionFuncPointer,
         getInteractionByType,
         handleClick,
+        deleteSelectedObjects,
     };
 };
 
