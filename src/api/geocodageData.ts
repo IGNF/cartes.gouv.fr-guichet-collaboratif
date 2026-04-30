@@ -18,6 +18,12 @@ export interface AutocompleteResponse {
     results: CommuneResult[];
 }
 
+export interface LocationAutocompleteResult {
+    fulltext: string;
+    x: number;
+    y: number;
+}
+
 export interface ReverseGeocodeResponse {
     features: Array<{
         properties: {
@@ -73,6 +79,28 @@ export async function getCommuneAutocomplete(searchText: string): Promise<Commun
         return [];
     }
 }
+
+export async function getLocationAutocomplete(searchText: string): Promise<LocationAutocompleteResult[]> {
+    if (!searchText.trim()) {
+        return [];
+    }
+
+    try {
+        const api = await getAxiosApi();
+        const response = await api.get<AutocompleteResponse>("https://data.geopf.fr/geocodage/completion", {
+            params: {
+                text: searchText,
+                maximumResponses: 5,
+            },
+        });
+
+        return (response.data.results || []).filter((result) => typeof result.fulltext === "string" && Number.isFinite(result.x) && Number.isFinite(result.y));
+    } catch (error) {
+        console.error("Location autocomplete failed:", error);
+        return [];
+    }
+}
+
 export async function reverseGeocode(lon: number, lat: number): Promise<ReverseGeocodeResponse["features"][0] | null> {
     try {
         const api = await getAxiosApi();
