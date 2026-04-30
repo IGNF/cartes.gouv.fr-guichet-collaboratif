@@ -142,7 +142,7 @@ const TableReport = () => {
 
     const tableData = useMemo(
         () => CreateTableData(reportsToUse, isChecked, onCheckChange, onShowReportOnMap, onShowOnMap, t),
-        [reportsToUse, isChecked, onCheckChange, onShowReportOnMap, onShowOnMap]
+        [reportsToUse, isChecked, onCheckChange, onShowReportOnMap, onShowOnMap, t]
     );
 
     const allLinesAreAllowed = tableData.some((row) => !!isChecked[String(row.id)] && STATUS_NOT_ALLOWED.includes(row.exportData.statusCode));

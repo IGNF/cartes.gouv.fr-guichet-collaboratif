@@ -502,9 +502,9 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             searchModal,
             getInteractionByType,
             copyInteractionFunc,
-            pasteInteractionFunc,
             setSelectedObjects,
             setClickedControl,
+            exportMapModal,
         ]
     );
 

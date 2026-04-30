@@ -153,6 +153,7 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
         community,
         currentCommunityLayer?.geoservice.featureType,
         currentCommunityLayer?.role,
+        clickedControl?.interaction,
         mapWorkingLayer,
         communityEditableLayers,
         clickedMapFeature,
