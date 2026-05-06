@@ -126,10 +126,16 @@ export const getShapeImage = (style: Style, shapeProps: FeatureTypeStyleItem, si
     const imageStyle = shapeStyle.getImage() as ImageStyle;
 
     if (imageStyle && "getImage" in imageStyle) {
-        const imgEl = imageStyle.getImage(3);
-        if (imgEl instanceof HTMLImageElement || imgEl instanceof HTMLCanvasElement) {
-            ctx?.drawImage(imgEl, -size / 2, -size / 2, size, size);
-        }
+        if (typeof imageStyle.load === "function") imageStyle.load();
+        const imgEl = [1, 2, window.devicePixelRatio || 1, 3]
+            .map((r) => imageStyle.getImage(r) as CanvasImageSource | null)
+            .find((el) => {
+                if (!el) return false;
+                if (!(el instanceof HTMLCanvasElement)) return true;
+                const p = el.getContext("2d")?.getImageData(el.width / 2, el.height / 2, 1, 1).data;
+                return p && p[3] > 0;
+            });
+        if (imgEl) ctx?.drawImage(imgEl, -size / 2, -size / 2, size, size);
     }
     const img = document.createElement("img");
     img.src = canvas.toDataURL();
