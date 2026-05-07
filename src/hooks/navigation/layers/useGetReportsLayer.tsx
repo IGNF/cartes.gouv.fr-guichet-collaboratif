@@ -29,7 +29,7 @@ function useGetReportsLayer(communityId: number) {
             loader: async function (extent) {
                 try {
                     const boxExtent = transformExtent(extent, "EPSG:3857", "EPSG:4326");
-                    if (!isFinite(boxExtent[0]) || isEmpty(boxExtent)) return;
+                    if (!isFinite(boxExtent[0]) || isEmpty(boxExtent)) return [];
                     const queryKey = `GET_REPORTS_communities=${communityId}` + `_limit=20` + `_box=${boxExtent}`;
                     const reports = await queryClient.fetchQuery({
                         queryKey: [queryKey],
@@ -39,11 +39,13 @@ function useGetReportsLayer(communityId: number) {
 
                     if (!reports) {
                         addAlertMessage(StatusMessage.error, t("loading_report_layer_error"));
-                        return null;
+                        return [];
                     }
                     setReports(reports);
+                    return [];
                 } catch {
                     addAlertMessage(StatusMessage.error, t("loading_report_layer_error"), 5000);
+                    return [];
                 }
             },
             strategy: bbox,
