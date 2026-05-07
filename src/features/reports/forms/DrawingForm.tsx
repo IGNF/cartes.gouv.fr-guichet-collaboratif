@@ -38,6 +38,8 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsD
     const drawingLayer = map?.getAllLayers().find((layer: Layer & { gpResultLayerId?: string }) => layer.gpResultLayerId === "drawing");
     const drawingSource = drawingLayer?.getSource() as VectorSource;
 
+    const lastFeaturesRef = useRef<Feature[]>([]);
+
     const handleDrawingAdd = useCallback(
         (e: VectorSourceEvent) => {
             if (e.feature) {
@@ -56,8 +58,23 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsD
         [selectedFeatures, selectedReport]
     );
 
+    const changeCallCountRef = useRef(0);
+    const lastChangeLogRef = useRef(0);
+
     const handleDrawingChange = useCallback(() => {
-        setSelectedFeatures(drawingSource.getFeatures());
+        changeCallCountRef.current += 1;
+        const now = Date.now();
+
+        if (now - lastChangeLogRef.current > 500) {
+            changeCallCountRef.current = 0;
+            lastChangeLogRef.current = now;
+        }
+
+        const features = drawingSource.getFeatures();
+        if (features.length !== lastFeaturesRef.current.length || features.some((f, i) => f !== lastFeaturesRef.current[i])) {
+            lastFeaturesRef.current = features;
+            setSelectedFeatures(features);
+        }
     }, [drawingSource, setSelectedFeatures]);
 
     useEffect(() => {
@@ -76,12 +93,19 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsD
 
         if (selectedReport) {
             selectedReportFeatures = getReportAllFeatures(selectedReport);
-            if (drawingSource) drawingSource.addFeatures(selectedReportFeatures);
-            setSelectedFeatures(selectedReportFeatures);
-            const editTool = reportTools.find((t) => t.name === toolNames.edit);
-            if (handleToolClick) {
-                handleToolClick(editTool);
+
+            const existingIds = new Set(drawingSource?.getFeatures().map((f) => f.getId()) ?? []);
+            const featurestoAdd = selectedReportFeatures.filter((f) => !existingIds.has(f.getId()));
+            if (drawingSource && featurestoAdd.length > 0) {
+                drawingSource.addFeatures(featurestoAdd);
             }
+
+            lastFeaturesRef.current = selectedReportFeatures;
+            setSelectedFeatures(selectedReportFeatures);
+
+            const editTool = reportTools.find((t) => t.name === toolNames.edit);
+            handleToolClick?.(editTool);
+
             const clusterFeatures = reportSource
                 ?.getFeatures()
                 .map((f) => {
@@ -93,7 +117,6 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsD
             if (reportMainFeature) reportSource?.removeFeature(reportMainFeature);
         }
 
-        if (drawingSource) setSelectedFeatures(drawingSource.getFeatures());
         return () => {
             if (selectedReport && drawingSource) {
                 drawingSource.removeFeatures(selectedReportFeatures);
@@ -105,11 +128,12 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsD
                 if (reportMainFeature && !reportMainFeatureUpdated) {
                     reportSource?.addFeature(reportMainFeature);
                 }
+                lastFeaturesRef.current = [];
                 setSelectedFeatures([]);
                 drawingSource.clear();
             }
         };
-    }, [selectedReport, drawingSource, reportSource, reportTools, handleToolClick, setSelectedFeatures]);
+    }, [selectedReport?.id, drawingSource, reportSource]);
 
     const getToolPriority = (tool: ReportTool) => {
         if (isToolDisabled(tool)) return "primary";
