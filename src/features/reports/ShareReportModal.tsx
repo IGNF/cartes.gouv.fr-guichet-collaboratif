@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "@/i18n";
 import { useCommunityStore, useModalStore, useReportStore } from "@/store";
 import Button from "@codegouvfr/react-dsfr/Button";
@@ -8,7 +8,6 @@ import Tag from "@codegouvfr/react-dsfr/Tag";
 import { StatusMessage } from "@/constants/communities/types";
 
 const ShareReportModal = () => {
-    const [shareInput, setShareInput] = useState<string>("");
     const [showToast, setShowToast] = useState<boolean>(false);
 
     const { t } = useTranslation({ ShareReportModal });
@@ -16,16 +15,12 @@ const ShareReportModal = () => {
     const { addAlertMessage } = useCommunityStore();
     const { selectedReport } = useReportStore();
 
-    useEffect(() => {
-        if (!selectedReport) {
-            setShareInput("");
-            return;
-        }
-
+    const shareInput = useMemo(() => {
+        if (!selectedReport) return "";
         const url = new URL(window.location.href);
         url.searchParams.set("report", String(selectedReport.id));
-        setShareInput(url.toString());
-    }, [selectedReport, shareInput]);
+        return url.toString();
+    }, [selectedReport]);
 
     const { shareReport } = useModalStore();
 
@@ -66,9 +61,6 @@ const ShareReportModal = () => {
                         readOnly: true,
                         placeholder: "https://",
                         value: shareInput,
-                        onChange: (e) => {
-                            setShareInput(e.target.value);
-                        },
                     }}
                     state="info"
                     stateRelatedMessage={t("report_modalInfo")}

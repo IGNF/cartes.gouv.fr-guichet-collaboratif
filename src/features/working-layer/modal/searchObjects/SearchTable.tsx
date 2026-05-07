@@ -16,7 +16,7 @@ import GeoJSON from "ol/format/GeoJSON";
 import VectorLayer from "ol/layer/Vector";
 import WebGLVectorLayer from "ol/layer/WebGLVector";
 import VectorSource from "ol/source/Vector";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 
 const PAGE_SIZE = 10;
 
@@ -27,14 +27,22 @@ interface Props {
 const SearchTable: React.FC<Props> = ({ geoservice }) => {
     const { map, mapWorkingLayer, setClickedMapFeature } = useMapStore();
     const { confirmDeleteObjectSearchModal, searchModal } = useModalStore();
-    const { searchResult, contributions, selectedObjects, setFeatureTypeMode, setSearchItemToDelete, setContributions, setSelectedObjects } =
-        useContributionStore();
+    const {
+        searchResult,
+        searchResultPage,
+        setSearchResultPage,
+        contributions,
+        selectedObjects,
+        setFeatureTypeMode,
+        setSearchItemToDelete,
+        setContributions,
+        setSelectedObjects,
+    } = useContributionStore();
     const { communityLayers } = useCommunityStore();
 
     const { t } = useTranslation({ SearchTable });
 
     const [checkedObjects, setCheckedObjects] = useState<SearchResultItem[]>([]);
-    const [page, setPage] = useState<number>(1);
     const [sortBy, setSortBy] = useState<{ value: string; desc: boolean }>({ value: geoservice?.idName ?? "id", desc: false });
     const [isDragging, setIsDragging] = useState(false);
     const [startX, setStartX] = useState(0);
@@ -110,55 +118,6 @@ const SearchTable: React.FC<Props> = ({ geoservice }) => {
         [clickableSource, geoProjCode, geoservice, mapProjCode, isItemInSource]
     );
 
-    const handleShowObject = useCallback(
-        (item: SearchResultItem) => {
-            const sourceFeature = isItemInSource(item);
-            if (sourceFeature) {
-                handleCenterToFeature(map, sourceFeature);
-                setClickedMapFeature(sourceFeature);
-                searchModal.close();
-            } else {
-                addItemToSource(item);
-                handleShowObject(item);
-            }
-        },
-        [map, searchModal, setClickedMapFeature, addItemToSource, isItemInSource]
-    );
-
-    const handleModifyObject = useCallback(
-        (item: SearchResultItem) => {
-            if (checkedObjects.length > 2) {
-                const newFeats: Feature[] = [];
-                checkedObjects.forEach((el) => {
-                    newFeats.push(...addItemToSource(el));
-                });
-                setSelectedObjects([...selectedObjects, ...newFeats]);
-            }
-            const sourceFeature = isItemInSource(item);
-            if (sourceFeature) {
-                handleCenterToFeature(map, sourceFeature!);
-                setClickedMapFeature(sourceFeature);
-                setFeatureTypeMode(FeatureTypeMode.EDIT);
-                searchModal.close();
-            } else {
-                handleShowObject(item);
-                handleModifyObject(item);
-            }
-        },
-        [
-            map,
-            searchModal,
-            checkedObjects,
-            selectedObjects,
-            setClickedMapFeature,
-            handleShowObject,
-            setFeatureTypeMode,
-            isItemInSource,
-            addItemToSource,
-            setSelectedObjects,
-        ]
-    );
-
     const getItemStyle = useCallback(
         (item: SearchResultItem) => {
             const itemExist = contributions.find(
@@ -178,35 +137,60 @@ const SearchTable: React.FC<Props> = ({ geoservice }) => {
         [contributions, geoservice]
     );
 
-    useEffect(() => {
-        setPage((prevPage) => (prevPage === 1 ? prevPage : 1));
-    }, [searchResult]);
+    function handleShowObject(item: SearchResultItem) {
+        const sourceFeature = isItemInSource(item);
+        if (sourceFeature) {
+            handleCenterToFeature(map, sourceFeature);
+            setClickedMapFeature(sourceFeature);
+            searchModal.close();
+        } else {
+            addItemToSource(item);
+            handleShowObject(item);
+        }
+    }
 
-    const handleDeleteObject = useCallback(
-        (item: SearchResultItem) => {
-            if (getItemStyle(item) === "red") {
-                const itemContr = contributions.find(
-                    (contr) => contr.feature.get(FEATURE_TYPE_DATA_PROPERTY)![`${geoservice.idName}`] === item[`${geoservice.idName}`]
-                );
-                if (map && itemContr) {
-                    resetContributionToMap(map, itemContr);
-                    setContributions(contributions.filter((c) => c !== itemContr));
-                    return;
-                }
-            }
-            const sourceFeature = clickableSource
-                .getFeatures()
-                .find((feat) => feat.get(FEATURE_TYPE_DATA_PROPERTY)![`${geoservice.idName}`] === item[`${geoservice.idName}`]);
+    function handleModifyObject(item: SearchResultItem) {
+        if (checkedObjects.length > 2) {
+            const newFeats: Feature[] = [];
+            checkedObjects.forEach((el) => {
+                newFeats.push(...addItemToSource(el));
+            });
+            setSelectedObjects([...selectedObjects, ...newFeats]);
+        }
+        const sourceFeature = isItemInSource(item);
+        if (sourceFeature) {
+            handleCenterToFeature(map, sourceFeature!);
+            setClickedMapFeature(sourceFeature);
+            setFeatureTypeMode(FeatureTypeMode.EDIT);
+            searchModal.close();
+        } else {
+            handleShowObject(item);
+            handleModifyObject(item);
+        }
+    }
 
-            if (sourceFeature) {
-                setSearchItemToDelete(sourceFeature);
-            } else {
-                addItemToSource(item);
-                handleDeleteObject(item);
+    function handleDeleteObject(item: SearchResultItem) {
+        if (getItemStyle(item) === "red") {
+            const itemContr = contributions.find(
+                (contr) => contr.feature.get(FEATURE_TYPE_DATA_PROPERTY)![`${geoservice.idName}`] === item[`${geoservice.idName}`]
+            );
+            if (map && itemContr) {
+                resetContributionToMap(map, itemContr);
+                setContributions(contributions.filter((c) => c !== itemContr));
+                return;
             }
-        },
-        [clickableSource, geoservice, contributions, map, setSearchItemToDelete, addItemToSource, getItemStyle, setContributions]
-    );
+        }
+        const sourceFeature = clickableSource
+            .getFeatures()
+            .find((feat) => feat.get(FEATURE_TYPE_DATA_PROPERTY)![`${geoservice.idName}`] === item[`${geoservice.idName}`]);
+
+        if (sourceFeature) {
+            setSearchItemToDelete(sourceFeature);
+        } else {
+            addItemToSource(item);
+            handleDeleteObject(item);
+        }
+    }
 
     const handleSelectObject = useCallback(
         (item: SearchResultItem | null) => {
@@ -272,7 +256,7 @@ const SearchTable: React.FC<Props> = ({ geoservice }) => {
     const totalItems = searchResult.length;
     const totalPages = Math.ceil(totalItems / PAGE_SIZE);
 
-    const currentPageItems = sortedSearchResult.slice((page - 1) * PAGE_SIZE, (page - 1) * PAGE_SIZE + PAGE_SIZE);
+    const currentPageItems = sortedSearchResult.slice((searchResultPage - 1) * PAGE_SIZE, (searchResultPage - 1) * PAGE_SIZE + PAGE_SIZE);
 
     return (
         <>
@@ -382,9 +366,9 @@ const SearchTable: React.FC<Props> = ({ geoservice }) => {
             )}
             {totalItems > PAGE_SIZE && (
                 <Pagination
-                    key={page}
+                    key={searchResultPage}
                     count={totalPages}
-                    defaultPage={page || 1}
+                    defaultPage={searchResultPage || 1}
                     getPageLinkProps={(pageNumber: number) => {
                         return {
                             href: `?page=${pageNumber}`,
@@ -392,7 +376,7 @@ const SearchTable: React.FC<Props> = ({ geoservice }) => {
 
                             onClick: (e) => {
                                 e.preventDefault();
-                                setPage(pageNumber);
+                                setSearchResultPage(pageNumber);
                             },
                         };
                     }}

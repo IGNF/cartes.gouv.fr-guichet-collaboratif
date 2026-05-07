@@ -35,8 +35,15 @@ const AttachmentList: React.FC<Props> = ({ newFiles, errorFiles, removeFile, sho
             setLoading(false);
             return;
         }
-        report.attachments = report.attachments.filter((doc) => doc.id !== attachment.id);
-        setReports([...reports.filter((r) => r.id !== report.id), report], true);
+        const updatedReports = reports.map((currentReport) =>
+            currentReport.id === report.id
+                ? {
+                      ...currentReport,
+                      attachments: currentReport.attachments.filter((doc) => doc.id !== attachment.id),
+                  }
+                : currentReport
+        );
+        setReports(updatedReports, true);
         setLoading(false);
     };
     return (

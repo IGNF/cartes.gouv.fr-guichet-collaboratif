@@ -10,8 +10,6 @@ import { parseContentRange } from "@/constants/utils";
 import { LAYER_FEATURE_TYPE, DEFAULT_COMMUNITY_MIN_ZOOM, DEFAULT_COMMUNITY_MAX_ZOOM } from "@/constants";
 import { User } from "@/constants/user/types";
 
-let queryClient: QueryClient;
-
 export const isDigital = (value: string): boolean => {
     const regex = /^[1-9]\d*$/;
     return regex.test(value);
@@ -32,7 +30,7 @@ async function getCommunityGrids(grids: string[]): Promise<CommunityGrids[]> {
     });
 }
 
-async function getCommunityLayers(communityId: string): Promise<CommunityLayer[]> {
+async function getCommunityLayers(communityId: string, queryClient: QueryClient): Promise<CommunityLayer[]> {
     const api = await getAxiosApi();
     const limit = 100;
     const res = await api.get(`${COMMUNITIES_API_URL}/${communityId}/layers?limit=${limit}&page=1`);
@@ -138,7 +136,7 @@ const defineZoomlvl = (layers: CommunityLayer[], providedMinZoom?: number | null
     };
 };
 
-async function getCommunityById(communityId: string, user: User): Promise<[Community, CommunityLayer[]] | null> {
+async function getCommunityById(communityId: string, user: User, queryClient: QueryClient): Promise<[Community, CommunityLayer[]] | null> {
     const api = await getAxiosApi();
     const res = await api.get(`${COMMUNITIES_API_URL}/${communityId}`);
 
@@ -156,7 +154,7 @@ async function getCommunityById(communityId: string, user: User): Promise<[Commu
     } else {
         layers = await queryClient?.fetchQuery({
             queryKey: communityLayersKey,
-            queryFn: () => getCommunityLayers(communityId),
+            queryFn: () => getCommunityLayers(communityId, queryClient),
         });
     }
 
@@ -194,10 +192,10 @@ async function getCommunityById(communityId: string, user: User): Promise<[Commu
 export const useGetCommunityByIdAPI = (communityId: string) => {
     const { community } = useCommunityStore();
     const { user } = useUserStore();
-    queryClient = useQueryClient();
+    const queryClient = useQueryClient();
     return useQuery({
         queryKey: ["COMMUNITY_DATA_" + communityId],
-        queryFn: () => getCommunityById(communityId, user),
+        queryFn: () => getCommunityById(communityId, user, queryClient),
         retry: 2,
         enabled: !community && isDigital(communityId) && !!user,
     });

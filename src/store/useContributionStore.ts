@@ -22,6 +22,8 @@ interface ContributionStore {
     setFeatureTypeMode: (mode: FeatureTypeMode) => void;
     setSelectedObjects: (objects: Feature[]) => void;
     setColumnsToModify: (columns: FeatureTypeColumn[]) => void;
+    searchResultPage: number;
+    setSearchResultPage: (page: number) => void;
     setSearchResult: (result: SearchResultItem[]) => void;
     setSearchItemToDelete: (item: Feature | null) => void;
 }
@@ -43,7 +45,9 @@ export const useContributionStore = create<ContributionStore>((set, get) => ({
     setFeatureTypeMode: (mode) => set({ featureTypeMode: mode }),
     setSelectedObjects: (objects) => set({ selectedObjects: objects }),
     setColumnsToModify: (columns) => set({ columnsToModify: columns }),
-    setSearchResult: (result) => set({ searchResult: result }),
+    searchResultPage: 1,
+    setSearchResultPage: (page) => set({ searchResultPage: page }),
+    setSearchResult: (result) => set({ searchResult: result, searchResultPage: 1 }),
     setSearchItemToDelete: (item) => set({ searchItemToDelete: item }),
     saveContribution: (feat, type, initialFeat, mapWorkingLayer) => {
         if (!feat) return;

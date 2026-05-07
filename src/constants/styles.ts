@@ -702,7 +702,8 @@ export const getDirectionStyles = (feature: FeatureLike, directionField: Directi
     if (!geometry) return [];
 
     const geomType = geometry.getType();
-    let lines: Coordinate[][] = [];
+
+    let lines: Coordinate[][];
 
     if (geomType === "LineString") {
         lines = [(geometry as LineString).getCoordinates()];

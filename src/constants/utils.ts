@@ -273,7 +273,7 @@ export const getLonLatFromPoint = (
     geoProjCode: string = "EPSG:3857"
 ) => {
     if (!point) return [];
-    let coordinates: LonLatCoordinate = [];
+    let coordinates: LonLatCoordinate;
     let type = "point";
     if (point.includes("LINE")) type = "line";
     if (point.includes("POLYGON")) type = "polygon";
