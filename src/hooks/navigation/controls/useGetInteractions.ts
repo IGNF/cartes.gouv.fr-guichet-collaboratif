@@ -5,7 +5,7 @@ import { Draw, Modify, Select, Snap, Translate, DragBox } from "ol/interaction";
 import VectorLayer from "ol/layer/Vector";
 import WebGLVectorLayer from "ol/layer/WebGLVector";
 import VectorSource from "ol/source/Vector";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 const useGetInteractions = () => {
     const { map, mapWorkingLayer, clickedMapFeature } = useMapStore();
@@ -18,8 +18,14 @@ const useGetInteractions = () => {
 
     const currentCommunityLayer = communityLayers?.find((layer) => layer?.geoservice?.layer === mapWorkingLayer);
 
-    const snapto = currentCommunityLayer?.snapto?.split(",").map((l) => Number(l));
-    const snapToLayers = communityLayers?.filter((layer) => snapto?.includes(layer.geoservice.id)).map((layer) => layer.geoservice.layer);
+    const snapto = currentCommunityLayer?.snapto
+        ?.split(",")
+        .map((value) => Number(value.trim()))
+        .filter((value) => !Number.isNaN(value));
+    const snapCandidates = useMemo(() => communityLayers?.filter((layer) => snapto?.includes(layer.geoservice.id)) ?? [], [communityLayers, snapto]);
+    const snapTargets = useMemo(() => snapCandidates.filter((layer) => layer.type !== "geoservice"), [snapCandidates]);
+    const excludedGeoserviceTargets = useMemo(() => snapCandidates.filter((layer) => layer.type === "geoservice"), [snapCandidates]);
+    const snapToLayers = snapTargets.map((layer) => layer.geoservice.layer);
 
     const snapToFeatures = map
         ?.getAllLayers()
@@ -105,6 +111,30 @@ const useGetInteractions = () => {
         () => new Snap({ source: clickableSource, features: new Collection(snapToFeatures), intersection: true }),
         [clickableSource, snapToFeatures]
     );
+
+    const lastSnapLogRef = useRef<string | null>(null);
+
+    useEffect(() => {
+        if (!currentCommunityLayer?.snapto) return;
+
+        const sourceGeo = currentCommunityLayer.geoservice;
+        const sourceLabel = sourceGeo ? `${sourceGeo.title ?? sourceGeo.layer} [${sourceGeo.layer}] (id:${sourceGeo.id})` : mapWorkingLayer;
+
+        const targets = snapTargets.map((layer) => {
+            const geo = layer.geoservice;
+            return `${geo.title ?? geo.layer} [${geo.layer}] (id:${geo.id})`;
+        });
+
+        const excludedGeoservices = excludedGeoserviceTargets.map((layer) => {
+            const geo = layer.geoservice;
+            return `${geo.title ?? geo.layer} [${geo.layer}] (id:${geo.id})`;
+        });
+
+        const unknownIds = (snapto ?? []).filter((id) => !snapCandidates.some((layer) => layer.geoservice.id === id));
+        const logKey = `${sourceLabel}|${targets.join("|")}|${excludedGeoservices.join("|")}|${unknownIds.join("|")}`;
+        if (lastSnapLogRef.current === logKey) return;
+        lastSnapLogRef.current = logKey;
+    }, [currentCommunityLayer, mapWorkingLayer, snapTargets, snapCandidates, snapto, excludedGeoserviceTargets]);
 
     return {
         selectInteraction,

@@ -10,8 +10,10 @@ import useGetInteractionsFuncs from "@/hooks/navigation/controls/useGetInteracti
 import AddOrRemoveMapControlInteraction from "./interactions/AddOrRemoveMapControlInteraction";
 import useGetInteractions from "@/hooks/navigation/controls/useGetInteractions";
 import { CustomControlItem, InteractionType } from "@/constants/communities/types";
+import { FeatureTypeFormActionMode } from "@/constants/contributions/types";
 import { FEATURE_TYPE_SELECTED_PROPERTY } from "@/constants";
 import ConfirmMultipleDeselection from "./ConfirmMultipleDeselection";
+import ConfirmMultipleObjectsActionModal from "@/features/working-layer/forms/ConfirmMultipleObjectsActionModal";
 import SearchObjectsModal from "@/features/working-layer/modal/searchObjects/SearchObjectsModal";
 import ExportMapModal from "./ExportMapModal";
 import NamedPositionModal from "../NamedPositionModal";
@@ -19,9 +21,9 @@ import NamedPositionModal from "../NamedPositionModal";
 let prevClickedControl: CustomControlItem | null = null;
 
 const CustomControls = () => {
-    const { clickedControl, setClickedControl, setWorkingLayerDrawerOpened, setClickedMapFeature, workingLayerDrawerOpened } = useMapStore();
+    const { clickedControl, setClickedControl, setWorkingLayerDrawerOpened, setClickedMapFeature, clickedMapFeature, workingLayerDrawerOpened } = useMapStore();
     const { selectedObjects, setSelectedObjects } = useContributionStore();
-    const { confirmMultipleDeselectionModal } = useModalStore();
+    const { confirmMultipleDeselectionModal, confirmMultipleObjectsActionModal } = useModalStore();
 
     const { t } = useTranslation({ CustomControls });
 
@@ -107,8 +109,37 @@ const CustomControls = () => {
         };
     }, [clickToolButton]);
 
+    const handleConfirmDeleteMultiple = useCallback(() => {
+        confirmMultipleObjectsActionModal.close();
+        if (selectedObjects.length === 0) return;
+        interactionsFuncs.deleteSelectedObjects(selectedObjects);
+    }, [confirmMultipleObjectsActionModal, interactionsFuncs, selectedObjects]);
+
+    const isEditableTarget = useCallback((target: EventTarget | null) => {
+        return target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || (target instanceof HTMLElement && target.isContentEditable);
+    }, []);
+
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Delete") {
+                console.log(clickedMapFeature, selectedObjects);
+                if (isEditableTarget(e.target)) return;
+
+                const deleteControl = controlsList.find((control) => control.interaction === InteractionType.REMOVE);
+                if (!deleteControl || deleteControl.disabled) return;
+
+                if (selectedObjects.length > 1) {
+                    confirmMultipleObjectsActionModal.open();
+                    return;
+                }
+
+                const targetFeature = selectedObjects[0] ?? null;
+                if (targetFeature) {
+                    interactionsFuncs.deleteSelectedObjects([targetFeature]);
+                }
+                return;
+            }
+
             if (e.key !== "Escape") return;
             if (workingLayerDrawerOpened) {
                 setClickedMapFeature(null);
@@ -130,7 +161,17 @@ const CustomControls = () => {
 
         document.addEventListener("keydown", handleKeyDown);
         return () => document.removeEventListener("keydown", handleKeyDown);
-    }, [clickedControl, setClickedControl, selectedObjects, workingLayerDrawerOpened, setClickedMapFeature]);
+    }, [
+        clickedControl,
+        setClickedControl,
+        selectedObjects,
+        workingLayerDrawerOpened,
+        setClickedMapFeature,
+        controlsList,
+        confirmMultipleObjectsActionModal,
+        interactionsFuncs,
+        isEditableTarget,
+    ]);
 
     return (
         <>
@@ -149,6 +190,7 @@ const CustomControls = () => {
             <AddOrRemoveSnapInteraction {...interactions} />
             <ConfirmMultipleDeselection onConfirm={() => onConfirm(prevClickedControl!)} />
             <SearchObjectsModal />
+            <ConfirmMultipleObjectsActionModal action={FeatureTypeFormActionMode.DELETE} onConfirm={handleConfirmDeleteMultiple} />
             <ExportMapModal />
             <NamedPositionModal />
         </>
