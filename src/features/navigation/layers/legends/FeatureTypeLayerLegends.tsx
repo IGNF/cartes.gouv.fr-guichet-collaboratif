@@ -115,7 +115,7 @@ const FeatureTypeLayerLegends = () => {
             </Select>
             <div className="feature-type-list">
                 {currentStyle?.types?.map((type, index) => {
-                    let imgSrc = type.logo;
+                    let imgSrc: string | undefined;
                     let imgWidth = 50;
                     if (type.featureType === "line") {
                         imgSrc = createLineSVG(type);

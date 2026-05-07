@@ -1,6 +1,5 @@
 import { LocalStorageData } from "@/constants/localStorage/types";
 import { useCommunityStore, useLocalStorageStore, useMapStore } from "@/store";
-import isEqual from "fast-deep-equal/react";
 import { EventTypes } from "ol/Observable";
 import { transform } from "ol/proj";
 import { useCallback, useEffect, useRef } from "react";
@@ -17,6 +16,35 @@ const parseLocationParam = (raw: string): { lat: number; lon: number; z?: number
     if (lon < -180 || lon > 180) return null;
     if (z !== undefined && (!isFinite(z) || z < 0 || z > 24)) return null;
     return { lat, lon, z };
+};
+
+const isEqual = (a: LocalStorageData, b: LocalStorageData | null): boolean => {
+    if (!b) return false;
+
+    if (a.activeLayer !== b.activeLayer || a.zoom !== b.zoom || a.projection !== b.projection) return false;
+    if (a.searchExtent !== b.searchExtent || a.searchMax !== b.searchMax) return false;
+    if (JSON.stringify(a.searchRoot) !== JSON.stringify(b.searchRoot)) return false;
+
+    if (a.center.length !== b.center.length) return false;
+    for (let i = 0; i < a.center.length; i += 1) {
+        if (a.center[i] !== b.center[i]) return false;
+    }
+
+    if (a.layers.length !== b.layers.length) return false;
+    for (let i = 0; i < a.layers.length; i += 1) {
+        const layerA = a.layers[i];
+        const layerB = b.layers[i];
+        if (
+            layerA.name !== layerB.name ||
+            layerA.opacity !== layerB.opacity ||
+            layerA.type !== layerB.type ||
+            layerA.visibility !== layerB.visibility ||
+            layerA.order !== layerB.order
+        ) {
+            return false;
+        }
+    }
+    return true;
 };
 
 const ViewHandler: React.FC = () => {
@@ -58,6 +86,7 @@ const ViewHandler: React.FC = () => {
             searchExtent: "",
             searchMax: 20,
             searchRoot: null,
+            namedPositions: localStorageData?.namedPositions ?? [],
         };
 
         if (!isEqual(newLocalStorageData, localStorageData)) {

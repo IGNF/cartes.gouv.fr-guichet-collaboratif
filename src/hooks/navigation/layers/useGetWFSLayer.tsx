@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo } from "react";
 import { useCommunityStore } from "@/store/useCommunityStore";
-import { useContributionStore } from "@/store/useContributionStore";
 import VectorSource, { VectorSourceEvent } from "ol/source/Vector";
 import WebGLVectorLayer from "ol/layer/WebGLVector";
 import { Collection, Feature } from "ol";
@@ -23,13 +22,9 @@ import Text from "ol/style/Text";
 import { LayerGroupSource } from "@/classes/LayerGroupSource";
 import { ObjectEvent } from "ol/Object";
 import { getAxiosApi } from "@/api";
-import { ContributionType } from "@/constants/contributions/types";
-import { FEATURE_TYPE_DATA_PROPERTY } from "@/constants";
-import { useRef } from "react";
 
 function useGetWFSLayer(geoservice: CommunityGeoservice) {
     const { addAlertMessage } = useCommunityStore();
-    const { contributions } = useContributionStore();
     const { map, featureTypeSelectedStyle, setFeatureTypeSelectedStyle } = useMapStore();
 
     const queryClient = useQueryClient();
@@ -52,25 +47,6 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
 
     const selectedStyle = featureTypeSelectedStyle.find((style) => style.layer === geoservice.layer);
 
-    const deletedFeatureKeysRef = useRef<Set<string>>(new Set());
-
-    useEffect(() => {
-        const deletedKeys = new Set<string>();
-
-        contributions
-            .filter((contr) => contr.type === ContributionType.DELETE && contr.layer === geoservice.layer)
-            .forEach((contr) => {
-                const featData = contr.feature.get(FEATURE_TYPE_DATA_PROPERTY) as Record<string, unknown> | undefined;
-                const idName = geoservice.idName;
-                const featureKey = idName ? featData?.[idName] : contr.feature.getId();
-                if (featureKey !== undefined && featureKey !== null && featureKey !== "") {
-                    deletedKeys.add(String(featureKey));
-                }
-            });
-
-        deletedFeatureKeysRef.current = deletedKeys;
-    }, [contributions, geoservice.layer, geoservice.idName]);
-
     const addFeaturesToSource = useCallback(
         (wfsSource: VectorSource, data: GeoJSONProps | ArrayGeoJSONProps[]) => {
             let newData;
@@ -85,73 +61,62 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
                 featureProjection: mapProjCode,
             });
 
-            const filteredFeatures = features.filter((feature) => {
-                const featData = feature.get(FEATURE_TYPE_DATA_PROPERTY) as Record<string, unknown> | undefined;
-                const idName = geoservice.idName;
-                const featureKey = idName ? featData?.[idName] : feature.getId();
-                if (featureKey === undefined || featureKey === null || featureKey === "") {
-                    return true;
-                }
-                return !deletedFeatureKeysRef.current.has(String(featureKey));
-            });
-
-            wfsSource.addFeatures(filteredFeatures);
+            wfsSource.addFeatures(features);
         },
         [geoProjCode, mapProjCode, geoservice]
     );
+    async function wfsLoader(extent: Extent, wfsSource: VectorSource, page: number = 0) {
+        try {
+            const transformedExtent = transformExtent(extent, mapProjCode, geoProjCode);
+            const isWFS2 = geoservice.version && String(geoservice.version).startsWith("2");
+            const isWFS1 = geoservice.version && String(geoservice.version).startsWith("1.0");
+            const url =
+                `${geoservice.url}${geoservice.url.includes("?") ? "" : "?"}SERVICE=WFS` +
+                (geoservice.version ? `&VERSION=${geoservice.version || "1.1.0"}` : "") +
+                `&REQUEST=GetFeature` +
+                (isWFS2 ? `&TYPENAMES=${geoservice.layer}` : `&typename=${geoservice.layer}`) +
+                `&outputFormat=${"application/json"}` +
+                `&SRSNAME=${geoProjCode}` +
+                (isWFS2
+                    ? `&COUNT=${TILE_MAX_FEATURES}&STARTINDEX=${page * TILE_MAX_FEATURES}`
+                    : `&maxFeatures=${TILE_MAX_FEATURES}${isWFS1 ? "" : `&offset=${page * TILE_MAX_FEATURES}`}`) +
+                urlsFilters +
+                `&bbox=${transformedExtent.join(",")},${geoProjCode}`;
 
-    const wfsLoader = useCallback(
-        async function (extent: Extent, wfsSource: VectorSource, page: number = 0) {
-            try {
-                const transformedExtent = transformExtent(extent, mapProjCode, geoProjCode);
-                const isWFS2 = geoservice.version && String(geoservice.version).startsWith("2");
-                const isWFS1 = geoservice.version && String(geoservice.version).startsWith("1.0");
-                const url =
-                    `${geoservice.url}${geoservice.url.includes("?") ? "" : "?"}SERVICE=WFS` +
-                    (geoservice.version ? `&VERSION=${geoservice.version || "1.1.0"}` : "") +
-                    `&REQUEST=GetFeature` +
-                    (isWFS2 ? `&TYPENAMES=${geoservice.layer}` : `&typename=${geoservice.layer}`) +
-                    `&outputFormat=${"application/json"}` +
-                    `&SRSNAME=${geoProjCode}` +
-                    (isWFS2
-                        ? `&COUNT=${TILE_MAX_FEATURES}&STARTINDEX=${page * TILE_MAX_FEATURES}`
-                        : `&maxFeatures=${TILE_MAX_FEATURES}${isWFS1 ? "" : `&offset=${page * TILE_MAX_FEATURES}`}`) +
-                    urlsFilters +
-                    `&bbox=${transformedExtent.join(",")},${geoProjCode}`;
+            const queryKey = [`GET_WFS_GET_FEATURES_${geoservice.url}_${geoservice.version}_${geoservice.layer}_${transformedExtent.join(",")}_${page}`];
+            const data: GeoJSONProps | ArrayGeoJSONProps[] = await queryClient.fetchQuery({
+                queryKey,
+                queryFn: async () => {
+                    const api = await getAxiosApi();
+                    const { data } = await api.get(url);
+                    return data;
+                },
+                retry: 1,
+            });
 
-                const queryKey = [`GET_WFS_GET_FEATURES_${geoservice.url}_${geoservice.version}_${geoservice.layer}_${transformedExtent.join(",")}_${page}`];
-                const data: GeoJSONProps | ArrayGeoJSONProps[] = await queryClient.fetchQuery({
-                    queryKey: queryKey,
-                    queryFn: async () => {
-                        const api = await getAxiosApi();
-                        const { data } = await api.get(url);
-                        return data;
-                    },
-                    retry: 1,
-                });
+            addFeaturesToSource(wfsSource, data);
 
-                addFeaturesToSource(wfsSource, data);
-                if (Array.isArray(data)) {
-                    if (data.length === TILE_MAX_FEATURES) await wfsLoader(extent, wfsSource, page + 1);
-                } else {
-                    if (data.features.length === TILE_MAX_FEATURES) await wfsLoader(extent, wfsSource, page + 1);
-                }
-            } catch {
-                addAlertMessage(StatusMessage.error, t("loading_layer_error", { layerTitle: geoservice.title }), 3000);
+            if (Array.isArray(data)) {
+                if (data.length === TILE_MAX_FEATURES) await wfsLoader(extent, wfsSource, page + 1);
+            } else if (data.features.length === TILE_MAX_FEATURES) {
+                await wfsLoader(extent, wfsSource, page + 1);
             }
-        },
-        [addAlertMessage, addFeaturesToSource, urlsFilters, geoProjCode, geoservice, mapProjCode, queryClient, t]
-    );
+        } catch {
+            addAlertMessage(StatusMessage.error, t("loading_layer_error", { layerTitle: geoservice.title }), 3000);
+        }
+    }
 
-    const wfsSource = useMemo(
-        () =>
-            new VectorSource<Feature<Geometry>>({
-                format: new GeoJSON(),
-                loader: (extent) => wfsLoader(extent, wfsSource),
-                strategy: bboxStrategy,
-            }),
-        [wfsLoader]
-    );
+    const wfsSource = useMemo(() => {
+        const source = new VectorSource<Feature<Geometry>>({
+            format: new GeoJSON(),
+            loader: (extent) => {
+                void wfsLoader(extent as Extent, source, 0);
+            },
+            strategy: bboxStrategy,
+        });
+
+        return source;
+    }, [addAlertMessage, addFeaturesToSource, geoProjCode, geoservice, mapProjCode, queryClient, t, urlsFilters]);
 
     const wfsSourceLabels = useMemo(() => new VectorSource<Feature<Geometry>>(), []);
 

@@ -1,5 +1,5 @@
 import React from "react";
-import { ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ChangeEvent, useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "@/i18n";
 import { Feature } from "ol";
 import { useGetReportReplies } from "@/api/repliesData";
@@ -45,9 +45,17 @@ const ReportForm: React.FC<Props> = ({
     handleSubmitDocument,
     handleClose,
 }) => {
-    const [selectedTheme, setSelectedTheme] = useState<CommunityTheme | null>(null);
-    const [themeAttributes, setThemeAttributes] = useState<PostThemeReport>({});
-    const [description, setDescription] = useState<string>("");
+    const { community } = useCommunityStore();
+
+    const { editReport, selectedReport, selectedFeatures, setSelectedFeatures, setTableDrawerOpened, setDrawerOpened, toggleSortByDateCreation } =
+        useReportStore();
+
+    const [selectedTheme, setSelectedTheme] = useState<CommunityTheme | null>(selectedReport?.themes[0] ?? null);
+    const [themeAttributes, setThemeAttributes] = useState<PostThemeReport>(() => {
+        const initialTheme = selectedReport?.themes[0];
+        return initialTheme ? getThemeAttributes(initialTheme) : {};
+    });
+    const [description, setDescription] = useState<string>(selectedReport?.comment ?? "");
     const [filesUploaded, setFilesUploaded] = useState<File[]>([]);
 
     const [openSuivi, setOpenSuivi] = useState(false);
@@ -65,8 +73,6 @@ const ReportForm: React.FC<Props> = ({
     const [expendedDescription, setExpendedDescription] = useState<boolean>(false);
     const [expendedDocument, setExpendedDocument] = useState<boolean>(false);
 
-    const [hasInitialized, setHasInitialized] = useState(false);
-
     const [errorTheme, setErrorTheme] = useState<string>("");
     const [errorFiles, setErrorFiles] = useState<ErrorFile[]>([]);
 
@@ -74,13 +80,6 @@ const ReportForm: React.FC<Props> = ({
     const filesRef = useRef<HTMLDivElement>(null);
 
     const [loading, setLoading] = useState<boolean>(false);
-
-    const handleToolClickRef = useRef<((tool: ReportTool | undefined) => void) | null>(null);
-
-    const { community } = useCommunityStore();
-
-    const { editReport, selectedReport, selectedFeatures, setSelectedFeatures, setTableDrawerOpened, setDrawerOpened, toggleSortByDateCreation } =
-        useReportStore();
 
     const reportTools = useReportTools();
     const { confirmCancelModal } = useModalStore();
@@ -94,7 +93,7 @@ const ReportForm: React.FC<Props> = ({
     const { data: repliesData } = useGetReportReplies(reportId);
     const repliesRes = useMemo(() => repliesData?.replies ?? [], [repliesData]);
 
-    handleToolClickRef.current = useCallback(
+    const handleToolClick = useCallback(
         (tool: ReportTool | undefined) => {
             if (!tool) return;
 
@@ -112,8 +111,6 @@ const ReportForm: React.FC<Props> = ({
         },
         [setClickedTool, clickedTool]
     );
-
-    const handleToolClick = useCallback((tool: ReportTool | undefined) => handleToolClickRef.current?.(tool), []);
 
     const validateThemeAttributes = useCallback(
         (attributes: PostThemeReport) => {
@@ -187,22 +184,6 @@ const ReportForm: React.FC<Props> = ({
         },
         [t]
     );
-
-    useEffect(() => {
-        if (!selectedReport || hasInitialized) return;
-
-        const theme = selectedReport.themes[0];
-        setSelectedTheme(theme);
-        setThemeAttributes(getThemeAttributes(theme));
-        setDescription(selectedReport.comment ?? "");
-        setHasInitialized(true);
-    }, [selectedReport, hasInitialized]);
-
-    useEffect(() => {
-        if (editReport) {
-            validateThemeAttributes(themeAttributes);
-        }
-    }, [editReport, themeAttributes, validateThemeAttributes]);
 
     const onSubmit = async () => {
         toggleSortByDateCreation("DESC");

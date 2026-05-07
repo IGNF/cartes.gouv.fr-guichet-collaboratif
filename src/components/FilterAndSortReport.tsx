@@ -51,10 +51,8 @@ const FilterAndSortReport = () => {
     const { t } = useTranslation({ FilterAndSortReport });
     const formRef = useRef<HTMLFormElement>(null);
 
-    const [statusIndex, setStatusIndex] = useState(-1);
-    const [themeIndex, setThemeIndex] = useState(-1);
-    const [sortOpeningDateIndex, setSortOpeningDateIndex] = useState(0);
-    const [sortUpdatingDateIndex, setSortUpdatingDateIndex] = useState(0);
+    const [pendingStatus, setPendingStatus] = useState("");
+    const [pendingTheme, setPendingTheme] = useState("");
 
     const { community, addAlertMessage } = useCommunityStore();
     const {
@@ -70,6 +68,7 @@ const FilterAndSortReport = () => {
         setSortBy,
         syncUrlFromState,
     } = useReportStore();
+
     const filters = useMemo(
         () => ({
             status: currentFilters.status,
@@ -83,9 +82,7 @@ const FilterAndSortReport = () => {
     const { data: themes } = useQuery<string[]>({
         queryKey: ["communityThemes", community?.id],
         queryFn: () => {
-            if (!community?.id) {
-                return Promise.resolve([]);
-            }
+            if (!community?.id) return Promise.resolve([]);
             return getCommunityThemes(community.id);
         },
         enabled: !!community?.id,
@@ -100,39 +97,34 @@ const FilterAndSortReport = () => {
     const reports = useMemo(() => data?.data ?? [], [data]);
     const statusOptions = useMemo(() => [...new Set(REPORT_STATUS_LIST)], []);
     const statusLabels = useMemo(() => statusOptions.map((status) => reportImgStatus[status]?.text ?? status), [statusOptions]);
-
     const themeOptions = useMemo(() => [...new Set(themes)], [themes]);
     const sortOptions = [t("newToOld"), t("oldToNew")];
 
-    useEffect(() => {
-        if (!sortBy) {
-            setSortOpeningDateIndex(0);
-            setSortUpdatingDateIndex(0);
-            return;
-        }
+    const statusIndex = useMemo(() => {
+        const active = pendingStatus || currentFilters.status;
+        if (!active) return -1;
+        return statusOptions.indexOf(active);
+    }, [pendingStatus, currentFilters.status, statusOptions]);
 
+    const themeIndex = useMemo(() => {
+        const active = pendingTheme || currentFilters.theme;
+        if (!active) return -1;
+        return themeOptions.indexOf(active);
+    }, [pendingTheme, currentFilters.theme, themeOptions]);
+
+    const sortOpeningDateIndex = useMemo(() => {
+        if (!sortBy) return 0;
         const [field, order] = sortBy.split(":");
-        const idx = order === "DESC" ? 0 : 1;
-
-        if (field === SortField.OpeningDate) {
-            setSortOpeningDateIndex(idx);
-            setSortUpdatingDateIndex(-1);
-        } else if (field === SortField.UpdatingDate) {
-            setSortUpdatingDateIndex(idx);
-            setSortOpeningDateIndex(-1);
-        }
+        if (field !== SortField.OpeningDate) return -1;
+        return order === "DESC" ? 0 : 1;
     }, [sortBy]);
 
-    useEffect(() => {
-        if (currentFilters.status) {
-            const idx = statusOptions.indexOf(currentFilters.status);
-            setStatusIndex(idx);
-        }
-        if (currentFilters.theme) {
-            const idx = themeOptions.indexOf(currentFilters.theme);
-            setThemeIndex(idx);
-        }
-    }, [currentFilters.status, currentFilters.theme, statusOptions, themeOptions]);
+    const sortUpdatingDateIndex = useMemo(() => {
+        if (!sortBy) return 0;
+        const [field, order] = sortBy.split(":");
+        if (field !== SortField.UpdatingDate) return -1;
+        return order === "DESC" ? 0 : 1;
+    }, [sortBy]);
 
     useEffect(() => {
         if (isErrorReport) {
@@ -141,40 +133,24 @@ const FilterAndSortReport = () => {
     }, [isErrorReport, addAlertMessage, t]);
 
     const onChangeOpeningDate = (index: number) => {
-        setSortOpeningDateIndex(index);
-        setSortUpdatingDateIndex(-1);
+        setSortBy(`opening_date:${index === 0 ? "DESC" : "ASC"}`);
     };
 
     const onChangeUpdatingDate = (index: number) => {
-        setSortUpdatingDateIndex(index);
-        setSortOpeningDateIndex(-1);
+        setSortBy(`updating_date:${index === 0 ? "DESC" : "ASC"}`);
     };
 
     const handleSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
-
-        let sortParams = "";
-
-        if (sortOpeningDateIndex >= 0) {
-            sortParams = `opening_date:${sortOpeningDateIndex === 0 ? "DESC" : "ASC"}`;
-        }
-        if (sortUpdatingDateIndex >= 0) {
-            sortParams = `updating_date:${sortUpdatingDateIndex === 0 ? "DESC" : "ASC"}`;
-        }
-
-        setSortBy(sortParams);
-
         const form = (e.target as HTMLButtonElement).form;
         if (!form) return;
         const formData = new FormData(form);
-        const newFilters = {
-            status: statusOptions[statusIndex] || "",
-            theme: themeOptions[themeIndex] || "",
+        setCurrentFilters({
+            status: pendingStatus || statusOptions[statusIndex] || "",
+            theme: pendingTheme || themeOptions[themeIndex] || "",
             author: Number(formData.get("author")) || null,
             departement: (formData.get("departement") as string) || "",
-        };
-        setCurrentFilters({ ...newFilters });
-
+        });
         setFilteredReports(reports, true);
         setIsChecked({});
         syncUrlFromState();
@@ -182,13 +158,11 @@ const FilterAndSortReport = () => {
 
     const resetFiltersAndSort = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
-
         formRef.current?.reset();
 
-        setSortOpeningDateIndex(0);
-        setSortUpdatingDateIndex(0);
-        setStatusIndex(-1);
-        setThemeIndex(-1);
+        setSortBy("");
+        setPendingStatus("");
+        setPendingTheme("");
         setCurrentFilters({
             status: "",
             theme: "",
@@ -198,6 +172,7 @@ const FilterAndSortReport = () => {
         setCurrentPage(1);
         setFilteredReports([], false);
     };
+
     return (
         <>
             <form ref={formRef} className="filter-report">
@@ -230,7 +205,7 @@ const FilterAndSortReport = () => {
                             value={statusIndex}
                             defaultOption={t("selectOption")}
                             options={statusLabels}
-                            onChange={setStatusIndex}
+                            onChange={(i) => setPendingStatus(statusOptions[i] || "")}
                         />
                         <SelectComponent
                             name="theme"
@@ -238,9 +213,8 @@ const FilterAndSortReport = () => {
                             value={themeIndex}
                             defaultOption={t("selectOption")}
                             options={themeOptions}
-                            onChange={setThemeIndex}
+                            onChange={(i) => setPendingTheme(themeOptions[i] || "")}
                         />
-
                         <Input
                             className="filter-report__select"
                             label={t("author")}

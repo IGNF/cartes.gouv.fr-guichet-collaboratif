@@ -76,7 +76,10 @@ const CenterReportControl = () => {
 
     useEffect(() => {
         if (debounced.length) {
-            onCenterChange();
+            const frameId = requestAnimationFrame(() => {
+                onCenterChange();
+            });
+            return () => cancelAnimationFrame(frameId);
         }
     }, [debounced, onCenterChange]);
 

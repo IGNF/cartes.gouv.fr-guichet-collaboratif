@@ -164,6 +164,7 @@ const SearchObjectsModal = () => {
             layers: localStorageData?.layers ?? [],
             zoom: localStorageData?.zoom ?? 1,
             projection: localStorageData?.projection ?? "",
+            namedPositions: localStorageData?.namedPositions ?? [],
         };
         setLocalStorage(community.name, newLocalStoageData);
     }, [searchModal, performSearch, community, localStorageData, root, maxNumber, selectedExtent, setLocalStorage]);

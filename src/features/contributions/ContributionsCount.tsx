@@ -1,12 +1,12 @@
 import { Contribution, ContributionType, TransactionStatus, TransactionAction, TransactionType } from "@/constants/contributions/types";
 import { useCommunityStore, useContributionStore, useMapStore, useModalStore, useUserStore } from "@/store";
 import { Button } from "@codegouvfr/react-dsfr/Button";
-import { useState, useRef, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo } from "react";
 import ContributionsConfirmReset from "./ContributionsConfirmReset";
 import ContributionList from "./ContributionList";
 import { resetContributionToMap } from "@/constants/contributions/utils";
 import ConfirmSaveContributions from "./ConfirmSaveContributions";
-import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_GEOSERVICE_PROPERTY } from "@/constants";
+import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_GEOSERVICE_PROPERTY, FEATURE_TYPE_NEW_PROPERTY } from "@/constants";
 import { useLang } from "@/i18n";
 import { ComponentKey } from "@/i18n/types";
 import { TranslationFunction } from "i18nifty/typeUtils/TranslationFunction";
@@ -31,8 +31,6 @@ const ContributionsCount: React.FC<Props> = ({ t }) => {
 
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-
-    const buttonGroupRef = useRef<HTMLDivElement>(null);
 
     const onClickReset = useCallback(() => {
         contrToCancel.forEach((contr) => {
@@ -80,6 +78,7 @@ const ContributionsCount: React.FC<Props> = ({ t }) => {
 
                     if (contr) {
                         contr.feature.set(FEATURE_TYPE_DATA_PROPERTY, action.data);
+                        contr.feature.unset(FEATURE_TYPE_NEW_PROPERTY);
                     }
                 });
             });
@@ -196,7 +195,7 @@ const ContributionsCount: React.FC<Props> = ({ t }) => {
         }
     }, [contributions, user, lang, mapProj, verifyFeatData, addAlertMessage, removeAlertMessage, t, handleSuccess, handleError]);
     return (
-        <div ref={buttonGroupRef} className="map-toolbar-button-group">
+        <div className="map-toolbar-button-group">
             <Button
                 iconId="fr-icon-save-fill"
                 priority="primary"
@@ -214,10 +213,11 @@ const ContributionsCount: React.FC<Props> = ({ t }) => {
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 title={t("show_more")}
                 className="map-toolbar-button-toggle"
+                disabled={!contributions.length}
             ></Button>
 
             {isDropdownOpen && (
-                <div className="map-toolbar-dropdown" style={{ width: buttonGroupRef.current?.clientWidth ?? 40 }}>
+                <div className="map-toolbar-dropdown" style={{ width: "100%" }}>
                     <div className="map-toolbar-line">
                         {t("object_created", { count: contributions.filter((contr) => contr.type === ContributionType.CREATE).length })}
                     </div>

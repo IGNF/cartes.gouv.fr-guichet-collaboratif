@@ -16,14 +16,14 @@ import { selectionCircleStyle } from "@/constants/styles";
 import { getFeatureDiam, handleCenterToFeature, mainMarker, markersStyles, otherMarkers } from "@/constants/utils";
 import Button from "@codegouvfr/react-dsfr/Button";
 
-const hoveredFeatureStyle: { strockWidth: number; imageScale: number | Size } = { strockWidth: 1, imageScale: 1 };
-
 interface Props {
     showSketch: boolean;
     expendedDrawing?: boolean;
 }
 
 const SketchList = ({ showSketch, expendedDrawing }: Props) => {
+    const hoveredFeatureStyle: { strockWidth: number; imageScale: number | Size } = { strockWidth: 1, imageScale: 1 };
+
     const { map } = useMapStore();
     const { addAlertMessage } = useCommunityStore();
     const { selectedFeatures, setSelectedFeatures, editReport } = useReportStore();

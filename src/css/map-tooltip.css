@@ -10,7 +10,7 @@
     max-width: 20rem;
     min-width: 10rem;
     width: max-content;
-    box-shadow: 0 -0.1rem 0.5rem var(--overlays-shadow);
+    box-shadow: 0 -0.1rem 0.5rem;
 }
 
 .map-hover-tooltip-title {

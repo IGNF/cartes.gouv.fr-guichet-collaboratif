@@ -1,7 +1,7 @@
 import { useContributionStore, useMapStore } from "@/store";
 import Button from "@codegouvfr/react-dsfr/Button";
 import type { FrIconClassName, RiIconClassName } from "@codegouvfr/react-dsfr";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { handleCenterToFeature } from "@/constants/utils";
 import Tooltip from "@codegouvfr/react-dsfr/Tooltip";
 import { useTranslation } from "@/i18n";
@@ -10,10 +10,11 @@ interface ContributionButtonProps {
     icon: FrIconClassName | RiIconClassName;
     title: string;
     onClick: () => void;
+    disabled?: boolean;
 }
 
-const ContributionButton: React.FC<ContributionButtonProps> = ({ icon, title, onClick }) => (
-    <Button iconId={icon} size="small" priority="tertiary no outline" title={title} onClick={onClick} />
+const ContributionButton: React.FC<ContributionButtonProps> = ({ icon, title, onClick, disabled }) => (
+    <Button iconId={icon} size="small" priority="tertiary no outline" title={title} onClick={onClick} disabled={disabled} />
 );
 
 const ReviewContributions = () => {
@@ -22,58 +23,51 @@ const ReviewContributions = () => {
 
     const { t } = useTranslation({ ReviewContributions });
 
-    const contrToReview = contributions;
-
-    const [currentPosition, setCurrentPosition] = useState(contrToReview.length - 1);
+    const contrToReview = useMemo(() => contributions, [contributions]);
+    const total = contrToReview.length;
+    const hasContributions = total > 0;
 
     const setCurrentContribution = useCallback(
         (position: number) => {
-            if (position > contrToReview.length - 1) {
-                position = 0;
-            }
-            if (position < 0) {
-                position = contrToReview.length - 1;
-            }
-            const nextContribution = contrToReview[position];
-            if (!nextContribution) return;
-            setCurrentPosition(position);
-            setClickedMapFeature(nextContribution.feature);
+            if (contrToReview.length === 0) return;
+
+            const pos = position > contrToReview.length - 1 ? 0 : position < 0 ? contrToReview.length - 1 : position;
+
+            setClickedMapFeature(contrToReview[pos].feature);
         },
-        [setClickedMapFeature, contrToReview]
+        [contrToReview, setClickedMapFeature]
     );
 
+    const currentIndex = useMemo(() => {
+        if (!hasContributions) return 0;
+
+        if (clickedMapFeature) {
+            const i = contrToReview.findIndex((c) => c.feature === clickedMapFeature);
+            if (i !== -1) return i;
+        }
+        return total - 1;
+    }, [clickedMapFeature, contrToReview, hasContributions, total]);
+
     useEffect(() => {
-        if (contrToReview.length === 0) return;
+        if (!hasContributions) return;
 
-        if (currentPosition > contrToReview.length - 1) {
-            setCurrentPosition(contrToReview.length - 1);
-            return;
-        }
+        const feature = contrToReview[currentIndex]?.feature;
+        if (feature) handleCenterToFeature(map, feature);
+    }, [currentIndex, contrToReview, map, hasContributions]);
 
-        const clickedMapContribution = contrToReview.find((c) => c.feature === clickedMapFeature);
-        const currentIndex = clickedMapContribution ? contrToReview.indexOf(clickedMapContribution) : -1;
-        const safeIndex = currentIndex !== -1 ? currentIndex : currentPosition;
-        const currentContribution = contrToReview[safeIndex];
-        const feature = currentContribution?.feature;
-        if (feature) {
-            handleCenterToFeature(map, feature);
-            if (currentIndex !== -1) setCurrentContribution(currentIndex);
-        }
-    }, [currentPosition, contrToReview, map, clickedMapFeature, setCurrentContribution]);
-
-    const total = contrToReview.length;
+    const displayedPosition = hasContributions ? currentIndex + 1 : 0;
 
     return (
         <div className="review-contributions">
             <Tooltip title={t("previous")}>
-                <ContributionButton icon="ri-arrow-left-line" title="" onClick={() => setCurrentContribution(currentPosition - 1)} />
+                <ContributionButton icon="ri-arrow-left-line" title="" onClick={() => setCurrentContribution(currentIndex - 1)} disabled={!hasContributions} />
             </Tooltip>
 
             <span>
-                Contribution {currentPosition + 1} / {total}
+                Contribution {displayedPosition} / {total}
             </span>
             <Tooltip title={t("next")}>
-                <ContributionButton icon="ri-arrow-right-line" title="" onClick={() => setCurrentContribution(currentPosition + 1)} />
+                <ContributionButton icon="ri-arrow-right-line" title="" onClick={() => setCurrentContribution(currentIndex + 1)} disabled={!hasContributions} />
             </Tooltip>
         </div>
     );
