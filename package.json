@@ -18,8 +18,8 @@
     },
     "dependencies": {
         "@codegouvfr/react-dsfr": "1.32.1",
-        "@commitlint/cli": "20.5.0",
-        "@commitlint/config-conventional": "20.5.0",
+        "@commitlint/cli": "20.5.3",
+        "@commitlint/config-conventional": "20.5.3",
         "@emotion/react": "11.14.0",
         "@emotion/styled": "11.14.1",
         "@eslint/compat": "2.0.5",
