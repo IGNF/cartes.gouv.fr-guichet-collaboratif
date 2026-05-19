@@ -2,7 +2,7 @@ import { Translations } from "@/i18n/types";
 import { declareComponentKeys } from "i18nifty";
 
 export const ToolsControlFrTranslations: Translations<"fr">["ToolsControl"] = {
-    search_engine_placeholder: "Rechercher un lieu, ...", //une Adresse
+    search_engine_placeholder: "Rechercher un lieu",
     minimap: "Mini-carte",
     open_button: "Ajouter une position préférée",
     favorites_title: "Vos positions préférées",
@@ -31,7 +31,7 @@ export const ToolsControlFrTranslations: Translations<"fr">["ToolsControl"] = {
 };
 
 export const ToolsControlEnTranslations: Translations<"en">["ToolsControl"] = {
-    search_engine_placeholder: "Search a place, ...",
+    search_engine_placeholder: "Look for a place",
     minimap: "Mini map",
     open_button: "Add favourite position",
     favorites_title: "Your favourite positions",
