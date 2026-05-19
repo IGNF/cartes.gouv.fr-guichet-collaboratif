@@ -54,6 +54,12 @@ export default defineConfig((mode) => {
                         if (id.includes("/ol/") || id.includes("geopf-extensions-openlayers")) {
                             return "map-vendor";
                         }
+                        if (id.includes("@codegouvfr/react-dsfr/dsfr/analytics")) {
+                            return "dsfr-analytics";
+                        }
+                        if (id.includes("@codegouvfr/react-dsfr/dsfr/dsfr.module")) {
+                            return "dsfr-core";
+                        }
                         if (id.includes("@gouvfr/dsfr")) {
                             return "dsfr-vendor";
                         }
