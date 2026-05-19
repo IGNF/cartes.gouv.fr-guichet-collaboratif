@@ -514,7 +514,7 @@ export const getConditionsByType = (condition: FeatureTypeCondition | undefined)
     return condition?.map((cond) =>
         Object.keys(cond)
             .map((key) => {
-                if (typeof cond[key] === "object") {
+                if (typeof cond[key] === "object" && cond[key] !== null && !Array.isArray(cond[key])) {
                     return [
                         key,
                         ...Object.keys(cond[key])
@@ -607,8 +607,35 @@ export const getFilterStyleByCondition = (newTypes: FeatureTypeStyleItem[]) => {
     const filters: { filter: WebGLFilterType; style: FlatStyle | FlatStyle[] }[] = [];
     const conditions = newTypes?.filter((t, index) => t.condition && newTypes![index]);
 
+    const hasNullCondition = (condition: FeatureTypeCondition | undefined): boolean => {
+        if (!condition) return false;
+
+        return condition.some((cond) =>
+            Object.keys(cond).some((key) => {
+                const value = cond[key] as unknown;
+
+                if (value === null) return true;
+                if (Array.isArray(value)) return value.some((entry) => entry === null);
+
+                if (typeof value === "object" && value !== null) {
+                    return Object.keys(value as Record<string, unknown>).some((nestedKey) => {
+                        const nestedValue = (value as Record<string, unknown>)[nestedKey];
+                        if (nestedValue === null) return true;
+                        if (Array.isArray(nestedValue)) return nestedValue.some((entry) => entry === null);
+                        return false;
+                    });
+                }
+
+                return false;
+            })
+        );
+    };
+
     conditions.forEach((type, index) => {
         if (type.condition?.$or) {
+            if (hasNullCondition(type.condition.$or)) {
+                return;
+            }
             const orCondition = getConditionsByType(type.condition?.$or);
             const conditionedFilters = getConditionedFiltersByType(orCondition);
 
@@ -624,6 +651,9 @@ export const getFilterStyleByCondition = (newTypes: FeatureTypeStyleItem[]) => {
         }
 
         if (type.condition?.$and) {
+            if (hasNullCondition(type.condition.$and)) {
+                return;
+            }
             const andCondition = getConditionsByType(type.condition?.$and);
             const conditionedFilters = getConditionedFiltersByType(andCondition);
 
