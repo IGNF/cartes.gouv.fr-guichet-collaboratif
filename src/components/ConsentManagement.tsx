@@ -1,13 +1,22 @@
 import { createConsentManagement } from "@codegouvfr/react-dsfr/consentManagement";
-import { startEulerianAnalytics } from "@codegouvfr/react-dsfr/eulerianAnalytics";
 
-const prEulerianApi = startEulerianAnalytics({
-    domain: "acwg.cartes.gouv.fr",
-    site: {
-        environment: "development",
-        entity: "IGN",
-    },
-});
+let prEulerianApi: Promise<{ enable: () => void; disable: () => void }> | undefined;
+
+const getEulerianApi = async () => {
+    if (!prEulerianApi) {
+        const { startEulerianAnalytics } = await import("@codegouvfr/react-dsfr/eulerianAnalytics");
+
+        prEulerianApi = startEulerianAnalytics({
+            domain: "acwg.cartes.gouv.fr",
+            site: {
+                environment: "development",
+                entity: "IGN",
+            },
+        });
+    }
+
+    return prEulerianApi;
+};
 
 export const { ConsentBannerAndConsentManagement, FooterConsentManagementItem, FooterPersonalDataPolicyItem, useConsent } = createConsentManagement({
     finalityDescription: () => ({
@@ -26,7 +35,7 @@ export const { ConsentBannerAndConsentManagement, FooterConsentManagementItem, F
     },
 
     consentCallback: async ({ finalityConsent }) => {
-        const eulerian = await prEulerianApi;
+        const eulerian = await getEulerianApi();
 
         if (finalityConsent.eulerianAnalytics) {
             eulerian.enable();
