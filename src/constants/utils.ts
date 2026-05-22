@@ -130,7 +130,9 @@ const applyStylePoint = (features: Feature[], newStyle: FeatureTypeStyle) => {
                 const typeCond = type.condition!["$and"] ? type.condition!["$and"]![0] : type.condition!["$or"]![0];
                 if (typeCond[conditionKey]) {
                     let typeCondValue = typeCond[conditionKey]![condExpKey];
+                    if (typeCondValue === null) return false;
                     if (Array.isArray(typeCondValue)) typeCondValue = typeCondValue[0];
+                    if (typeCondValue === null) return false;
                     return comparisonFunc!(conditionValue, typeCondValue);
                 }
             }

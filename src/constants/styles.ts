@@ -511,21 +511,51 @@ export const getStyleWebGLDefault: (newStyle?: FeatureTypeStyleItem | undefined)
     };
 };
 export const getConditionsByType = (condition: FeatureTypeCondition | undefined) => {
-    return condition?.map((cond) =>
-        Object.keys(cond)
-            .map((key) => {
-                if (typeof cond[key] === "object" && cond[key] !== null && !Array.isArray(cond[key])) {
-                    return [
-                        key,
-                        ...Object.keys(cond[key])
-                            .map((nestedKey) => [nestedKey, cond[key][nestedKey]])
-                            .flat(),
-                    ];
+    return condition?.flatMap((cond) => {
+        const tuples: FeatureTypeConditionValue[][] = [];
+
+        Object.keys(cond).forEach((key) => {
+            const value = cond[key];
+            // Instead of returning it, we do a little sanity check and fix operator possibility.
+
+            if (value === null) {
+                tuples.push([key, null]);
+                return;
+            }
+
+            if (typeof value === "object" && !Array.isArray(value)) {
+                const operatorKeys = Object.keys(value);
+                if (operatorKeys.length === 0) {
+                    return;
                 }
-                return [key, cond[key]];
-            })
-            .flat()
-    );
+
+                const supportedOps = ["$in", "$eq", "$ne", "$gt", "$gte", "$lt", "$lte"];
+                const supportedOperators = operatorKeys.filter((op) => supportedOps.includes(op));
+
+                //Take care of multiple operators case ex {"$and": [{ "categorie_piscicole": { "$gte": "1", "$lte": "2" } },
+                //{ "inventaire_police_de_l_eau": { "$in": ["Inscrit"] } }]}
+                if (supportedOperators.length > 0) {
+                    supportedOperators.forEach((operator) => {
+                        const operatorValue = (value as Record<string, FeatureTypeConditionValue>)[operator];
+                        tuples.push([key, operator, operatorValue]);
+                    });
+                    return;
+                }
+
+                tuples.push([
+                    key,
+                    ...Object.keys(value)
+                        .map((nestedKey) => [nestedKey, (value as Record<string, FeatureTypeConditionValue>)[nestedKey]])
+                        .flat(),
+                ] as FeatureTypeConditionValue[]);
+                return;
+            }
+
+            tuples.push([key, value]);
+        });
+
+        return tuples;
+    });
 };
 
 export const getConditionedFiltersByType = (cond: FeatureTypeConditionValue[][] | undefined) => {
@@ -552,6 +582,12 @@ export const getConditionedFiltersByType = (cond: FeatureTypeConditionValue[][] 
         }
 
         const value = ["get", property];
+
+        if (expectedValue === null) {
+            //avoid pushing null values inside WebGL filters
+            filter.push(["!", ["has", property]]);
+            return;
+        }
 
         if (typeof expectedValue === "boolean") {
             expectedValue = expectedValue ? 1 : 0;
@@ -607,35 +643,8 @@ export const getFilterStyleByCondition = (newTypes: FeatureTypeStyleItem[]) => {
     const filters: { filter: WebGLFilterType; style: FlatStyle | FlatStyle[] }[] = [];
     const conditions = newTypes?.filter((t, index) => t.condition && newTypes![index]);
 
-    const hasNullCondition = (condition: FeatureTypeCondition | undefined): boolean => {
-        if (!condition) return false;
-
-        return condition.some((cond) =>
-            Object.keys(cond).some((key) => {
-                const value = cond[key] as unknown;
-
-                if (value === null) return true;
-                if (Array.isArray(value)) return value.some((entry) => entry === null);
-
-                if (typeof value === "object" && value !== null) {
-                    return Object.keys(value as Record<string, unknown>).some((nestedKey) => {
-                        const nestedValue = (value as Record<string, unknown>)[nestedKey];
-                        if (nestedValue === null) return true;
-                        if (Array.isArray(nestedValue)) return nestedValue.some((entry) => entry === null);
-                        return false;
-                    });
-                }
-
-                return false;
-            })
-        );
-    };
-
     conditions.forEach((type, index) => {
         if (type.condition?.$or) {
-            if (hasNullCondition(type.condition.$or)) {
-                return;
-            }
             const orCondition = getConditionsByType(type.condition?.$or);
             const conditionedFilters = getConditionedFiltersByType(orCondition);
 
@@ -651,9 +660,6 @@ export const getFilterStyleByCondition = (newTypes: FeatureTypeStyleItem[]) => {
         }
 
         if (type.condition?.$and) {
-            if (hasNullCondition(type.condition.$and)) {
-                return;
-            }
             const andCondition = getConditionsByType(type.condition?.$and);
             const conditionedFilters = getConditionedFiltersByType(andCondition);
 

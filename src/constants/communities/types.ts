@@ -35,13 +35,13 @@ export interface RegularShapeStyleProps {
     radius2?: number | undefined;
     angle: number | undefined;
 }
-export type FeatureTypeConditionValue = string | number | string[] | number[];
+export type FeatureTypeConditionValue = string | number | string[] | number[] | null;
 export type FeatureTypeCondition = { [key: string]: { [key: string]: FeatureTypeConditionValue } }[];
 export type SearchObjectCondition = {
     $and?: FeatureTypeCondition;
     $or?: FeatureTypeCondition;
 };
-export type WebGLFilterType = (string | number | (string | number | string[])[] | WebGLFilterType)[];
+export type WebGLFilterType = (string | number | null | string[] | number[] | WebGLFilterType)[];
 
 export type DirectionField = {
     attribute: string;
