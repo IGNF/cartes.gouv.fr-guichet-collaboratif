@@ -4,6 +4,14 @@ import { FeatureTypeStyleItem } from "./communities/types";
 import { getCircleStyle, getLineOrPolygonStyle, getRegularShapeStyle, strokeLineDash } from "./styles";
 import { FlatStyle } from "ol/style/flat";
 
+interface OLImageStyleInternal extends ImageStyle {
+    draw_(renderOptions: Record<string, unknown>, context: CanvasRenderingContext2D, pixelRatio: number): void;
+    load(): void;
+    render(): void;
+    renderOptions_: Record<string, unknown>;
+    createRenderOptions(): Record<string, unknown>;
+}
+
 export const getRawWellKnownNames = (newStyle: FeatureTypeStyleItem): FlatStyle | undefined => {
     switch (newStyle?.type) {
         case "circle":
@@ -108,13 +116,6 @@ export const getShapeStyle = (shapeProps: FeatureTypeStyleItem) => {
 };
 
 export const getShapeImage = (style: Style, shapeProps: FeatureTypeStyleItem, size: number = 32) => {
-    const canvas = document.createElement("canvas");
-    canvas.width = size;
-    canvas.height = size;
-    const ctx = canvas.getContext("2d");
-
-    ctx?.translate(size / 2, size / 2);
-
     let shapeStyle = style;
 
     if (shapeProps.featureType === "polygon") {
@@ -123,18 +124,46 @@ export const getShapeImage = (style: Style, shapeProps: FeatureTypeStyleItem, si
         shapeStyle = getRegularShapeStyle({ shapeProps, points: 2, angle: Math.PI / 2, radius: 10 });
     }
 
-    const imageStyle = shapeStyle.getImage() as ImageStyle;
-
-    if (imageStyle && "getImage" in imageStyle) {
-        const imgEl = imageStyle.getImage(3);
-        if (imgEl instanceof HTMLImageElement || imgEl instanceof HTMLCanvasElement) {
-            ctx?.drawImage(imgEl, -size / 2, -size / 2, size, size);
-        }
-    }
+    const imageStyle = shapeStyle.getImage() as OLImageStyleInternal;
     const img = document.createElement("img");
-    img.src = canvas.toDataURL();
     img.width = shapeProps.pointRadius ?? 50;
     img.height = shapeProps.pointRadius ?? 50;
+
+    if (imageStyle && typeof imageStyle.draw_ === "function") {
+        const renderOptions = imageStyle.renderOptions_ ?? imageStyle.createRenderOptions?.();
+        const shapeSize = (renderOptions?.size as number) ?? size;
+        const canvas = document.createElement("canvas");
+        canvas.width = shapeSize;
+        canvas.height = shapeSize;
+        const ctx = canvas.getContext("2d")!;
+        //hardly use draw as it seems to correctly trigger render
+        try {
+            imageStyle.draw_(renderOptions, ctx, 1);
+        } catch {
+            /* fall through */
+        }
+        img.src = canvas.toDataURL();
+        return img;
+    }
+
+    const canvas = document.createElement("canvas");
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext("2d");
+    ctx?.translate(size / 2, size / 2);
+    if (imageStyle && "getImage" in imageStyle) {
+        if (typeof imageStyle.load === "function") imageStyle.load();
+        const imgEl = [1, 2, window.devicePixelRatio || 1, 3]
+            .map((r) => imageStyle.getImage(r) as CanvasImageSource | null)
+            .find((el) => {
+                if (!el) return false;
+                if (!(el instanceof HTMLCanvasElement)) return true;
+                const p = el.getContext("2d")?.getImageData(el.width / 2, el.height / 2, 1, 1).data;
+                return p && p[3] > 0;
+            });
+        if (imgEl) ctx?.drawImage(imgEl, -size / 2, -size / 2, size, size);
+    }
+    img.src = canvas.toDataURL();
     return img;
 };
 

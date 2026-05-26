@@ -1,5 +1,5 @@
 export const LAYER_FEATURE_TYPE = "feature-type";
-export const DEFAULT_STYLE_NAME = "par_defaut";
+export const DEFAULT_STYLE_NAME = "Par défaut";
 export const LAYER_SWITCHER_INFO_ID = "feature-type-style";
 export const LAYER_SWITCHER_INFO_DIV = `<div id="${LAYER_SWITCHER_INFO_ID}"></div>`;
 

@@ -247,7 +247,8 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
         if (!currentLayerStyle) {
             setFeatureTypeSelectedStyle({ layer: geoservice.layer, selectedStyle: geoservice.styles![0] });
         }
-    });
+        //eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [geoservice.layer, geoservice.featureType]);
 
     if (geoservice.extent) {
         const extent = geoservice.extent.split(",")?.map((extent) => parseFloat(extent));
