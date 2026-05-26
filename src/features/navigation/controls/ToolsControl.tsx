@@ -5,6 +5,7 @@ import GeoportalZoom from "geopf-extensions-openlayers/src/packages/Controls/Zoo
 import MeasureLength from "geopf-extensions-openlayers/src/packages/Controls/Measures/MeasureLength";
 import MeasureArea from "geopf-extensions-openlayers/src/packages/Controls/Measures/MeasureArea";
 import MeasureAzimuth from "geopf-extensions-openlayers/src/packages/Controls/Measures/MeasureAzimuth";
+import ContextMenu from "geopf-extensions-openlayers/src/packages/Controls/ContextMenu/ContextMenu.js";
 import { useEffect, useRef } from "react";
 import { useTranslation } from "@/i18n";
 import { translateSearchEngineControl, translateZoomControl } from "@/constants/communities/utils";
@@ -63,8 +64,6 @@ const useToolsControl = (): Control[] => {
         errorDuplicateName: t("error_duplicate_name"),
     };
 
-    // const hasLocateControl = community?.functionalities?.includes(CommunityLayerFunctionalityType.LOCATE_CONTROL);
-
     useEffect(() => {
         if (!hasMiniMap || !overviewMapLayer || !map) {
             return;
@@ -105,6 +104,7 @@ const useToolsControl = (): Control[] => {
         new MeasureLength({}),
         new MeasureArea({}),
         new MeasureAzimuth({}),
+        new ContextMenu({}),
     ];
 };
 
