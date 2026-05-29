@@ -128,7 +128,7 @@ const FeatureTypeLayerLegends = () => {
                     return (
                         <div key={`feature_type_${index}`}>
                             <div className="feature-type-image">
-                                <img src={imgSrc || undefined} alt={type.title} width={imgWidth} height={imgWidth} property="low" rel="preload" />
+                                <img src={imgSrc || undefined} alt={type.title} width={imgWidth} property="low" rel="preload" />
                             </div>
                             <span>{type.title}</span>
                         </div>
