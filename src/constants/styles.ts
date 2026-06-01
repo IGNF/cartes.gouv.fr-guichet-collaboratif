@@ -731,8 +731,8 @@ export const getDirectionStyles = (feature: FeatureLike, directionField: Directi
 
     if (!attrValue) return [];
 
-    const isDirect = attrValue === directionField.sensInverse;
-    if (!isDirect && attrValue !== directionField.sensDirect) return [];
+    const isDirect = attrValue === directionField.sensDirect;
+    if (!isDirect && attrValue !== directionField.sensInverse) return [];
 
     const geometry = feature.getGeometry();
     if (!geometry) return [];
