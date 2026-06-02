@@ -7,27 +7,188 @@ import { ContributionType, CustomInteraction, InteractionsProps } from "@/consta
 import { ModifyEvent } from "ol/interaction/Modify";
 import { DrawEvent } from "ol/interaction/Draw";
 import { DragPan } from "ol/interaction";
-import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_NEW_PROPERTY, FEATURE_TYPE_SELECTED_PROPERTY, POINTER_HIT_DETECTION_TOLERENCE } from "@/constants";
+import {
+    FEATURE_TYPE_DATA_PROPERTY,
+    FEATURE_TYPE_GEOSERVICE_PROPERTY,
+    FEATURE_TYPE_NEW_PROPERTY,
+    FEATURE_TYPE_SELECTED_PROPERTY,
+    POINTER_HIT_DETECTION_TOLERENCE,
+} from "@/constants";
 import { addFeatureProperties, addInteractionToMap, isPointOnSegment, removeInteractionFromMap, setFeatNewCoords } from "@/constants/contributions/utils";
 import { GeometryFeatueParams } from "@/constants/reports/types";
 import { Coordinate } from "ol/coordinate";
 import { useCommunityStore, useContributionStore, useMapStore, useModalStore } from "@/store";
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import { CustomControlItem, InteractionType } from "@/constants/communities/types";
+import { CustomControlItem, GeoserviceFeatureTypeProp, InteractionType, StatusMessage } from "@/constants/communities/types";
 import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
-import { SimpleGeometry } from "ol/geom";
+import { Geometry, LineString, SimpleGeometry } from "ol/geom";
+import { FeatureTypeMode } from "@/constants/contributions/types";
+import { useTranslation } from "@/i18n";
 
 let initialFeat: Feature | null = null;
 let lastPointedFeat: Feature | null = null;
 let clipboardFeature: Feature | null = null;
 
+const coordKey = (coord: Coordinate) => `${coord[0].toFixed(6)}|${coord[1].toFixed(6)}`;
+
+const addEdge = (adjacency: Map<string, Map<string, number>>, fromKey: string, toKey: string, weight: number) => {
+    if (!adjacency.has(fromKey)) {
+        adjacency.set(fromKey, new Map());
+    }
+    const neighbors = adjacency.get(fromKey)!;
+    const existing = neighbors.get(toKey);
+    if (existing === undefined || weight < existing) {
+        neighbors.set(toKey, weight);
+    }
+};
+
+const collectLineCoordinates = (geometry: Geometry): Coordinate[][] => {
+    const type = geometry.getType();
+    if (type === "LineString") {
+        return [(geometry as LineString).getCoordinates()];
+    }
+    return [];
+};
+
+const buildGraphFromFeatures = (features: Feature[]) => {
+    const adjacency = new Map<string, Map<string, number>>();
+    const nodeCoords = new Map<string, Coordinate>();
+    const featureNodes = new Map<Feature, string[]>();
+
+    features.forEach((feature) => {
+        const geometry = feature.getGeometry() as Geometry | undefined;
+        if (!geometry) return;
+
+        const lineGroups = collectLineCoordinates(geometry);
+        if (!lineGroups.length) return;
+
+        const nodeKeys: string[] = [];
+
+        lineGroups.forEach((coords) => {
+            for (let i = 0; i < coords.length; i++) {
+                const coord = coords[i];
+                const key = coordKey(coord);
+                if (!nodeCoords.has(key)) {
+                    nodeCoords.set(key, coord);
+                }
+                nodeKeys.push(key);
+
+                if (i === coords.length - 1) continue;
+                const nextCoord = coords[i + 1];
+                const nextKey = coordKey(nextCoord);
+                if (!nodeCoords.has(nextKey)) {
+                    nodeCoords.set(nextKey, nextCoord);
+                }
+                const weight = Math.hypot(nextCoord[0] - coord[0], nextCoord[1] - coord[1]);
+                addEdge(adjacency, key, nextKey, weight);
+                addEdge(adjacency, nextKey, key, weight);
+            }
+        });
+
+        featureNodes.set(feature, nodeKeys);
+    });
+
+    return { adjacency, nodeCoords, featureNodes };
+};
+
+const getClosestNodeKey = (nodeKeys: string[] | undefined, nodeCoords: Map<string, Coordinate>, reference: Coordinate) => {
+    if (!nodeKeys || nodeKeys.length === 0) return null;
+    let closestKey: string | null = null;
+    let minDistance = Number.POSITIVE_INFINITY;
+
+    nodeKeys.forEach((key) => {
+        const coord = nodeCoords.get(key);
+        if (!coord) return;
+        const distance = Math.hypot(reference[0] - coord[0], reference[1] - coord[1]);
+        if (distance < minDistance) {
+            minDistance = distance;
+            closestKey = key;
+        }
+    });
+
+    return closestKey;
+};
+
+const computeShortestPath = (adjacency: Map<string, Map<string, number>>, nodeCoords: Map<string, Coordinate>, startKey: string, endKey: string) => {
+    const distances = new Map<string, number>();
+    const previous = new Map<string, string | null>();
+    const unvisited = new Set<string>();
+
+    adjacency.forEach((_value, key) => {
+        distances.set(key, Number.POSITIVE_INFINITY);
+        previous.set(key, null);
+        unvisited.add(key);
+    });
+
+    if (!distances.has(startKey) || !distances.has(endKey)) return null;
+
+    distances.set(startKey, 0);
+
+    while (unvisited.size > 0) {
+        let currentKey: string | null = null;
+        let currentDistance = Number.POSITIVE_INFINITY;
+
+        unvisited.forEach((key) => {
+            const dist = distances.get(key) ?? Number.POSITIVE_INFINITY;
+            if (dist < currentDistance) {
+                currentDistance = dist;
+                currentKey = key;
+            }
+        });
+
+        if (!currentKey || currentDistance === Number.POSITIVE_INFINITY) break;
+        if (currentKey === endKey) break;
+
+        unvisited.delete(currentKey);
+
+        const neighbors = adjacency.get(currentKey);
+        if (!neighbors) continue;
+
+        neighbors.forEach((weight, neighborKey) => {
+            if (!unvisited.has(neighborKey)) return;
+            const nextDistance = currentDistance + weight;
+            if (nextDistance < (distances.get(neighborKey) ?? Number.POSITIVE_INFINITY)) {
+                distances.set(neighborKey, nextDistance);
+                previous.set(neighborKey, currentKey);
+            }
+        });
+    }
+
+    if ((distances.get(endKey) ?? Number.POSITIVE_INFINITY) === Number.POSITIVE_INFINITY) return null;
+
+    const pathKeys: string[] = [];
+    let current: string | null = endKey;
+    while (current) {
+        pathKeys.unshift(current);
+        current = previous.get(current) ?? null;
+    }
+
+    if (pathKeys.length === 0) return null;
+    return pathKeys.map((key) => nodeCoords.get(key)).filter(Boolean) as Coordinate[];
+};
+
 const useGetInteractionsFuncs = (props: InteractionsProps) => {
     const { map, mapWorkingLayer, clickedControl, clickedMapFeature, setClickedControl, setClickedMapFeature } = useMapStore();
-    const { contributions, selectedObjects, saveContribution, setIsModifying, setSelectedObjects } = useContributionStore();
+    const { contributions, selectedObjects, saveContribution, setIsModifying, setSelectedObjects, setFeatureTypeMode } = useContributionStore();
     const { searchModal, exportMapModal } = useModalStore();
-    const { communityLayers } = useCommunityStore();
+    const { communityLayers, addAlertMessage } = useCommunityStore();
+
+    const { t } = useTranslation({ useGetInteractionsFuncs });
 
     const currentCommunityLayer = useMemo(() => communityLayers?.find((l) => l?.geoservice?.layer === mapWorkingLayer), [communityLayers, mapWorkingLayer]);
+
+    const snaptoIds = useMemo(
+        () =>
+            currentCommunityLayer?.snapto
+                ?.split(",")
+                .map((value) => Number(value.trim()))
+                .filter((value) => !Number.isNaN(value)) ?? [],
+        [currentCommunityLayer?.snapto]
+    );
+
+    const isShortestPathLayer = currentCommunityLayer?.geoservice.featureType === GeoserviceFeatureTypeProp.LINE;
+
+    const isShortestPathReady = Boolean(isShortestPathLayer && snaptoIds.includes(currentCommunityLayer?.geoservice.id ?? -1));
 
     const currentMapWorkingSource = useMemo(
         () =>
@@ -57,6 +218,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
     } = props;
 
     const registeredPasteHandlerRef = useRef<((e: MapBrowserEvent) => void) | null>(null);
+    const shortestPathStartRef = useRef<{ feature: Feature; coordinate: Coordinate } | null>(null);
 
     const selectInteractionFunc = useCallback(
         (e: SelectEvent) => {
@@ -267,6 +429,129 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
         return true;
     }, [selectInteraction, clickedMapFeature, map, pasteInteractionFunc]);
 
+    const clearShortestPathStart = useCallback(() => {
+        if (shortestPathStartRef.current?.feature) {
+            shortestPathStartRef.current.feature.unset(FEATURE_TYPE_SELECTED_PROPERTY);
+            shortestPathStartRef.current.feature.changed();
+        }
+        shortestPathStartRef.current = null;
+    }, []);
+
+    const shortestPathInteractionFunc = useCallback(
+        (e: MapBrowserEvent) => {
+            if (!map || !clickableSource || mapWorkingLayer === REPORTS_LAYER_TYPE) return;
+
+            if (!isShortestPathLayer) {
+                clearShortestPathStart();
+                return;
+            }
+
+            if (!isShortestPathReady) {
+                addAlertMessage(StatusMessage.warning, t("shortest_path_not_ready"), 2000);
+                clearShortestPathStart();
+                return;
+            }
+
+            const featuresAtPixel = map.getFeaturesAtPixel(e.pixel, {
+                layerFilter: (layer) => layer.get("name") === mapWorkingLayer,
+                hitTolerance: POINTER_HIT_DETECTION_TOLERENCE * 10,
+            });
+
+            const targetFeature = (featuresAtPixel?.[0] as Feature | undefined) ?? null;
+            if (!targetFeature) return;
+
+            const featureLayer = targetFeature.get(FEATURE_TYPE_GEOSERVICE_PROPERTY)?.layer;
+            if (featureLayer && featureLayer !== mapWorkingLayer) return;
+
+            if (!shortestPathStartRef.current) {
+                shortestPathStartRef.current = { feature: targetFeature, coordinate: e.coordinate };
+                targetFeature.set(FEATURE_TYPE_SELECTED_PROPERTY, true);
+                targetFeature.changed();
+                addAlertMessage(StatusMessage.info, t("shortest_path_select_end"), 5000);
+                return;
+            }
+
+            const startFeature = shortestPathStartRef.current.feature;
+            if (startFeature === targetFeature) {
+                addAlertMessage(StatusMessage.info, t("shortest_path_same_object"), 2000);
+                return;
+            }
+
+            const allFeatures = clickableSource.getFeatures();
+            const { adjacency, nodeCoords, featureNodes } = buildGraphFromFeatures(allFeatures);
+
+            const startKey = getClosestNodeKey(featureNodes.get(startFeature), nodeCoords, shortestPathStartRef.current.coordinate);
+            const endKey = getClosestNodeKey(featureNodes.get(targetFeature), nodeCoords, e.coordinate);
+
+            if (!startKey || !endKey) {
+                addAlertMessage(StatusMessage.error, t("shortest_path_no_path"), 2000);
+                clearShortestPathStart();
+                return;
+            }
+
+            const pathCoords = computeShortestPath(adjacency, nodeCoords, startKey, endKey);
+            if (!pathCoords || pathCoords.length < 2) {
+                addAlertMessage(StatusMessage.error, t("shortest_path_no_path"), 2000);
+                clearShortestPathStart();
+                return;
+            }
+
+            if (!currentMapWorkingSource) {
+                clearShortestPathStart();
+                return;
+            }
+
+            const geoservice = currentCommunityLayer?.geoservice;
+            if (!geoservice) {
+                clearShortestPathStart();
+                return;
+            }
+
+            if (geoservice.featureType !== GeoserviceFeatureTypeProp.LINE) {
+                addAlertMessage(StatusMessage.warning, t("shortest_path_not_supported"), 2000);
+                clearShortestPathStart();
+                return;
+            }
+
+            const geometryNameColumn = geoservice.columns.find((col) => col.name === geoservice.geometryName);
+            const newFeature = new Feature({ geometry: new LineString(pathCoords) });
+
+            addFeatureProperties(
+                newFeature,
+                geoservice,
+                contributions.filter((contr) => contr.type === ContributionType.CREATE)
+            );
+            newFeature.set(FEATURE_TYPE_NEW_PROPERTY, true);
+            if (geometryNameColumn?.is3d) setFeatNewCoords(newFeature);
+
+            currentMapWorkingSource.addFeature(newFeature);
+            saveContribution(newFeature, ContributionType.CREATE, null, mapWorkingLayer);
+            setSelectedObjects([]);
+            setClickedMapFeature(newFeature);
+            setFeatureTypeMode(FeatureTypeMode.EDIT);
+
+            addAlertMessage(StatusMessage.success, t("shortest_path_created"), 2000);
+            clearShortestPathStart();
+        },
+        [
+            map,
+            clickableSource,
+            mapWorkingLayer,
+            isShortestPathLayer,
+            isShortestPathReady,
+            addAlertMessage,
+            t,
+            clearShortestPathStart,
+            currentMapWorkingSource,
+            currentCommunityLayer?.geoservice,
+            contributions,
+            saveContribution,
+            setSelectedObjects,
+            setClickedMapFeature,
+            setFeatureTypeMode,
+        ]
+    );
+
     const splitLineInteractionFuncPointer = useCallback(
         (e: MapBrowserEvent) => {
             const features = map?.getFeaturesAtPixel(e.pixel, {
@@ -389,6 +674,9 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                     map?.on("singleclick", splitLineInteractionFuncEnd);
                     map?.on("pointermove", splitLineInteractionFuncPointer);
                     break;
+                case InteractionType.SHORTEST_PATH:
+                    map?.on("singleclick", shortestPathInteractionFunc);
+                    return null;
                 default:
                     return null;
             }
@@ -413,11 +701,15 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             drawInteractionFunc,
             splitLineInteractionFuncEnd,
             splitLineInteractionFuncPointer,
+            shortestPathInteractionFunc,
         ]
     );
 
     const handleClick = useCallback(
         (control: CustomControlItem) => {
+            if (control.interaction !== InteractionType.SHORTEST_PATH) {
+                clearShortestPathStart();
+            }
             if (control.interaction === InteractionType.SEARCH) {
                 if (mapWorkingLayer !== REPORTS_LAYER_TYPE) {
                     searchModal.open();
@@ -462,9 +754,14 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                 return;
             }
 
+            if (control.interaction === InteractionType.SHORTEST_PATH && control?.id !== clickedControl?.id) {
+                addAlertMessage(StatusMessage.info, t("shortest_path_select_start"), 5000);
+            }
+
             if (control?.id === clickedControl?.id) {
                 setSelectedObjects([]);
                 removeInteractionFromMap(control.interaction, map!);
+                clearShortestPathStart();
             } else {
                 removeInteractionFromMap(clickedControl?.interaction ?? null, map!);
 
@@ -504,6 +801,9 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             setSelectedObjects,
             setClickedControl,
             exportMapModal,
+            clearShortestPathStart,
+            addAlertMessage,
+            t,
         ]
     );
     const deleteSelectedObjects = useCallback(
@@ -527,8 +827,9 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                 registeredPasteHandlerRef.current = null;
             }
             clipboardFeature = null;
+            clearShortestPathStart();
         };
-    }, [map]);
+    }, [map, clearShortestPathStart]);
 
     useEffect(() => {
         selectedObjects.forEach((feat) => {
@@ -544,6 +845,12 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
         };
     }, [selectedObjects]);
 
+    useEffect(() => {
+        if (clickedControl?.interaction !== InteractionType.SHORTEST_PATH) {
+            clearShortestPathStart();
+        }
+    }, [clickedControl?.interaction, clearShortestPathStart]);
+
     return {
         selectInteractionFunc,
         dragInteractionFunc,
@@ -552,6 +859,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
         modifyInteractionFuncStart,
         drawInteractionFunc,
         copyInteractionFunc,
+        shortestPathInteractionFunc,
         pasteInteractionFunc,
         splitLineInteractionFuncEnd,
         splitLineInteractionFuncPointer,

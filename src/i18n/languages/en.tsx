@@ -27,6 +27,7 @@ import { useGetReportsLayerEnTranslations } from "@/hooks/navigation/layers/loca
 import { useGetWFSLayerEnTranslations } from "@/hooks/navigation/layers/locale/useGetWFSLayer.locale";
 import { useGetWMSLayerEnTranslations } from "@/hooks/navigation/layers/locale/useGetWMSLayer.locale";
 import { useGetWMTSLayerEnTranslations } from "@/hooks/navigation/layers/locale/useGetWMTSLayer.locale";
+import { useGetInteractionsFuncsEnTranslations } from "@/hooks/navigation/controls/locale/useGetInteractionsFuncs.locale";
 import { useFeatureTypeValidationEnTranslations } from "@/hooks/working-layer/locale/useFeatureTypeValidation.locale";
 import { DrawerComponentEnTranslations } from "@/components/locale/DrawerComponent.locale";
 import { FilterAndSortReportEnTranslations } from "@/components/locale/FilterAndSortReport.locale";
@@ -94,6 +95,7 @@ export const translations: Translations<"en"> = {
     useGetWFSLayer: useGetWFSLayerEnTranslations,
     useGetWMSLayer: useGetWMSLayerEnTranslations,
     useGetWMTSLayer: useGetWMTSLayerEnTranslations,
+    useGetInteractionsFuncs: useGetInteractionsFuncsEnTranslations,
     useFeatureTypeValidation: useFeatureTypeValidationEnTranslations,
     DrawingControl: DrawingControlEnTranslations,
     ToolsControl: ToolsControlEnTranslations,

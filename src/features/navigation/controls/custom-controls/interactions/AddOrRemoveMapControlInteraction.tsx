@@ -47,6 +47,7 @@ const AddOrRemoveMapControlInteraction = (props: InteractionsFuncsProps & Intera
                 removeInteractionFromMap(clickedControl.interaction, map!);
                 map?.un("singleclick", props.splitLineInteractionFuncEnd);
                 map?.un("pointermove", props.splitLineInteractionFuncPointer);
+                map?.un("singleclick", props.shortestPathInteractionFunc);
                 map?.removeInteraction(props.dragInteraction);
                 if (handleBoxEnd) {
                     props.dragInteraction.un(["boxend"], handleBoxEnd);

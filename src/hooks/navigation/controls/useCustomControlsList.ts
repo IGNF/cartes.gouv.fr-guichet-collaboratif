@@ -18,6 +18,16 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
 
     const communityEditableLayers = useMemo(() => communityLayers?.filter((l) => l.role !== CommunityLayerRoleType.VISU), [communityLayers]);
     const currentCommunityLayer = useMemo(() => communityLayers?.find((l) => l?.geoservice?.layer === mapWorkingLayer), [communityLayers, mapWorkingLayer]);
+    const snaptoIds = useMemo(
+        () =>
+            currentCommunityLayer?.snapto
+                ?.split(",")
+                .map((value) => Number(value.trim()))
+                .filter((value) => !Number.isNaN(value)) ?? [],
+        [currentCommunityLayer?.snapto]
+    );
+    const isShortestPathLayer = currentCommunityLayer?.geoservice.featureType === GeoserviceFeatureTypeProp.LINE;
+    const isShortestPathEnabled = Boolean(isShortestPathLayer && snaptoIds.includes(currentCommunityLayer?.geoservice.id ?? -1));
 
     const { isRasterLayer, isRasterLayerQueryable } = useRasterWorkingLayer();
 
@@ -141,6 +151,15 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
             },
             {
                 id: 12,
+                title: t("shortest_path"),
+                target: "",
+                icon: "fr-icon-collage-fill",
+                disabled: currentCommunityLayer?.role === CommunityLayerRoleType.VISU || mapWorkingLayer === REPORTS_LAYER_TYPE || !isShortestPathEnabled,
+                enabled: !!communityEditableLayers?.length && !!community?.functionalities?.includes(CommunityLayerFunctionalityType.SHORTEST_PATH),
+                interaction: InteractionType.SHORTEST_PATH,
+            },
+            {
+                id: 13,
                 title: t("export_image"),
                 target: "",
                 icon: "ri-printer-line",
@@ -159,6 +178,7 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
         clickedMapFeature,
         isRasterLayer,
         isRasterLayerQueryable,
+        isShortestPathEnabled,
         t,
     ]);
 
