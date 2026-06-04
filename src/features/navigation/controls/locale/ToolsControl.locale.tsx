@@ -28,6 +28,8 @@ export const ToolsControlFrTranslations: Translations<"fr">["ToolsControl"] = {
     error_invalid_coordinates: "Les coordonnées saisies sont invalides.",
     error_duplicate_name: "Une position avec ce nom existe deja.",
     save_success: "Position favorite enregistrée.",
+    control_zoom_in: "Zoomer",
+    control_zoom_out: "Dézoomer",
 };
 
 export const ToolsControlEnTranslations: Translations<"en">["ToolsControl"] = {
@@ -57,6 +59,8 @@ export const ToolsControlEnTranslations: Translations<"en">["ToolsControl"] = {
     error_invalid_coordinates: "The coordinates are invalid.",
     error_duplicate_name: "A position with this name already exists.",
     save_success: "Starred position saved.",
+    control_zoom_in: "Zoom In",
+    control_zoom_out: "Zoom Out",
 };
 
 const { i18n } = declareComponentKeys<
@@ -86,5 +90,7 @@ const { i18n } = declareComponentKeys<
     | "error_invalid_coordinates"
     | "error_duplicate_name"
     | "save_success"
+    | "control_zoom_in"
+    | "control_zoom_out"
 >()("ToolsControl");
 export type I18n = typeof i18n;

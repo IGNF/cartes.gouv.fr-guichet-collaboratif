@@ -13,8 +13,6 @@ export const useGetMapControlsFrTranslations: Translations<"fr">["useGetMapContr
     control_layer_swticher_pannel_icon_title_visibility: "Afficher/masquer la couche",
     control_layer_swticher_pannel_icon_title_extent: "Zoomer dans l'étendue",
     control_layer_swticher_pannel_icon_title_opacity: "Opacité",
-    control_zoom_in: "Zoomer",
-    control_zoom_out: "Dézoomer",
     control_search_engine_btn: "Rechercher",
     close_panel_title: "Fermer le panneau",
     close_panel_text: "Fermer",
@@ -33,8 +31,6 @@ export const useGetMapControlsEnTranslations: Translations<"en">["useGetMapContr
     control_layer_swticher_pannel_icon_title_visibility: "Show/hide layer",
     control_layer_swticher_pannel_icon_title_extent: "Zoom into the extent",
     control_layer_swticher_pannel_icon_title_opacity: "Opacity",
-    control_zoom_in: "Zoom In",
-    control_zoom_out: "Zoom Out",
     control_search_engine_btn: "Search",
     close_panel_title: "Close panel",
     close_panel_text: "Close",
@@ -55,8 +51,6 @@ const { i18n } = declareComponentKeys<
     | "control_layer_swticher_pannel_icon_title_visibility"
     | "control_layer_swticher_pannel_icon_title_extent"
     | "control_layer_swticher_pannel_icon_title_opacity"
-    | "control_zoom_in"
-    | "control_zoom_out"
     | "control_search_engine_btn"
     | "minimap"
 >()("useGetMapControls");
