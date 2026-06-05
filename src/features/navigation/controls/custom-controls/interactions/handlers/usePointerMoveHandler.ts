@@ -40,10 +40,17 @@ export const usePointerMoveHandler = (props: UsePointerMoveHandlerProps) => {
                 clearHoverState();
                 return;
             }
-
             const activeInteractions = map?.getInteractions().getArray();
-            const tooltipDisabled = activeInteractions?.some((interaction) => interaction.get("disablesTooltip") === true);
+            // Check if any active interaction disables the tooltip
+            // Defined in useGetInteraction
 
+            const tooltipDisabled = activeInteractions?.some(
+                (interaction) => interaction.get("type") !== undefined && interaction.get("disablesTooltip") === true
+            );
+            if (tooltipDisabled) {
+                clearHoverState();
+                return;
+            }
             const getHoveredFeature = () => {
                 const featuresAtPixel = map?.getFeaturesAtPixel(evt.pixel, {
                     layerFilter: (layer) => {
@@ -65,59 +72,60 @@ export const usePointerMoveHandler = (props: UsePointerMoveHandlerProps) => {
                 }) as Feature | undefined;
             };
 
-            if (tooltipDisabled) {
-                const targetElement = map?.getTargetElement();
-                const hoveredFeature = getHoveredFeature();
+            const targetElement = map?.getTargetElement();
+            const hoveredFeature = getHoveredFeature();
 
-                if (
-                    targetElement &&
-                    hoveredFeature &&
-                    (clickedControl?.interaction === InteractionType.MODIFY ||
-                        clickedControl?.interaction === InteractionType.SELECT ||
-                        clickedControl?.interaction === InteractionType.REMOVE ||
-                        clickedControl?.interaction === InteractionType.TRANSLATE_OBJECT ||
-                        clickedControl?.interaction === InteractionType.COPY_OBJECT)
-                ) {
-                    targetElement.style.cursor = "pointer";
-                } else if (targetElement) {
+            if (targetElement) {
+                // Modify cursor style base on interaction
+                if (hoveredFeature) {
+                    switch (clickedControl?.interaction) {
+                        case InteractionType.COPY_OBJECT:
+                            targetElement.style.cursor = "copy";
+                            break;
+                        case InteractionType.SHORTEST_PATH:
+                        case InteractionType.SPLIT_LINE:
+                            targetElement.style.cursor = "crosshair";
+                            break;
+                        case InteractionType.TRANSLATE_OBJECT:
+                            targetElement.style.cursor = "move";
+                            break;
+                        case InteractionType.REMOVE:
+                            targetElement.style.cursor = "not-allowed";
+                            break;
+                        default:
+                            targetElement.style.cursor = "pointer";
+                    }
+                } else {
                     targetElement.style.cursor = "";
                 }
-                clearHoverState();
-                return;
             }
 
-            const feature = getHoveredFeature();
-
-            const targetElement = map?.getTargetElement();
-
-            if (!feature) {
+            if (!hoveredFeature) {
                 clearHoverState();
                 if (targetElement) targetElement.style.cursor = "";
                 return;
             }
-            if (selectedFeatures.length && !selectedFeatures.includes(feature) && selectedFeatures.find((f) => f.get("new"))) {
+            if (selectedFeatures.length && !selectedFeatures.includes(hoveredFeature) && selectedFeatures.find((f) => f.get("new"))) {
                 clearHoverState();
                 if (targetElement) targetElement.style.cursor = "";
                 return;
             }
 
-            if (targetElement) targetElement.style.cursor = "pointer";
-
-            if (hoveredFeatureRef.current !== feature) {
+            if (hoveredFeatureRef.current !== hoveredFeature) {
                 if (hoveredFeatureRef.current) {
                     hoveredFeatureRef.current.unset(FEATURE_TYPE_HOVER_PROPERTY);
                     hoveredFeatureRef.current.changed();
                 }
 
-                feature.set(FEATURE_TYPE_HOVER_PROPERTY, true);
-                feature.changed();
-                hoveredFeatureRef.current = feature;
+                hoveredFeature.set(FEATURE_TYPE_HOVER_PROPERTY, true);
+                hoveredFeature.changed();
+                hoveredFeatureRef.current = hoveredFeature;
 
                 if (tooltipRef.current) {
                     tooltipRef.current.innerHTML = "";
 
                     if (mapWorkingLayer === REPORTS_LAYER_TYPE) {
-                        const innerFeatures: Feature[] = feature.get("features") ?? [];
+                        const innerFeatures: Feature[] = hoveredFeature.get("features") ?? [];
                         if (innerFeatures.length > 1) {
                             clearHoverState();
                             return;
@@ -153,7 +161,7 @@ export const usePointerMoveHandler = (props: UsePointerMoveHandlerProps) => {
                             }
                         }
                     } else if (currentGeoservice) {
-                        const data = feature.get(FEATURE_TYPE_DATA_PROPERTY) as Record<string, unknown> | undefined;
+                        const data = hoveredFeature.get(FEATURE_TYPE_DATA_PROPERTY) as Record<string, unknown> | undefined;
                         const idName = currentGeoservice.idName;
                         const featureId = data && idName ? data[idName] : (data?.id ?? "");
                         const titleDiv = document.createElement("div");

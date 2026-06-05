@@ -454,7 +454,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
 
             const featuresAtPixel = map.getFeaturesAtPixel(e.pixel, {
                 layerFilter: (layer) => layer.get("name") === mapWorkingLayer,
-                hitTolerance: POINTER_HIT_DETECTION_TOLERENCE * 10,
+                hitTolerance: POINTER_HIT_DETECTION_TOLERENCE,
             });
 
             const targetFeature = (featuresAtPixel?.[0] as Feature | undefined) ?? null;
