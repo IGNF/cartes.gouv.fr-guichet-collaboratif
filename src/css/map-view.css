@@ -1,9 +1,18 @@
 .grid-map-container {
     position: relative;
+    height: 100%;
+    min-height: 0;
 }
 
 .map-view {
     width: 100%;
+    /* Heigth minus footer (2.5rem) minus header (3.5rem)*/
+    height: calc(100vh - 6rem) !important;
+}
+
+.canvas {
+    width: 100%;
+    height: 100%;
 }
 
 /* Centrage de la barre de recherche avec marge horizontales auto et largeur fixe */

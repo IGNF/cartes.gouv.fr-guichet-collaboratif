@@ -1,0 +1,92 @@
+.fr-header__body-row {
+    height: 3.5rem;
+    padding: 0.5rem 1rem;
+    justify-content: space-between;
+    align-items: center;
+    flex: 1 0 0;
+}
+
+.fr-header__brand-top {
+    width: auto;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+/* Logo header (marianne) */
+.fr-header__logo {
+    display: flex;
+    align-items: center;
+}
+
+.fr-header__logo .fr-logo::before {
+    background-position:
+        0 -0.048rem,
+        0 0,
+        0 0;
+    background-size:
+        2.0625rem 0.84rem,
+        2rem 0.75rem,
+        0;
+    height: 0.75rem;
+    margin-bottom: 0.25rem;
+    width: 2.0625rem;
+    padding: 0;
+    margin: 0;
+}
+
+.fr-header__logo .fr-logo {
+    font-size: 0 !important;
+    line-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.fr-header__logo .fr-logo::after {
+    display: none !important;
+}
+
+/* Logo operator (cartes gouv)*/
+
+.fr-header__operator {
+    display: flex;
+    align-items: center;
+    padding: 0;
+    margin: 0;
+}
+
+.fr-header__operator img {
+    width: 1.688rem;
+    height: 1.875rem;
+    min-width: unset;
+}
+
+/* Service */
+.fr-header__service {
+    order: 3;
+}
+
+.fr-header__service-tagline {
+    display: none;
+}
+
+.fr-header__service-title > .fr-badge {
+    display: none;
+    margin-left: 0.625rem;
+}
+
+@media (min-width: 48em) {
+    .fr-header__service-title > .fr-badge {
+        display: inline-flex;
+    }
+}
+
+/* Outils */
+.fr-header__tools-links {
+    gap: 1rem;
+}
+
+.fr-header__tools-links a[target="_blank"]::after {
+    margin-left: auto;
+}
