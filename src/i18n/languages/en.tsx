@@ -1,5 +1,6 @@
 import type { Translations } from "../types";
 import { AppHeaderEnTranslations } from "@/components/Layout/locale/AppHeader.locale";
+import { HeaderMenusEnTranslations } from "@/components/Layout/Header/locale/HeaderMenus.locale";
 import { MapToolbarEnTranslations } from "@/components/Layout/locale/MapToolbar.locale";
 import { AppFooterEnTranslations } from "@/components/Layout/locale/AppFooter.locale";
 import { NotFoundEnTranslations } from "@/pages/locale/NotFound.locale";
@@ -66,6 +67,7 @@ import { ConfirmDeleteObjectModalEnTranslations } from "@/features/working-layer
 export const translations: Translations<"en"> = {
     AppFooter: AppFooterEnTranslations,
     AppHeader: AppHeaderEnTranslations,
+    HeaderMenus: HeaderMenusEnTranslations,
     MapToolbar: MapToolbarEnTranslations,
     DrawerComponent: DrawerComponentEnTranslations,
     FilterAndSortReport: FilterAndSortReportEnTranslations,

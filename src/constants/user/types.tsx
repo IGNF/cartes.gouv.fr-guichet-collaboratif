@@ -1,6 +1,7 @@
 export interface UserAPIData {
     id: number;
     username: string;
+    email: string;
     communities_member: {
         community_id: string;
         role: string;
@@ -15,5 +16,6 @@ export interface CommunityMemeber {
 export type User = {
     id: string;
     name: string;
+    email: string;
     communitiesMember: CommunityMemeber[];
 } | null;

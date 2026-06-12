@@ -23,3 +23,14 @@ export const REPORTS_API_URL = API_URL + "/reports";
 export const REPORTS_WFS_API_URL = API_URL + "/reports/wfs";
 
 export const CARTESGOUV_DISCOVER = BASE_URL + "/decouvrir";
+
+// Add un association for header links (all external to community)
+
+export const HELP_URL = BASE_URL + "/aide/";
+export const HELP_PRODUCER_GUIDE_URL = BASE_URL + "/aide/fr/guides-producteur/";
+export const CONTACT_US_URL = BASE_URL + "/aide/fr/nous-ecrire";
+
+export const EXPLORE_MAPS_URL = BASE_URL + "/explorer-les-cartes";
+export const SEARCH_DATA_URL = BASE_URL + "/rechercher-une-donnee";
+export const PUBLISH_DATA_URL = BASE_URL + "/decouvrir/publier-une-donnee";
+export const DISCOVER_URL = BASE_URL + "/decouvrir";

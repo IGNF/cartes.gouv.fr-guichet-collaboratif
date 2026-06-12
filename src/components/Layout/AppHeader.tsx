@@ -1,9 +1,11 @@
 import { useIsDark } from "@codegouvfr/react-dsfr/useIsDark";
+
 import { memo } from "react";
 
 import { BASE_URL } from "@/constants/urls";
 
 import { useTranslation } from "@/i18n";
+import { HeaderMenuConnexion, HeaderMenuHelp, HeaderMenuServices } from "@/components/Layout/Header/HeaderMenus";
 
 const AppHeader: React.FC = () => {
     const { isDark } = useIsDark();
@@ -19,8 +21,6 @@ const AppHeader: React.FC = () => {
                             {/* Bloc marque */}
                             <div className="fr-header__brand fr-enlarge-link">
                                 <div className="fr-header__brand-top" title={t("home_title")}>
-                                    {/* Logo République Française 
-                                    Vérifier comment le logo est interprété*/}
                                     <div className="fr-header__logo">
                                         <p className="fr-logo">
                                             République
@@ -53,7 +53,11 @@ const AppHeader: React.FC = () => {
 
                             {/* Liens d'accès rapide */}
                             <div className="fr-header__tools">
-                                <div className="fr-header__tools-links"></div>
+                                <div className="fr-header__tools-links">
+                                    <HeaderMenuHelp />
+                                    <HeaderMenuServices />
+                                    <HeaderMenuConnexion />
+                                </div>
                             </div>
                         </div>
                     </div>

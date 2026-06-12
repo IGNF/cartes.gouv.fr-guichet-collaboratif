@@ -6,6 +6,13 @@
     flex: 1 0 0;
 }
 
+.fr-header,
+.fr-header__body,
+.fr-header__body-row,
+.fr-container--fluid {
+    overflow: visible;
+}
+
 .fr-header__brand-top {
     width: auto;
     height: 2.5rem;
@@ -82,11 +89,119 @@
     }
 }
 
-/* Outils */
-.fr-header__tools-links {
-    gap: 1rem;
+/* Tool links */
+*/ .fr-header__tools-links {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
 }
 
 .fr-header__tools-links a[target="_blank"]::after {
     margin-left: auto;
+}
+
+.header-menu {
+    position: relative;
+    display: inline-block;
+}
+
+.header-menu__open-button {
+    margin: 0 !important;
+}
+
+.header-menu__open-button span {
+    transition: transform 0.3s;
+}
+
+.header-menu__open-button[aria-expanded="true"] {
+    background-color: var(--background-open-blue-france);
+}
+
+.header-menu__open-button[aria-expanded="true"] span {
+    transform: rotate(-180deg);
+}
+
+@keyframes header-menu-grow {
+    from {
+        transform: scale(0.7);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.header-menu__positioner {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    z-index: 1500;
+    transform-origin: top right;
+    animation: header-menu-grow 0.2s ease-out forwards;
+}
+
+@media (max-width: 62em) {
+    .header-menu__positioner {
+        position: relative;
+    }
+}
+
+.header-menu__paper {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    filter: drop-shadow(var(--overlap-shadow));
+    width: 18rem;
+    max-width: calc(100vw - 2rem);
+    background-color: var(--background-default-grey);
+}
+
+.header-menu__item {
+    box-shadow: inset 0 1px 0 0 var(--border-default-grey);
+    padding: 0;
+    margin: 0;
+    max-width: 100%;
+}
+
+.header-menu__item:hover {
+    background-color: var(--background-default-grey-hover);
+}
+
+.header-menu__item a,
+.header-menu__item div {
+    display: flex;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0.75rem 1rem;
+    text-decoration: none;
+    box-shadow: none;
+    background-image: none;
+}
+
+.header-menu__item a {
+    align-items: center;
+}
+
+.header-menu__item a::after {
+    margin-left: auto;
+}
+
+.header-menu__item--unclickable {
+    cursor: default;
+}
+
+.header-menu__item--unclickable:hover {
+    background-color: var(--background-default-grey);
+}
+
+.header-menu__item--unclickable span {
+    display: flex;
+}
+
+.header-menu__action-button {
+    width: auto;
+    display: flex;
+    justify-content: center !important;
 }

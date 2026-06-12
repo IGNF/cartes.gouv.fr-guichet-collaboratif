@@ -1,5 +1,6 @@
 import type { Translations } from "../types";
 import { AppHeaderFrTranslations } from "@/components/Layout/locale/AppHeader.locale";
+import { HeaderMenusFrTranslations } from "@/components/Layout/Header/locale/HeaderMenus.locale";
 import { MapToolbarFrTranslations } from "@/components/Layout/locale/MapToolbar.locale";
 import { AppFooterFrTranslations } from "@/components/Layout/locale/AppFooter.locale";
 import { NotFoundFrTranslations } from "@/pages/locale/NotFound.locale";
@@ -66,6 +67,7 @@ import { ConfirmDeleteObjectModalFrTranslations } from "@/features/working-layer
 export const translations: Translations<"fr"> = {
     AppFooter: AppFooterFrTranslations,
     AppHeader: AppHeaderFrTranslations,
+    HeaderMenus: HeaderMenusFrTranslations,
     MapToolbar: MapToolbarFrTranslations,
     DrawerComponent: DrawerComponentFrTranslations,
     FilterAndSortReport: FilterAndSortReportFrTranslations,
