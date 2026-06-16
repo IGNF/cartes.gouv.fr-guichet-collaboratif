@@ -47,6 +47,9 @@ const AppHeader: React.FC = () => {
                                         <a href={BASE_URL} title={t("home_service")}>
                                             cartes.gouv.fr
                                         </a>
+                                        <span className="fr-badge fr-badge--sm fr-icon-message-2-fill fr-badge--icon-left fr-badge--green-bourgeon">
+                                            {t("badge_label")}
+                                        </span>
                                     </p>
                                 </div>
                             </div>

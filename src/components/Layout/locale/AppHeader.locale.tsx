@@ -7,6 +7,7 @@ export const AppHeaderFrTranslations: Translations<"fr">["AppHeader"] = {
     login: "Se connecter",
     logout: "Se déconnecter",
     my_space: "Mon espace",
+    badge_label: "Contribuer",
 };
 
 export const AppHeaderEnTranslations: Translations<"en">["AppHeader"] = {
@@ -15,7 +16,8 @@ export const AppHeaderEnTranslations: Translations<"en">["AppHeader"] = {
     login: "Sign in",
     logout: "Sign out",
     my_space: "My space",
+    badge_label: "Contribute",
 };
 
-const { i18n } = declareComponentKeys<"home_title" | "login" | "logout" | "my_space" | "home_service">()("AppHeader");
+const { i18n } = declareComponentKeys<"home_title" | "login" | "logout" | "my_space" | "home_service" | "badge_label">()("AppHeader");
 export type I18n = typeof i18n;

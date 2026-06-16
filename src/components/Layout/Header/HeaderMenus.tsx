@@ -1,4 +1,13 @@
-import { CONTACT_US_URL, DISCOVER_URL, EXPLORE_MAPS_URL, HELP_PRODUCER_GUIDE_URL, HELP_URL, PUBLISH_DATA_URL, SEARCH_DATA_URL } from "@/constants/urls";
+import {
+    CONTACT_US_URL,
+    DISCOVER_URL,
+    EXPLORE_MAPS_URL,
+    HELP_PRODUCER_GUIDE_URL,
+    HELP_URL,
+    PUBLISH_DATA_URL,
+    SEARCH_DATA_URL,
+    CREATE_DATA_URL,
+} from "@/constants/urls";
 import { useTranslation } from "@/i18n";
 import { useOidc } from "@/oidc";
 import { useUserStore } from "@/store/useUserStore";
@@ -47,6 +56,7 @@ export function HeaderMenuServices() {
                 { iconId: "fr-icon-road-map-line", children: t("explore"), linkProps: { href: EXPLORE_MAPS_URL } },
                 { iconId: "fr-icon-search-line", children: t("search"), linkProps: { href: SEARCH_DATA_URL } },
                 { iconId: "fr-icon-database-line", children: t("publish"), linkProps: { href: PUBLISH_DATA_URL } },
+                { iconId: "fr-icon-brush-line", children: t("create"), linkProps: { href: CREATE_DATA_URL } },
             ]}
             actionButtonProps={{
                 children: `${t("discover")} cartes.gouv.fr`,
