@@ -6,6 +6,7 @@ import { useTranslation } from "@/i18n";
 import Button from "@codegouvfr/react-dsfr/Button";
 import { useState, useEffect } from "react";
 import { BASE_URL } from "@/constants/urls";
+import Display from "@codegouvfr/react-dsfr/Display/Display";
 
 const AppFooter: React.FC = () => {
     const { user } = useUserStore();
@@ -107,6 +108,7 @@ const AppFooter: React.FC = () => {
                 domains={showFullFooter ? undefined : []}
                 classes={showFullFooter ? undefined : { body: "app-footer-body", root: "app-footer-root" }}
             />
+            <Display />
         </div>
     );
 };

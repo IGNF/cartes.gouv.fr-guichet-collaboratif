@@ -1,7 +1,7 @@
 .custom-controls {
     position: absolute;
     right: 2px;
-    top: 54px;
+    top: 7rem;
     width: 54px;
     padding-right: 14px;
 }
@@ -29,6 +29,7 @@
 .custom-controls .control-btns button:last-child {
     border-radius: 0px 0px 4px 4px;
 }
+
 .custom-controls .center-to-report-btns {
     margin-top: 8px;
 }

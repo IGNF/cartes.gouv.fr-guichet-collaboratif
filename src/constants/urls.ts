@@ -26,6 +26,7 @@ export const CARTESGOUV_DISCOVER = BASE_URL + "/decouvrir";
 
 export const DASHBOARD_URL = FRONT_BASE_URL + "/tableau-de-bord";
 export const MY_ACCOUNT_URL = FRONT_BASE_URL + "/mon-compte";
+export const ADMIN_COMMUNITY_URL = BASE_URL + "/espace-collaboratif";
 
 // Add un association for header links (all external to community)
 

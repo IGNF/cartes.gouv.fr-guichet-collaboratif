@@ -47,3 +47,8 @@ form[id^="GPcoordinateSearchForm"] {
     width: 104px !important;
     height: 104px !important;
 }
+
+.position-container-top-right {
+    top: 4rem !important;
+    height: calc(100% - 56px) !important;
+}

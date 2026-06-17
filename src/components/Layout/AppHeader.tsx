@@ -65,6 +65,12 @@ const AppHeader: React.FC = () => {
                         </div>
                     </div>
                 </div>
+                {/* Required by DSFR JS (HeaderLinks init looks for fr-header__menu-links) */}
+                <div className="fr-header__menu fr-modal" aria-hidden="true" style={{ display: "none" }}>
+                    <div className="fr-container">
+                        <div className="fr-header__menu-links" />
+                    </div>
+                </div>
             </header>
         </>
     );
