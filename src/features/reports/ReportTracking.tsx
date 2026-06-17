@@ -110,9 +110,9 @@ const ReportTracking: React.FC<ReportTrackingProps> = ({ setCommittedStatus }) =
                         return (
                             <div
                                 key={reply.id}
-                                className={`report-drawer_trackingItem  ${reply.author?.username === user?.name ? "report-drawer_trackingItem--right" : ""}`}
+                                className={`report-drawer_trackingItem  ${reply.author?.username === user?.username ? "report-drawer_trackingItem--right" : ""}`}
                             >
-                                {reply.author?.username === user?.name ? (
+                                {reply.author?.username === user?.username ? (
                                     <p>
                                         {reply.author?.username}
                                         <span className="fr-icon-account-fill fr-ml-1v" aria-hidden="true"></span>
