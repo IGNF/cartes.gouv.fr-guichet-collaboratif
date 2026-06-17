@@ -4,8 +4,10 @@
 @import url("./get-feature-info-pop-up.css");
 @import url("./feature-type-legends.css");
 @import url("./report-form-attachments.css");
+@import url("./map-communities.css");
 @import url("./map-view.css");
 @import url("./map-toolbar.css");
+@import url("./map-tooltip.css");
 @import url("./pagination-report.css");
 @import url("./report.css");
 @import url("./report-filter.css");
@@ -17,6 +19,5 @@
 @import url("./report-deleteShare.css");
 @import url("./share-report.css");
 @import url("./search-by-property-modal.css");
-@import url("./map-tooltip.css");
 @import url("./export-map-modal.css");
 @import url("./search-favorites.css");

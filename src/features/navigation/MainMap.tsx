@@ -29,6 +29,7 @@ import { APP_FOOTER_MIN_HEIGHT } from "@/constants";
 import WorkingLayerLabelMap from "./controls/WorkingLayerLabelMap";
 import CustomControls from "./controls/custom-controls";
 import ReviewContributions from "../contributions/ReviewContributions";
+import BetaBadge from "@/components/Layout/MapCommunities/BetaBadge";
 
 export default function MainMap() {
     const mapTargetRef = useRef<HTMLDivElement>(null);
@@ -164,6 +165,7 @@ export default function MainMap() {
             <WorkingLayerDrawer />
             <WorkingLayerControl />
             <WorkingLayerLabelMap />
+            <BetaBadge />
 
             {map?.getAllLayers().length && <CustomControls />}
             {contributions.length > 0 && isReviewContribution && <ReviewContributions />}

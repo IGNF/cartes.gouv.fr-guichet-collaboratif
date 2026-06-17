@@ -15,6 +15,7 @@ export type ComponentKey =
     | import("../components/Layout/locale/AppFooter.locale").I18n
     | import("../components/Layout/locale/AppHeader.locale").I18n
     | import("../components/Layout/Header/locale/HeaderMenus.locale").I18n
+    | import("../components/Layout/MapCommunities/locale/BetaBadge.locale").I18n
     | import("../components/Layout/locale/MapToolbar.locale").I18n
     | import("../components/locale/DrawerComponent.locale").I18n
     | import("../components/locale/FilterAndSortReport.locale").I18n

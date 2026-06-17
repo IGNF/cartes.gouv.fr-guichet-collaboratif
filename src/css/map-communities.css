@@ -1,0 +1,16 @@
+.beta-badge-wrapper {
+    position: absolute;
+    bottom: 0.75rem;
+    left: 0.75rem;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.beta-badge {
+    width: 8rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+}
