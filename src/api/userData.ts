@@ -12,7 +12,7 @@ async function getUserProfile(): Promise<User> {
     }
 
     const user: UserAPIData = res.data;
-    console.warn("User profile data fetched:", user);
+
     return {
         id: `${user.id}`,
         username: user.username,

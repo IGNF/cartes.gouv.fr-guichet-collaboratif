@@ -4,7 +4,7 @@ import { ConsentBannerAndConsentManagement, FooterConsentManagementItem, FooterP
 import { useCommunityStore, useUserStore } from "@/store";
 import { useTranslation } from "@/i18n";
 import Button from "@codegouvfr/react-dsfr/Button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { BASE_URL } from "@/constants/urls";
 
 const AppFooter: React.FC = () => {
@@ -12,6 +12,12 @@ const AppFooter: React.FC = () => {
     const { community } = useCommunityStore();
 
     const [isExtended, setIsExtended] = useState(false);
+
+    useEffect(() => {
+        if (isExtended) {
+            setTimeout(() => window.scrollTo({ left: 0, top: document.body.scrollHeight, behavior: "smooth" }), 1);
+        }
+    }, [isExtended]);
 
     const { t } = useTranslation({ AppFooter });
 
