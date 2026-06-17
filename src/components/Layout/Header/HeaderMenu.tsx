@@ -1,7 +1,7 @@
 import { FrIconClassName, RiIconClassName } from "@codegouvfr/react-dsfr";
 import Button, { ButtonProps } from "@codegouvfr/react-dsfr/Button";
 import { getLink, RegisteredLinkProps } from "@codegouvfr/react-dsfr/link";
-import { PropsWithChildren, useEffect, useId, useRef, useState } from "react";
+import { PropsWithChildren, ReactNode, useEffect, useId, useRef, useState } from "react";
 
 type Item = PropsWithChildren<{
     iconId?: FrIconClassName | RiIconClassName;
@@ -13,9 +13,10 @@ type HeaderMenuProps = {
     actionButtonProps?: ButtonProps;
     items?: Item[];
     disabled?: boolean;
+    headerContent?: ReactNode;
 };
 
-export default function HeaderMenu({ openButtonProps, actionButtonProps, items, disabled }: HeaderMenuProps) {
+export default function HeaderMenu({ openButtonProps, actionButtonProps, items, disabled, headerContent }: HeaderMenuProps) {
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -71,6 +72,7 @@ export default function HeaderMenu({ openButtonProps, actionButtonProps, items, 
             {isOpen && (
                 <div className="header-menu__positioner">
                     <div className="header-menu__paper" id={menuId}>
+                        {headerContent && <div className="header-menu__header">{headerContent}</div>}
                         <ul className="fr-raw-list">
                             {items?.map(({ linkProps, iconId, children }, i) => {
                                 const content = (

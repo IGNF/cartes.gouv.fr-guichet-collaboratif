@@ -24,6 +24,9 @@ export const REPORTS_WFS_API_URL = API_URL + "/reports/wfs";
 
 export const CARTESGOUV_DISCOVER = BASE_URL + "/decouvrir";
 
+export const DASHBOARD_URL = FRONT_BASE_URL + "/tableau-de-bord";
+export const MY_ACCOUNT_URL = FRONT_BASE_URL + "/mon-compte";
+
 // Add un association for header links (all external to community)
 
 export const HELP_URL = BASE_URL + "/aide";

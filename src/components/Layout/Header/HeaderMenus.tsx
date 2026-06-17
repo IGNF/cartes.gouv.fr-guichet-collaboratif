@@ -1,9 +1,11 @@
 import {
     CONTACT_US_URL,
+    DASHBOARD_URL,
     DISCOVER_URL,
     EXPLORE_MAPS_URL,
     HELP_PRODUCER_GUIDE_URL,
     HELP_URL,
+    MY_ACCOUNT_URL,
     PUBLISH_DATA_URL,
     SEARCH_DATA_URL,
     CREATE_DATA_URL,
@@ -71,14 +73,22 @@ export function HeaderMenuConnexion() {
     const { logout } = useOidc();
     const user = useUserStore((state) => state.user);
 
-    const username = user?.name ?? t("account");
+    const preferedName = `${user?.firstname} ${user?.surname}`;
 
     return (
         <HeaderMenu
-            openButtonProps={{ children: username, iconId: "fr-icon-account-circle-fill" }}
+            openButtonProps={{ children: preferedName ?? t("account"), iconId: "fr-icon-account-circle-fill" }}
+            headerContent={
+                user && (
+                    <div className="header-menu__user-info">
+                        <span className="fr-text--bold">{preferedName}</span>
+                        <span>{user.email}</span>
+                    </div>
+                )
+            }
             items={[
-                { iconId: "fr-icon-dashboard-3-line", children: t("board"), linkProps: { href: "/tableau-de-bord" } },
-                { iconId: "fr-icon-user-line", children: t("account"), linkProps: { href: "/mon-compte" } },
+                { iconId: "fr-icon-dashboard-3-line", children: t("board"), linkProps: { href: DASHBOARD_URL } },
+                { iconId: "fr-icon-user-line", children: t("account"), linkProps: { href: MY_ACCOUNT_URL } },
             ]}
             actionButtonProps={{
                 children: t("disconnect"),

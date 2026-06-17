@@ -12,9 +12,12 @@ async function getUserProfile(): Promise<User> {
     }
 
     const user: UserAPIData = res.data;
+    console.warn("User profile data fetched:", user);
     return {
         id: `${user.id}`,
-        name: user.username,
+        username: user.username,
+        firstname: user.firstname,
+        surname: user.surname,
         email: user.email,
         communitiesMember: user.communities_member.map((cm) => {
             return {
