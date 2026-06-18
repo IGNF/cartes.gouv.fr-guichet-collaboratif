@@ -611,6 +611,19 @@ export const getConditionedFiltersByType = (cond: FeatureTypeConditionValue[][] 
                 } else if (orFilters.length > 1) {
                     filter.push(["any", ...orFilters]);
                 }
+            } else if (comparator === "nin") {
+                const andFilters = expectedValue.map((val) => {
+                    let processedVal = val;
+                    if (typeof val === "boolean") processedVal = val ? 1 : 0;
+                    if (isDateFormat(val as string)) processedVal = new Date(val as string).getTime();
+                    return ["!=", value, processedVal];
+                });
+
+                if (andFilters.length === 1) {
+                    filter.push(andFilters[0]);
+                } else if (andFilters.length > 1) {
+                    filter.push(["all", ...andFilters]);
+                }
             } else {
                 filter.push([comparator, value, expectedValue[0]]);
             }
