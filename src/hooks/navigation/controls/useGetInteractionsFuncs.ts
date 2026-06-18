@@ -57,7 +57,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
         splitInteraction,
     } = props;
 
-    // Add ref to get the latest interactions in ol envent
+    // Add ref to get the latest interactions in ol event
     const registeredPasteHandlerRef = useRef<((e: MapBrowserEvent) => void) | null>(null);
 
     const pasteInteractionFuncRef = useRef<((e: MapBrowserEvent) => void) | null>(null);

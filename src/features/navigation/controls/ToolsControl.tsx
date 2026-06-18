@@ -89,7 +89,7 @@ const useToolsControl = (): Control[] => {
             {
                 text: isPasteMode ? tCustomControls("paste_object") : copyControl.title,
                 callback: (payload: { coordinate?: number[] }) => {
-                    // Each time why the map to pass event and so copyfeature or coordinates
+                    // Dispatch custom events to the map to handle copy/paste feature or coordinates
                     if (isPasteMode) {
                         if (!map || !payload?.coordinate) return;
                         map.dispatchEvent(new CustomPasteEvent(payload.coordinate));
