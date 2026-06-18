@@ -30,16 +30,17 @@ const AppHeader: React.FC = () => {
                                     </div>
                                     {/* Logo opérateur */}
                                     <div className="fr-header__operator">
-                                        <img
-                                            className="fr-responsive-img"
-                                            src={
-                                                isDark
-                                                    ? "https://data.geopf.fr/annexes/ressources/header/cartes-gouv-logo-dark.svg"
-                                                    : "https://data.geopf.fr/annexes/ressources/header/cartes-gouv-logo.svg"
-                                            }
-                                            alt="cartes.gouv.fr"
-                                        />
-                                        <a href={BASE_URL} />
+                                        <a href={BASE_URL}>
+                                            <img
+                                                className="fr-responsive-img"
+                                                src={
+                                                    isDark
+                                                        ? "https://data.geopf.fr/annexes/ressources/header/cartes-gouv-logo-dark.svg"
+                                                        : "https://data.geopf.fr/annexes/ressources/header/cartes-gouv-logo.svg"
+                                                }
+                                                alt="cartes.gouv.fr"
+                                            />
+                                        </a>
                                     </div>
                                 </div>
                                 <div className="fr-header__service">

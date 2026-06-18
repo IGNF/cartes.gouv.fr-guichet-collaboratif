@@ -21,6 +21,7 @@ export function HeaderMenuHelp() {
     const newTabLinkProps = (href: string, title: string) => ({
         href,
         target: "_blank" as const,
+        rel: "noopener noreferrer",
         title: `${title} - ${t("new_window")}`,
     });
 
@@ -77,7 +78,7 @@ export function HeaderMenuConnexion() {
 
     return (
         <HeaderMenu
-            openButtonProps={{ children: preferedName ?? t("account"), iconId: "fr-icon-account-circle-fill" }}
+            openButtonProps={{ children: preferedName || t("account"), iconId: "fr-icon-account-circle-fill" }}
             headerContent={
                 user && (
                     <div className="header-menu__user-info">

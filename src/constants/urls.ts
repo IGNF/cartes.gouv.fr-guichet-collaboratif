@@ -28,7 +28,7 @@ export const DASHBOARD_URL = FRONT_BASE_URL + "/tableau-de-bord";
 export const MY_ACCOUNT_URL = FRONT_BASE_URL + "/mon-compte";
 export const ADMIN_COMMUNITY_URL = BASE_URL + "/espace-collaboratif";
 
-// Add un association for header links (all external to community)
+// Header links (all external to community)
 
 export const HELP_URL = BASE_URL + "/aide";
 export const HELP_PRODUCER_GUIDE_URL = BASE_URL + "/aide/fr/guides-producteur/";

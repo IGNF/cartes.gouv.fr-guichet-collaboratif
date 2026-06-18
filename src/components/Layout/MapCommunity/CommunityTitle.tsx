@@ -39,7 +39,7 @@ export default function CommunityTitle() {
     return (
         <div className="community-title-wrapper" ref={containerRef}>
             <div className="community-title-card">
-                <img className="community-title-logo" src={community.logoUrl || `http:/${BASE_URL}/img/placeholder.1x1.png`} alt={t("logo_alt")} />
+                <img className="community-title-logo" src={community.logoUrl || `${BASE_URL}/img/placeholder.1x1.png`} alt={t("logo_alt")} />
                 <p className="community-title-name" title={community.name}>
                     {community.name}
                 </p>
