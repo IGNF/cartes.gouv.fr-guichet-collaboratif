@@ -58,7 +58,7 @@ export const translateZoomControl = (t: TranslationFunction<"useGetMapControls",
 export const translateSearchEngineControl = (t: TranslationFunction<"useGetMapControls", ComponentKey>) => {
     const searchEngineBtn = document.querySelector('button[id^="GPshowSearchEnginePicto-"]');
 
-    if (searchEngineBtn) searchEngineBtn.setAttribute("title", t("control_search_engine_btn"));
+    if (searchEngineBtn) searchEngineBtn.setAttribute("aria-label", t("control_search_engine_btn"));
 };
 
 export const getWebGLValidProperties = (featureTypeData: ObjectProps) => {

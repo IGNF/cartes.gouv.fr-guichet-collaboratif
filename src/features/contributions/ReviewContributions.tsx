@@ -3,7 +3,6 @@ import Button from "@codegouvfr/react-dsfr/Button";
 import type { FrIconClassName, RiIconClassName } from "@codegouvfr/react-dsfr";
 import { useCallback, useEffect, useMemo } from "react";
 import { handleCenterToFeature } from "@/constants/utils";
-import Tooltip from "@codegouvfr/react-dsfr/Tooltip";
 import { useTranslation } from "@/i18n";
 
 interface ContributionButtonProps {
@@ -59,16 +58,21 @@ const ReviewContributions = () => {
 
     return (
         <div className="review-contributions">
-            <Tooltip title={t("previous")}>
-                <ContributionButton icon="ri-arrow-left-line" title="" onClick={() => setCurrentContribution(currentIndex - 1)} disabled={!hasContributions} />
-            </Tooltip>
-
+            <ContributionButton
+                icon="ri-arrow-left-line"
+                title={t("previous")}
+                onClick={() => setCurrentContribution(currentIndex - 1)}
+                disabled={!hasContributions}
+            />
             <span>
                 Contribution {displayedPosition} / {total}
             </span>
-            <Tooltip title={t("next")}>
-                <ContributionButton icon="ri-arrow-right-line" title="" onClick={() => setCurrentContribution(currentIndex + 1)} disabled={!hasContributions} />
-            </Tooltip>
+            <ContributionButton
+                icon="ri-arrow-right-line"
+                title={t("next")}
+                onClick={() => setCurrentContribution(currentIndex + 1)}
+                disabled={!hasContributions}
+            />
         </div>
     );
 };
