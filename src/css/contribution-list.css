@@ -1,7 +1,10 @@
 .contribution-list-modal {
     display: block;
     height: 0;
+    top: 7.4rem;
+    left: 0.5rem;
     background: unset;
+    border-radius: 0.3rem;
 }
 
 .contribution-list-modal .fr-container {
@@ -17,25 +20,25 @@
 .contribution-list-modal .content {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 0.25rem;
 }
 
 .contribution-list-modal .line {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 0.5rem;
     justify-content: space-between;
-    border-bottom: 1px solid grey;
+    border-bottom: 0.1rem solid var(--border-default-grey);
 }
 
 .contribution-list-modal .line:first-child {
     flex: content;
     justify-content: flex-end;
-    padding-bottom: 8px;
+    padding-bottom: 0.5rem;
 }
 
 .contribution-list-modal .line .fr-checkbox-group {
-    min-height: 24px;
+    min-height: 1.5rem;
 }
 
 .contribution-list-modal .line button:first-child {

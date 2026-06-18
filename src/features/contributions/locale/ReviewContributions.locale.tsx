@@ -2,7 +2,7 @@ import { Translations } from "@/i18n/types";
 import { declareComponentKeys } from "i18nifty";
 
 export const ReviewContributionsFrTranslations: Translations<"fr">["ReviewContributions"] = {
-    previous: "Contribution précedente",
+    previous: "Contribution précédente",
     next: "Contribution suivante",
 };
 
