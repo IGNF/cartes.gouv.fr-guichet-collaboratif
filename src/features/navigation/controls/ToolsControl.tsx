@@ -159,7 +159,7 @@ const useToolsControl = (): Control[] => {
         new MeasureLength({}),
         new MeasureArea({}),
         new MeasureAzimuth({}),
-        contextMenu,
+        contextMenu as unknown as Control,
     ];
 };
 
