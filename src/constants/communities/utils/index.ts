@@ -51,14 +51,21 @@ export const translateZoomControl = (t: TranslationFunction<"ToolsControl", Comp
     const zoomInBtn = document.querySelector('button[id="GPzoomIn"]');
     const zoomOutBtn = document.querySelector('button[id="GPzoomOut"]');
 
-    if (zoomInBtn) zoomInBtn.setAttribute("aria-label", t("control_zoom_in") || "Zoom in");
-    if (zoomOutBtn) zoomOutBtn.setAttribute("aria-label", t("control_zoom_out") || "Zoom out");
+    if (zoomInBtn) {
+        zoomInBtn.setAttribute("aria-label", t("control_zoom_in") || "Zoom In");
+    }
+
+    if (zoomOutBtn) {
+        zoomOutBtn.setAttribute("aria-label", t("control_zoom_out") || "Zoom Out");
+    }
 };
 
 export const translateSearchEngineControl = (t: TranslationFunction<"useGetMapControls", ComponentKey>) => {
     const searchEngineBtn = document.querySelector('button[id^="GPshowSearchEnginePicto-"]');
 
-    if (searchEngineBtn) searchEngineBtn.setAttribute("title", t("control_search_engine_btn"));
+    if (searchEngineBtn) {
+        searchEngineBtn.setAttribute("aria-label", t("control_search_engine_btn") || "Search");
+    }
 };
 
 export const getWebGLValidProperties = (featureTypeData: ObjectProps) => {

@@ -11,6 +11,13 @@
     text-align: center;
 }
 
+.app-layout {
+    height: 100dvh;
+    display: grid;
+    grid-template-rows: 3.5rem 1fr auto;
+    overflow: hidden;
+}
+
 .header-button {
     position: absolute;
     top: 0;

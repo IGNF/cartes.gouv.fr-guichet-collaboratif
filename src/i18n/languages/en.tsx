@@ -1,6 +1,9 @@
 import type { Translations } from "../types";
 import { AppHeaderEnTranslations } from "@/components/Layout/locale/AppHeader.locale";
-import { MapToolbarEnTranslations } from "@/components/Layout/locale/MapToolbar.locale";
+import { HeaderMenusEnTranslations } from "@/components/Layout/Header/locale/HeaderMenus.locale";
+import { BetaBadgeEnTranslations } from "@/components/Layout/MapCommunity/locale/BetaBadge.locale";
+import { CommunityTitleEnTranslations } from "@/components/Layout/MapCommunity/locale/CommunityTitle.locale";
+import { CommunityToolbarEnTranslations } from "@/components/Layout/MapCommunity/locale/CommunityToolbar.locale";
 import { AppFooterEnTranslations } from "@/components/Layout/locale/AppFooter.locale";
 import { NotFoundEnTranslations } from "@/pages/locale/NotFound.locale";
 import { CarteEnTranslations } from "@/pages/locale/Carte.locale";
@@ -66,7 +69,10 @@ import { ConfirmDeleteObjectModalEnTranslations } from "@/features/working-layer
 export const translations: Translations<"en"> = {
     AppFooter: AppFooterEnTranslations,
     AppHeader: AppHeaderEnTranslations,
-    MapToolbar: MapToolbarEnTranslations,
+    HeaderMenus: HeaderMenusEnTranslations,
+    BetaBadge: BetaBadgeEnTranslations,
+    CommunityTitle: CommunityTitleEnTranslations,
+    CommunityToolbar: CommunityToolbarEnTranslations,
     DrawerComponent: DrawerComponentEnTranslations,
     FilterAndSortReport: FilterAndSortReportEnTranslations,
     NotFound: NotFoundEnTranslations,

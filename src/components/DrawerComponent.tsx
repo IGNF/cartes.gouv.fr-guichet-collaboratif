@@ -1,6 +1,6 @@
 import { JSX } from "react";
 import Drawer from "@mui/material/Drawer";
-import { APP_FOOTER_MIN_HEIGHT } from "@/constants";
+import { APP_FOOTER_MIN_HEIGHT, APP_HEADER_HEIGHT } from "@/constants";
 import MuiDsfrThemeProvider from "@codegouvfr/react-dsfr/mui";
 
 type AnchorType = "left" | "top" | "right" | "bottom" | undefined;
@@ -15,9 +15,6 @@ interface Props {
 }
 
 const DrawerComponent: React.FC<Props> = ({ anchor, isOpen, children, onClose, isListingReports = false }) => {
-    const mapToolbarHeader = document.getElementById("map-toolbar-header");
-    const headerHeight = (mapToolbarHeader?.clientHeight || 0) + APP_FOOTER_MIN_HEIGHT;
-
     return (
         <MuiDsfrThemeProvider>
             <Drawer
@@ -29,8 +26,8 @@ const DrawerComponent: React.FC<Props> = ({ anchor, isOpen, children, onClose, i
                 sx={{
                     "& .MuiDrawer-paper,.MuiBackdrop-root": {
                         width: isListingReports ? undefined : "calc(35vw)",
-                        height: `calc(100vh - ${headerHeight}px)`,
-                        top: mapToolbarHeader?.clientHeight || 0,
+                        height: `calc(100vh - ${APP_HEADER_HEIGHT + APP_FOOTER_MIN_HEIGHT}px)`,
+                        top: APP_HEADER_HEIGHT,
                         overflow: "unset",
                     },
                 }}

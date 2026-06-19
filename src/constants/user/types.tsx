@@ -1,19 +1,25 @@
 export interface UserAPIData {
     id: number;
     username: string;
+    surname: string;
+    firstname: string;
+    email: string;
     communities_member: {
         community_id: string;
         role: string;
         grids: string[];
     }[];
 }
-export interface CommunityMemeber {
+export interface CommunityMember {
     communityId: string;
     role: string;
     grids: string[];
 }
 export type User = {
     id: string;
-    name: string;
-    communitiesMember: CommunityMemeber[];
+    username: string;
+    firstname: string;
+    surname: string;
+    email: string;
+    communitiesMember: CommunityMember[];
 } | null;

@@ -23,3 +23,20 @@ export const REPORTS_API_URL = API_URL + "/reports";
 export const REPORTS_WFS_API_URL = API_URL + "/reports/wfs";
 
 export const CARTESGOUV_DISCOVER = BASE_URL + "/decouvrir";
+
+export const DASHBOARD_URL = FRONT_BASE_URL + "/tableau-de-bord";
+export const MY_ACCOUNT_URL = FRONT_BASE_URL + "/mon-compte";
+export const ADMIN_COMMUNITY_URL = BASE_URL + "/espace-collaboratif";
+
+// Header links (all external to community)
+
+export const HELP_URL = BASE_URL + "/aide";
+export const HELP_PRODUCER_GUIDE_URL = BASE_URL + "/aide/fr/guides-producteur/";
+export const SERVICE_STATUS_URL = BASE_URL + "/aide/fr/niveau-de-service";
+export const CONTACT_US_URL = BASE_URL + "/aide/fr/nous-ecrire";
+
+export const EXPLORE_MAPS_URL = BASE_URL + "/explorer-les-cartes";
+export const SEARCH_DATA_URL = BASE_URL + "/rechercher-une-donnee";
+export const PUBLISH_DATA_URL = BASE_URL + "/publier-une-donnee";
+export const CREATE_DATA_URL = BASE_URL + "/editeur-carto";
+export const DISCOVER_URL = BASE_URL + "/decouvrir";

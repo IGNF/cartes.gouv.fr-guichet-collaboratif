@@ -7,13 +7,15 @@ import AppHeader from "./AppHeader";
 export default function AppLayout({ children }: PropsWithChildren) {
     return (
         <>
-            <AppHeader />
+            <div className="app-layout">
+                <AppHeader />
 
-            <main id="main" role="main">
-                <div className={fr.cx("fr-container--fluid")}>{children}</div>
-            </main>
+                <main id="main" role="main">
+                    <div className={fr.cx("fr-container--fluid")}>{children}</div>
+                </main>
 
-            <AppFooter />
+                <AppFooter />
+            </div>
         </>
     );
 }

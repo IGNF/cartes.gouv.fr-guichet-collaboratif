@@ -98,14 +98,13 @@ const ContributionList = () => {
     return (
         <modal.Component
             className="contribution-list-modal"
-            iconId="fr-icon-info-line"
             title={t("list_title")}
             size="small"
             concealingBackdrop={false}
             topAnchor={false}
             buttons={[
                 {
-                    iconId: "ri-refresh-line",
+                    iconId: "fr-icon-close-circle-line",
                     onClick: () => confirmResetContributionModal.open(),
                     children: t("cancel"),
                     priority: "secondary",
