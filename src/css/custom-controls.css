@@ -18,8 +18,45 @@
     width: 38.5px;
 }
 
-.custom-controls div button:not([aria-pressed="true"]) {
-    --hover-tint: var(--background-alt-blue-france-hover);
+.custom-controls button {
+    color: var(--text-action-high-blue-france);
+    /*Icon does not change along interaction*/
+}
+
+.custom-controls button[disabled],
+.custom-controls button:disabled {
+    color: var(--text-disabled-grey);
+    background-color: var(--background-default-grey);
+    /* icon disabled */
+}
+
+/* background colors*/
+.custom-controls button:hover {
+    background-color: var(--background-default-grey);
+}
+
+.custom-controls button:active {
+    background-color: var(--background-open-blue-france);
+}
+
+.custom-controls button[aria-pressed="true"] {
+    background-color: var(--background-open-blue-france);
+}
+
+.custom-controls button[aria-pressed="true"]:hover {
+    background-color: var(--background-open-blue-france-hover);
+}
+
+.custom-controls button[aria-pressed="true"]:active {
+    background-color: var(--background-open-blue-france-active);
+}
+
+/* Focus ring */
+.custom-controls button:focus-visible {
+    outline-color: 2px solid rgba(10, 118, 246, 1);
+    outline-offset: 2px;
+    border-radius: 2px;
+    background-color: var(--background-action-low-blue-france);
 }
 
 .custom-controls .control-btns button:first-child {

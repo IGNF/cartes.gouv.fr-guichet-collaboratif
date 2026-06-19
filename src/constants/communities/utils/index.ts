@@ -47,7 +47,7 @@ export const translateLayerSwitcherControl = (t: TranslationFunction<"useGetMapC
     }
 };
 
-export const translateZoomControl = (t: TranslationFunction<"useGetMapControls", ComponentKey>) => {
+export const translateZoomControl = (t: TranslationFunction<"ToolsControl", ComponentKey>) => {
     const zoomInBtn = document.querySelector('button[id="GPzoomIn"]');
     const zoomOutBtn = document.querySelector('button[id="GPzoomOut"]');
 
