@@ -3,6 +3,7 @@ import {
     DASHBOARD_URL,
     DISCOVER_URL,
     EXPLORE_MAPS_URL,
+    SERVICE_STATUS_URL,
     HELP_PRODUCER_GUIDE_URL,
     HELP_URL,
     MY_ACCOUNT_URL,
@@ -40,6 +41,11 @@ export function HeaderMenuHelp() {
                     linkProps: newTabLinkProps(HELP_PRODUCER_GUIDE_URL, t("user_guide")),
                 },
                 {
+                    iconId: "fr-icon-rfid-line",
+                    children: t("status"),
+                    linkProps: newTabLinkProps(SERVICE_STATUS_URL, t("status")),
+                },
+                {
                     iconId: "fr-icon-mail-line",
                     children: t("contact_us"),
                     linkProps: newTabLinkProps(CONTACT_US_URL, t("contact_us")),
@@ -62,6 +68,7 @@ export function HeaderMenuServices() {
                 { iconId: "fr-icon-brush-line", children: t("create"), linkProps: { href: CREATE_DATA_URL } },
             ]}
             actionButtonProps={{
+                className: "discover-button",
                 children: `${t("discover")} cartes.gouv.fr`,
                 linkProps: { href: DISCOVER_URL, title: `${t("discover")} cartes.gouv.fr` },
             }}

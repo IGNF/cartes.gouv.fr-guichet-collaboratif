@@ -219,3 +219,8 @@
     font-size: 0.875rem;
     text-align: left;
 }
+
+.header-menu .discover-button {
+    background-color: var(--background-action-high-blue-france);
+    color: var(--text-inverted-blue-france);
+}

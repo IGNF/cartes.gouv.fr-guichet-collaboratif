@@ -32,6 +32,7 @@ export const ADMIN_COMMUNITY_URL = BASE_URL + "/espace-collaboratif";
 
 export const HELP_URL = BASE_URL + "/aide";
 export const HELP_PRODUCER_GUIDE_URL = BASE_URL + "/aide/fr/guides-producteur/";
+export const SERVICE_STATUS_URL = BASE_URL + "/aide/fr/niveau-de-service";
 export const CONTACT_US_URL = BASE_URL + "/aide/fr/nous-ecrire";
 
 export const EXPLORE_MAPS_URL = BASE_URL + "/explorer-les-cartes";

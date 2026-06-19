@@ -6,6 +6,7 @@ export const HeaderMenusFrTranslations: Translations<"fr">["HeaderMenus"] = {
     help: "Aide",
     new_window: "ouvre une nouvelle fenêtre",
     user_guide: "Guide d’utilisation",
+    status: "Niveau de service",
     contact_us: "Nous contacter",
     service: "Services",
     explore: "Explorer les cartes",
@@ -23,6 +24,7 @@ export const HeaderMenusEnTranslations: Translations<"en">["HeaderMenus"] = {
     help: "Help",
     new_window: "opens a new window",
     user_guide: "Operating manual",
+    status: "Service level",
     contact_us: "Contact us",
     service: "Service",
     explore: "Explore maps",
@@ -40,6 +42,7 @@ const { i18n } = declareComponentKeys<
     | "help"
     | "new_window"
     | "user_guide"
+    | "status"
     | "contact_us"
     | "service"
     | "explore"
