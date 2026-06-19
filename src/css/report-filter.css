@@ -8,7 +8,7 @@
     list-style: none;
 }
 
-.report-filter__container li:nth-last-child(-n + 2) > a {
+.report-filter__item--no-underline {
     background-image: none;
 }
 

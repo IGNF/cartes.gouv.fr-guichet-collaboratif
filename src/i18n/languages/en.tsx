@@ -33,6 +33,7 @@ import { useGetWMTSLayerEnTranslations } from "@/hooks/navigation/layers/locale/
 import { useFeatureTypeValidationEnTranslations } from "@/hooks/working-layer/locale/useFeatureTypeValidation.locale";
 import { DrawerComponentEnTranslations } from "@/components/locale/DrawerComponent.locale";
 import { FilterAndSortReportEnTranslations } from "@/components/locale/FilterAndSortReport.locale";
+import { ReportFiltersComponentEnTranslations } from "@/components/locale/ReportFiltersComponent.locale";
 import { DrawingControlEnTranslations } from "@/features/navigation/controls/locale/DrawingControl.locale";
 import { ToolsControlEnTranslations } from "@/features/navigation/controls/locale/ToolsControl.locale";
 import { CatalogControlEnTranslations } from "@/features/navigation/controls/locale/CatalogControl.locale";
@@ -75,6 +76,7 @@ export const translations: Translations<"en"> = {
     CommunityToolbar: CommunityToolbarEnTranslations,
     DrawerComponent: DrawerComponentEnTranslations,
     FilterAndSortReport: FilterAndSortReportEnTranslations,
+    ReportFiltersComponent: ReportFiltersComponentEnTranslations,
     NotFound: NotFoundEnTranslations,
     Carte: CarteEnTranslations,
     GetReportsLayer: GetReportsLayerEnTranslations,

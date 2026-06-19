@@ -20,6 +20,7 @@ export type ComponentKey =
     | import("../components/Layout/MapCommunity/locale/CommunityToolbar.locale").I18n
     | import("../components/locale/DrawerComponent.locale").I18n
     | import("../components/locale/FilterAndSortReport.locale").I18n
+    | import("../components/locale/ReportFiltersComponent.locale").I18n
     | import("../pages/locale/NotFound.locale").I18n
     | import("../pages/locale/Carte.locale").I18n
     | import("../features/contributions/locale/ContributionList.locale").I18n
