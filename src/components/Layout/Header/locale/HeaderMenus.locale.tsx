@@ -14,7 +14,7 @@ export const HeaderMenusFrTranslations: Translations<"fr">["HeaderMenus"] = {
     create: "Créer une carte",
     discover: "Découvrir",
     board: "Tableau de bord",
-    account: "Mon compte",
+    account: "Mon espace",
     disconnect: "Se déconnecter",
 };
 
@@ -31,7 +31,7 @@ export const HeaderMenusEnTranslations: Translations<"en">["HeaderMenus"] = {
     create: "Create a map",
     discover: "Discover",
     board: "Dashboard",
-    account: "My account",
+    account: "My space",
     disconnect: "Disconnect",
 };
 

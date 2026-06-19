@@ -78,7 +78,7 @@ export function HeaderMenuConnexion() {
 
     return (
         <HeaderMenu
-            openButtonProps={{ children: preferedName || t("account"), iconId: "fr-icon-account-circle-fill" }}
+            openButtonProps={{ children: t("account"), iconId: "fr-icon-account-circle-fill" }}
             headerContent={
                 user && (
                     <div className="header-menu__user-info">
