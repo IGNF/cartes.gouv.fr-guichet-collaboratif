@@ -92,7 +92,7 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
                     clickedControl.interaction !== InteractionType.MODIFY &&
                     clickedControl.interaction !== InteractionType.TRANSLATE_OBJECT &&
                     clickedControl.interaction !== InteractionType.COPY_OBJECT) ||
-                editReport ||
+                (editReport && mapWorkingLayer !== REPORTS_LAYER_TYPE) ||
                 selectedFeatures?.find((f) => f?.get("new")) ||
                 (!currentGeoservice?.featureType && !isRasterLayerQueryable && mapWorkingLayer !== REPORTS_LAYER_TYPE)
             ),

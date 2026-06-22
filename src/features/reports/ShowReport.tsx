@@ -99,7 +99,6 @@ const ShowReport: React.FC<Props> = ({ handleCloseDrawer }) => {
                 <div className="fr-mt-12v">
                     <Accordion label={t("report_theme")} defaultExpanded={false}>
                         <RadioButtons
-                            legend={t("report_theme")}
                             options={[
                                 {
                                     label: reportTheme?.theme ?? selectedTheme,
@@ -113,7 +112,6 @@ const ShowReport: React.FC<Props> = ({ handleCloseDrawer }) => {
                             stateRelatedMessage=""
                             orientation="vertical"
                             small
-                            disabled={true}
                             className="theme-radio fr-mt-4v fr-mb-1v fr-text--md"
                         />
                     </Accordion>

@@ -150,6 +150,16 @@ const ReportDrawer = () => {
         }
     }, [drawerOpened, selectedReport, isAdmin, isOwner, setEditReport]);
 
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape" && (drawerOpened || tableDrawerOpened)) {
+                handleCloseDrawer();
+            }
+        };
+        document.addEventListener("keydown", handleKeyDown);
+        return () => document.removeEventListener("keydown", handleKeyDown);
+    }, [drawerOpened, tableDrawerOpened, handleCloseDrawer]);
+
     const reportIdParam = searchParams.get("report");
 
     const clusterLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE);
