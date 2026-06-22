@@ -13,6 +13,7 @@
     color: var(--grey-425-625);
     font-size: 12px;
 }
+
 .report-drawer_trackingItem_status {
     display: flex;
 }
@@ -55,6 +56,7 @@
 .report-drawer_status > button {
     align-self: flex-end;
 }
+
 .report__actions {
     display: flex;
     gap: 10px;

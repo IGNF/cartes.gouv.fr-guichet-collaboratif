@@ -450,16 +450,6 @@ const ReportForm: React.FC<Props> = ({
                         expanded={expendedDescription}
                     >
                         {description && editReport ? <h3 className="fr-text--md fr-mb-1v">{description}</h3> : <p> {t("no_description")} </p>}
-                        {editReport && !showDescription && (
-                            <Button className="fr-mt-4v" onClick={() => onToggleDescription()}>
-                                {showDescription
-                                    ? t("hide_toEdit")
-                                    : editReport && selectedReport && selectedReport.comment
-                                      ? t("show_toEdit")
-                                      : t("show_toCreate")}
-                            </Button>
-                        )}
-
                         {(showDescription || !editReport) && (
                             <Input
                                 label={t("describe_report_label")}
@@ -475,7 +465,7 @@ const ReportForm: React.FC<Props> = ({
                         )}
                         <div className="report__actions">
                             {editReport && showDescription && <Button onClick={onSubmitDescription}>{t("submit_report")}</Button>}
-                            <Button priority="secondary" onClick={onToggleDescription}>
+                            <Button priority="primary" onClick={onToggleDescription}>
                                 {showDescription ? t("hide_toEdit") : editReport ? t("show_toEdit") : t("show_toCreate")}
                             </Button>
                         </div>

@@ -1,5 +1,5 @@
 import { CommunityReport, StatusKey } from "@/constants/reports/types";
-import { reportImgStatus, extractPointCoords, formatDateISO } from "@/constants/utils";
+import { reportImgStatus, extractPointCoords, formatDateISO, getStatusSeverity } from "@/constants/utils";
 import Badge from "@codegouvfr/react-dsfr/Badge";
 import Button from "@codegouvfr/react-dsfr/Button";
 import Checkbox from "@codegouvfr/react-dsfr/Checkbox";
@@ -76,7 +76,7 @@ const CreateTableData = (
                 date,
                 commune,
                 <Tag>{report.attributes && report.attributes.length > 0 ? report.attributes.map((attr) => attr.theme || "").join(", ") : "-"}</Tag>,
-                <Badge severity="info" noIcon>
+                <Badge severity={getStatusSeverity(status)} noIcon>
                     {statusText || "-"}
                 </Badge>,
                 <div>

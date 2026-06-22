@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useCommunityStore, useReportStore } from "@/store";
-import { reportImgStatus } from "@/constants/utils";
+import { reportImgStatus, getStatusSeverity } from "@/constants/utils";
 import { StatusKey } from "@/constants/reports/types";
 import { useTranslation } from "@/i18n";
 import CreateTableData from "@/features/reports/table/CreateTableData";
@@ -159,9 +159,14 @@ const ReportFiltersComponent = ({ reportStatus }: ReportFiltersProps) => {
                             applyReportFilter({ ...currentFilters, status: status });
                         }}
                     >
-                        <Badge severity="info" noIcon>
-                            {statusText !== statusLabel && statusLabel !== "" ? statusLabel : statusText}
-                        </Badge>
+                        {(() => {
+                            const label = statusText !== statusLabel && statusLabel !== "" ? statusLabel : statusText;
+                            return (
+                                <Badge severity={getStatusSeverity(status)} noIcon>
+                                    {label}
+                                </Badge>
+                            );
+                        })()}
                     </a>
                 </li>
             )}

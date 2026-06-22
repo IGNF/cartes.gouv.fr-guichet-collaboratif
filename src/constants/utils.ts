@@ -7,7 +7,7 @@ import { fromLonLat } from "ol/proj";
 import { AlertMessageType, CommunityGeoservice, CommunityTheme, FeatureTypeSelectedStyle, FeatureTypeStyle } from "./communities/types";
 import Feature from "ol/Feature";
 import { Map } from "ol";
-import { CommunityReport, GeometryFeatueParams, PostThemeReport, SketchFeatureType, SketchObject } from "./reports/types";
+import { CommunityReport, GeometryFeatueParams, PostThemeReport, SketchFeatureType, SketchObject, Severity } from "./reports/types";
 import { Fill, Icon, Stroke, Style, Text } from "ol/style";
 import { Geometry, LineString, MultiLineString, MultiPoint, MultiPolygon, Point, Polygon } from "ol/geom";
 import Layer from "ol/layer/Layer";
@@ -60,7 +60,7 @@ export const otherMarkers = markersStyles.map((style) => {
 });
 
 type ReportImgStatusType = {
-    [key: string]: { img: string; text: string; colorType: string };
+    [key: string]: { img: string; text: string; colorType: Severity };
 };
 
 export const reportImgStatus: ReportImgStatusType = {
@@ -71,12 +71,14 @@ export const reportImgStatus: ReportImgStatusType = {
     pending2: { img: imgPending, text: "En attente de validation", colorType: "info" },
     valid: { img: imgValid, text: "Pris en compte", colorType: "success" },
     valid0: { img: imgValid, text: "Déjà pris en compte", colorType: "success" },
-    reject: { img: imgReject, text: "Rejeté (hors spéc.)", colorType: "error" },
-    reject0: { img: imgReject, text: "Rejeté (hors de propos)", colorType: "error" },
+    reject: { img: imgReject, text: "Rejeté (hors spéc.)", colorType: "warning" },
+    reject0: { img: imgReject, text: "Rejeté (hors de propos)", colorType: "warning" },
     test: { img: imgTest, text: "En mode test", colorType: "new" },
 };
 
 export const STATUS_NOT_ALLOWED = ["valid", "valid0", "reject", "reject0", "test"];
+
+export const getStatusSeverity = (status: string): Severity => reportImgStatus[status]?.colorType ?? "info";
 type LonLatCoordinate = Coordinate | Coordinate[] | Coordinate[][] | Coordinate[][][];
 type FeatureTypeData = { geometrie: string; capacite: number | null; type_amenagement: string | null };
 

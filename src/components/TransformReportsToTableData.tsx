@@ -1,7 +1,7 @@
 import VectorSource from "ol/source/Vector";
-import { handleShowOnMap } from "@/constants/utils";
+import { handleShowOnMap, reportImgStatus, getStatusSeverity } from "@/constants/utils";
 import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
-import { CommunityReport } from "@/constants/reports/types";
+import { CommunityReport, StatusKey } from "@/constants/reports/types";
 import { useLocalStorageStore, useMapStore, useReportStore } from "@/store";
 import Button from "@codegouvfr/react-dsfr/Button";
 import Checkbox from "@codegouvfr/react-dsfr/Checkbox";
@@ -65,9 +65,15 @@ const TransformReportsToTableData = (reports: CommunityReport[]) => {
                 date,
                 departement,
                 <Tag>{themes}</Tag>,
-                <Badge severity="info" noIcon>
-                    {status}
-                </Badge>,
+                (() => {
+                    const statusInfo = reportImgStatus[status as StatusKey];
+                    const statusText = statusInfo?.text || status;
+                    return (
+                        <Badge severity={getStatusSeverity(status)} noIcon>
+                            {statusText}
+                        </Badge>
+                    );
+                })(),
                 <div>
                     <Button
                         iconId="fr-icon-road-map-line"

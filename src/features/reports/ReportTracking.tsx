@@ -6,8 +6,8 @@ import { postReportsReply } from "@/api/reportsData";
 import { useGetReportReplies } from "@/api/repliesData";
 import { useCommunityStore, useReportStore, useUserStore } from "@/store";
 import { useReplyStore } from "@/store/useReplyStore";
-import { MutationReportParams, Reply, Severity, StatusKey } from "@/constants/reports/types";
-import { formatFrenchDateWithCapitalMonth, reportImgStatus, STATUS_NOT_ALLOWED } from "@/constants/utils";
+import { MutationReportParams, Reply, StatusKey } from "@/constants/reports/types";
+import { formatFrenchDateWithCapitalMonth, getStatusSeverity, reportImgStatus, STATUS_NOT_ALLOWED } from "@/constants/utils";
 import Badge from "@codegouvfr/react-dsfr/Badge";
 import Select from "@codegouvfr/react-dsfr/Select";
 import Input from "@codegouvfr/react-dsfr/Input";
@@ -127,7 +127,7 @@ const ReportTracking: React.FC<ReportTrackingProps> = ({ setCommittedStatus }) =
                                 <p> {reply.content}</p>
                                 <div className="report-drawer_trackingItem_status">
                                     {t("report_status")}:
-                                    <Badge noIcon={hideIcon} severity={reportImgStatus[reply.status as StatusKey].colorType as Severity} className="fr-ml-2v">
+                                    <Badge noIcon={hideIcon} severity={getStatusSeverity(reply.status)} className="fr-ml-2v">
                                         {reportImgStatus[reply.status as StatusKey].text}
                                     </Badge>
                                 </div>
