@@ -35,6 +35,7 @@ export const GetReportsLayerFrTranslations: Translations<"fr">["GetReportsLayer"
     "tableHeaders.commune": "Commune (Code INSEE)",
     "tableHeaders.document": "Document",
     "tableHeaders.reply": "Réponse",
+    table_report_caption: "Tableau regroupant l'intégralité des signalements, possibilité de filtrer et trier les signalements selon différents critères.",
 };
 
 export const GetReportsLayerEnTranslations: Translations<"en">["GetReportsLayer"] = {
@@ -71,6 +72,7 @@ export const GetReportsLayerEnTranslations: Translations<"en">["GetReportsLayer"
     "tableHeaders.commune": "Commune (INSEE code)",
     "tableHeaders.document": "Document",
     "tableHeaders.reply": "Reply",
+    table_report_caption: "A table listing all reports, with the option to filter and sort them according to various criteria.",
 };
 
 const { i18n } = declareComponentKeys<
@@ -107,5 +109,6 @@ const { i18n } = declareComponentKeys<
     | "tableHeaders.commune"
     | "tableHeaders.document"
     | "tableHeaders.reply"
+    | "table_report_caption"
 >()("GetReportsLayer");
 export type I18n = typeof i18n;

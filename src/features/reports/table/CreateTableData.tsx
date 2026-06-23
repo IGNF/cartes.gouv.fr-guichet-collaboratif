@@ -1,3 +1,4 @@
+import React from "react";
 import { CommunityReport, StatusKey } from "@/constants/reports/types";
 import { reportImgStatus, extractPointCoords, formatDateISO, getStatusSeverity } from "@/constants/utils";
 import Badge from "@codegouvfr/react-dsfr/Badge";
@@ -66,6 +67,7 @@ const CreateTableData = (
                             nativeInputProps: {
                                 checked: isChecked && !!isChecked[report.id],
                                 onChange: (e) => onCheckChange && onCheckChange(report.id, e.target.checked),
+                                ...({ "data-fr-row-select": "true" } as React.InputHTMLAttributes<HTMLInputElement>),
                             },
                         },
                     ]}

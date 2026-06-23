@@ -322,8 +322,8 @@ const TableReport = () => {
                     </div>
                     <Table
                         className="table-report__table"
-                        bordered
-                        noCaption
+                        caption={t("table_report_caption")}
+                        bottomCaption={true}
                         headers={[
                             <Checkbox
                                 options={[

@@ -1,5 +1,5 @@
 .table-report-drawer {
-    padding: 0rem 1.25rem;
+    padding: 0rem 1.25rem 1.5rem;
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
@@ -49,6 +49,20 @@
     gap: 0.625rem;
 }
 
+.table-report__table {
+    margin-bottom: 0;
+}
+
+.table-report__table table thead::after,
+.table-report__table table tbody::after {
+    background-image: none;
+}
+
+.table-report__table table td::after,
+.table-report__table table th::after {
+    background-image: none;
+}
+
 .table-report__table table th,
 .table-report__table table td {
     text-align: center;
@@ -61,22 +75,52 @@
     white-space: nowrap;
 }
 
-.table-report__table table thead td:first-child,
-.table-report__table table thead th:first-child {
-    width: 2.5rem;
+.table-report__table table th:first-child {
+    width: 3rem;
 }
 
-.table-report__table table td:first-child .fr-fieldset {
-    margin: 0;
-    padding: 0;
+.table-report__table table td:first-child {
+    width: 3rem;
+    background-color: var(--background-alt-grey);
+    border-right: 0.063rem solid var(--border-plain-grey);
+    border-bottom: 0.063rem solid var(--border-plain-grey);
 }
 
-.table-report__table table td:first-child .fr-fieldset__legend {
-    padding: 0;
+.table-report__table table th:first-child .fr-checkbox-group--sm,
+.table-report__table table td:first-child .fr-checkbox-group--sm {
+    top: -0.6rem;
 }
 
-.table-report__table table td:first-child .fr-messages-group {
-    display: none;
+.table-report__table table tbody tr:nth-child(even) td:first-child {
+    background-color: var(--background-alt-grey);
+}
+
+.table-report__table table tbody tr:last-child td:first-child {
+    border-bottom: none;
+}
+
+.table-report__table table tbody tr[aria-selected="true"] {
+    outline: 0.125rem solid var(--border-action-high-blue-france);
+    outline-offset: -0.063rem;
+}
+
+.table-report__table table tbody tr[aria-selected="true"] td:first-child {
+    box-shadow: inset 0.125rem 0 0 var(--border-action-high-blue-france);
+}
+
+.table-report__table table caption {
+    font-size: 0.75rem;
+    line-height: 1.25rem;
+    font-weight: 400;
+    color: var(--text-mention-grey);
+}
+
+.fr-table.fr-table--caption-bottom[data-fr-js-table="true"] caption {
+    margin-top: -4rem;
+}
+
+.fr-table.fr-table--caption-bottom {
+    margin-bottom: -2rem;
 }
 
 .table-report__table .fr-tag {
@@ -114,12 +158,34 @@
 }
 
 .report-nbrSelectedLines {
-    color: var(--grey-425-625);
+    color: var(--text-default-grey);
 }
 
 .report-footer {
     display: flex;
     justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: nowrap;
+}
+
+.report-footer .fr-select-group {
+    flex-shrink: 0;
+    min-width: 0;
+    margin-bottom: 0 !important;
+    top: -0.4rem;
+}
+
+.report-footer .fr-pagination {
+    margin-bottom: 0 !important;
+}
+
+.report-footer .fr-pagination__list .fr-btn {
+    min-width: 2rem;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    font-size: 0.75rem;
 }
 
 .theme-radio {
@@ -336,4 +402,10 @@ button[id^="drawing-tool-import-"]::after {
 
 #position-container-top-right {
     gap: 0.5rem;
+}
+
+.center-pagination {
+    display: flex;
+    justify-content: center;
+    width: 50vw;
 }
