@@ -52,6 +52,7 @@ const TableReport = () => {
         reports: storedReports,
         limitPerPage,
         filteredReports,
+        isFiltered,
         setFilteredReports,
         searchReport,
         isChecked,
@@ -138,7 +139,7 @@ const TableReport = () => {
 
     const onCheckChange = useCallback((id: number, checked: boolean) => setIsChecked({ ...isChecked, [id]: checked }), [isChecked, setIsChecked]);
 
-    const reportsToUse = useMemo(() => (filteredReports.length > 0 ? filteredReports : (reports ?? [])), [filteredReports, reports]);
+    const reportsToUse = useMemo(() => (isFiltered ? filteredReports : (reports ?? [])), [isFiltered, filteredReports, reports]);
 
     const tableData = useMemo(
         () => CreateTableData(reportsToUse, isChecked, onCheckChange, onShowReportOnMap, onShowOnMap, t),

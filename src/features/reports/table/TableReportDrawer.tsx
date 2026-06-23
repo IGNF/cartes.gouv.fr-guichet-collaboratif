@@ -50,7 +50,7 @@ const TableReportDrawer = ({ handleCloseDrawer }: Props) => {
                     iconId={`${!showFilter ? "fr-icon-equalizer-line" : "fr-icon-close-line"}`}
                 >
                     {t("filters")}
-                </Button>{" "}
+                </Button>
                 <Button priority="secondary" nativeButtonProps={shareReportFilters.buttonProps} iconId="ri-share-forward-fill">
                     {t("share")}
                 </Button>

@@ -10,9 +10,8 @@ export function applyFiltersToReports(reports: CommunityReport[], filters: Filte
 
         const matchesdepartement = !filters.departement || report.departement?.name === filters.departement;
 
-        const lowerSearch = searchText.toLowerCase();
-
-        const matchesSearch = !searchText || (report.comment?.toLowerCase().includes(lowerSearch) ?? false);
+        const search = searchText.replace(/["#]/g, "").replace(/^id:?/i, "");
+        const matchesSearch = !searchText || String(report.id).includes(search.trim());
 
         return matchesStatus && matchesTheme && matchesAuthor && matchesdepartement && matchesSearch;
     });
