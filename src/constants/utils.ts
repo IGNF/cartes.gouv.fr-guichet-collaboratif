@@ -463,19 +463,6 @@ export const getFeatureLine = (report: CommunityReport, featData: SketchObject) 
     return feature;
 };
 
-export const handleFeatureToCenter = (map: Map, feature: Feature) => {
-    const viewCenter = map?.getView().getCenter();
-
-    if (!viewCenter || !feature) return;
-    const geometry: GeometryFeatueParams = feature?.getGeometry() as GeometryFeatueParams;
-
-    const geomExtent = geometry?.getExtent() || [];
-    const geomCenter = getCenter(geomExtent);
-    const deltaX = viewCenter[0] - geomCenter[0];
-    const deltaY = viewCenter[1] - geomCenter[1];
-    geometry?.translate(deltaX, deltaY);
-};
-
 export const handleCenterToFeature = (map: Map | null, feature: Feature) => {
     const geometry: GeometryFeatueParams = feature?.getGeometry() as GeometryFeatueParams;
 
@@ -489,14 +476,13 @@ export const handleCenterToFeature = (map: Map | null, feature: Feature) => {
 
     const size = map?.getSize();
     const resolution = view?.getResolutionForExtent(featureExtent, size);
-
     const featureZoom = view?.getZoomForResolution(resolution!);
 
-    if (featureZoom) {
-        view?.setZoom(view.getZoom() ?? 18);
-    }
-
-    view?.setCenter(featureCenter);
+    view?.animate({
+        center: featureCenter,
+        zoom: featureZoom ?? view.getZoom() ?? 18,
+        duration: 400,
+    });
 };
 
 export const showCenterReportButtons = (show: boolean = true) => {
@@ -591,8 +577,7 @@ export const handleShowOnMap = (
     }
 
     const croquisFeatures = getReportSketchFeatures(report);
-    // Remove previously added croquis (non-main) features for this report
-    // to avoid OL "feature already in source" errors on repeated clicks
+
     const toRemove = clusterSource.getFeatures().filter((f) => f.get("reportData")?.id === report.id && !f.get("main"));
     toRemove.forEach((f) => clusterSource.removeFeature(f));
     if (croquisFeatures.length > 0) clusterSource.addFeatures(croquisFeatures);

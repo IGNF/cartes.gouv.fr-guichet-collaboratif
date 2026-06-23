@@ -398,7 +398,7 @@ const ReportForm: React.FC<Props> = ({
                                 {selectedTheme ? selectedTheme.theme : selectedReport?.themes.map((theme) => theme.theme).join(", ")}
                             </h3>
                             {editReport && !showTheme && (
-                                <Button className="fr-mt-4v" onClick={() => onToggleTheme()}>
+                                <Button priority="secondary" className="fr-mt-4v" onClick={() => onToggleTheme()}>
                                     {t("show_toEdit")}
                                 </Button>
                             )}
@@ -465,7 +465,7 @@ const ReportForm: React.FC<Props> = ({
                         )}
                         <div className="report__actions">
                             {editReport && showDescription && <Button onClick={onSubmitDescription}>{t("submit_report")}</Button>}
-                            <Button priority="primary" onClick={onToggleDescription}>
+                            <Button priority="secondary" onClick={onToggleDescription}>
                                 {showDescription ? t("hide_toEdit") : editReport ? t("show_toEdit") : t("show_toCreate")}
                             </Button>
                         </div>
@@ -482,7 +482,7 @@ const ReportForm: React.FC<Props> = ({
                             <AttachmentList newFiles={filesUploaded} errorFiles={errorFiles} removeFile={removeFile} showDocument={showDocument} />
 
                             {editReport && !showDocument && (
-                                <Button className="fr-mt-4v" onClick={() => onToggleDocument()}>
+                                <Button priority="secondary" className="fr-mt-4v" onClick={() => onToggleDocument()}>
                                     {selectedReport && selectedReport.attachments.length > 0 ? t("show_toEdit") : t("show_toCreate")}
                                 </Button>
                             )}

@@ -40,7 +40,7 @@ const ReportDrawer = () => {
 
     const { localStorageData } = useLocalStorageStore();
 
-    const { map, setClickedControl } = useMapStore();
+    const { map, setClickedControl, clickedTool, setClickedTool } = useMapStore();
     const { alertMessages, removeAlertMessage } = useCommunityStore();
 
     const reportClusterLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE && layer.getSource() instanceof VectorSource);
@@ -72,6 +72,12 @@ const ReportDrawer = () => {
             reportSource?.removeFeatures(reportFeatures);
         }
 
+        if (clickedTool?.clicked && clickedTool.name) {
+            const activeToolBtn = document.querySelector(`button[id*="${clickedTool.name}"].drawing-tool-active`) as HTMLButtonElement | null;
+            activeToolBtn?.click();
+            setClickedTool({ name: clickedTool.name, clicked: false });
+        }
+
         const isNotified = getCenterReportMessage(alertMessages);
         if (isNotified) {
             removeAlertMessage(isNotified.id);
@@ -83,7 +89,19 @@ const ReportDrawer = () => {
         setTableDrawerOpened(false);
         setSelectedReport(null);
         setSelectedFeatures([]);
-    }, [selectedReport, alertMessages, setDrawerOpened, setEditReport, setTableDrawerOpened, setSelectedReport, setSelectedFeatures, map, removeAlertMessage]);
+    }, [
+        selectedReport,
+        alertMessages,
+        clickedTool,
+        setClickedTool,
+        setDrawerOpened,
+        setEditReport,
+        setTableDrawerOpened,
+        setSelectedReport,
+        setSelectedFeatures,
+        map,
+        removeAlertMessage,
+    ]);
 
     const handleDrawingAdd = useCallback(
         (e: Event) => {
