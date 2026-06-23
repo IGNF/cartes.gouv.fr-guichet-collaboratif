@@ -79,14 +79,18 @@ const TransformReportsToTableData = (reports: CommunityReport[]) => {
                         iconId="fr-icon-road-map-line"
                         className="fr-icon--sm fr-mr-7v"
                         priority="tertiary no outline"
-                        title="Afficher le signalement"
-                        onClick={() => handleShowOnMap(report, map, clusterSource, localStorageData, t, reportTableWidth)}
+                        title={t("show_map")}
+                        onClick={() => {
+                            const layer = map?.getAllLayers().find((l) => l.get("type") === REPORTS_LAYER_TYPE);
+                            const source = layer?.getSource() as VectorSource;
+                            handleShowOnMap(report, map, source, localStorageData, t, reportTableWidth);
+                        }}
                     />
                     <Button
                         iconId="fr-icon-arrow-right-line"
                         className="fr-icon--sm"
                         priority="tertiary no outline"
-                        title="Afficher sur la carte"
+                        title={t("show_report")}
                         onClick={() => showOnMap(report)}
                     />
                 </div>,

@@ -591,7 +591,11 @@ export const handleShowOnMap = (
     }
 
     const croquisFeatures = getReportSketchFeatures(report);
-    clusterSource.addFeatures(croquisFeatures);
+    // Remove previously added croquis (non-main) features for this report
+    // to avoid OL "feature already in source" errors on repeated clicks
+    const toRemove = clusterSource.getFeatures().filter((f) => f.get("reportData")?.id === report.id && !f.get("main"));
+    toRemove.forEach((f) => clusterSource.removeFeature(f));
+    if (croquisFeatures.length > 0) clusterSource.addFeatures(croquisFeatures);
 
     const reportFeatures = [feature, ...croquisFeatures];
     const croquisExtent = createEmpty();

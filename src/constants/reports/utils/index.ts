@@ -75,7 +75,7 @@ export const getReportSketch = (features: Feature[], map: Map, edit: boolean = f
 };
 
 export const getReportSketchFeatures = (report: CommunityReport | undefined) => {
-    if (!report?.sketch) return [];
+    if (!report?.sketch?.objects) return [];
     return report.sketch.objects.map((featData) => {
         if (featData.type === SketchFeatureType.MultiLineString) {
             return getFeatureMultiLine(report, featData);
