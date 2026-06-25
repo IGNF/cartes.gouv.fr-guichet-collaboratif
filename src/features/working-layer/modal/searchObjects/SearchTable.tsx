@@ -63,16 +63,30 @@ const SearchTable: React.FC<Props> = ({ geoservice }) => {
 
     const visibleColumns = useMemo(() => geoservice.columns.filter((col) => col.name !== geoservice.geometryName), [geoservice]);
 
+    const normalizeSortValue = (value: unknown): string | number => {
+        if (value === null || value === undefined) return "";
+        if (typeof value === "number") return Number.isNaN(value) ? Number.NEGATIVE_INFINITY : value;
+        if (typeof value === "string") return value;
+        if (typeof value === "boolean") return value ? 1 : 0;
+        if (value instanceof Date) return value.getTime();
+        return String(value);
+    };
+
     const sortedSearchResult = useMemo(
         () =>
-            searchResult.sort((el1: SearchResultItem, el2: SearchResultItem) => {
-                if (typeof el1[`${sortBy.value}`] === "number")
-                    return sortBy.desc
-                        ? (el1[`${sortBy.value}`] as number) - (el2[`${sortBy.value}`] as number)
-                        : (el2[`${sortBy.value}`] as number) - (el1[`${sortBy.value}`] as number);
-                return sortBy.desc
-                    ? ((el1[`${sortBy.value}`] as string) ?? "").localeCompare((el2[`${sortBy.value}`] as string) ?? "")
-                    : ((el2[`${sortBy.value}`] as string) ?? "").localeCompare((el1[`${sortBy.value}`] as string) ?? "");
+            [...searchResult].sort((el1: SearchResultItem, el2: SearchResultItem) => {
+                const value1 = normalizeSortValue(el1[sortBy.value]);
+                const value2 = normalizeSortValue(el2[sortBy.value]);
+
+                const comparison =
+                    typeof value1 === "number" && typeof value2 === "number"
+                        ? value1 - value2
+                        : String(value1).localeCompare(String(value2), undefined, {
+                              numeric: true,
+                              sensitivity: "base",
+                          });
+
+                return sortBy.desc ? -comparison : comparison;
             }),
         [searchResult, sortBy]
     );
