@@ -180,7 +180,7 @@ const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeTheme
                         );
 
                     default:
-                        return <></>;
+                        return <Fragment key={item.type + index} />;
                 }
             })}
         </div>

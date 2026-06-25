@@ -17,6 +17,7 @@ import { TableReportDrawerFrTranslations } from "@/features/reports/locale/Table
 import { DrawingFormFrTranslations } from "@/features/reports/forms/locale/DrawingForm.locale";
 import { ImportSketchFileFrTranslations } from "@/features/reports/forms/locale/ImportSketchFile.locale";
 import { ReportFormFrTranslations } from "@/features/reports/forms/locale/ReportForm.locale";
+import { SketchListFrTranslations } from "@/features/reports/forms/locale/SketchList.locale";
 import { ThemeComponentFrTranslations } from "@/features/reports/forms/locale/ThemeComponent.locale";
 import { ThemeFormFrTranslations } from "@/features/reports/forms/locale/ThemeForm.locale";
 import { CenterMessageFrTranslations } from "@/features/reports/locale/CenterMessage.locale";
@@ -89,6 +90,7 @@ export const translations: Translations<"fr"> = {
     DrawingForm: DrawingFormFrTranslations,
     ImportSketchFile: ImportSketchFileFrTranslations,
     ReportForm: ReportFormFrTranslations,
+    SketchList: SketchListFrTranslations,
     ThemeComponent: ThemeComponentFrTranslations,
     ThemeForm: ThemeFormFrTranslations,
     CenterMessage: CenterMessageFrTranslations,

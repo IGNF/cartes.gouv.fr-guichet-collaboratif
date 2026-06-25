@@ -48,6 +48,7 @@ export type ComponentKey =
     | import("../features/reports/forms/locale/DrawingForm.locale").I18n
     | import("../features/reports/forms/locale/ImportSketchFile.locale").I18n
     | import("../features/reports/forms/locale/ReportForm.locale").I18n
+    | import("../features/reports/forms/locale/SketchList.locale").I18n
     | import("../features/reports/forms/locale/ThemeComponent.locale").I18n
     | import("../features/reports/forms/locale/ThemeForm.locale").I18n
     | import("../features/reports/locale/CenterMessage.locale").I18n
