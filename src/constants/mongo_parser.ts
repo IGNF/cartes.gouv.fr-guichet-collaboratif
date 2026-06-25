@@ -13,10 +13,10 @@ export const simpleComparators = {
         return a <= b;
     },
     $eq: function (a: number, b: number) {
-        return a !== b;
+        return a === b;
     },
     $ne: function (a: number, b: number) {
-        return a === b;
+        return a !== b;
     },
 
     $in: function (docVal: string, operand: string) {
