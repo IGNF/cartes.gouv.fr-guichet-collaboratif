@@ -1,4 +1,11 @@
-import { CommunityGeoservice, OperatorType } from "@/constants/communities/types";
+import {
+    BETWEEN_OPERATORS,
+    CommunityGeoservice,
+    FeatureTypeColumn,
+    MULTI_VALUE_OPERATORS,
+    NO_VALUE_OPERATORS,
+    OperatorType,
+} from "@/constants/communities/types";
 import { useCommunityStore, useMapStore } from "@/store";
 import Button from "@codegouvfr/react-dsfr/Button";
 import Select from "@codegouvfr/react-dsfr/Select";
@@ -19,6 +26,31 @@ type RuleProps = {
     onChange: (rule: Rule) => void;
 };
 
+function getDefaultForColumn(col: FeatureTypeColumn | undefined): string {
+    if (!col) return "";
+    switch (col.type) {
+        case "Integer":
+            return "0";
+        case "Double":
+            return "0";
+        case "Boolean":
+            return "true";
+        case "String":
+            return col.enum?.[0] ?? "";
+        default:
+            return "";
+    }
+}
+
+function getInitialValues(op: OperatorType, col: FeatureTypeColumn | undefined, current: string[]): string[] {
+    if (NO_VALUE_OPERATORS.has(op)) return [];
+    const defaultVal = getDefaultForColumn(col);
+    if (BETWEEN_OPERATORS.has(op)) {
+        return [current[0] ?? defaultVal, current[1] ?? defaultVal];
+    }
+    return current.length > 0 ? [current[0]] : [defaultVal];
+}
+
 const RuleComponent: React.FC<RuleProps> = ({ t, rule, className, onDelete, onChange }) => {
     const { mapWorkingLayer } = useMapStore();
     const { communityLayers } = useCommunityStore();
@@ -33,52 +65,48 @@ const RuleComponent: React.FC<RuleProps> = ({ t, rule, className, onDelete, onCh
     );
 
     const queryableColumns = useMemo(() => geoservice?.columns.filter((col) => col.queryable), [geoservice]);
-
     const currentColumn = useMemo(() => queryableColumns?.find((col) => col.name === type), [queryableColumns, type]);
-
     const operatorList = useOperatorList();
-
     const currentOprators = useMemo(() => getOperators(currentColumn, operatorList), [currentColumn, operatorList]);
 
     const handleTypeChange = useCallback(
         (newType: string) => {
-            let newOperator = operator;
-            if (type !== newType) {
-                const newCurrentColumn = queryableColumns?.find((col) => col.name === newType);
-                const newCurrentOperators = getOperators(newCurrentColumn, operatorList);
-                newOperator = newCurrentOperators[0]?.value;
-            }
+            const newCurrentColumn = queryableColumns?.find((col) => col.name === newType);
+            const newCurrentOperators = getOperators(newCurrentColumn, operatorList);
+            const newOperator = type !== newType ? newCurrentOperators[0]?.value : operator;
+            const newValues = getInitialValues(newOperator, newCurrentColumn, []);
 
-            setType(() => newType);
+            setType(newType);
             setOperator(newOperator);
-            setChoiceValue(() => []);
-            onChange({ ...rule, field: newType, ruleOperator: newOperator, values: [] });
+            setChoiceValue(newValues);
+            onChange({ ...rule, field: newType, ruleOperator: newOperator, values: newValues });
         },
         [rule, type, operator, operatorList, queryableColumns, onChange]
     );
 
     const handleChoiceValueChange = useCallback(
-        (val: string) => {
-            let newValue = [val];
-            if (currentColumn?.enum) {
-                if (choiceValue.includes(val)) {
-                    newValue = choiceValue.filter((cv) => cv !== val);
-                } else {
-                    newValue = [...choiceValue, val];
-                }
+        (val: string, index = 0) => {
+            let newValue: string[];
+            if (MULTI_VALUE_OPERATORS.has(operator)) {
+                newValue = choiceValue.includes(val) ? choiceValue.filter((cv) => cv !== val) : [...choiceValue, val];
+            } else {
+                newValue = [...choiceValue];
+                newValue[index] = val;
             }
-            setChoiceValue(() => newValue);
+            setChoiceValue(newValue);
             onChange({ ...rule, values: newValue, ruleOperator: operator });
         },
-        [choiceValue, currentColumn, rule, operator, onChange]
+        [choiceValue, operator, rule, onChange]
     );
 
     const handleOperatorChange = useCallback(
         (op: OperatorType) => {
+            const newValues = getInitialValues(op, currentColumn, choiceValue);
             setOperator(op);
-            onChange({ ...rule, ruleOperator: op });
+            setChoiceValue(newValues);
+            onChange({ ...rule, ruleOperator: op, values: newValues });
         },
-        [rule, onChange]
+        [currentColumn, choiceValue, rule, onChange]
     );
 
     return (
@@ -95,7 +123,13 @@ const RuleComponent: React.FC<RuleProps> = ({ t, rule, className, onDelete, onCh
             {type !== "-1" && (
                 <>
                     <OperatorComponent currentOprators={currentOprators} operator={operator} onChange={handleOperatorChange} />
-                    <ChoiceValueComponent choiceValue={choiceValue} currentColumn={currentColumn} handleChoiceValueChange={handleChoiceValueChange} />
+                    <ChoiceValueComponent
+                        choiceValue={choiceValue}
+                        currentColumn={currentColumn}
+                        operator={operator}
+                        handleChoiceValueChange={handleChoiceValueChange}
+                        disabled={NO_VALUE_OPERATORS.has(operator)}
+                    />
                 </>
             )}
 
