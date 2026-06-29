@@ -529,7 +529,7 @@ export const getConditionsByType = (condition: FeatureTypeCondition | undefined)
                     return;
                 }
 
-                const supportedOps = ["$in", "$eq", "$ne", "$gt", "$gte", "$lt", "$lte"];
+                const supportedOps = ["$in", "$nin", "$eq", "$ne", "$gt", "$gte", "$lt", "$lte"];
                 const supportedOperators = operatorKeys.filter((op) => supportedOps.includes(op));
 
                 //Take care of multiple operators case ex {"$and": [{ "categorie_piscicole": { "$gte": "1", "$lte": "2" } },
@@ -560,6 +560,9 @@ export const getConditionsByType = (condition: FeatureTypeCondition | undefined)
 
 export const getConditionedFiltersByType = (cond: FeatureTypeConditionValue[][] | undefined) => {
     const filter: WebGLFilterType = [];
+
+    const isDateOrDateTimeString = (val: unknown): val is string =>
+        isDateFormat(val as string) || (typeof val === "string" && /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}/.test(val));
 
     cond?.forEach((c: FeatureTypeConditionValue[]) => {
         if (c![0] === "$and" || c![0] === "$or") {
@@ -593,7 +596,7 @@ export const getConditionedFiltersByType = (cond: FeatureTypeConditionValue[][] 
             expectedValue = expectedValue ? 1 : 0;
         }
 
-        if (isDateFormat(expectedValue as string)) {
+        if (isDateOrDateTimeString(expectedValue)) {
             expectedValue = new Date(expectedValue as string).getTime();
         }
 
@@ -602,7 +605,7 @@ export const getConditionedFiltersByType = (cond: FeatureTypeConditionValue[][] 
                 const orFilters = expectedValue.map((val) => {
                     let processedVal = val;
                     if (typeof val === "boolean") processedVal = val ? 1 : 0;
-                    if (isDateFormat(val as string)) processedVal = new Date(val as string).getTime();
+                    if (isDateOrDateTimeString(val)) processedVal = new Date(val as string).getTime();
                     return ["==", value, processedVal];
                 });
 
@@ -615,7 +618,7 @@ export const getConditionedFiltersByType = (cond: FeatureTypeConditionValue[][] 
                 const andFilters = expectedValue.map((val) => {
                     let processedVal = val;
                     if (typeof val === "boolean") processedVal = val ? 1 : 0;
-                    if (isDateFormat(val as string)) processedVal = new Date(val as string).getTime();
+                    if (isDateOrDateTimeString(val)) processedVal = new Date(val as string).getTime();
                     return ["!=", value, processedVal];
                 });
 
@@ -634,7 +637,7 @@ export const getConditionedFiltersByType = (cond: FeatureTypeConditionValue[][] 
                 const orFilters = [expectedValue, ...additionalValues].map((val) => {
                     let processedVal = val;
                     if (typeof val === "boolean") processedVal = val ? 1 : 0;
-                    if (isDateFormat(val as string)) processedVal = new Date(val as string).getTime();
+                    if (isDateOrDateTimeString(val)) processedVal = new Date(val as string).getTime();
                     return ["==", value, processedVal];
                 });
 
@@ -644,7 +647,11 @@ export const getConditionedFiltersByType = (cond: FeatureTypeConditionValue[][] 
                     filter.push(["any", ...orFilters]);
                 }
             } else {
-                filter.push([comparator, value, expectedValue]);
+                if (comparator === "nin") {
+                    filter.push(["!=", value, expectedValue]);
+                } else {
+                    filter.push([comparator, value, expectedValue]);
+                }
             }
         }
     });
