@@ -5,4 +5,6 @@ const CenterMessage: React.FC<{ onClick: () => void }> = ({ onClick }) => {
     return <p>{t("center_message", { onClick })}</p>;
 };
 
+CenterMessage.displayName = "CenterMessage";
+
 export default CenterMessage;
