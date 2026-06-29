@@ -561,9 +561,6 @@ export const getConditionsByType = (condition: FeatureTypeCondition | undefined)
 export const getConditionedFiltersByType = (cond: FeatureTypeConditionValue[][] | undefined) => {
     const filter: WebGLFilterType = [];
 
-    const isDateOrDateTimeString = (val: unknown): val is string =>
-        isDateFormat(val as string) || (typeof val === "string" && /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}/.test(val));
-
     cond?.forEach((c: FeatureTypeConditionValue[]) => {
         if (c![0] === "$and" || c![0] === "$or") {
             const nc = getConditionedFiltersByType(getConditionsByType(c.splice(2).filter((el) => typeof el === "object") as unknown as FeatureTypeCondition));
@@ -596,7 +593,7 @@ export const getConditionedFiltersByType = (cond: FeatureTypeConditionValue[][] 
             expectedValue = expectedValue ? 1 : 0;
         }
 
-        if (isDateOrDateTimeString(expectedValue)) {
+        if (isDateFormat(expectedValue as string)) {
             expectedValue = new Date(expectedValue as string).getTime();
         }
 
@@ -605,7 +602,7 @@ export const getConditionedFiltersByType = (cond: FeatureTypeConditionValue[][] 
                 const orFilters = expectedValue.map((val) => {
                     let processedVal = val;
                     if (typeof val === "boolean") processedVal = val ? 1 : 0;
-                    if (isDateOrDateTimeString(val)) processedVal = new Date(val as string).getTime();
+                    if (isDateFormat(val as string)) processedVal = new Date(val as string).getTime();
                     return ["==", value, processedVal];
                 });
 
@@ -618,7 +615,7 @@ export const getConditionedFiltersByType = (cond: FeatureTypeConditionValue[][] 
                 const andFilters = expectedValue.map((val) => {
                     let processedVal = val;
                     if (typeof val === "boolean") processedVal = val ? 1 : 0;
-                    if (isDateOrDateTimeString(val)) processedVal = new Date(val as string).getTime();
+                    if (isDateFormat(val as string)) processedVal = new Date(val as string).getTime();
                     return ["!=", value, processedVal];
                 });
 
@@ -637,7 +634,7 @@ export const getConditionedFiltersByType = (cond: FeatureTypeConditionValue[][] 
                 const orFilters = [expectedValue, ...additionalValues].map((val) => {
                     let processedVal = val;
                     if (typeof val === "boolean") processedVal = val ? 1 : 0;
-                    if (isDateOrDateTimeString(val)) processedVal = new Date(val as string).getTime();
+                    if (isDateFormat(val as string)) processedVal = new Date(val as string).getTime();
                     return ["==", value, processedVal];
                 });
 
