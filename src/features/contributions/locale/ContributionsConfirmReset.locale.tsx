@@ -6,11 +6,11 @@ export const ContributionsConfirmResetFrTranslations: Translations<"fr">["Contri
     title: "Attention",
     description: ({ count }) => {
         if (count === 1000) {
-            return <p>Toutes contributions seront annulées, voulez-vous continuer ?</p>;
+            return <p>Toutes vos contributions seront annulées, voulez-vous continuer ?</p>;
         }
         return (
             <p>
-                {count > 1 ? `Les ${count} contributions séléctionnées seront annulées` : "La contribution séléctionnée sera annulée"}, voulez-vous continuer ?
+                {count > 1 ? `Les ${count} contributions sélectionnées seront annulées` : "La contribution sélectionnée sera annulée"}, voulez-vous continuer ?
             </p>
         );
     },
@@ -22,11 +22,11 @@ export const ContributionsConfirmResetEnTranslations: Translations<"en">["Contri
     title: "Warning",
     description: ({ count }: { count: number }) => {
         if (count === 1000) {
-            return <p>All contributions will be cancelled, do you want to continue?</p>;
+            return <p>All your contributions will be cancelled, do you want to continue?</p>;
         }
         return (
             <p>
-                {count > 1 ? `The ${count} selected contributions will be cancelled` : "The selected contribution will be cancelled"}, voulez-vous continuer ?
+                {count > 1 ? `The ${count} selected contributions will be cancelled` : "The selected contribution will be cancelled"}, do you want to continue?
             </p>
         );
     },

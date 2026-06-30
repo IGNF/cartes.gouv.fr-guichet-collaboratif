@@ -25,10 +25,13 @@ import WorkingLayerDrawer from "../working-layer/WorkingLayerDrawer";
 import { Control } from "ol/control";
 import Layer from "ol/layer/Layer";
 import WorkingLayerControl from "./controls/WorkingLayerControl";
-import { APP_FOOTER_MIN_HEIGHT } from "@/constants";
+import { APP_FOOTER_MIN_HEIGHT, APP_HEADER_HEIGHT } from "@/constants";
 import WorkingLayerLabelMap from "./controls/WorkingLayerLabelMap";
 import CustomControls from "./controls/custom-controls";
 import ReviewContributions from "../contributions/ReviewContributions";
+import BetaBadge from "@/components/Layout/MapCommunity/BetaBadge";
+import CommunityTitle from "@/components/Layout/MapCommunity/CommunityTitle";
+import CommunityToolbar from "@/components/Layout/MapCommunity/CommunityToolbar";
 
 export default function MainMap() {
     const mapTargetRef = useRef<HTMLDivElement>(null);
@@ -146,14 +149,12 @@ export default function MainMap() {
         })();
     }, [mapLayers, addLayer]);
 
-    const mapToolbarHeader = document.getElementById("map-toolbar-header");
-
     return (
         <div className={(fr.cx("fr-grid-row"), "grid-map-container")}>
             <div
                 className={cx(fr.cx("fr-col"), "map-view")}
                 ref={mapTargetRef}
-                style={{ height: `calc(100vh - ${(mapToolbarHeader?.clientHeight || 0) + APP_FOOTER_MIN_HEIGHT}px)` }}
+                style={{ height: `calc(100vh - ${APP_HEADER_HEIGHT + APP_FOOTER_MIN_HEIGHT}px)` }}
                 tabIndex={0}
             ></div>
 
@@ -164,6 +165,9 @@ export default function MainMap() {
             <WorkingLayerDrawer />
             <WorkingLayerControl />
             <WorkingLayerLabelMap />
+            <BetaBadge />
+            <CommunityTitle />
+            <CommunityToolbar />
 
             {map?.getAllLayers().length && <CustomControls />}
             {contributions.length > 0 && isReviewContribution && <ReviewContributions />}

@@ -5,14 +5,17 @@
 }
 
 .app-footer-main {
-    position: absolute;
+    position: relative;
     bottom: 0;
     width: 100%;
+    height: 2.5rem;
+    border-top: 0.13rem solid var(--artwork-major-blue-france);
 }
 
 .app-footer-root {
     height: 100%;
     padding-top: unset;
+    background-color: var(--text-inverted-grey);
     box-shadow: unset;
 }
 
@@ -20,6 +23,7 @@
     margin: unset;
     max-width: unset;
 }
+
 .app-footer-root .fr-footer__bottom {
     box-shadow: unset;
     margin: unset;

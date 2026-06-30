@@ -1,7 +1,7 @@
 .custom-controls {
     position: absolute;
     right: 2px;
-    top: 54px;
+    top: 7rem;
     width: 54px;
     padding-right: 14px;
 }
@@ -18,8 +18,45 @@
     width: 38.5px;
 }
 
-.custom-controls div button:not([aria-pressed="true"]) {
-    --hover-tint: var(--background-alt-blue-france-hover);
+.custom-controls button {
+    color: var(--text-action-high-blue-france);
+    /*Icon does not change along interaction*/
+}
+
+.custom-controls button[disabled],
+.custom-controls button:disabled {
+    color: var(--text-disabled-grey);
+    background-color: var(--background-default-grey);
+    /* icon disabled */
+}
+
+/* background colors*/
+.custom-controls button:hover {
+    background-color: var(--background-default-grey);
+}
+
+.custom-controls button:active {
+    background-color: var(--background-open-blue-france);
+}
+
+.custom-controls button[aria-pressed="true"] {
+    background-color: var(--background-open-blue-france);
+}
+
+.custom-controls button[aria-pressed="true"]:hover {
+    background-color: var(--background-open-blue-france-hover);
+}
+
+.custom-controls button[aria-pressed="true"]:active {
+    background-color: var(--background-open-blue-france-active);
+}
+
+/* Focus ring */
+.custom-controls button:focus-visible {
+    outline-color: 2px solid rgba(10, 118, 246, 1);
+    outline-offset: 2px;
+    border-radius: 2px;
+    background-color: var(--background-action-low-blue-france);
 }
 
 .custom-controls .control-btns button:first-child {
@@ -29,6 +66,7 @@
 .custom-controls .control-btns button:last-child {
     border-radius: 0px 0px 4px 4px;
 }
+
 .custom-controls .center-to-report-btns {
     margin-top: 8px;
 }
@@ -68,4 +106,25 @@
 
 .MuiTooltip-arrow.MuiTooltip-arrow {
     color: var(--text-inverted-grey);
+}
+
+.ol-ctx-menu-container {
+    background-color: var(--background-default-grey);
+    color: var(--text-default-grey);
+    border: 1px solid var(--border-default-grey);
+    border-radius: 4px;
+    box-shadow: var(--raised-shadow, 0 2px 8px rgba(0, 0, 0, 0.12));
+    font-family: "Marianne";
+    font-size: 0.875rem;
+}
+
+.ol-ctx-menu-container li:not(.ol-ctx-menu-separator):hover {
+    background-color: var(--background-alt-blue-france-hover);
+    color: var(--text-default-grey);
+}
+
+.ol-ctx-menu-separator hr {
+    background-image: none;
+    background-color: var(--border-default-grey);
+    height: 1px;
 }

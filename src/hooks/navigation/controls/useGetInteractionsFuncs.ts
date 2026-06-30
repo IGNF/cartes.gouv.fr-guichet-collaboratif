@@ -17,6 +17,7 @@ import {
 import { addFeatureProperties, addInteractionToMap, isPointOnSegment, removeInteractionFromMap, setFeatNewCoords } from "@/constants/contributions/utils";
 import { GeometryFeatueParams } from "@/constants/reports/types";
 import { Coordinate } from "ol/coordinate";
+import BaseEvent from "ol/events/Event";
 import { useCommunityStore, useContributionStore, useMapStore, useModalStore } from "@/store";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { CustomControlItem, GeoserviceFeatureTypeProp, InteractionType, StatusMessage } from "@/constants/communities/types";
@@ -217,8 +218,11 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
         splitInteraction,
     } = props;
 
+    // Add ref to get the latest interactions in ol event
     const registeredPasteHandlerRef = useRef<((e: MapBrowserEvent) => void) | null>(null);
     const shortestPathStartRef = useRef<{ feature: Feature; coordinate: Coordinate } | null>(null);
+
+    const pasteInteractionFuncRef = useRef<((e: MapBrowserEvent) => void) | null>(null);
 
     const selectInteractionFunc = useCallback(
         (e: SelectEvent) => {
@@ -413,6 +417,15 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
         ]
     );
 
+    useEffect(() => {
+        pasteInteractionFuncRef.current = pasteInteractionFunc;
+    }, [pasteInteractionFunc]);
+
+    const pasteAtCoordinate = useCallback((coordinate?: Coordinate) => {
+        if (!coordinate) return;
+        pasteInteractionFuncRef.current?.({ coordinate } as MapBrowserEvent);
+    }, []);
+
     const copyInteractionFunc = useCallback((): boolean => {
         const features = selectInteraction.getFeatures().getArray();
         const sourceFeature = features[0] ?? clickedMapFeature;
@@ -424,10 +437,15 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             registeredPasteHandlerRef.current = null;
         }
         clipboardFeature = sourceFeature.clone();
-        map?.on("singleclick", pasteInteractionFunc);
-        registeredPasteHandlerRef.current = pasteInteractionFunc;
+
+        // Pass the event with the feature through OL
+        const stablePasteHandler = (e: MapBrowserEvent) => {
+            pasteInteractionFuncRef.current?.(e);
+        };
+        map?.on("singleclick", stablePasteHandler);
+        registeredPasteHandlerRef.current = stablePasteHandler;
         return true;
-    }, [selectInteraction, clickedMapFeature, map, pasteInteractionFunc]);
+    }, [selectInteraction, clickedMapFeature, map]);
 
     const clearShortestPathStart = useCallback(() => {
         if (shortestPathStartRef.current?.feature) {
@@ -806,6 +824,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             t,
         ]
     );
+
     const deleteSelectedObjects = useCallback(
         (features: Feature[]) => {
             if (!currentMapWorkingSource) return;
@@ -830,6 +849,44 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             clearShortestPathStart();
         };
     }, [map, clearShortestPathStart]);
+
+    useEffect(() => {
+        if (!map) return;
+
+        const pasteHandler = (event: Event | BaseEvent) => {
+            const coordinate = (event as BaseEvent & { coordinate?: Coordinate }).coordinate;
+            if (!coordinate) return;
+            pasteAtCoordinate(coordinate);
+        };
+
+        const copyHandler = (event: Event | BaseEvent) => {
+            const feature = (event as BaseEvent & { feature?: Feature }).feature;
+            if (!feature) return;
+
+            if (registeredPasteHandlerRef.current) {
+                map.un("singleclick", registeredPasteHandlerRef.current);
+                registeredPasteHandlerRef.current = null;
+            }
+
+            clipboardFeature = feature.clone();
+
+            const stablePasteHandler = (e: MapBrowserEvent) => {
+                pasteInteractionFuncRef.current?.(e);
+            };
+            map.on("singleclick", stablePasteHandler);
+            registeredPasteHandlerRef.current = stablePasteHandler;
+        };
+
+        // Add listeners to map for custom copy/paste
+        // First param is type
+        map.addEventListener("custom-paste", pasteHandler);
+        map.addEventListener("custom-copy", copyHandler);
+
+        return () => {
+            map.removeEventListener("custom-paste", pasteHandler);
+            map.removeEventListener("custom-copy", copyHandler);
+        };
+    }, [map, pasteAtCoordinate]);
 
     useEffect(() => {
         selectedObjects.forEach((feat) => {

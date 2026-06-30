@@ -44,7 +44,7 @@ export const FeatureTypeFormAutomatic: React.FC<FeatureTypeFormAutomaticProps> =
                     const value = await calculateAutomaticField(fieldType, {
                         feature: clickedMapFeature,
                         userId: user?.id,
-                        username: user?.name,
+                        username: user?.username,
                         layerProjection: geoservice?.boxSrid,
                     });
 

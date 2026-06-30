@@ -58,7 +58,7 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
                 icon: "ri-map-pin-add-line",
                 disabled: false,
                 enabled: !!community?.themes?.length,
-                interaction: null,
+                interaction: InteractionType.CREATE_REPORT,
             },
             {
                 id: 3,

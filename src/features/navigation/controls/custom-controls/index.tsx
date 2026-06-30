@@ -46,8 +46,9 @@ const CustomControls = () => {
     }, [selectedObjects, interactions.selectInteraction]);
 
     const clickToolButton = useCallback(() => {
-        if (!clickedControl || clickedControl?.interaction || clickedControl?.disabled) return;
-        const controlButton = document.querySelector(`button[id^='${clickedControl?.target}'`) as HTMLButtonElement;
+        if (!clickedControl || clickedControl.disabled || !(clickedControl?.interaction === InteractionType.CREATE_REPORT)) return;
+
+        const controlButton = document.querySelector(`button[id^='${clickedControl.target}']`) as HTMLButtonElement | null;
         if (controlButton) {
             controlButton.click();
             if (controlButton.classList.contains("active")) {
