@@ -107,3 +107,24 @@
 .MuiTooltip-arrow.MuiTooltip-arrow {
     color: var(--text-inverted-grey);
 }
+
+.ol-ctx-menu-container {
+    background-color: var(--background-default-grey);
+    color: var(--text-default-grey);
+    border: 1px solid var(--border-default-grey);
+    border-radius: 4px;
+    box-shadow: var(--raised-shadow, 0 2px 8px rgba(0, 0, 0, 0.12));
+    font-family: "Marianne";
+    font-size: 0.875rem;
+}
+
+.ol-ctx-menu-container li:not(.ol-ctx-menu-separator):hover {
+    background-color: var(--background-alt-blue-france-hover);
+    color: var(--text-default-grey);
+}
+
+.ol-ctx-menu-separator hr {
+    background-image: none;
+    background-color: var(--border-default-grey);
+    height: 1px;
+}

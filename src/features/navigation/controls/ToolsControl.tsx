@@ -1,23 +1,30 @@
 import CoordinateAdvancedSearch from "geopf-extensions-openlayers/src/packages/Controls/SearchEngine/CoordinateAdvancedSearch.js";
 import GeoportalOverviewMap from "geopf-extensions-openlayers/src/packages/Controls/OverviewMap/GeoportalOverviewMap.js";
+import { Feature } from "ol";
 import { Control } from "ol/control";
 import GeoportalZoom from "geopf-extensions-openlayers/src/packages/Controls/Zoom/GeoportalZoom";
 import MeasureLength from "geopf-extensions-openlayers/src/packages/Controls/Measures/MeasureLength";
 import MeasureArea from "geopf-extensions-openlayers/src/packages/Controls/Measures/MeasureArea";
 import MeasureAzimuth from "geopf-extensions-openlayers/src/packages/Controls/Measures/MeasureAzimuth";
-import { useEffect, useRef } from "react";
+import ContextMenu from "geopf-extensions-openlayers/src/packages/Controls/ContextMenu/ContextMenu.js";
+
+import { useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "@/i18n";
 import { translateSearchEngineControl, translateZoomControl } from "@/constants/communities/utils";
-import { useCommunityStore, useMapStore } from "@/store";
-import { CommunityLayerFunctionalityType } from "@/constants/communities/types";
+import { useCommunityStore, useContributionStore, useMapStore } from "@/store";
+import { CommunityLayerFunctionalityType, InteractionType } from "@/constants/communities/types";
+import { CustomPasteEvent, CustomCopyEvent } from "@/classes/CustomControl";
 import useGetOverviewMapLayer from "@/hooks/navigation/layers/useGetOverviewMapLayer";
 import NamedPositionSearchEngineControl from "@/features/navigation/controls/GuichetSearchEngineControl";
 import AbstractAdvancedSearch from "geopf-extensions-openlayers/src/packages/Controls/SearchEngine/AbstractAdvancedSearch";
+import useCustomControlsList from "@/hooks/navigation/controls/useCustomControlsList";
 
 const useToolsControl = (): Control[] => {
     const { t } = useTranslation({ ToolsControl: {} });
+    const { t: tCustomControls } = useTranslation({ CustomControls: {} });
     const { community } = useCommunityStore();
-    const { map } = useMapStore();
+    const { map, clickedMapFeature, clickedControl, setClickedControl } = useMapStore();
+    const { selectedObjects } = useContributionStore();
     const overviewMapLayer = useGetOverviewMapLayer();
     const overviewMapControlRef = useRef<GeoportalOverviewMap | null>(null);
 
@@ -63,7 +70,54 @@ const useToolsControl = (): Control[] => {
         errorDuplicateName: t("error_duplicate_name"),
     };
 
-    // const hasLocateControl = community?.functionalities?.includes(CommunityLayerFunctionalityType.LOCATE_CONTROL);
+    const controlsList = useCustomControlsList(tCustomControls);
+    const copyControl = useMemo(() => controlsList.find((control) => control.interaction === InteractionType.COPY_OBJECT), [controlsList]);
+
+    const contextMenuItemsOptions = useMemo(() => {
+        // Don't show if control is disabled in community functionalities or not found
+        if (!copyControl || copyControl.disabled) return [];
+
+        const isPasteMode = clickedControl?.interaction === InteractionType.COPY_OBJECT;
+
+        // In copy mode: only show if there is a feature selected
+        // In paste mode: always show
+        if (!isPasteMode && !clickedMapFeature && selectedObjects.length === 0) {
+            return [];
+        }
+
+        return [
+            {
+                text: isPasteMode ? tCustomControls("paste_object") : copyControl.title,
+                callback: (payload: { coordinate?: number[] }) => {
+                    // Dispatch custom events to the map to handle copy/paste feature or coordinates
+                    if (isPasteMode) {
+                        if (!map || !payload?.coordinate) return;
+                        map.dispatchEvent(new CustomPasteEvent(payload.coordinate));
+                        return;
+                    }
+
+                    const feature = (selectedObjects[0] ?? clickedMapFeature) as Feature | undefined;
+                    if (!feature || !map) return;
+
+                    setClickedControl(copyControl);
+                    map.dispatchEvent(new CustomCopyEvent(feature));
+                },
+            },
+        ];
+    }, [copyControl, clickedControl, clickedMapFeature, selectedObjects, map, setClickedControl, tCustomControls]);
+
+    const contextMenu = useMemo(
+        () =>
+            new ContextMenu({
+                auto: true,
+                contextMenuItemsOptions: [],
+            }),
+        []
+    );
+
+    useEffect(() => {
+        contextMenu.updateContextMenuItems?.(contextMenuItemsOptions);
+    }, [contextMenu, contextMenuItemsOptions]);
 
     useEffect(() => {
         if (!hasMiniMap || !overviewMapLayer || !map) {
@@ -105,6 +159,7 @@ const useToolsControl = (): Control[] => {
         new MeasureLength({}),
         new MeasureArea({}),
         new MeasureAzimuth({}),
+        contextMenu as unknown as Control,
     ];
 };
 
