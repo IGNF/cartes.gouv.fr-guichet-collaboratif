@@ -53,6 +53,7 @@ export default function CommunityTitle() {
                         "aria-expanded": isOpen,
                         "aria-controls": isOpen ? infoId : undefined,
                     }}
+                    disabled={!info}
                 />
             </div>
 
