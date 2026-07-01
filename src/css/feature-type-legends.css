@@ -1,39 +1,49 @@
 .feature-type-legends {
-    padding: 10px;
-}
-
-.feature-type-legends div {
+    padding: 0.625rem;
     display: flex;
-    gap: 10px;
+    flex-direction: column;
+    gap: 0.625rem;
+    max-height: 100%;
+    min-height: 0;
+    overflow: hidden;
 }
 
-.feature-type-legends div:first-child {
+.feature-type-legends > div:first-child {
+    display: flex;
+    gap: 0.625rem;
     align-items: center;
+    flex-shrink: 0;
 }
 
-.feature-type-legends div:first-child label,
-.feature-type-legends div:first-child select {
+.feature-type-legends > div:first-child label,
+.feature-type-legends > div:first-child select {
     flex: 1;
 }
 
 .feature-type-buttons {
     display: flex;
     justify-content: end;
-    border-top: 1px solid grey;
-    padding-top: 10px;
+    border-top: 0.06rem solid var(--border-default-grey);
+    padding-top: 0.625rem;
     align-items: center;
+    gap: 0.625rem;
 }
 
 .gpf-panel__content .fr-modal__content {
-    height: 500px !important;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .feature-type-list {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 0.625rem;
     justify-content: flex-start;
-    margin-bottom: 10px;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
 }
 
 .feature-type-list div {
@@ -42,16 +52,40 @@
 }
 
 .feature-type-image {
-    width: 50px;
-    height: 50px;
+    width: 3.125rem;
+    height: 3.125rem;
     display: flex;
     justify-content: center;
     align-items: center;
     margin-bottom: 0;
+    margin-right: 0.625rem;
 }
 
-div[id^="GPlayerInfoContent"] {
-    max-height: unset !important;
+.feature-type-description {
+    flex: 1;
+    overflow: auto;
+}
+
+div[id^="GPlayerInfoContent-"] {
+    max-height: calc(100vh - 16rem) !important;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.gpf-panel__body_ls {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+div[id^="GPlayerInfoDescription-"],
+#feature-type-style {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
 }
 
 .feature-type-form-header {
@@ -71,7 +105,7 @@ div[id^="GPlayerInfoContent"] {
 
 .feature-type-form-edit-button {
     position: absolute;
-    right: 5px;
+    right: 0.3rem;
     top: 50%;
     transform: translateY(-50%);
 }
@@ -117,5 +151,5 @@ div[id^="GPlayerInfoContent"] {
     display: flex;
     margin-left: auto;
     align-items: center;
-    gap: 10px;
+    gap: 0.625rem;
 }
