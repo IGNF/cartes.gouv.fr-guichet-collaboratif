@@ -2,6 +2,7 @@ import { FeatureTypeColumn } from "@/constants/communities/types";
 import Input from "@codegouvfr/react-dsfr/Input";
 import RadioButtons from "@codegouvfr/react-dsfr/RadioButtons";
 import Select from "@codegouvfr/react-dsfr/Select";
+import { normalizeColumnEnum } from "@/constants/communities/utils";
 
 interface ChoiceTypeProps {
     choiceValue: string[];
@@ -10,9 +11,11 @@ interface ChoiceTypeProps {
 }
 
 const ChoiceValueComponent: React.FC<ChoiceTypeProps> = ({ choiceValue, currentColumn, handleChoiceValueChange }) => {
+    const enumValues = normalizeColumnEnum(currentColumn?.enum);
+
     switch (currentColumn?.type) {
         case "String":
-            if (currentColumn.enum) {
+            if (enumValues.length > 0) {
                 return (
                     <Select
                         label=""
@@ -22,8 +25,8 @@ const ChoiceValueComponent: React.FC<ChoiceTypeProps> = ({ choiceValue, currentC
                         }}
                     >
                         <option value="">Sélectionner une option</option>
-                        {currentColumn?.enum?.map((val, idx) => (
-                            <option key={`option_${val}_${idx}`} value={val}>
+                        {enumValues.map((val, idx) => (
+                            <option key={`option_${val}_${idx}`} value={val ?? ""}>
                                 {val ?? "null"}
                             </option>
                         ))}

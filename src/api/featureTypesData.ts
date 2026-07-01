@@ -6,6 +6,7 @@ import { transformExtent } from "ol/proj";
 import { QueryClient } from "@tanstack/react-query";
 import { Extent } from "ol/extent";
 import { appendLogoSize, resolveLogoUri } from "./featureTypeLogo";
+import { normalizeColumnEnum } from "@/constants/communities/utils";
 
 const ensureStylesList = (resData: { styles?: FeatureTypeStyleItemData[]; style?: FeatureTypeStyleItemData }) => {
     const styles = resData.styles || [];
@@ -32,7 +33,7 @@ const mapColumns = (columns: FeatureTypeColumn[]) =>
         return {
             name: col.name,
             type: col.type,
-            enum: col.enum,
+            enum: normalizeColumnEnum(col.enum),
             title: col.title,
             nullable: col.nullable,
             description: col.description,

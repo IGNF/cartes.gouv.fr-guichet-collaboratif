@@ -249,6 +249,33 @@ export const jsonToHtmlList = (data: object): string => {
     }
 };
 
+const isEnumValue = (value: unknown): value is string | number | null => value === null || typeof value === "string" || typeof value === "number";
+
+export const normalizeColumnEnum = (enumValues: unknown): (string | number | null)[] => {
+    if (Array.isArray(enumValues)) {
+        return enumValues.filter(isEnumValue);
+    }
+
+    if (typeof enumValues === "string") {
+        const trimmedValue = enumValues.trim();
+        return trimmedValue ? [trimmedValue] : [];
+    }
+
+    if (enumValues === null || enumValues === undefined) {
+        return [];
+    }
+
+    if (typeof enumValues === "number") {
+        return [enumValues];
+    }
+
+    if (enumValues && typeof enumValues === "object") {
+        return Object.values(enumValues as Record<string, unknown>).filter(isEnumValue);
+    }
+
+    return [];
+};
+
 export const isDateFormat = (value: string) => {
     const regex = /^\d{4}-\d{2}-\d{2}$/;
     return typeof value === "string" && regex.test(value);
