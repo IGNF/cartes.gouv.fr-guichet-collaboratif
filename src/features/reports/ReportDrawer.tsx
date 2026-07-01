@@ -11,7 +11,6 @@ import DrawerComponent from "@/components/DrawerComponent";
 import ShowReport from "./ShowReport";
 import CreateReport from "./CreateReport";
 import TableReportDrawer from "./table/TableReportDrawer";
-import OpenReplyReportModal from "./forms/OpenReplyReportModal";
 import EditReport from "./EditReport";
 import Button from "@codegouvfr/react-dsfr/Button";
 import { useTranslation } from "@/i18n";
@@ -263,7 +262,6 @@ const ReportDrawer = () => {
                     ) : null}
                 </>
             </DrawerComponent>
-            <OpenReplyReportModal onClose={() => setResponseDrawerOpened(false)} />
             <MapListnerHandlers handleCloseDrawer={handleCloseDrawer} />
         </>
     );

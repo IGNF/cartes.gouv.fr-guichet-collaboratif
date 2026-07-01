@@ -10,7 +10,6 @@ import { CarteFrTranslations } from "@/pages/locale/Carte.locale";
 import { GetReportsLayerFrTranslations } from "@/features/navigation/layers/locale/GetReportsLayer.locale";
 import { AttachmentListFrTranslations } from "@/features/reports/forms/locale/AttachmentList.locale";
 import { ConfirmCancelModalFrTranslations } from "@/features/reports/forms/locale/ConfirmCancelModal.locale";
-import { OpenReplyReportModalFrTranslations } from "@/features/reports/forms/locale/OpenReplyReportModal.locale";
 import { ConfirmDeleteReportModalFrTranslations } from "@/features/reports/forms/locale/ConfirmDeleteReportModal.locale";
 import { ShareReportModalFrTranslations } from "@/features/reports/locale/ShareReportModal.locale";
 import { TableReportDrawerFrTranslations } from "@/features/reports/locale/TableReportDrawer.locale";
@@ -83,7 +82,6 @@ export const translations: Translations<"fr"> = {
     GetReportsLayer: GetReportsLayerFrTranslations,
     AttachmentList: AttachmentListFrTranslations,
     ConfirmCancelModal: ConfirmCancelModalFrTranslations,
-    OpenReplyReportModal: OpenReplyReportModalFrTranslations,
     ConfirmDeleteReportModal: ConfirmDeleteReportModalFrTranslations,
     ShareReportModal: ShareReportModalFrTranslations,
     TableReportDrawer: TableReportDrawerFrTranslations,
