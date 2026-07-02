@@ -13,6 +13,7 @@ type GroupProps = {
 
 const GroupComponent: React.FC<GroupProps> = ({ className, group, onChange, onDelete }) => {
     const { t } = useTranslation({ GroupComponent });
+    const hasAtLeastTwoRules = group.rules.length >= 2;
 
     const updateChild = (index: number, updated: Rule | Group) => {
         const newRules = [...group.rules];
@@ -49,6 +50,7 @@ const GroupComponent: React.FC<GroupProps> = ({ className, group, onChange, onDe
                             })
                         }
                         priority={group.operator === GroupOperator.ET ? "secondary" : "tertiary"}
+                        disabled={!hasAtLeastTwoRules}
                     >
                         {t("and_operator")}
                     </Button>
@@ -61,7 +63,7 @@ const GroupComponent: React.FC<GroupProps> = ({ className, group, onChange, onDe
                             })
                         }
                         priority={group.operator === GroupOperator.OU ? "secondary" : "tertiary"}
-                        disabled={group.rules.length <= 1}
+                        disabled={!hasAtLeastTwoRules}
                     >
                         {t("or_operator")}
                     </Button>
