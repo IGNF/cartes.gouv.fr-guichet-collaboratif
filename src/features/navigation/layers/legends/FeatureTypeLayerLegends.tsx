@@ -121,6 +121,9 @@ const FeatureTypeLayerLegends = () => {
                         imgSrc = createLineSVG(type);
                     } else if (type.featureType === "polygon") {
                         imgSrc = createPolygonSVG(type);
+                    } else if (type.logo) {
+                        imgSrc = type.logo;
+                        if (type.pointRadius) imgWidth = type.pointRadius * 2;
                     } else {
                         imgSrc = (getWellKnownNames(type)[1] as HTMLImageElement).src;
                         if (type.pointRadius) imgWidth = type.pointRadius * 2;
