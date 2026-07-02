@@ -27,7 +27,10 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
         [currentCommunityLayer?.snapto]
     );
     const isShortestPathLayer = currentCommunityLayer?.geoservice.featureType === GeoserviceFeatureTypeProp.LINE;
-    const isShortestPathEnabled = Boolean(isShortestPathLayer && snaptoIds.includes(currentCommunityLayer?.geoservice.id ?? -1));
+    const isShortestPathEnabled = useMemo(
+        () => Boolean(isShortestPathLayer && snaptoIds.some((id) => communityLayers?.some((l) => l.geoservice.id === id))),
+        [isShortestPathLayer, snaptoIds, communityLayers]
+    );
 
     const { isRasterLayer, isRasterLayerQueryable } = useRasterWorkingLayer();
 

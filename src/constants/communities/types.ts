@@ -263,6 +263,8 @@ export enum CommunityLayerFunctionalityType {
 export enum CommunityLayerRoleType {
     VISU = "visu",
     EDIT = "edit",
+    REF = "ref",
+    REF_EDIT = "ref_edit",
 }
 
 export enum InteractionType {
