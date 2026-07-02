@@ -249,7 +249,7 @@
     left: 0;
     z-index: 15;
     background-color: var(--background-default-grey);
-    box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+    border-right: 1px solid var(--border-default-grey);
 }
 
 .search-table thead th:first-child {
@@ -258,6 +258,10 @@
 
 .search-table tbody tr:nth-child(even) td:first-child {
     background-color: var(--background-contrast-grey);
+}
+
+.search-table .fr-checkbox-group {
+    top: -0.6rem;
 }
 
 .search-table thead th:last-child {
