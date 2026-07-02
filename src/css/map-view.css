@@ -18,7 +18,7 @@
 /* Centrage de la barre de recherche avec marge horizontales auto et largeur fixe */
 div[id^="GPsearchEngine-Advanced-"] {
     position: relative;
-    width: 480px;
+    width: 30rem;
     margin: 0 auto;
     left: 40%;
 }
@@ -30,7 +30,7 @@ form[id^="GPcoordinateSearchForm"] {
 }
 
 /* MODE MOBILE : les boutons sont en dessous de la barre de recherche qui prend toute la largeur */
-@media (max-width: 576px) {
+@media (max-width: 36rem) {
     div[id^="GPsearchEngine-"] {
         top: unset;
         left: unset;
@@ -42,13 +42,17 @@ form[id^="GPcoordinateSearchForm"] {
     }
 }
 
+dialog[id^="GPlayersList"] > .GPpanelBody {
+    max-height: calc(100vh - 16rem) !important;
+}
+
 .ol-overviewmap .ol-overviewmap-map {
-    border-radius: 4px;
-    width: 104px !important;
-    height: 104px !important;
+    border-radius: 0.25rem;
+    width: 6.5rem !important;
+    height: 6.5rem !important;
 }
 
 .position-container-top-right {
     top: 4rem !important;
-    height: calc(100% - 56px) !important;
+    height: calc(100% - 3.5rem) !important;
 }

@@ -133,7 +133,9 @@ const FeatureTypeLayerLegends = () => {
                             <div className="feature-type-image">
                                 <img src={imgSrc || undefined} alt={type.title} width={imgWidth} property="low" rel="preload" />
                             </div>
-                            <span>{type.title}</span>
+                            <div className="feature-type-description">
+                                <span>{type.title}</span>
+                            </div>
                         </div>
                     );
                 })}
