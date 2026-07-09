@@ -502,7 +502,7 @@ export const getCenterReportMessage = (message: AlertMessageType[]) => {
             typeof message.text === "object" &&
             React.isValidElement(message.text) &&
             typeof message.text.type === "function" &&
-            message.text.type.name === "CenterMessage"
+            (message.text.type as React.FC).displayName === "CenterMessage"
     );
 };
 
