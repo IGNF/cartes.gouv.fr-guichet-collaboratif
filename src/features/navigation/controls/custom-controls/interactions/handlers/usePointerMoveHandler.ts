@@ -11,6 +11,7 @@ interface UsePointerMoveHandlerProps {
     isNotClickable: boolean;
     mapWorkingLayer: string;
     clickableSource: VectorSource;
+    shortestPathNetwork: CommunityGeoservice[];
     selectedFeatures: Feature[];
     currentGeoservice: CommunityGeoservice | undefined;
     clearHoverState: () => void;
@@ -19,12 +20,16 @@ interface UsePointerMoveHandlerProps {
     tooltipRef: RefObject<HTMLDivElement | null>;
 }
 
+/*
+ Handles pointer-move events: cursor style, hover highlight, and tooltip
+ */
 export const usePointerMoveHandler = (props: UsePointerMoveHandlerProps) => {
     const {
         map,
         isNotClickable,
         mapWorkingLayer,
         clickableSource,
+        shortestPathNetwork,
         selectedFeatures,
         currentGeoservice,
         clearHoverState,
@@ -41,8 +46,8 @@ export const usePointerMoveHandler = (props: UsePointerMoveHandlerProps) => {
                 return;
             }
             const activeInteractions = map?.getInteractions().getArray();
+
             // Check if any active interaction disables the tooltip
-            // Defined in useGetInteraction
 
             const tooltipDisabled = activeInteractions?.some(
                 (interaction) => interaction.get("type") !== undefined && interaction.get("disablesTooltip") === true
@@ -51,29 +56,51 @@ export const usePointerMoveHandler = (props: UsePointerMoveHandlerProps) => {
                 clearHoverState();
                 return;
             }
-            const getHoveredFeature = () => {
-                const featuresAtPixel = map?.getFeaturesAtPixel(evt.pixel, {
-                    layerFilter: (layer) => {
-                        return layer.get("name") === mapWorkingLayer || layer.get("type") === mapWorkingLayer;
-                    },
-                    hitTolerance: HIT_DETECTION_TOLERENCE,
-                });
+            const getHoveredFeature = (): { feature: Feature; layerName: string } | undefined => {
+                const shortestPathNetworkLayerNames = shortestPathNetwork.map((gs) => gs.layer);
+                const isShortestPath = clickedControl?.interaction === InteractionType.SHORTEST_PATH && shortestPathNetworkLayerNames.length > 0;
 
-                return featuresAtPixel?.find((f) => {
-                    if (mapWorkingLayer === REPORTS_LAYER_TYPE) {
-                        const fCluster = f.get("features");
-                        if (fCluster?.length > 1) return fCluster[0];
-                        return fCluster?.find((fc: Feature) => fc.get("reportData") || fc.get("new"));
+                let result: { feature: Feature; layerName: string } | undefined;
+                map?.forEachFeatureAtPixel(
+                    evt.pixel,
+                    (f, layer) => {
+                        //Stop after first match
+                        if (result) return true;
+                        const layerName: string = layer?.get("name") ?? "";
+                        if (mapWorkingLayer === REPORTS_LAYER_TYPE) {
+                            const fCluster = f.get("features");
+                            if (fCluster?.length > 1) {
+                                result = { feature: fCluster[0] as Feature, layerName };
+                            } else {
+                                const inner = fCluster?.find((fc: Feature) => fc.get("reportData") || fc.get("new"));
+                                if (inner) result = { feature: inner as Feature, layerName };
+                            }
+                            return !!result;
+                        }
+                        if (isShortestPath) {
+                            result = { feature: f as Feature, layerName };
+                            return true;
+                        }
+                        if (clickableSource?.hasFeature(f as Feature)) {
+                            result = { feature: f as Feature, layerName };
+                            return true;
+                        }
+                        return false;
+                    },
+                    {
+                        layerFilter: (layer) => {
+                            if (isShortestPath) return shortestPathNetworkLayerNames.includes(layer.get("name"));
+                            return layer.get("name") === mapWorkingLayer || layer.get("type") === mapWorkingLayer;
+                        },
+                        hitTolerance: HIT_DETECTION_TOLERENCE,
                     }
-                    if (clickableSource?.hasFeature(f as Feature)) {
-                        return f;
-                    }
-                    return null;
-                }) as Feature | undefined;
+                );
+                return result;
             };
 
             const targetElement = map?.getTargetElement();
-            const hoveredFeature = getHoveredFeature();
+            const hovered = getHoveredFeature();
+            const hoveredFeature = hovered?.feature;
 
             if (targetElement) {
                 // Modify cursor style base on interaction
@@ -82,7 +109,6 @@ export const usePointerMoveHandler = (props: UsePointerMoveHandlerProps) => {
                         case InteractionType.COPY_OBJECT:
                             targetElement.style.cursor = "copy";
                             break;
-                        case InteractionType.SHORTEST_PATH:
                         case InteractionType.SPLIT_LINE:
                             targetElement.style.cursor = "crosshair";
                             break;
@@ -161,12 +187,14 @@ export const usePointerMoveHandler = (props: UsePointerMoveHandlerProps) => {
                             }
                         }
                     } else if (currentGeoservice) {
+                        const matchedGs = shortestPathNetwork.find((gs) => gs.layer === hovered?.layerName);
+                        const tooltipGeoservice = matchedGs ?? currentGeoservice;
                         const data = hoveredFeature.get(FEATURE_TYPE_DATA_PROPERTY) as Record<string, unknown> | undefined;
-                        const idName = currentGeoservice.idName;
+                        const idName = tooltipGeoservice.idName;
                         const featureId = data && idName ? data[idName] : (data?.id ?? "");
                         const titleDiv = document.createElement("div");
                         titleDiv.className = "map-hover-tooltip-title";
-                        titleDiv.textContent = currentGeoservice.layer;
+                        titleDiv.textContent = tooltipGeoservice.layer;
                         tooltipRef.current.appendChild(titleDiv);
 
                         if (featureId != null && featureId !== "") {
@@ -194,6 +222,7 @@ export const usePointerMoveHandler = (props: UsePointerMoveHandlerProps) => {
             clickedControl,
             mapWorkingLayer,
             clickableSource,
+            shortestPathNetwork,
             selectedFeatures,
             currentGeoservice,
             clearHoverState,
