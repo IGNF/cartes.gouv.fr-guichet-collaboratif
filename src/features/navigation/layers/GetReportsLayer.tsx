@@ -3,7 +3,7 @@ import { useCommunityStore } from "@/store/useCommunityStore";
 import { useLocalStorageStore } from "@/store/useLocalStorageStore";
 import useGetReportsLayer from "@/hooks/navigation/layers/useGetReportsLayer";
 import { LocalLayer } from "@/constants/localStorage/types";
-import { ReportLegendsHTML } from "./legends/ReportLegends";
+import { ReportLegendsHTML } from "@/features/navigation/layers/legends/ReportLegendsHTML";
 import { useTranslation } from "@/i18n";
 import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 

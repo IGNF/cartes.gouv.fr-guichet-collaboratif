@@ -11,7 +11,6 @@ import DrawerComponent from "@/components/DrawerComponent";
 import ShowReport from "./ShowReport";
 import CreateReport from "./CreateReport";
 import TableReportDrawer from "./table/TableReportDrawer";
-import OpenReplyReportModal from "./forms/OpenReplyReportModal";
 import EditReport from "./EditReport";
 import Button from "@codegouvfr/react-dsfr/Button";
 import { useTranslation } from "@/i18n";
@@ -40,7 +39,7 @@ const ReportDrawer = () => {
 
     const { localStorageData } = useLocalStorageStore();
 
-    const { map, setClickedControl } = useMapStore();
+    const { map, setClickedControl, clickedTool, setClickedTool } = useMapStore();
     const { alertMessages, removeAlertMessage } = useCommunityStore();
 
     const reportClusterLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE && layer.getSource() instanceof VectorSource);
@@ -72,6 +71,12 @@ const ReportDrawer = () => {
             reportSource?.removeFeatures(reportFeatures);
         }
 
+        if (clickedTool?.clicked && clickedTool.name) {
+            const activeToolBtn = document.querySelector(`button[id*="${clickedTool.name}"].drawing-tool-active`) as HTMLButtonElement | null;
+            activeToolBtn?.click();
+            setClickedTool({ name: clickedTool.name, clicked: false });
+        }
+
         const isNotified = getCenterReportMessage(alertMessages);
         if (isNotified) {
             removeAlertMessage(isNotified.id);
@@ -83,7 +88,19 @@ const ReportDrawer = () => {
         setTableDrawerOpened(false);
         setSelectedReport(null);
         setSelectedFeatures([]);
-    }, [selectedReport, alertMessages, setDrawerOpened, setEditReport, setTableDrawerOpened, setSelectedReport, setSelectedFeatures, map, removeAlertMessage]);
+    }, [
+        selectedReport,
+        alertMessages,
+        clickedTool,
+        setClickedTool,
+        setDrawerOpened,
+        setEditReport,
+        setTableDrawerOpened,
+        setSelectedReport,
+        setSelectedFeatures,
+        map,
+        removeAlertMessage,
+    ]);
 
     const handleDrawingAdd = useCallback(
         (e: Event) => {
@@ -149,6 +166,16 @@ const ReportDrawer = () => {
             setEditReport(false);
         }
     }, [drawerOpened, selectedReport, isAdmin, isOwner, setEditReport]);
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape" && (drawerOpened || tableDrawerOpened)) {
+                handleCloseDrawer();
+            }
+        };
+        document.addEventListener("keydown", handleKeyDown);
+        return () => document.removeEventListener("keydown", handleKeyDown);
+    }, [drawerOpened, tableDrawerOpened, handleCloseDrawer]);
 
     const reportIdParam = searchParams.get("report");
 
@@ -235,7 +262,6 @@ const ReportDrawer = () => {
                     ) : null}
                 </>
             </DrawerComponent>
-            <OpenReplyReportModal onClose={() => setResponseDrawerOpened(false)} />
             <MapListnerHandlers handleCloseDrawer={handleCloseDrawer} />
         </>
     );

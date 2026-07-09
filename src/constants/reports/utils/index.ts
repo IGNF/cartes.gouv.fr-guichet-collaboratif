@@ -1,16 +1,7 @@
 import { ClickedMapReportProps, CommunityReport, GeometryFeatueParams, SketchFeatureType, SketchObject, SketchReport } from "../types";
 import { Feature, Map } from "ol";
 import { Coordinate } from "ol/coordinate";
-import {
-    getFeatureDiam,
-    getFeatureGeometryWKT,
-    getFeatureLine,
-    getFeatureMultiLine,
-    getFeaturePoint,
-    getFeaturePolygon,
-    getSketchFeatureType,
-    markersStyles,
-} from "../../utils";
+import { getFeatureDiam, getFeatureGeometryWKT, getFeatureLine, getFeaturePoint, getFeaturePolygon, getSketchFeatureType, markersStyles } from "../../utils";
 import ImageStyle from "ol/style/Image";
 import KML from "ol/format/KML";
 import GPX from "ol/format/GPX";
@@ -75,15 +66,12 @@ export const getReportSketch = (features: Feature[], map: Map, edit: boolean = f
 };
 
 export const getReportSketchFeatures = (report: CommunityReport | undefined) => {
-    if (!report?.sketch) return [];
+    if (!report?.sketch?.objects) return [];
     return report.sketch.objects.map((featData) => {
-        if (featData.type === SketchFeatureType.MultiLineString) {
-            return getFeatureMultiLine(report, featData);
-        }
-        if (featData.type === SketchFeatureType.LineString) {
+        if (featData.type === SketchFeatureType.MultiLineString || featData.type === SketchFeatureType.LineString) {
             return getFeatureLine(report, featData);
         }
-        if (featData.type === SketchFeatureType.Polygon) {
+        if (featData.type === SketchFeatureType.Polygon || featData.type === SketchFeatureType.MultiPolygon) {
             return getFeaturePolygon(report, featData);
         }
         return getFeaturePoint(report, featData);

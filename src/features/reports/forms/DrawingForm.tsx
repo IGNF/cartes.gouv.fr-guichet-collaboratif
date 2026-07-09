@@ -24,7 +24,7 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsD
     const [showSketch, setShowSketch] = useState<boolean>(false);
 
     const { user } = useUserStore();
-    const { map } = useMapStore();
+    const { map, setClickedTool } = useMapStore();
     const { selectedReport, selectedFeatures, setSelectedFeatures, editReport } = useReportStore();
 
     const importFileRef = useRef<HTMLInputElement>(null);
@@ -152,12 +152,20 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsD
     };
     const isOwner = Number(user?.id) === Number(selectedReport?.author?.id);
 
+    const releaseActiveTool = () => {
+        if (clickedTool?.clicked && clickedTool.name) {
+            const activeToolBtn = document.querySelector(`button[id*="${clickedTool.name}"].drawing-tool-active`) as HTMLButtonElement | null;
+            activeToolBtn?.click();
+            setClickedTool({ name: clickedTool.name, clicked: false });
+        }
+    };
+
     return (
         <>
             <SketchList showSketch={showSketch} expendedDrawing={expendedDrawing} />
 
             {!hideToolsDiv && editReport && !showSketch && (
-                <Button className="fr-mt-4v" onClick={() => setShowSketch(!showSketch)}>
+                <Button priority="secondary" className="fr-mt-4v" onClick={() => setShowSketch(!showSketch)}>
                     {selectedReport?.sketch ? t("edit_sketchToEdit") : t("show_sketchToEdit")}
                 </Button>
             )}
@@ -226,6 +234,8 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsD
                                 if (drawingSource) {
                                     setSelectedFeatures(drawingSource.getFeatures());
                                 }
+                                releaseActiveTool();
+                                setShowSketch(false);
                                 if (onSubmitSketch) {
                                     onSubmitSketch();
                                 }
@@ -234,7 +244,13 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsD
                             {t("save_sketch")}
                         </Button>
                     )}
-                    <Button priority="secondary" onClick={() => setShowSketch(!showSketch)}>
+                    <Button
+                        priority="secondary"
+                        onClick={() => {
+                            releaseActiveTool();
+                            setShowSketch(false);
+                        }}
+                    >
                         {t("hide_sketchToEdit")}
                     </Button>
                 </div>

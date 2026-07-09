@@ -4,6 +4,7 @@
     justify-content: space-between;
     align-items: center;
     flex: 1 0 0;
+    border-bottom: 0.063rem solid var(--border-default-grey);
 }
 
 .fr-container--fluid {

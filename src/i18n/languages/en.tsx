@@ -10,13 +10,13 @@ import { CarteEnTranslations } from "@/pages/locale/Carte.locale";
 import { GetReportsLayerEnTranslations } from "@/features/navigation/layers/locale/GetReportsLayer.locale";
 import { AttachmentListEnTranslations } from "@/features/reports/forms/locale/AttachmentList.locale";
 import { ConfirmCancelModalEnTranslations } from "@/features/reports/forms/locale/ConfirmCancelModal.locale";
-import { OpenReplyReportModalEnTranslations } from "@/features/reports/forms/locale/OpenReplyReportModal.locale";
 import { ConfirmDeleteReportModalEnTranslations } from "@/features/reports/forms/locale/ConfirmDeleteReportModal.locale";
 import { ShareReportModalEnTranslations } from "@/features/reports/locale/ShareReportModal.locale";
 import { TableReportDrawerEnTranslations } from "@/features/reports/locale/TableReportDrawer.locale";
 import { DrawingFormEnTranslations } from "@/features/reports/forms/locale/DrawingForm.locale";
 import { ImportSketchFileEnTranslations } from "@/features/reports/forms/locale/ImportSketchFile.locale";
 import { ReportFormEnTranslations } from "@/features/reports/forms/locale/ReportForm.locale";
+import { SketchListEnTranslations } from "@/features/reports/forms/locale/SketchList.locale";
 import { ThemeComponentEnTranslations } from "@/features/reports/forms/locale/ThemeComponent.locale";
 import { ThemeFormEnTranslations } from "@/features/reports/forms/locale/ThemeForm.locale";
 import { CenterMessageEnTranslations } from "@/features/reports/locale/CenterMessage.locale";
@@ -33,6 +33,7 @@ import { useGetWMTSLayerEnTranslations } from "@/hooks/navigation/layers/locale/
 import { useFeatureTypeValidationEnTranslations } from "@/hooks/working-layer/locale/useFeatureTypeValidation.locale";
 import { DrawerComponentEnTranslations } from "@/components/locale/DrawerComponent.locale";
 import { FilterAndSortReportEnTranslations } from "@/components/locale/FilterAndSortReport.locale";
+import { ReportFiltersComponentEnTranslations } from "@/components/locale/ReportFiltersComponent.locale";
 import { DrawingControlEnTranslations } from "@/features/navigation/controls/locale/DrawingControl.locale";
 import { ToolsControlEnTranslations } from "@/features/navigation/controls/locale/ToolsControl.locale";
 import { CatalogControlEnTranslations } from "@/features/navigation/controls/locale/CatalogControl.locale";
@@ -75,18 +76,19 @@ export const translations: Translations<"en"> = {
     CommunityToolbar: CommunityToolbarEnTranslations,
     DrawerComponent: DrawerComponentEnTranslations,
     FilterAndSortReport: FilterAndSortReportEnTranslations,
+    ReportFiltersComponent: ReportFiltersComponentEnTranslations,
     NotFound: NotFoundEnTranslations,
     Carte: CarteEnTranslations,
     GetReportsLayer: GetReportsLayerEnTranslations,
     AttachmentList: AttachmentListEnTranslations,
     ConfirmCancelModal: ConfirmCancelModalEnTranslations,
-    OpenReplyReportModal: OpenReplyReportModalEnTranslations,
     ConfirmDeleteReportModal: ConfirmDeleteReportModalEnTranslations,
     ShareReportModal: ShareReportModalEnTranslations,
     TableReportDrawer: TableReportDrawerEnTranslations,
     DrawingForm: DrawingFormEnTranslations,
     ImportSketchFile: ImportSketchFileEnTranslations,
     ReportForm: ReportFormEnTranslations,
+    SketchList: SketchListEnTranslations,
     ThemeComponent: ThemeComponentEnTranslations,
     ThemeForm: ThemeFormEnTranslations,
     CenterMessage: CenterMessageEnTranslations,

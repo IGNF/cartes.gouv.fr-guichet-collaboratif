@@ -7,7 +7,7 @@ import { fromLonLat } from "ol/proj";
 import { AlertMessageType, CommunityGeoservice, CommunityTheme, FeatureTypeSelectedStyle, FeatureTypeStyle } from "./communities/types";
 import Feature from "ol/Feature";
 import { Map } from "ol";
-import { CommunityReport, GeometryFeatueParams, PostThemeReport, SketchFeatureType, SketchObject } from "./reports/types";
+import { CommunityReport, GeometryFeatueParams, PostThemeReport, SketchFeatureType, SketchObject, Severity } from "./reports/types";
 import { Fill, Icon, Stroke, Style, Text } from "ol/style";
 import { Geometry, LineString, MultiLineString, MultiPoint, MultiPolygon, Point, Polygon } from "ol/geom";
 import Layer from "ol/layer/Layer";
@@ -31,9 +31,22 @@ import { ComparatorFunc, simpleComparators } from "./mongo_parser";
 import getWellKnownNames from "./wellKnownNames";
 import addProjectionsToProj4 from "./projectionsToDefine";
 import { FEATURE_TYPE_DATA_PROPERTY } from ".";
+import { POLYGON_LINE_COLOR, FILL_COLOR, POINT_COLOR } from "./colors";
 
 const wktFormat = new WKT();
 addProjectionsToProj4();
+
+export const parseApiColor = (color: string | undefined, fallback: string): string => {
+    if (!color) return fallback;
+    const match = color.match(/^(#[0-9a-fA-F]{3,8});?(\d*\.?\d+)?$/);
+    if (!match) return color;
+    const hex = match[1];
+    const alpha = match[2] !== undefined ? parseFloat(match[2]) : 1;
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r},${g},${b},${alpha})`;
+};
 
 export const markersStyles = [
     { name: "circle", imgSrc: createCircleImg },
@@ -60,7 +73,7 @@ export const otherMarkers = markersStyles.map((style) => {
 });
 
 type ReportImgStatusType = {
-    [key: string]: { img: string; text: string; colorType: string };
+    [key: string]: { img: string; text: string; colorType: Severity };
 };
 
 export const reportImgStatus: ReportImgStatusType = {
@@ -71,12 +84,14 @@ export const reportImgStatus: ReportImgStatusType = {
     pending2: { img: imgPending, text: "En attente de validation", colorType: "info" },
     valid: { img: imgValid, text: "Pris en compte", colorType: "success" },
     valid0: { img: imgValid, text: "Déjà pris en compte", colorType: "success" },
-    reject: { img: imgReject, text: "Rejeté (hors spéc.)", colorType: "error" },
-    reject0: { img: imgReject, text: "Rejeté (hors de propos)", colorType: "error" },
+    reject: { img: imgReject, text: "Rejeté (hors spéc.)", colorType: "warning" },
+    reject0: { img: imgReject, text: "Rejeté (hors de propos)", colorType: "warning" },
     test: { img: imgTest, text: "En mode test", colorType: "new" },
 };
 
 export const STATUS_NOT_ALLOWED = ["valid", "valid0", "reject", "reject0", "test"];
+
+export const getStatusSeverity = (status: string): Severity => reportImgStatus[status]?.colorType ?? "info";
 type LonLatCoordinate = Coordinate | Coordinate[] | Coordinate[][] | Coordinate[][][];
 type FeatureTypeData = { geometrie: string; capacite: number | null; type_amenagement: string | null };
 
@@ -333,7 +348,7 @@ export const getFeatureGeometryWKT = (feature: Feature, mapProj: string = "EPSG:
 export const getSketchFeatureType = (feature: Feature): SketchFeatureType => {
     const featureType = feature.getGeometry()?.getType();
     if (!featureType) return SketchFeatureType.Point;
-    return SketchFeatureType[featureType];
+    return (SketchFeatureType as Record<string, SketchFeatureType>)[featureType] ?? SketchFeatureType.Point;
 };
 
 export const getFeatureDiam = (feature: Feature) => {
@@ -374,12 +389,12 @@ export const getFeaturePoint = (report: CommunityReport, featData: SketchObject,
             style = new Style({
                 text: new Text({
                     offsetY: -15,
-                    fill: new Fill({ color: featData.style?.backcolor }),
+                    fill: new Fill({ color: featData.style?.backcolor ?? FILL_COLOR }),
                     text: featData.attributes.nom,
                     font: "16px sans",
                     stroke: new Stroke({
                         width: featData.style?.diam,
-                        color: featData.style?.frontcolor,
+                        color: featData.style?.frontcolor ?? POINT_COLOR,
                     }),
                 }),
                 zIndex: 1,
@@ -404,38 +419,21 @@ export const getFeaturePoint = (report: CommunityReport, featData: SketchObject,
 };
 
 export const getFeaturePolygon = (report: CommunityReport, featData: SketchObject) => {
-    let lonLat = getLonLatFromPoint(featData.geometry);
-    lonLat = (featData.geometry.includes("MULTIPOLYGON") ? lonLat[0] : lonLat) as Coordinate[][] | number[];
+    const isMulti = featData.type === SketchFeatureType.MultiPolygon || /MULTIPOLYGON/i.test(featData.geometry ?? "");
+    const lonLat = getLonLatFromPoint(featData.geometry);
+    const style = Array.isArray(featData.style) ? undefined : featData.style;
     const feature = new Feature({
-        geometry: new Polygon(lonLat),
+        geometry: isMulti ? new MultiPolygon(lonLat as Coordinate[][][]) : new Polygon(lonLat as Coordinate[][]),
         reportData: report,
     });
     feature.setStyle(
         new Style({
             stroke: new Stroke({
-                color: featData.style?.frontcolor,
-                width: featData.style?.diam,
+                color: parseApiColor(style?.frontcolor, POLYGON_LINE_COLOR),
+                width: style?.diam ?? 2,
             }),
             fill: new Fill({
-                color: featData.style?.backcolor,
-            }),
-            zIndex: 1,
-        })
-    );
-    return feature;
-};
-
-export const getFeatureMultiLine = (report: CommunityReport, featData: SketchObject) => {
-    const lonLat = getLonLatFromPoint(featData.geometry) as Coordinate;
-    const feature = new Feature({
-        geometry: new MultiLineString(lonLat),
-        reportData: report,
-    });
-    feature.setStyle(
-        new Style({
-            stroke: new Stroke({
-                color: featData.style?.frontcolor,
-                width: featData.style?.diam,
+                color: parseApiColor(style?.backcolor, FILL_COLOR),
             }),
             zIndex: 1,
         })
@@ -445,33 +443,22 @@ export const getFeatureMultiLine = (report: CommunityReport, featData: SketchObj
 
 export const getFeatureLine = (report: CommunityReport, featData: SketchObject) => {
     const lonLat = getLonLatFromPoint(featData.geometry) as Coordinate;
+    const isMulti = featData.type === SketchFeatureType.MultiLineString || /MULTILINESTRING/i.test(featData.geometry ?? "");
     const feature = new Feature({
-        geometry: new LineString(lonLat),
+        geometry: isMulti ? new MultiLineString(lonLat) : new LineString(lonLat),
         reportData: report,
     });
+    const style = Array.isArray(featData.style) ? undefined : featData.style;
     feature.setStyle(
         new Style({
             stroke: new Stroke({
-                color: featData.style?.frontcolor,
-                width: featData.style?.diam,
+                color: parseApiColor(style?.frontcolor, POLYGON_LINE_COLOR),
+                width: style?.diam ?? 2,
             }),
             zIndex: 1,
         })
     );
     return feature;
-};
-
-export const handleFeatureToCenter = (map: Map, feature: Feature) => {
-    const viewCenter = map?.getView().getCenter();
-
-    if (!viewCenter || !feature) return;
-    const geometry: GeometryFeatueParams = feature?.getGeometry() as GeometryFeatueParams;
-
-    const geomExtent = geometry?.getExtent() || [];
-    const geomCenter = getCenter(geomExtent);
-    const deltaX = viewCenter[0] - geomCenter[0];
-    const deltaY = viewCenter[1] - geomCenter[1];
-    geometry?.translate(deltaX, deltaY);
 };
 
 export const handleCenterToFeature = (map: Map | null, feature: Feature) => {
@@ -487,14 +474,13 @@ export const handleCenterToFeature = (map: Map | null, feature: Feature) => {
 
     const size = map?.getSize();
     const resolution = view?.getResolutionForExtent(featureExtent, size);
-
     const featureZoom = view?.getZoomForResolution(resolution!);
 
-    if (featureZoom) {
-        view?.setZoom(view.getZoom() ?? 18);
-    }
-
-    view?.setCenter(featureCenter);
+    view?.animate({
+        center: featureCenter,
+        zoom: featureZoom ?? view.getZoom() ?? 18,
+        duration: 400,
+    });
 };
 
 export const showCenterReportButtons = (show: boolean = true) => {
@@ -589,7 +575,10 @@ export const handleShowOnMap = (
     }
 
     const croquisFeatures = getReportSketchFeatures(report);
-    clusterSource.addFeatures(croquisFeatures);
+
+    const toRemove = clusterSource.getFeatures().filter((f) => f.get("reportData")?.id === report.id && !f.get("main"));
+    toRemove.forEach((f) => clusterSource.removeFeature(f));
+    if (croquisFeatures.length > 0) clusterSource.addFeatures(croquisFeatures);
 
     const reportFeatures = [feature, ...croquisFeatures];
     const croquisExtent = createEmpty();

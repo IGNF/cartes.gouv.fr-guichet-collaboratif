@@ -16,14 +16,7 @@ const useReportTools = (): ReportTool[] => {
     const reportTools = useMemo(
         () => [
             { type: "create", name: toolNames.point, imgSrc: CreatePointImg, order: 0, title: t("point_title"), featureType: ["Point"] },
-            {
-                type: "create",
-                name: toolNames.line,
-                imgSrc: CreateLineImg,
-                order: 1,
-                title: t("line_title"),
-                featureType: ["LineString", "MultiLineString"],
-            },
+            { type: "create", name: toolNames.line, imgSrc: CreateLineImg, order: 1, title: t("line_title"), featureType: ["LineString"] },
             { type: "create", name: toolNames.polygon, imgSrc: CreatePolygonImg, order: 2, title: t("polygon_title"), featureType: ["Polygon"] },
             { type: "create", name: toolNames.text, imgSrc: CreateLabelImg, order: 3, title: t("text_title") },
             { type: "create", name: toolNames.import, imgSrc: ImportFileImg, order: 4, title: t("import_title") },

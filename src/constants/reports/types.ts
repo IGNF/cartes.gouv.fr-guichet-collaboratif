@@ -7,19 +7,23 @@ import VectorSource from "ol/source/Vector";
 
 export type Severity = "success" | "info" | "warning" | "error" | "new";
 export type StatusKey = "submit" | "pending0" | "pending" | "pending1" | "pending2" | "valid" | "valid0" | "reject" | "reject0" | "test";
-export type SketchType = "Point" | "Ligne" | "MultiPolygone";
+export type SketchType = "Point" | "Ligne" | "Polygone";
 
 export enum SketchFeatureType {
     Point = "Point",
     LineString = "Ligne",
-    Polygon = "MultiPolygone",
-    LinearRing = "LinearRing",
-    MultiPoint = "MultiPoint",
     MultiLineString = "MultiLigne",
-    MultiPolygon = "MultiPolygon",
-    GeometryCollection = "GeometryCollection",
-    Circle = "Circle",
+    Polygon = "Polygone",
+    MultiPolygon = "MultiPolygone",
 }
+
+export const sketchFeatureTypeLabel: Record<string, string> = {
+    Point: "Point",
+    LineString: "Ligne",
+    MultiLineString: "Ligne",
+    Polygon: "Polygone",
+    MultiPolygon: "Polygone",
+};
 
 export type ParamsReport = {
     feature: Feature;

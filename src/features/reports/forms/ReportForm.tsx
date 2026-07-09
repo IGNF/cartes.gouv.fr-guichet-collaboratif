@@ -398,7 +398,7 @@ const ReportForm: React.FC<Props> = ({
                                 {selectedTheme ? selectedTheme.theme : selectedReport?.themes.map((theme) => theme.theme).join(", ")}
                             </h3>
                             {editReport && !showTheme && (
-                                <Button className="fr-mt-4v" onClick={() => onToggleTheme()}>
+                                <Button priority="secondary" className="fr-mt-4v" onClick={() => onToggleTheme()}>
                                     {t("show_toEdit")}
                                 </Button>
                             )}
@@ -450,16 +450,6 @@ const ReportForm: React.FC<Props> = ({
                         expanded={expendedDescription}
                     >
                         {description && editReport ? <h3 className="fr-text--md fr-mb-1v">{description}</h3> : <p> {t("no_description")} </p>}
-                        {editReport && !showDescription && (
-                            <Button className="fr-mt-4v" onClick={() => onToggleDescription()}>
-                                {showDescription
-                                    ? t("hide_toEdit")
-                                    : editReport && selectedReport && selectedReport.comment
-                                      ? t("show_toEdit")
-                                      : t("show_toCreate")}
-                            </Button>
-                        )}
-
                         {(showDescription || !editReport) && (
                             <Input
                                 label={t("describe_report_label")}
@@ -492,7 +482,7 @@ const ReportForm: React.FC<Props> = ({
                             <AttachmentList newFiles={filesUploaded} errorFiles={errorFiles} removeFile={removeFile} showDocument={showDocument} />
 
                             {editReport && !showDocument && (
-                                <Button className="fr-mt-4v" onClick={() => onToggleDocument()}>
+                                <Button priority="secondary" className="fr-mt-4v" onClick={() => onToggleDocument()}>
                                     {selectedReport && selectedReport.attachments.length > 0 ? t("show_toEdit") : t("show_toCreate")}
                                 </Button>
                             )}
