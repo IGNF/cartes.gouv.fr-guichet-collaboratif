@@ -71,8 +71,8 @@ export const clusterCircleStyle = (size: number = 0) =>
 export const clusterTextStyle = (text: string = "") =>
     new Text({
         text,
-        scale: 1.5,
-        font: "bold 12px Times New Roman, serif",
+        scale: 1.8,
+        font: "Marianne, sans-serif",
         textAlign: "center",
         textBaseline: "middle",
         fill: new Fill({
