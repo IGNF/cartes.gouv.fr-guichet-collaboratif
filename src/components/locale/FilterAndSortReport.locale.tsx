@@ -18,6 +18,7 @@ export const FilterAndSortReportFrTranslations: Translations<"fr">["FilterAndSor
     departement: "Département",
     depatement_placeholder: "Saisir un numéro de département",
     author_placeholder: "Id uniquement",
+    search_placeholder: "Rechercher par identifiant",
 };
 
 export const FilterAndSortReportEnTranslations: Translations<"en">["FilterAndSortReport"] = {
@@ -37,6 +38,7 @@ export const FilterAndSortReportEnTranslations: Translations<"en">["FilterAndSor
     departement: "(French) Department",
     depatement_placeholder: "Enter a department number",
     author_placeholder: "Id only",
+    search_placeholder: "Search by id",
 };
 
 const { i18n } = declareComponentKeys<
@@ -56,5 +58,6 @@ const { i18n } = declareComponentKeys<
     | "departement"
     | "depatement_placeholder"
     | "author_placeholder"
+    | "search_placeholder"
 >()("FilterAndSortReport");
 export type I18n = typeof i18n;

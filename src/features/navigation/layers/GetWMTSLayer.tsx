@@ -10,7 +10,7 @@ interface Props {
 }
 
 const GetWMTSLayer: React.FC<Props> = ({ layer }) => {
-    const { addMapLayer, mapLayers } = useCommunityStore();
+    const { addMapLayer } = useCommunityStore();
     const { localStorageData } = useLocalStorageStore();
     const geoservice = layer.geoservice;
     const localLayer: LocalLayer | undefined = localStorageData?.layers.find((l) => l.name === geoservice.title);
@@ -25,7 +25,7 @@ const GetWMTSLayer: React.FC<Props> = ({ layer }) => {
             const wmtsLayer = { source: wmtsLayerSource, name: geoservice.layer, title: geoservice.title, order: localLayer ? localLayer.order : layer.order };
             addMapLayer(wmtsLayer);
         }
-    }, [wmtsLayerSource, geoservice, layer, mapLayers, localLayer, addMapLayer]);
+    }, [wmtsLayerSource, geoservice, layer, localLayer, addMapLayer]);
 
     return null;
 };

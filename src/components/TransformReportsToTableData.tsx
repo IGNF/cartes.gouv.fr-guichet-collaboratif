@@ -1,7 +1,7 @@
 import VectorSource from "ol/source/Vector";
-import { handleShowOnMap } from "@/constants/utils";
+import { handleShowOnMap, reportImgStatus, getStatusSeverity } from "@/constants/utils";
 import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
-import { CommunityReport } from "@/constants/reports/types";
+import { CommunityReport, StatusKey } from "@/constants/reports/types";
 import { useLocalStorageStore, useMapStore, useReportStore } from "@/store";
 import Button from "@codegouvfr/react-dsfr/Button";
 import Checkbox from "@codegouvfr/react-dsfr/Checkbox";
@@ -65,22 +65,32 @@ const TransformReportsToTableData = (reports: CommunityReport[]) => {
                 date,
                 departement,
                 <Tag>{themes}</Tag>,
-                <Badge severity="info" noIcon>
-                    {status}
-                </Badge>,
+                (() => {
+                    const statusInfo = reportImgStatus[status as StatusKey];
+                    const statusText = statusInfo?.text || status;
+                    return (
+                        <Badge severity={getStatusSeverity(status)} noIcon>
+                            {statusText}
+                        </Badge>
+                    );
+                })(),
                 <div>
                     <Button
                         iconId="fr-icon-road-map-line"
                         className="fr-icon--sm fr-mr-7v"
                         priority="tertiary no outline"
-                        title="Afficher le signalement"
-                        onClick={() => handleShowOnMap(report, map, clusterSource, localStorageData, t, reportTableWidth)}
+                        title={t("show_map")}
+                        onClick={() => {
+                            const layer = map?.getAllLayers().find((l) => l.get("type") === REPORTS_LAYER_TYPE);
+                            const source = layer?.getSource() as VectorSource;
+                            handleShowOnMap(report, map, source, localStorageData, t, reportTableWidth);
+                        }}
                     />
                     <Button
                         iconId="fr-icon-arrow-right-line"
                         className="fr-icon--sm"
                         priority="tertiary no outline"
-                        title="Afficher sur la carte"
+                        title={t("show_report")}
                         onClick={() => showOnMap(report)}
                     />
                 </div>,

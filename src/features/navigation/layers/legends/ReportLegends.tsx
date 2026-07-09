@@ -1,6 +1,5 @@
 import { StatusKey } from "@/constants/reports/types";
 import { reportImgStatus } from "@/constants/utils";
-import ReactDOMServer from "react-dom/server";
 
 const ReportLegends = () => {
     return (
@@ -17,7 +16,5 @@ const ReportLegends = () => {
         </div>
     );
 };
-
-export const ReportLegendsHTML = ReactDOMServer.renderToString(<ReportLegends />);
 
 export default ReportLegends;

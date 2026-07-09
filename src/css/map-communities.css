@@ -36,10 +36,11 @@
 }
 
 .community-title-logo {
-    width: 2.5rem;
+    width: auto;
     height: 2.5rem;
+    max-width: 6rem;
     flex-shrink: 0;
-    object-fit: cover;
+    object-fit: contain;
     border-radius: 0.125rem;
 }
 

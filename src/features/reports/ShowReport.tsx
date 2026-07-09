@@ -56,9 +56,9 @@ const ShowReport: React.FC<Props> = ({ handleCloseDrawer }) => {
     const { deleteReport } = useDeleteReport({ handleCloseDrawer });
     if (!community || !selectedReport) return null;
 
-    const selectedTheme = selectedReport.themes[0];
+    const selectedTheme = selectedReport.themes?.[0]?.theme ?? t("report_no_theme");
     const description = selectedReport.comment || "";
-    const reportTheme = community.themes.find((theme) => theme.theme === selectedTheme.theme);
+    const reportTheme = community.themes.find((theme) => theme.theme === selectedTheme);
 
     return (
         <>
@@ -99,10 +99,9 @@ const ShowReport: React.FC<Props> = ({ handleCloseDrawer }) => {
                 <div className="fr-mt-12v">
                     <Accordion label={t("report_theme")} defaultExpanded={false}>
                         <RadioButtons
-                            legend={t("report_theme")}
                             options={[
                                 {
-                                    label: reportTheme?.theme,
+                                    label: reportTheme?.theme ?? selectedTheme,
                                     nativeInputProps: {
                                         checked: true,
                                         readOnly: true,
@@ -113,7 +112,6 @@ const ShowReport: React.FC<Props> = ({ handleCloseDrawer }) => {
                             stateRelatedMessage=""
                             orientation="vertical"
                             small
-                            disabled={true}
                             className="theme-radio fr-mt-4v fr-mb-1v fr-text--md"
                         />
                     </Accordion>

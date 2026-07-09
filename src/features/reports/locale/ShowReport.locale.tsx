@@ -5,6 +5,7 @@ export const ShowReportFrTranslations: Translations<"fr">["ShowReport"] = {
     report_title: ({ reportId }: { reportId: number }) => `Signalement ${reportId}`,
     report_back: "Tous les signalements",
     report_theme: "Thème",
+    report_no_theme: "Aucun thème",
     report_sketch_list: "Croquis",
     report_description: "Description",
     report_document_list: "Documents",
@@ -23,6 +24,7 @@ export const ShowReportEnTranslations: Translations<"en">["ShowReport"] = {
     report_title: ({ reportId }: { reportId: number }) => `Report ${reportId}`,
     report_back: "All reports",
     report_theme: "Theme",
+    report_no_theme: "No theme",
     report_sketch_list: "Sketches",
     report_description: "Description",
     report_document_list: "Documents",
@@ -41,6 +43,7 @@ const { i18n } = declareComponentKeys<
     | { K: "report_title"; P: { reportId: number }; R: string }
     | "report_back"
     | "report_theme"
+    | "report_no_theme"
     | "report_sketch_list"
     | "report_description"
     | "report_document_list"

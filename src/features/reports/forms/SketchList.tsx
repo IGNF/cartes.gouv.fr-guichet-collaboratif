@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo } from "react";
+import { useTranslation } from "@/i18n";
 import { Feature } from "ol";
 import { Control } from "ol/control";
 import Layer from "ol/layer/Layer";
@@ -10,7 +11,7 @@ import Drawing from "geopf-extensions-openlayers/src/packages/Controls/Drawing/D
 import useReportTools from "@/hooks/reports/useReportTools";
 import { useCommunityStore, useMapStore, useReportStore } from "@/store";
 import { StatusMessage } from "@/constants/communities/types";
-import { SketchFeatureType, toolNames } from "@/constants/reports/types";
+import { sketchFeatureTypeLabel, toolNames } from "@/constants/reports/types";
 import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import { selectionCircleStyle } from "@/constants/styles";
 import { getFeatureDiam, handleCenterToFeature, mainMarker, markersStyles, otherMarkers } from "@/constants/utils";
@@ -24,6 +25,7 @@ interface Props {
 const SketchList = ({ showSketch, expendedDrawing }: Props) => {
     const hoveredFeatureStyle: { strockWidth: number; imageScale: number | Size } = { strockWidth: 1, imageScale: 1 };
 
+    const { t } = useTranslation({ SketchList });
     const { map } = useMapStore();
     const { addAlertMessage } = useCommunityStore();
     const { selectedFeatures, setSelectedFeatures, editReport } = useReportStore();
@@ -119,20 +121,23 @@ const SketchList = ({ showSketch, expendedDrawing }: Props) => {
             try {
                 handleCenterToFeature(map, feature);
             } catch {
-                addAlertMessage(StatusMessage.error, "Impossible d'afficher ce croquis : sa géométrie est vide ou non définie.");
+                addAlertMessage(StatusMessage.error, t("display_error"), 3000);
             }
         },
-        [map, addAlertMessage]
+        [map, addAlertMessage, t]
     );
     return (
         <div className="report-features">
-            {!sketchFeatures.length && editReport && <p>Aucun croquis associé</p>}
+            {!sketchFeatures.length && editReport && <p>{t("no_sketch")}</p>}
             {sketchFeatures.map((feature, index) => {
                 const featureType = feature.getGeometry()?.getType();
-                const featureStyle = feature.getStyle() as Style;
+                const raw = feature.getStyle();
+                const featureStyle = (Array.isArray(raw) ? raw.find((s) => s instanceof Style) : raw) as Style | null;
 
-                let icon = reportTools.find((tool) => tool.featureType?.includes(featureType!))?.imgSrc;
-                let text = featureType ? SketchFeatureType[featureType] : "";
+                if (!featureType) return null;
+
+                let icon = reportTools.find((tool) => tool.featureType?.includes(featureType))?.imgSrc;
+                let text = featureType ? (sketchFeatureTypeLabel[featureType] ?? featureType) : "";
 
                 if (featureStyle) {
                     const featureText = "getText" in featureStyle && featureStyle?.getText();
@@ -165,7 +170,7 @@ const SketchList = ({ showSketch, expendedDrawing }: Props) => {
                                 iconId="ri-delete-bin-2-fill"
                                 priority={"tertiary"}
                                 onClick={() => handleRemoveFeature(feature)}
-                                title="Supprimer"
+                                title={t("delete")}
                                 size="small"
                             />
                         )}

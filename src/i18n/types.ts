@@ -20,6 +20,7 @@ export type ComponentKey =
     | import("../components/Layout/MapCommunity/locale/CommunityToolbar.locale").I18n
     | import("../components/locale/DrawerComponent.locale").I18n
     | import("../components/locale/FilterAndSortReport.locale").I18n
+    | import("../components/locale/ReportFiltersComponent.locale").I18n
     | import("../pages/locale/NotFound.locale").I18n
     | import("../pages/locale/Carte.locale").I18n
     | import("../features/contributions/locale/ContributionList.locale").I18n
@@ -41,12 +42,12 @@ export type ComponentKey =
     | import("../features/navigation/controls/custom-controls/locale/index.locale").I18n
     | import("../features/reports/forms/locale/AttachmentList.locale").I18n
     | import("../features/reports/forms/locale/ConfirmCancelModal.locale").I18n
-    | import("../features/reports/forms/locale/OpenReplyReportModal.locale").I18n
     | import("../features/reports/forms/locale/ConfirmDeleteReportModal.locale").I18n
     | import("../features/reports/locale/ShareReportModal.locale").I18n
     | import("../features/reports/forms/locale/DrawingForm.locale").I18n
     | import("../features/reports/forms/locale/ImportSketchFile.locale").I18n
     | import("../features/reports/forms/locale/ReportForm.locale").I18n
+    | import("../features/reports/forms/locale/SketchList.locale").I18n
     | import("../features/reports/forms/locale/ThemeComponent.locale").I18n
     | import("../features/reports/forms/locale/ThemeForm.locale").I18n
     | import("../features/reports/locale/CenterMessage.locale").I18n

@@ -9,7 +9,7 @@ import { handleShowOnMap, STATUS_NOT_ALLOWED } from "@/constants/utils";
 import { REPORT_TABLE_LIMIT_OPTIONS, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import GetReportsLayer from "@/features/navigation/layers/GetReportsLayer";
 import { StatusMessage } from "@/constants/communities/types";
-import { applyFiltersToReports } from "@/constants/reports/utils/reportFilters";
+import { applyFiltersToReports, getReportIdFromSearch } from "@/constants/reports/utils/reportFilters";
 import { CommunityReport } from "@/constants/reports/types";
 import Checkbox from "@codegouvfr/react-dsfr/Checkbox";
 import { Table } from "@codegouvfr/react-dsfr/Table";
@@ -52,6 +52,7 @@ const TableReport = () => {
         reports: storedReports,
         limitPerPage,
         filteredReports,
+        isFiltered,
         setFilteredReports,
         searchReport,
         isChecked,
@@ -84,6 +85,8 @@ const TableReport = () => {
         [currentFilters]
     );
 
+    const searchedId = useMemo(() => getReportIdFromSearch(searchReport), [searchReport]);
+
     const {
         data,
         isLoading,
@@ -94,11 +97,26 @@ const TableReport = () => {
             community
                 ? getTableReports(community.id, limitPerPage, currentPage, filters, searchReport, sortBy)
                 : Promise.resolve({ data: [], total: 0, currentPage: 1 }),
-        enabled: !!community,
+        enabled: !!community && searchedId === null,
+    });
+
+    const { data: reportFromId, isLoading: isLoadingById } = useQuery({
+        queryKey: ["reportById", searchedId],
+        queryFn: async () => {
+            try {
+                return await getCommunityReportById(searchedId!);
+            } catch (error) {
+                const status = (error as { response?: { status?: number } })?.response?.status;
+                if (status === 404) return null;
+                throw error;
+            }
+        },
+        enabled: !!searchedId,
+        retry: false,
     });
 
     const reports = useMemo(() => (Array.isArray(data?.data) ? data.data : []), [data]);
-    const total = data?.total ?? 10;
+    const total = searchedId !== null ? (reportFromId ? 1 : 0) : (data?.total ?? 10);
     const totalPages = Math.ceil(total / limitPerPage);
 
     useEffect(() => {
@@ -108,6 +126,7 @@ const TableReport = () => {
     }, [isErrorReport, addAlertMessage, t]);
 
     useEffect(() => {
+        if (searchedId !== null) return;
         if (reports) {
             const filtered = applyFiltersToReports(reports, currentFilters, searchReport);
             setFilteredReports(
@@ -119,7 +138,7 @@ const TableReport = () => {
                     !!searchReport
             );
         }
-    }, [reports, currentFilters, searchReport, setFilteredReports, setIsChecked]);
+    }, [reports, currentFilters, searchReport, searchedId, setFilteredReports, setIsChecked]);
 
     const onShowOnMap = useCallback(
         (report: CommunityReport) => handleShowOnMap(report, map, clusterSource, localStorageData, t, reportTableWidth),
@@ -138,7 +157,12 @@ const TableReport = () => {
 
     const onCheckChange = useCallback((id: number, checked: boolean) => setIsChecked({ ...isChecked, [id]: checked }), [isChecked, setIsChecked]);
 
-    const reportsToUse = useMemo(() => (filteredReports.length > 0 ? filteredReports : (reports ?? [])), [filteredReports, reports]);
+    const reportsToUse = useMemo(() => {
+        if (searchedId !== null) {
+            return reportFromId ? [reportFromId] : [];
+        }
+        return isFiltered ? filteredReports : (reports ?? []);
+    }, [searchedId, reportFromId, isFiltered, filteredReports, reports]);
 
     const tableData = useMemo(
         () => CreateTableData(reportsToUse, isChecked, onCheckChange, onShowReportOnMap, onShowOnMap, t),
@@ -273,8 +297,8 @@ const TableReport = () => {
 
     return (
         <>
-            {(isLoading || isPreparingExport) && <LoaderComponent />}
-            {isLoading || filteredReports.length > 0 ? (
+            {(isLoading || isLoadingById || isPreparingExport) && <LoaderComponent />}
+            {isLoading || isLoadingById || reportsToUse.length > 0 ? (
                 <>
                     <div className="report-textResult fr-mt-5v">
                         {t("result_count")}{" "}
@@ -322,8 +346,8 @@ const TableReport = () => {
                     </div>
                     <Table
                         className="table-report__table"
-                        bordered
-                        noCaption
+                        caption={t("table_report_caption")}
+                        bottomCaption={true}
                         headers={[
                             <Checkbox
                                 options={[

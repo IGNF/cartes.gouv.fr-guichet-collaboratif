@@ -19,7 +19,7 @@ export const GetReportsLayerFrTranslations: Translations<"fr">["GetReportsLayer"
     select_all: "Sélectionner tous les signalements de la page courante.",
     delete_button: "Supprimer un signalement",
     export_button: "Exporter le(s) signalement(s)",
-    results_per_page: "Nombre de lignes par page",
+    results_per_page: "Résultats par page",
     select: "Sélectionner un signalement",
     show_map: "Afficher sur la carte",
     show_report: "Afficher le signalement",
@@ -35,6 +35,7 @@ export const GetReportsLayerFrTranslations: Translations<"fr">["GetReportsLayer"
     "tableHeaders.commune": "Commune (Code INSEE)",
     "tableHeaders.document": "Document",
     "tableHeaders.reply": "Réponse",
+    table_report_caption: "Tableau regroupant l'intégralité des signalements, possibilité de filtrer et trier les signalements selon différents critères.",
 };
 
 export const GetReportsLayerEnTranslations: Translations<"en">["GetReportsLayer"] = {
@@ -55,7 +56,7 @@ export const GetReportsLayerEnTranslations: Translations<"en">["GetReportsLayer"
     select_all: "Select all reports on the current page.",
     delete_button: "Delete a report",
     export_button: "Export a report",
-    results_per_page: "Number of lines per page",
+    results_per_page: "Result per page",
     select: "Select a report",
     show_map: "Show on map",
     show_report: "Show report",
@@ -71,6 +72,7 @@ export const GetReportsLayerEnTranslations: Translations<"en">["GetReportsLayer"
     "tableHeaders.commune": "Commune (INSEE code)",
     "tableHeaders.document": "Document",
     "tableHeaders.reply": "Reply",
+    table_report_caption: "A table listing all reports, with the option to filter and sort them according to various criteria.",
 };
 
 const { i18n } = declareComponentKeys<
@@ -107,5 +109,6 @@ const { i18n } = declareComponentKeys<
     | "tableHeaders.commune"
     | "tableHeaders.document"
     | "tableHeaders.reply"
+    | "table_report_caption"
 >()("GetReportsLayer");
 export type I18n = typeof i18n;

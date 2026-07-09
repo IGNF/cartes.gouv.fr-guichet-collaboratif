@@ -25,7 +25,7 @@ const PaginationReport = ({ totalPages, currentPage }: PaginationReportProps) =>
                         },
                     };
                 }}
-                showFirstLast
+                showFirstLast={true}
             />
         </div>
     );

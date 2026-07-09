@@ -4,6 +4,8 @@
     top: 7rem;
     width: 54px;
     padding-right: 14px;
+    max-height: calc(100vh - 19rem);
+    overflow-y: auto;
 }
 
 .custom-controls div {

@@ -71,8 +71,8 @@ export const clusterCircleStyle = (size: number = 0) =>
 export const clusterTextStyle = (text: string = "") =>
     new Text({
         text,
-        scale: 1.5,
-        font: "bold 12px Times New Roman, serif",
+        scale: 1.8,
+        font: "Marianne, sans-serif",
         textAlign: "center",
         textBaseline: "middle",
         fill: new Fill({
@@ -529,7 +529,7 @@ export const getConditionsByType = (condition: FeatureTypeCondition | undefined)
                     return;
                 }
 
-                const supportedOps = ["$in", "$eq", "$ne", "$gt", "$gte", "$lt", "$lte"];
+                const supportedOps = ["$in", "$nin", "$eq", "$ne", "$gt", "$gte", "$lt", "$lte"];
                 const supportedOperators = operatorKeys.filter((op) => supportedOps.includes(op));
 
                 //Take care of multiple operators case ex {"$and": [{ "categorie_piscicole": { "$gte": "1", "$lte": "2" } },
@@ -644,7 +644,11 @@ export const getConditionedFiltersByType = (cond: FeatureTypeConditionValue[][] 
                     filter.push(["any", ...orFilters]);
                 }
             } else {
-                filter.push([comparator, value, expectedValue]);
+                if (comparator === "nin") {
+                    filter.push(["!=", value, expectedValue]);
+                } else {
+                    filter.push([comparator, value, expectedValue]);
+                }
             }
         }
     });
