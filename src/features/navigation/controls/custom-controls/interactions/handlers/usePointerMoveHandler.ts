@@ -47,11 +47,14 @@ export const usePointerMoveHandler = (props: UsePointerMoveHandlerProps) => {
             }
             const activeInteractions = map?.getInteractions().getArray();
 
-            // Check if any active interaction disables the tooltip
-
-            const tooltipDisabled = activeInteractions?.some(
+            // Tooltip suppression
+            const tooltipSuppressedTools = [InteractionType.MODIFY, InteractionType.TRANSLATE_OBJECT];
+            const disabledByTool = !!clickedControl && tooltipSuppressedTools.includes(clickedControl.interaction as InteractionType);
+            const disabledByInteraction = activeInteractions?.some(
                 (interaction) => interaction.get("type") !== undefined && interaction.get("disablesTooltip") === true
             );
+            const tooltipDisabled = evt.dragging || disabledByTool || disabledByInteraction;
+
             if (tooltipDisabled) {
                 clearHoverState();
                 return;

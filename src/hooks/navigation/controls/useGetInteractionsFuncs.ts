@@ -46,8 +46,8 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
         [currentCommunityLayer?.snapto]
     );
 
-    /* Since there is no proper shortest path parmas in API
-    We use filter over SnapTo to keep linelayers as support */
+    /* Since there is no proper shortest path params in API
+    We use filter over SnapTo to keep line layers as support */
     const shortestPathNetworkLayers = useMemo(
         () => (communityLayers ?? []).filter((l) => snaptoIds.includes(l.geoservice.id) && l.geoservice.featureType === GeoserviceFeatureTypeProp.LINE),
         [communityLayers, snaptoIds]
@@ -101,6 +101,8 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
     const shortestPathPendingRef = useRef<Map<number, (path: Coordinate[] | null) => void>>(new Map());
     const shortestPathRequestIdRef = useRef(0);
     const isComputingShortestPathRef = useRef(false);
+    const shortestPathInteractionFuncRef = useRef<((e: MapBrowserEvent) => void) | null>(null);
+    const registeredShortestPathHandlerRef = useRef<((e: MapBrowserEvent) => void) | null>(null);
 
     useEffect(() => {
         const worker = new ShortestPathWorker();
@@ -195,11 +197,15 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
     const modifyInteractionFunc = useCallback(
         (e: ModifyEvent) => {
             setIsModifying(false);
+            const shouldKeepSelectDisabled =
+                clickedControl?.interaction === InteractionType.MODIFY || clickedControl?.interaction === InteractionType.TRANSLATE_OBJECT;
             const features = e.features.getArray();
             const feat = features[0];
             if (!feat || !initialFeat) {
                 initialFeat = null;
-                selectInteraction.setActive(true);
+                if (!shouldKeepSelectDisabled) {
+                    selectInteraction.setActive(true);
+                }
                 return;
             }
 
@@ -214,7 +220,9 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                 saveContribution(feat, ContributionType.MODIFY, initialFeat, mapWorkingLayer);
             }
             initialFeat = null;
-            selectInteraction.setActive(true);
+            if (!shouldKeepSelectDisabled) {
+                selectInteraction.setActive(true);
+            }
             if (clickedControl?.interaction === InteractionType.TRANSLATE_OBJECT) {
                 const dragPan = map
                     ?.getInteractions()
@@ -510,6 +518,31 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
         ]
     );
 
+    // Always point to the latest shortest path handler so the stable listener uses fresh state.
+    useEffect(() => {
+        shortestPathInteractionFuncRef.current = shortestPathInteractionFunc;
+    }, [shortestPathInteractionFunc]);
+
+    const registerShortestPathListener = useCallback(() => {
+        if (!map) return;
+        if (registeredShortestPathHandlerRef.current) {
+            map.un("singleclick", registeredShortestPathHandlerRef.current);
+            registeredShortestPathHandlerRef.current = null;
+        }
+        const stableHandler = (e: MapBrowserEvent) => {
+            shortestPathInteractionFuncRef.current?.(e);
+        };
+        map.on("singleclick", stableHandler);
+        registeredShortestPathHandlerRef.current = stableHandler;
+    }, [map]);
+
+    const unregisterShortestPathListener = useCallback(() => {
+        if (registeredShortestPathHandlerRef.current) {
+            map?.un("singleclick", registeredShortestPathHandlerRef.current);
+            registeredShortestPathHandlerRef.current = null;
+        }
+    }, [map]);
+
     const splitLineInteractionFuncPointer = useCallback(
         (e: MapBrowserEvent) => {
             const features = map?.getFeaturesAtPixel(e.pixel, {
@@ -602,6 +635,12 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             drawLineInteraction.un("drawend", drawInteractionFunc);
             drawPolygonInteraction.un("drawend", drawInteractionFunc);
 
+            // Any tool other than shortest path must drop the stale shortest-path
+            // click listener, otherwise it keeps hijacking SELECT/MODIFY clicks.
+            if (type !== InteractionType.SHORTEST_PATH) {
+                unregisterShortestPathListener();
+            }
+
             switch (type) {
                 case InteractionType.SELECT:
                     interaction = selectInteraction;
@@ -633,7 +672,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                     map?.on("pointermove", splitLineInteractionFuncPointer);
                     break;
                 case InteractionType.SHORTEST_PATH:
-                    map?.on("singleclick", shortestPathInteractionFunc);
+                    registerShortestPathListener();
                     return null;
                 default:
                     return null;
@@ -659,7 +698,8 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             drawInteractionFunc,
             splitLineInteractionFuncEnd,
             splitLineInteractionFuncPointer,
-            shortestPathInteractionFunc,
+            registerShortestPathListener,
+            unregisterShortestPathListener,
         ]
     );
 
@@ -719,6 +759,9 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             if (control?.id === clickedControl?.id) {
                 setSelectedObjects([]);
                 removeInteractionFromMap(control.interaction, map!);
+                if (control.interaction === InteractionType.SHORTEST_PATH) {
+                    unregisterShortestPathListener();
+                }
                 clearShortestPathStart();
             } else {
                 removeInteractionFromMap(clickedControl?.interaction ?? null, map!);
@@ -763,6 +806,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             addAlertMessage,
             shortestPathLayerNames,
             t,
+            unregisterShortestPathListener,
         ]
     );
 
@@ -786,10 +830,11 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                 map?.un("singleclick", registeredPasteHandlerRef.current);
                 registeredPasteHandlerRef.current = null;
             }
+            unregisterShortestPathListener();
             clipboardFeature = null;
             clearShortestPathStart();
         };
-    }, [map, clearShortestPathStart]);
+    }, [map, clearShortestPathStart, unregisterShortestPathListener]);
 
     useEffect(() => {
         if (!map) return;

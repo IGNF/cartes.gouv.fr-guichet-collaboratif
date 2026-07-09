@@ -1,18 +1,17 @@
 import { InteractionType } from "@/constants/communities/types";
 import { InteractionsFuncsProps, InteractionsProps } from "@/constants/contributions/types";
 import { addInteractionToMap, removeInteractionFromMap } from "@/constants/contributions/utils";
-import { useContributionStore, useMapStore } from "@/store";
+import { useMapStore } from "@/store";
 import { useRasterWorkingLayer } from "@/hooks/working-layer/useRasterWorkingLayer";
 
 import { useEffect } from "react";
 
 const AddOrRemoveMapControlInteraction = (props: InteractionsFuncsProps & InteractionsProps) => {
     const { map, clickedControl } = useMapStore();
-    const { isModifying } = useContributionStore();
     const { isRasterLayer } = useRasterWorkingLayer();
 
     useEffect(() => {
-        const shouldManageInteraction = !isModifying && clickedControl?.interaction;
+        const shouldManageInteraction = clickedControl?.interaction;
         let didAddInteractions = false;
         let handleBoxEnd: (() => void) | undefined;
 
@@ -47,7 +46,6 @@ const AddOrRemoveMapControlInteraction = (props: InteractionsFuncsProps & Intera
                 removeInteractionFromMap(clickedControl.interaction, map!);
                 map?.un("singleclick", props.splitLineInteractionFuncEnd);
                 map?.un("pointermove", props.splitLineInteractionFuncPointer);
-                map?.un("singleclick", props.shortestPathInteractionFunc);
                 map?.removeInteraction(props.dragInteraction);
                 if (handleBoxEnd) {
                     props.dragInteraction.un(["boxend"], handleBoxEnd);
@@ -55,7 +53,7 @@ const AddOrRemoveMapControlInteraction = (props: InteractionsFuncsProps & Intera
                 props.dragInteraction.setActive(false);
             }
         };
-    }, [clickedControl, map, isModifying, isRasterLayer, props]);
+    }, [clickedControl, map, isRasterLayer, props]);
     return null;
 };
 

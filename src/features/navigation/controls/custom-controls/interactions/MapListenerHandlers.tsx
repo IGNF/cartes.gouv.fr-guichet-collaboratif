@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { FEATURE_TYPE_HOVER_PROPERTY } from "@/constants";
-import { CommunityGeoservice, InteractionType } from "@/constants/communities/types";
+import { CommunityGeoservice, GeoserviceFeatureTypeProp, InteractionType } from "@/constants/communities/types";
 import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import { useCommunityStore, useMapStore, useReportStore } from "@/store";
 import { Feature, Overlay } from "ol";
@@ -107,7 +107,9 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
             .split(",")
             .map((v) => Number(v.trim()))
             .filter((v) => !Number.isNaN(v));
-        return (communityLayers ?? []).filter((l) => snaptoIds.includes(l.geoservice.id) && l.geoservice.featureType === "line").map((l) => l.geoservice);
+        return (communityLayers ?? [])
+            .filter((l) => snaptoIds.includes(l.geoservice.id) && l.geoservice.featureType === GeoserviceFeatureTypeProp.LINE)
+            .map((l) => l.geoservice);
     }, [communityLayers, mapWorkingLayer]);
 
     const handleSingleClick = useSingleClickHandler({

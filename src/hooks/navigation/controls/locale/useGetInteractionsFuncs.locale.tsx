@@ -3,12 +3,12 @@ import { declareComponentKeys } from "i18nifty";
 
 export const useGetInteractionsFuncsFrTranslations: Translations<"fr">["useGetInteractionsFuncs"] = {
     shortest_path_select_start: ({ layers }) => `Sélectionnez un premier objet parmi la/les couche(s) : ${layers}`,
-    shortest_path_select_end: "Selectionnez le second objet",
-    shortest_path_same_object: "Selectionnez un autre objet!",
+    shortest_path_select_end: "Sélectionnez le second objet",
+    shortest_path_same_object: "Sélectionnez un autre objet!",
     shortest_path_no_path: "Aucun chemin trouvé entre les objets",
     shortest_path_computing: "Calcul du plus court chemin en cours…",
     shortest_path_created: "Plus court chemin créé",
-    shortest_path_not_supported: "Le plus court chemin est disponible uniquement pour les couches lineaires",
+    shortest_path_not_supported: "Le plus court chemin est disponible uniquement pour les couches linéaires",
     shortest_path_not_ready: "Le plus court chemin n'est pas disponible pour cette couche",
 };
 
