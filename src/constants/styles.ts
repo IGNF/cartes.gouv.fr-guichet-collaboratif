@@ -459,12 +459,19 @@ export const getStyleWebGLPoint: (isDefault: boolean) => FlatStyle | FlatStyle[]
 };
 
 export const getStyleWebGLDefault: (newStyle?: FeatureTypeStyleItem | undefined) => FlatStyle | FlatStyle[] = (newStyle) => {
-    if (newStyle?.logo)
-        return {
-            "icon-src": newStyle?.logo,
-            "icon-size": 34,
-            "icon-scale": 1,
+    if (newStyle?.logo) {
+        const iconStyle: FlatStyle = {
+            "icon-src": newStyle.logo,
+            "icon-opacity": newStyle?.graphicOpacity ?? 1,
+            "icon-rotation": newStyle?.rotation ?? 0,
+            "icon-offset": [newStyle?.graphicXOffset ?? 0, newStyle?.graphicYOffset ?? 0],
         };
+        if (newStyle?.graphicHeight && newStyle?.graphicWidth) {
+            iconStyle["icon-height"] = newStyle.graphicHeight;
+            iconStyle["icon-width"] = newStyle.graphicWidth;
+        }
+        return iconStyle;
+    }
     if (newStyle?.type) {
         const style = getRawWellKnownNames(newStyle);
         if (style) return style;
