@@ -15,10 +15,10 @@ const ShareReportFiltersModal = () => {
 
     const { addAlertMessage } = useCommunityStore();
     const { shareReportFilters } = useModalStore();
-    const { syncUrlFromState } = useReportStore();
+    const { currentFilters, searchReport, sortBy, currentPage, limitPerPage, syncUrlFromState } = useReportStore();
 
     const baseUrl = useMemo(() => `${window.location.origin}${window.location.pathname}`, []);
-    const url = useMemo(() => baseUrl + syncUrlFromState(), [baseUrl, syncUrlFromState]);
+    const url = useMemo(() => baseUrl + syncUrlFromState(), [baseUrl, currentFilters, searchReport, sortBy, currentPage, limitPerPage]);
 
     const shareUrl = useMemo(() => {
         const baseParams = new URL(url).search;
