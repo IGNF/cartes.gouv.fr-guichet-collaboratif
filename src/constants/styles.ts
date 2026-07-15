@@ -465,11 +465,9 @@ export const getStyleWebGLDefault: (newStyle?: FeatureTypeStyleItem | undefined)
             "icon-opacity": newStyle?.graphicOpacity ?? 1,
             "icon-rotation": newStyle?.rotation ?? 0,
             "icon-offset": [newStyle?.graphicXOffset ?? 0, newStyle?.graphicYOffset ?? 0],
+            "icon-height": newStyle?.graphicHeight ?? 25,
+            "icon-width": newStyle?.graphicWidth ?? 25,
         };
-        if (newStyle?.graphicHeight && newStyle?.graphicWidth) {
-            iconStyle["icon-height"] = newStyle.graphicHeight;
-            iconStyle["icon-width"] = newStyle.graphicWidth;
-        }
         return iconStyle;
     }
     if (newStyle?.type) {
