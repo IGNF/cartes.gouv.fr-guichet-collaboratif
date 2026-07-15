@@ -5,7 +5,7 @@ export const FilterAndSortReportFrTranslations: Translations<"fr">["FilterAndSor
     apply: "Appliquer",
     dateCreation: "Date de création",
     dateUpdating: "Date de mise à jour",
-    filterBy: "Trier par",
+    filterBy: "Rechercher par",
     sortBy: "Trier par",
     reset: "Effacer",
     selectOption: "Sélectionner une option",
