@@ -71,7 +71,6 @@ jobs:
                   labels: ${{ steps.meta.outputs.labels }}
                   provenance: ${{ env.IS_TAG == 'true' && 'mode=max' || 'false' }}
                   annotations: ${{ env.IS_TAG == 'true' && steps.meta.outputs.annotations || '' }}
-                  target: prod
                   cache-from: type=gha
                   cache-to: type=gha,mode=max
 
