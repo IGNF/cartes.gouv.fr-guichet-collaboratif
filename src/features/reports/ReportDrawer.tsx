@@ -17,6 +17,7 @@ import { useTranslation } from "@/i18n";
 import MapListnerHandlers from "../navigation/controls/custom-controls/interactions/MapListenerHandlers";
 import { getCommunityReportById } from "@/api/reportsData";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import useKeyEvent from "@/hooks/useKeyEvent";
 
 const ReportDrawer = () => {
     const { user } = useUserStore();
@@ -167,15 +168,17 @@ const ReportDrawer = () => {
         }
     }, [drawerOpened, selectedReport, isAdmin, isOwner, setEditReport]);
 
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === "Escape" && (drawerOpened || tableDrawerOpened)) {
-                handleCloseDrawer();
-            }
-        };
-        document.addEventListener("keydown", handleKeyDown);
-        return () => document.removeEventListener("keydown", handleKeyDown);
-    }, [drawerOpened, tableDrawerOpened, handleCloseDrawer]);
+    useKeyEvent(
+        "keydown",
+        useCallback(
+            (e: KeyboardEvent) => {
+                if (e.key === "Escape" && (drawerOpened || tableDrawerOpened)) {
+                    handleCloseDrawer();
+                }
+            },
+            [drawerOpened, tableDrawerOpened, handleCloseDrawer]
+        )
+    );
 
     const reportIdParam = searchParams.get("report");
 

@@ -1,7 +1,8 @@
 import { FrIconClassName, RiIconClassName } from "@codegouvfr/react-dsfr";
 import Button, { ButtonProps } from "@codegouvfr/react-dsfr/Button";
 import { getLink, RegisteredLinkProps } from "@codegouvfr/react-dsfr/link";
-import { PropsWithChildren, ReactNode, useEffect, useId, useRef, useState } from "react";
+import { PropsWithChildren, ReactNode, useCallback, useEffect, useId, useRef, useState } from "react";
+import useKeyEvent from "@/hooks/useKeyEvent";
 
 type Item = PropsWithChildren<{
     iconId?: FrIconClassName | RiIconClassName;
@@ -32,18 +33,21 @@ export default function HeaderMenu({ openButtonProps, actionButtonProps, items, 
                 closeMenu();
             }
         };
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === "Escape") closeMenu();
-        };
         if (isOpen) {
             document.addEventListener("mousedown", handleClickOutside);
-            document.addEventListener("keydown", handleKeyDown);
         }
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
-            document.removeEventListener("keydown", handleKeyDown);
         };
     }, [isOpen]);
+
+    useKeyEvent(
+        "keydown",
+        useCallback((event: KeyboardEvent) => {
+            if (event.key === "Escape") setIsOpen(false);
+        }, []),
+        isOpen
+    );
 
     const { Link } = getLink();
 

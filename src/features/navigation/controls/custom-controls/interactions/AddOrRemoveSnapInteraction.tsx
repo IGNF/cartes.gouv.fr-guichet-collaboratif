@@ -1,7 +1,8 @@
 import { InteractionType } from "@/constants/communities/types";
 import { InteractionsProps } from "@/constants/contributions/types";
 import { useCommunityStore, useMapStore } from "@/store";
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
+import useKeyEvent from "@/hooks/useKeyEvent";
 
 const isEditInteraction = (interaction: InteractionType | null | undefined): boolean => {
     return interaction === InteractionType.ADD_OBJECT || interaction === InteractionType.MODIFY || interaction === InteractionType.TRANSLATE_OBJECT;
@@ -42,30 +43,31 @@ const SnapInteractionEffect = (props: InteractionsProps) => {
         };
     }, [map, props.snapInteraction, needToSnap]);
 
-    useEffect(() => {
-        if (!map) return;
+    useKeyEvent(
+        "keydown",
+        useCallback(
+            (e: KeyboardEvent) => {
+                if (e.key !== "Shift" || !map) return;
+                if (map.getInteractions().getArray().includes(props.snapInteraction)) {
+                    map.removeInteraction(props.snapInteraction);
+                }
+            },
+            [map, props.snapInteraction]
+        )
+    );
 
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key !== "Shift") return;
-            if (map.getInteractions().getArray().includes(props.snapInteraction)) {
-                map.removeInteraction(props.snapInteraction);
-            }
-        };
-
-        const handleKeyUp = (e: KeyboardEvent) => {
-            if (e.key !== "Shift") return;
-            if (needToSnapRef.current && !map.getInteractions().getArray().includes(props.snapInteraction)) {
-                map.addInteraction(props.snapInteraction);
-            }
-        };
-
-        document.addEventListener("keydown", handleKeyDown);
-        document.addEventListener("keyup", handleKeyUp);
-        return () => {
-            document.removeEventListener("keydown", handleKeyDown);
-            document.removeEventListener("keyup", handleKeyUp);
-        };
-    }, [map, props.snapInteraction]);
+    useKeyEvent(
+        "keyup",
+        useCallback(
+            (e: KeyboardEvent) => {
+                if (e.key !== "Shift" || !map) return;
+                if (needToSnapRef.current && !map.getInteractions().getArray().includes(props.snapInteraction)) {
+                    map.addInteraction(props.snapInteraction);
+                }
+            },
+            [map, props.snapInteraction]
+        )
+    );
 
     return null;
 };
