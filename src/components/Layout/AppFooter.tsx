@@ -73,12 +73,12 @@ const AppFooter: React.FC = () => {
                 partnersLogos={
                     showFullFooter
                         ? {
+                              main: {
+                                  alt: t("partner_1"),
+                                  href: "https://www.ign.fr",
+                                  imgUrl: "https://data.geopf.fr/annexes/ressources/footer/ign.png",
+                              },
                               sub: [
-                                  {
-                                      alt: t("partner_1"),
-                                      href: "https://www.ign.fr",
-                                      imgUrl: "https://data.geopf.fr/annexes/ressources/footer/ign.png",
-                                  },
                                   {
                                       alt: t("partner_2"),
                                       href: "https://www.transformation.gouv.fr/",
