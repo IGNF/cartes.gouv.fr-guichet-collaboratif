@@ -29,7 +29,7 @@ export const AppFooterFrTranslations: Translations<"fr">["AppFooter"] = {
 
 export const AppFooterEnTranslations: Translations<"en">["AppFooter"] = {
     content_description:
-        "Cartes.gouv.fr is developed by the National Institute of Geographic and Forest Information (IGN) and its partners. The site is based on the Géoplatforme, the new public, open, and collaborative infrastructure for geographic data.",
+        "Cartes.gouv.fr is the public service providing maps and data for France. Run by the IGN and its partners, it offers everyone access to the leading source of public cartography and enables anyone to create, host and publish their own data and visualisations.",
     conditions_generales: "General Conditions of Use",
     home_link: "Home - cartes.gouv.fr-guichet-collaboratif",
     partner_1: "IGN",
