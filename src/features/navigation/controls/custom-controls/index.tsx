@@ -46,7 +46,9 @@ const CustomControls = () => {
     }, [selectedObjects, interactions.selectInteraction]);
 
     const clickToolButton = useCallback(() => {
-        if (!clickedControl || clickedControl.disabled || !(clickedControl?.interaction === InteractionType.CREATE_REPORT)) return;
+        if (!clickedControl || clickedControl.disabled || !clickedControl.target) return;
+        // Only delegate to embedded geopf buttons for tools with no OL interaction (measure tools) or CREATE_REPORT
+        if (clickedControl.interaction !== null && clickedControl.interaction !== InteractionType.CREATE_REPORT) return;
 
         const controlButton = document.querySelector(`button[id^='${clickedControl.target}']`) as HTMLButtonElement | null;
         if (controlButton) {
