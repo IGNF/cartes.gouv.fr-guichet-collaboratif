@@ -39,10 +39,14 @@ const AppFooter: React.FC = () => {
             )}
             <ConsentBannerAndConsentManagement />
             <Footer
+                websiteMapLinkProps={{
+                    href: "/plan-du-site",
+                }}
                 accessibility="partially compliant"
                 accessibilityLinkProps={{
                     href: "/accessibilite",
                 }}
+                termsLinkProps={{ href: "/mentions-legales" }}
                 brandTop={
                     showFullFooter ? (
                         <>
