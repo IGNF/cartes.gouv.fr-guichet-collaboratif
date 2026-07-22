@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "@/i18n";
 import { useModalStore, useReportStore } from "@/store";
 import Button from "@codegouvfr/react-dsfr/Button";
@@ -15,20 +16,27 @@ interface Props {
 const TableReportDrawer = ({ handleCloseDrawer }: Props) => {
     const { t } = useTranslation({ TableReportDrawer });
     const [showFilter, setShowFilter] = useState(false);
+    const [searchParams, setSearchParams] = useSearchParams();
     const { shareReportFilters } = useModalStore();
-    const { reportTableWidth, setCurrentFilters, setCurrentPage, setLimitPerPage, setSortBy, setSearchReport } = useReportStore();
+    const { reportTableWidth, currentFilters, searchReport, sortBy, setCurrentFilters, setCurrentPage, setLimitPerPage, setSortBy, setSearchReport } =
+        useReportStore();
+
+    const hasActiveFilters =
+        !!currentFilters.status || !!currentFilters.theme || currentFilters.author != null || !!currentFilters.departement || !!searchReport || !!sortBy;
 
     useEffect(() => {
-        if (!hasReportParams()) {
+        if (!hasReportParams(searchParams)) {
             return;
         }
 
-        const { status, theme, author, departement, search, sortBy, page, limit } = getReportQueryParams();
+        const { status, theme, author, departement, search, sortBy, page, limit } = getReportQueryParams(searchParams);
         setCurrentFilters({ status, theme, author, departement });
         setSearchReport(search);
         setSortBy(sortBy);
         setCurrentPage(page);
         setLimitPerPage(limit);
+
+        setSearchParams(new URLSearchParams(), { replace: true });
     }, [setCurrentFilters, setSearchReport, setSortBy, setCurrentPage, setLimitPerPage]);
 
     return (
@@ -56,7 +64,7 @@ const TableReportDrawer = ({ handleCloseDrawer }: Props) => {
                 </Button>
             </div>
 
-            {(showFilter || hasReportParams()) && <FilterAndSortReport />}
+            {(showFilter || hasActiveFilters) && <FilterAndSortReport />}
             <TableReport />
             <ShareReportFiltersModal />
         </div>

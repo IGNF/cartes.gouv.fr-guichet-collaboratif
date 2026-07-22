@@ -204,9 +204,7 @@ export const getClickedMapReport = ({ feature, map, pixel, clusterSource, featur
     }
 };
 
-export const hasReportParams = (search: string = window.location.search): boolean => {
-    const params = new URLSearchParams(search);
-
+export const hasReportParams = (params: URLSearchParams): boolean => {
     return (
         params.has("status") ||
         params.has("theme") ||
@@ -219,17 +217,15 @@ export const hasReportParams = (search: string = window.location.search): boolea
     );
 };
 
-export const getReportQueryParams = () => {
-    const params = Object.fromEntries(new URLSearchParams(window.location.search));
-
+export const getReportQueryParams = (params: URLSearchParams) => {
     return {
-        status: params.status ?? "",
-        theme: params.theme ?? "",
-        author: params.author ? Number(params.author) : null,
-        departement: params.departement ?? "",
-        search: params.search ?? "",
-        sortBy: params.sortBy ?? "",
-        page: params.page ? Number(params.page) : 1,
-        limit: params.limit ? Number(params.limit) : 10,
+        status: params.get("status") ?? "",
+        theme: params.get("theme") ?? "",
+        author: params.has("author") ? Number(params.get("author")) : null,
+        departement: params.get("departement") ?? "",
+        search: params.get("search") ?? "",
+        sortBy: params.get("sortBy") ?? "",
+        page: params.has("page") ? Number(params.get("page")) : 1,
+        limit: params.has("limit") ? Number(params.get("limit")) : 10,
     };
 };
