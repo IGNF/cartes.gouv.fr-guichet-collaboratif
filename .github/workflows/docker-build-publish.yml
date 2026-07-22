@@ -22,7 +22,7 @@ jobs:
             packages: write
             security-events: write
         steps:
-            #On écrase image name par sa version minuscule pour trivy
+            # On écrase image name par sa version minuscule pour trivy
             - name: Lowercase image name
               run: echo "IMAGE_NAME=${IMAGE_NAME,,}" >> "$GITHUB_ENV"
 
@@ -54,7 +54,6 @@ jobs:
                       type=ref,event=pr
                       type=semver,pattern={{version}}
                       type=sha
-                      type=semver,pattern={{version}}
                       type=semver,pattern={{major}}.{{minor}}
 
             - name: Build Docker image
