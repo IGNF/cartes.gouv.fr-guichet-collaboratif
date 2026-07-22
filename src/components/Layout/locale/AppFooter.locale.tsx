@@ -4,7 +4,7 @@ import { JSX } from "react";
 
 export const AppFooterFrTranslations: Translations<"fr">["AppFooter"] = {
     content_description:
-        "Cartes.gouv.fr est développé par l’Institut national de l’information géographique et forestière (IGN) et ses partenaires. Le site s’appuie sur la Géoplateforme, la nouvelle infrastructure publique, ouverte et collaborative des données géographiques.",
+        "Cartes.gouv.fr est le service public des cartes et données du territoire français. Porté par l’IGN et ses partenaires, il offre à tous un accès à la référence de la cartographie publique et permet à chacun de créer, d’héberger et de publier ses propres données et représentations.",
     conditions_generales: "Conditions générales d’utilisation",
     home_link: "Accueil - cartes.gouv.fr-guichet-collaboratif",
     partner_1: "IGN",
@@ -29,7 +29,7 @@ export const AppFooterFrTranslations: Translations<"fr">["AppFooter"] = {
 
 export const AppFooterEnTranslations: Translations<"en">["AppFooter"] = {
     content_description:
-        "Cartes.gouv.fr is developed by the National Institute of Geographic and Forest Information (IGN) and its partners. The site is based on the Géoplatforme, the new public, open, and collaborative infrastructure for geographic data.",
+        "Cartes.gouv.fr is the public service providing maps and data for France. Run by the IGN and its partners, it offers everyone access to the leading source of public cartography and enables anyone to create, host and publish their own data and visualisations.",
     conditions_generales: "General Conditions of Use",
     home_link: "Home - cartes.gouv.fr-guichet-collaboratif",
     partner_1: "IGN",

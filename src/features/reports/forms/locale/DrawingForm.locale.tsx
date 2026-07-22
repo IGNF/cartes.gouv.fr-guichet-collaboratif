@@ -8,7 +8,7 @@ export const DrawingFormFrTranslations: Translations<"fr">["DrawingForm"] = {
     hide_sketchToEdit: "Annuler",
     show_sketchToEdit: "Ajouter",
     edit_sketchToEdit: "Modifier",
-    save_sketch: "Enregitrer",
+    save_sketch: "Enregistrer",
 };
 
 export const DrawingFormEnTranslations: Translations<"en">["DrawingForm"] = {

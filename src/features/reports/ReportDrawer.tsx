@@ -190,7 +190,7 @@ const ReportDrawer = () => {
     );
 
     useEffect(() => {
-        if (hasReportParams()) {
+        if (hasReportParams(searchParams)) {
             setTableDrawerOpened(true);
         }
     }, [setTableDrawerOpened, setEditReport]);

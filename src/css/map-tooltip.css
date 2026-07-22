@@ -44,3 +44,8 @@
     white-space: normal;
     word-break: break-word;
 }
+
+div.GPpointInfo.GPwidget.gpf-widget[id^="GPpointInfo-"] {
+    margin-top: 3.5rem;
+    margin-left: -3.3rem;
+}

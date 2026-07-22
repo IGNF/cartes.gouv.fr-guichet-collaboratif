@@ -78,6 +78,12 @@ const mapStyleChildren = async (style: FeatureTypeStyleItemData) => {
                 labelXOffset: type.labelXOffset,
                 labelYOffset: type.labelYOffset,
                 labelMinZoom: type.labelMinZoom,
+                graphicHeight: type.graphicHeight,
+                graphicOpacity: type.graphicOpacity,
+                graphicWidth: type.graphicWidth,
+                graphicXOffset: type.graphicXOffset,
+                graphicYOffset: type.graphicYOffset,
+                rotation: type.rotation,
             };
         })
     );
@@ -114,6 +120,12 @@ const mapStyleItem = async (style: FeatureTypeStyleItemData) => {
                 labelYOffset: style.labelYOffset,
                 labelMinZoom: style.labelMinZoom,
                 directionField: directionField,
+                graphicHeight: style.graphicHeight,
+                graphicOpacity: style.graphicOpacity,
+                graphicWidth: style.graphicWidth,
+                graphicXOffset: style.graphicXOffset,
+                graphicYOffset: style.graphicYOffset,
+                rotation: style.rotation,
             },
             ...children,
         ],

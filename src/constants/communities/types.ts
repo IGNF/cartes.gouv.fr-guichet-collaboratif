@@ -73,6 +73,12 @@ export type FeatureTypeStyleItem = {
     labelMinZoom?: number;
     condition?: SearchObjectCondition;
     directionField?: DirectionField;
+    graphicHeight?: number | null;
+    graphicOpacity?: number | null;
+    graphicWidth?: number | null;
+    graphicXOffset?: number | null;
+    graphicYOffset?: number | null;
+    rotation?: number | null;
 };
 
 export type FeatureTypeStyleItemData = FeatureTypeStyleItem & {
