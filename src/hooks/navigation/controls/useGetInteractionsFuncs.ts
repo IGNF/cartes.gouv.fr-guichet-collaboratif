@@ -763,8 +763,19 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                     unregisterShortestPathListener();
                 }
                 clearShortestPathStart();
+                if (control.interaction === InteractionType.MODIFY || control.interaction === InteractionType.TRANSLATE_OBJECT) {
+                    selectInteraction.setActive(true);
+                }
             } else {
                 removeInteractionFromMap(clickedControl?.interaction ?? null, map!);
+
+                if (
+                    (clickedControl?.interaction === InteractionType.MODIFY || clickedControl?.interaction === InteractionType.TRANSLATE_OBJECT) &&
+                    control.interaction !== InteractionType.MODIFY &&
+                    control.interaction !== InteractionType.TRANSLATE_OBJECT
+                ) {
+                    selectInteraction.setActive(true);
+                }
 
                 if (control.interaction === InteractionType.MODIFY) {
                     modifyFeatures.clear();

@@ -21,6 +21,7 @@ interface UseSingleClickHandlerProps {
     reportClusterSource: VectorSource;
     selectedReport: CommunityReport | null;
     selectedFeatures: Feature[];
+    setClickableFeatures: (features: Feature[]) => void;
     setClickedMapFeature: (feature: Feature | null) => void;
     setFeatureInfo: (content: string | null, title: string | null, position?: [number, number]) => void;
     setSelectedReport: (report: CommunityReport | null) => void;
@@ -41,6 +42,7 @@ export const useSingleClickHandler = (props: UseSingleClickHandlerProps) => {
         reportClusterSource,
         selectedReport,
         selectedFeatures,
+        setClickableFeatures,
         setClickedMapFeature,
         setFeatureInfo,
         setSelectedReport,
@@ -84,8 +86,7 @@ export const useSingleClickHandler = (props: UseSingleClickHandlerProps) => {
                         }
                     } else if (geoserviceType === "WMTS") {
                         const wmtsLayer = map.getAllLayers().find((l) => l.get("name") === mapWorkingLayer && l instanceof TileLayer) as
-                            | TileLayer<WMTS>
-                            | undefined;
+                            TileLayer<WMTS> | undefined;
                         const wmtsSource = wmtsLayer?.getSource();
 
                         if (!wmtsSource) return;
@@ -196,6 +197,10 @@ export const useSingleClickHandler = (props: UseSingleClickHandlerProps) => {
                         setSelectedReport(report);
                     }
                 } else {
+                    if (features.length > 1) {
+                        setClickableFeatures(features.map((f) => f.feature));
+                        return;
+                    }
                     if (!activeInteraction) setClickedMapFeature(topFeature.feature);
                 }
             }
@@ -210,6 +215,7 @@ export const useSingleClickHandler = (props: UseSingleClickHandlerProps) => {
             reportClusterSource,
             selectedReport,
             selectedFeatures,
+            setClickableFeatures,
             setClickedMapFeature,
             setFeatureInfo,
             setSelectedReport,

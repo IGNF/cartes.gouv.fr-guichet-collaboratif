@@ -15,7 +15,7 @@ interface Props {
 }
 
 const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
-    const { map, mapWorkingLayer, clickedControl, setClickedMapFeature, setFeatureInfo } = useMapStore();
+    const { map, mapWorkingLayer, clickedControl, setClickedMapFeature, setFeatureInfo, setClickableFeatures } = useMapStore();
     const { communityLayers } = useCommunityStore();
     const { reports, selectedReport, editReport, selectedFeatures, setSelectedReport, setSelectedFeatures, drawerOpened } = useReportStore();
 
@@ -122,6 +122,7 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
         reportClusterSource,
         selectedReport,
         selectedFeatures,
+        setClickableFeatures,
         setClickedMapFeature,
         setFeatureInfo,
         setSelectedReport,
