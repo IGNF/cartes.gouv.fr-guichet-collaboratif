@@ -40,3 +40,9 @@ export const SEARCH_DATA_URL = BASE_URL + "/rechercher-une-donnee";
 export const PUBLISH_DATA_URL = BASE_URL + "/publier-une-donnee";
 export const CREATE_DATA_URL = BASE_URL + "/editeur-carto";
 export const DISCOVER_URL = BASE_URL + "/decouvrir";
+
+// Footer links
+export const SITEMAP_URL = BASE_URL + "/plan-du-site";
+export const ACCESSIBILITY_URL = BASE_URL + "/accessibilite";
+export const LEGAL_NOTICES_URL = BASE_URL + "/mentions-legales";
+export const TERMS_OF_USE_URL = BASE_URL + "/conditions-generales-d-utilisation";
