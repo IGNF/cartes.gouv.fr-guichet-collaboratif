@@ -206,6 +206,15 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                 if (!shouldKeepSelectDisabled) {
                     selectInteraction.setActive(true);
                 }
+                if (clickedControl?.interaction === InteractionType.TRANSLATE_OBJECT) {
+                    const dragPan = map
+                        ?.getInteractions()
+                        .getArray()
+                        .find((i) => i instanceof DragPan) as DragPan | undefined;
+                    if (dragPan) {
+                        dragPan.setActive(true);
+                    }
+                }
                 return;
             }
 
