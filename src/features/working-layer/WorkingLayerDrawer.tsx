@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef } from "react";
 import ShowFeatureTypeForm from "./forms/ShowFeatureTypeForm";
 import EditFeatureTypeForm from "./forms/EditFeatureTypeForm";
 import { FeatureTypeMode } from "@/constants/contributions/types";
-import { FEATURE_TYPE_SELECTED_PROPERTY } from "@/constants";
+import { FEATURE_TYPE_NEW_PROPERTY, FEATURE_TYPE_SELECTED_PROPERTY } from "@/constants";
 import ConfirmMultipleDeselection from "@/features/navigation/controls/custom-controls/ConfirmMultipleDeselection";
 
 const WorkingLayerDrawer = () => {
@@ -16,9 +16,12 @@ const WorkingLayerDrawer = () => {
 
     useEffect(() => {
         if (clickedMapFeature && !workingLayerDrawerOpened && !isReviewContribution) {
+            if (clickedMapFeature.get(FEATURE_TYPE_NEW_PROPERTY)) {
+                setFeatureTypeMode(FeatureTypeMode.EDIT);
+            }
             setWorkingLayerDrawerOpened(true);
         }
-    }, [clickedMapFeature, workingLayerDrawerOpened, isReviewContribution, setWorkingLayerDrawerOpened]);
+    }, [clickedMapFeature, workingLayerDrawerOpened, isReviewContribution, setWorkingLayerDrawerOpened, setFeatureTypeMode]);
 
     const closeDrawer = useCallback(() => {
         selectedObjects.forEach((feat) => {
