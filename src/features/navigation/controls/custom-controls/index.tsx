@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect } from "react";
+import { memo, useCallback, useEffect, useRef } from "react";
 import ButtonControl from "./ButtonControl";
 import { useContributionStore, useMapStore, useModalStore } from "@/store";
 import AllReportsControl from "./AllReportsControl";
@@ -18,8 +18,6 @@ import SearchObjectsModal from "@/features/working-layer/modal/searchObjects/Sea
 import ExportMapModal from "./ExportMapModal";
 import NamedPositionModal from "../NamedPositionModal";
 
-let prevClickedControl: CustomControlItem | null = null;
-
 const CustomControls = () => {
     const { clickedControl, setClickedControl, setWorkingLayerDrawerOpened, setClickedMapFeature, clickedMapFeature, workingLayerDrawerOpened } = useMapStore();
     const { selectedObjects, setSelectedObjects } = useContributionStore();
@@ -31,6 +29,7 @@ const CustomControls = () => {
 
     const interactions = useGetInteractions();
     const interactionsFuncs = useGetInteractionsFuncs(interactions);
+    const pendingControlChange = useRef<CustomControlItem | null>(null);
 
     useEffect(() => {
         const selectControl = controlsList.find((c) => c.interaction === InteractionType.SELECT);
@@ -75,7 +74,7 @@ const CustomControls = () => {
             }
 
             setClickedControl(control?.id === clickedControl?.id ? null : control);
-            prevClickedControl = null;
+            pendingControlChange.current = null;
         },
         [
             interactionsFuncs,
@@ -94,7 +93,7 @@ const CustomControls = () => {
             if (control.disabled) return;
 
             if (clickedControl?.interaction === InteractionType.SELECT && selectedObjects.length > 1) {
-                prevClickedControl = control;
+                pendingControlChange.current = control;
                 confirmMultipleDeselectionModal.open();
                 return;
             }
@@ -115,6 +114,22 @@ const CustomControls = () => {
         if (selectedObjects.length === 0) return;
         interactionsFuncs.deleteSelectedObjects(selectedObjects);
     }, [confirmMultipleObjectsActionModal, interactionsFuncs, selectedObjects]);
+
+    const handleConfirmUnSelectMultiple = () => {
+        interactions.selectInteraction.clearSelection();
+        selectedObjects.forEach((feat) => {
+            feat.unset(FEATURE_TYPE_SELECTED_PROPERTY);
+            feat.changed();
+        });
+        setSelectedObjects([]);
+        setClickedMapFeature(null);
+        confirmMultipleDeselectionModal.close();
+    };
+
+    useEffect(() => {
+        if (!pendingControlChange.current || selectedObjects.length !== 0) return;
+        onConfirm(pendingControlChange.current);
+    }, [selectedObjects.length, onConfirm]);
 
     const isEditableTarget = useCallback((target: EventTarget | null) => {
         return target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || (target instanceof HTMLElement && target.isContentEditable);
@@ -189,7 +204,7 @@ const CustomControls = () => {
             </div>
             <AddOrRemoveMapControlInteraction {...interactionsFuncs} {...interactions} />
             <AddOrRemoveSnapInteraction {...interactions} />
-            <ConfirmMultipleDeselection onConfirm={() => onConfirm(prevClickedControl!)} />
+            <ConfirmMultipleDeselection onConfirm={handleConfirmUnSelectMultiple} />
             <SearchObjectsModal />
             <ConfirmMultipleObjectsActionModal action={FeatureTypeFormActionMode.DELETE} onConfirm={handleConfirmDeleteMultiple} />
             <ExportMapModal />

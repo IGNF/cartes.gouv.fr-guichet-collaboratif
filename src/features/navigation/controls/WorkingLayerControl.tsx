@@ -1,5 +1,7 @@
-import { useEffect, useCallback, useMemo, memo } from "react";
+import { useEffect, useCallback, useMemo, memo, useRef } from "react";
 import { useCommunityStore, useLocalStorageStore, useMapStore } from "@/store";
+import { useContributionStore } from "@/store/useContributionStore";
+import { useModalStore } from "@/store/useModalStore";
 
 import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import { useTranslation } from "@/i18n";
@@ -12,6 +14,8 @@ const WorkingLayerControl = () => {
     const { community, mapLayers, communityLayers } = useCommunityStore();
     const { map, mapSwitcher, mapWorkingLayer, showMapWorkingLayerSelect, setMapWorkingLayer, setShowMapWorkingLayerSelect } = useMapStore();
     const { localStorageData, setLocalStorage } = useLocalStorageStore();
+    const { selectedObjects } = useContributionStore();
+    const { confirmMultipleDeselectionModal } = useModalStore();
 
     const { t } = useTranslation({ WorkingLayerControl });
 
@@ -115,18 +119,39 @@ const WorkingLayerControl = () => {
         };
     }, [layerSwitcherButton, handleLayerSwitcherClick, handleLayerSwitcherMouseOver, handleLayerSwitcherMouseLeave]);
 
-    const handleWorkingLayerChange = useCallback(
+    const pendingLayerChange = useRef<(() => void) | null>(null);
+
+    const applyWorkingLayerChange = useCallback(
         (value: string) => {
             if (!community) return;
             if (localStorageData) {
                 const newLocalData = { ...localStorageData, activeLayer: value };
                 setLocalStorage(community?.name, newLocalData);
             }
-
             setMapWorkingLayer(value);
         },
         [community, localStorageData, setLocalStorage, setMapWorkingLayer]
     );
+
+    const handleWorkingLayerChange = useCallback(
+        (value: string) => {
+            if (selectedObjects.length > 1) {
+                pendingLayerChange.current = () => applyWorkingLayerChange(value);
+                confirmMultipleDeselectionModal.open();
+                return;
+            }
+
+            applyWorkingLayerChange(value);
+        },
+        [selectedObjects.length, applyWorkingLayerChange, confirmMultipleDeselectionModal]
+    );
+
+    useEffect(() => {
+        if (pendingLayerChange.current && selectedObjects.length === 0) {
+            pendingLayerChange.current();
+            pendingLayerChange.current = null;
+        }
+    }, [selectedObjects]);
 
     if (!showMapWorkingLayerSelect) return null;
 

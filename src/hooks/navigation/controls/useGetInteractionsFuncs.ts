@@ -25,7 +25,7 @@ let clipboardFeature: Feature | null = null;
 const useGetInteractionsFuncs = (props: InteractionsProps) => {
     const { map, mapWorkingLayer, clickedControl, clickedMapFeature, setClickedControl, setClickedMapFeature } = useMapStore();
     const { contributions, selectedObjects, saveContribution, setIsModifying, setSelectedObjects } = useContributionStore();
-    const { searchModal, exportMapModal } = useModalStore();
+    const { searchModal, exportMapModal, confirmMultipleDeselectionModal } = useModalStore();
     const { communityLayers } = useCommunityStore();
 
     const currentCommunityLayer = useMemo(() => communityLayers?.find((l) => l?.geoservice?.layer === mapWorkingLayer), [communityLayers, mapWorkingLayer]);
@@ -62,27 +62,35 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
 
     const pasteInteractionFuncRef = useRef<((e: MapBrowserEvent) => void) | null>(null);
 
+    const selectedObjectsRef = useRef(selectedObjects);
+    useEffect(() => {
+        selectedObjectsRef.current = selectedObjects;
+    });
+
     const selectInteractionFunc = useCallback(
         (e: SelectEvent) => {
             const selectedFeatures = e.selected;
             const deselectedFeatures = e.deselected;
-            selectedFeatures.forEach((feat) => {
-                feat.set(FEATURE_TYPE_SELECTED_PROPERTY, true);
-            });
-            deselectedFeatures.forEach((feat) => {
-                feat.unset(FEATURE_TYPE_SELECTED_PROPERTY);
-            });
 
-            const newSelectedObjects = [...selectedObjects.filter((feat) => !deselectedFeatures.includes(feat)), ...selectedFeatures];
-            if (newSelectedObjects.length > 0) {
-                setClickedMapFeature(newSelectedObjects[0]);
-            } else {
-                setClickedMapFeature(null);
+            const isUserClick = !!e.mapBrowserEvent;
+            if (isUserClick && selectedFeatures.length === 0 && deselectedFeatures.length > 1) {
+                deselectedFeatures.forEach((feat) => {
+                    feat.set(FEATURE_TYPE_SELECTED_PROPERTY, true);
+                    feat.changed();
+                    selectInteraction.getFeatures().push(feat);
+                });
+                confirmMultipleDeselectionModal.open();
+                return;
             }
 
-            setSelectedObjects(newSelectedObjects);
+            selectedFeatures.forEach((feat) => feat.set(FEATURE_TYPE_SELECTED_PROPERTY, true));
+            deselectedFeatures.forEach((feat) => feat.unset(FEATURE_TYPE_SELECTED_PROPERTY));
+
+            const newSelectedObjects = selectInteraction.getFeatures().getArray();
+            setClickedMapFeature(newSelectedObjects[0] ?? null);
+            setSelectedObjects([...newSelectedObjects]);
         },
-        [selectedObjects, setSelectedObjects, setClickedMapFeature]
+        [selectInteraction, confirmMultipleDeselectionModal, setClickedMapFeature, setSelectedObjects]
     );
 
     const dragInteractionFunc = useCallback(() => {
@@ -96,7 +104,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             }
         });
         const newSelectedObjects = selectInteraction.getFeatures().getArray();
-        setSelectedObjects(newSelectedObjects);
+        setSelectedObjects([...newSelectedObjects]);
         if (newSelectedObjects.length > 0) {
             setClickedMapFeature(newSelectedObjects[0]);
         }
@@ -450,7 +458,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                 return;
             }
             if (control.interaction !== InteractionType.MODIFY && control.interaction !== InteractionType.TRANSLATE_OBJECT) {
-                selectedObjects.forEach((feat) => {
+                selectedObjectsRef.current.forEach((feat) => {
                     feat.unset(FEATURE_TYPE_SELECTED_PROPERTY);
                 });
             }
@@ -488,16 +496,16 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
 
                 if (control.interaction === InteractionType.MODIFY) {
                     modifyFeatures.clear();
-                    const featsToModify = selectedObjects.length > 0 ? selectedObjects : clickedMapFeature ? [clickedMapFeature] : [];
+                    const featsToModify = selectedObjectsRef.current.length > 0 ? selectedObjectsRef.current : clickedMapFeature ? [clickedMapFeature] : [];
                     featsToModify.forEach((feat) => {
                         modifyFeatures.push(feat);
                     });
                     selectInteraction.setActive(false);
                 }
 
-                if (control.interaction === InteractionType.TRANSLATE_OBJECT && selectedObjects.length > 0) {
+                if (control.interaction === InteractionType.TRANSLATE_OBJECT && selectedObjectsRef.current.length > 0) {
                     translateFeatures.clear();
-                    selectedObjects.forEach((feat) => {
+                    selectedObjectsRef.current.forEach((feat) => {
                         translateFeatures.push(feat);
                     });
                     selectInteraction.setActive(false);
@@ -512,7 +520,6 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             mapWorkingLayer,
             clickedControl,
             clickedMapFeature,
-            selectedObjects,
             selectInteraction,
             modifyFeatures,
             translateFeatures,

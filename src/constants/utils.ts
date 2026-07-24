@@ -478,7 +478,7 @@ export const handleCenterToFeature = (map: Map | null, feature: Feature) => {
 
     view?.animate({
         center: featureCenter,
-        zoom: featureZoom ?? view.getZoom() ?? 18,
+        zoom: (featureZoom ?? view.getZoom() ?? 18) + 1,
         duration: 400,
     });
 };

@@ -29,6 +29,7 @@ import { APP_FOOTER_MIN_HEIGHT, APP_HEADER_HEIGHT } from "@/constants";
 import WorkingLayerLabelMap from "./controls/WorkingLayerLabelMap";
 import CustomControls from "./controls/custom-controls";
 import ReviewContributions from "../contributions/ReviewContributions";
+import ReviewSelectedObjects from "../working-layer/multiple-selection/ReviewSelectedObjects";
 import BetaBadge from "@/components/Layout/MapCommunity/BetaBadge";
 import CommunityTitle from "@/components/Layout/MapCommunity/CommunityTitle";
 import CommunityToolbar from "@/components/Layout/MapCommunity/CommunityToolbar";
@@ -42,7 +43,7 @@ export default function MainMap() {
     const { community, mapLayers } = useCommunityStore();
     const { localStorageData } = useLocalStorageStore();
     const { map, mapSwitcher, setMap } = useMapStore();
-    const { contributions, isReviewContribution } = useContributionStore();
+    const { contributions, isReviewContribution, selectedObjects } = useContributionStore();
 
     const mapControls = useGetMapControls();
 
@@ -171,6 +172,7 @@ export default function MainMap() {
 
             {map?.getAllLayers().length && <CustomControls />}
             {contributions.length > 0 && isReviewContribution && <ReviewContributions />}
+            {selectedObjects.length > 1 && !isReviewContribution && <ReviewSelectedObjects />}
         </div>
     );
 }
