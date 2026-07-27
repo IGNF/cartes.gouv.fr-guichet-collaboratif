@@ -51,7 +51,6 @@
         "@types/react": "19.2.17",
         "@types/react-csv": "1.1.10",
         "@types/react-dom": "19.2.3",
-        "@types/react-router-dom": "5.3.3",
         "@vitejs/plugin-react": "6.0.4",
         "eslint": "10.8.0",
         "eslint-plugin-react-hooks": "7.1.1",
