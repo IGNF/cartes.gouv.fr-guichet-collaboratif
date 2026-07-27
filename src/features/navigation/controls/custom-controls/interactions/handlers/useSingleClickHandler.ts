@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef } from "react";
+import { useIsModalOpen } from "@codegouvfr/react-dsfr/Modal/useIsModalOpen";
 import { Feature, MapBrowserEvent } from "ol";
 import TileLayer from "ol/layer/Tile";
 import VectorSource from "ol/source/Vector";
@@ -256,6 +257,14 @@ export const useSingleClickHandler = (props: UseSingleClickHandlerProps) => {
         pendingSingleClickEvent.current = null;
         void handleSingleClick(pendingEvent);
     }, [selectedObjects.length, handleSingleClick]);
+
+    useIsModalOpen(confirmMultipleDeselectionModal, {
+        onConceal: () => {
+            if (pendingSingleClickEvent.current && selectedObjects.length > 0) {
+                pendingSingleClickEvent.current = null;
+            }
+        },
+    });
 
     return handleSingleClick;
 };

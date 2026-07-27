@@ -1,4 +1,5 @@
 import { memo, useCallback, useEffect, useRef } from "react";
+import { useIsModalOpen } from "@codegouvfr/react-dsfr/Modal/useIsModalOpen";
 import ButtonControl from "./ButtonControl";
 import { useContributionStore, useMapStore, useModalStore } from "@/store";
 import AllReportsControl from "./AllReportsControl";
@@ -124,16 +125,23 @@ const CustomControls = () => {
         setSelectedObjects([]);
         setClickedMapFeature(null);
         confirmMultipleDeselectionModal.close();
-    };
 
-    useEffect(() => {
-        if (!pendingControlChange.current || selectedObjects.length !== 0) return;
-        onConfirm(pendingControlChange.current);
-    }, [selectedObjects.length, onConfirm]);
+        if (pendingControlChange.current) {
+            const control = pendingControlChange.current;
+            pendingControlChange.current = null;
+            onConfirm(control);
+        }
+    };
 
     const isEditableTarget = useCallback((target: EventTarget | null) => {
         return target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || (target instanceof HTMLElement && target.isContentEditable);
     }, []);
+
+    useIsModalOpen(confirmMultipleDeselectionModal, {
+        onConceal: () => {
+            pendingControlChange.current = null;
+        },
+    });
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {

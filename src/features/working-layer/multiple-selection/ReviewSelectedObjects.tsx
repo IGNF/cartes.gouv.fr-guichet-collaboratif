@@ -3,8 +3,9 @@ import type { FrIconClassName, RiIconClassName } from "@codegouvfr/react-dsfr";
 import { useCallback, useMemo } from "react";
 import { useTranslation } from "@/i18n";
 import { useContributionStore, useMapStore } from "@/store";
+import { handleCenterToFeature } from "@/constants/utils";
 import { FEATURE_TYPE_SELECTED_PROPERTY } from "@/constants";
-import { getCenter } from "ol/extent";
+
 import type { Map } from "ol";
 import type { Feature } from "ol";
 
@@ -24,10 +25,7 @@ const panToFeature = (map: Map | null, feature: Feature) => {
     const geometry = feature.getGeometry();
     if (!geometry) return;
 
-    const extent = geometry.getExtent();
-    if (!isFinite(extent[0])) return;
-
-    map?.getView().animate({ center: getCenter(extent), duration: 300 });
+    handleCenterToFeature(map, feature);
 };
 
 const highlightOnly = (all: Feature[], focused: Feature) => {

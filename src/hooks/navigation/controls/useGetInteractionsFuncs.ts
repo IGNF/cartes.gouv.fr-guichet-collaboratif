@@ -65,7 +65,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
     const selectedObjectsRef = useRef(selectedObjects);
     useEffect(() => {
         selectedObjectsRef.current = selectedObjects;
-    });
+    }, [selectedObjects]);
 
     const selectInteractionFunc = useCallback(
         (e: SelectEvent) => {

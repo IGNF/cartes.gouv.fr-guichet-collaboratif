@@ -6,6 +6,7 @@ import { useModalStore } from "@/store/useModalStore";
 import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import { useTranslation } from "@/i18n";
 import Select from "@codegouvfr/react-dsfr/Select";
+import { useIsModalOpen } from "@codegouvfr/react-dsfr/Modal/useIsModalOpen";
 import Tooltip from "@mui/material/Tooltip";
 import Fade from "@mui/material/Fade";
 import { CommunityLayerRoleType } from "@/constants/communities/types";
@@ -152,6 +153,14 @@ const WorkingLayerControl = () => {
             pendingLayerChange.current = null;
         }
     }, [selectedObjects]);
+
+    useIsModalOpen(confirmMultipleDeselectionModal, {
+        onConceal: () => {
+            if (pendingLayerChange.current && selectedObjects.length > 0) {
+                pendingLayerChange.current = null;
+            }
+        },
+    });
 
     if (!showMapWorkingLayerSelect) return null;
 
