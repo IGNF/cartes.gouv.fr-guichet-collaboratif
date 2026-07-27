@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams } from "react-router";
 import NotFound from "./NotFound";
 import { lazy, Suspense, useEffect } from "react";
 import { useCommunityStore, useLocalStorageStore, useUserStore } from "@/store";
