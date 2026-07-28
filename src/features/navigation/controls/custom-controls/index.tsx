@@ -22,7 +22,7 @@ import useKeyEvent from "@/hooks/useKeyEvent";
 let prevClickedControl: CustomControlItem | null = null;
 
 const CustomControls = () => {
-    const { clickedControl, setClickedControl, setWorkingLayerDrawerOpened, setClickedMapFeature, clickedMapFeature, workingLayerDrawerOpened } = useMapStore();
+    const { clickedControl, setClickedControl, setWorkingLayerDrawerOpened, setClickedMapFeature, workingLayerDrawerOpened } = useMapStore();
     const { selectedObjects, setSelectedObjects } = useContributionStore();
     const { confirmMultipleDeselectionModal, confirmMultipleObjectsActionModal } = useModalStore();
 
@@ -126,7 +126,6 @@ const CustomControls = () => {
         useCallback(
             (e: KeyboardEvent) => {
                 if (e.key === "Delete") {
-                    console.log(clickedMapFeature, selectedObjects);
                     if (isEditableTarget(e.target)) return;
 
                     const deleteControl = controlsList.find((control) => control.interaction === InteractionType.REMOVE);
