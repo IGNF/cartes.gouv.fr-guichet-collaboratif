@@ -21,6 +21,7 @@ import { ThemeComponentEnTranslations } from "@/features/reports/forms/locale/Th
 import { ThemeFormEnTranslations } from "@/features/reports/forms/locale/ThemeForm.locale";
 import { CenterMessageEnTranslations } from "@/features/reports/locale/CenterMessage.locale";
 import { CreateReportEnTranslations } from "@/features/reports/locale/CreateReport.locale";
+import { DeleteShareReportComponentEnTranslations } from "@/features/reports/locale/DeleteShareReportComponent.locale";
 import { EditReportEnTranslations } from "@/features/reports/locale/EditReport.locale";
 import { ReportDrawerEnTranslations } from "@/features/reports/locale/ReportDrawer.locale";
 import { ShowReportEnTranslations } from "@/features/reports/locale/ShowReport.locale";
@@ -93,6 +94,7 @@ export const translations: Translations<"en"> = {
     ThemeForm: ThemeFormEnTranslations,
     CenterMessage: CenterMessageEnTranslations,
     CreateReport: CreateReportEnTranslations,
+    DeleteShareReportComponent: DeleteShareReportComponentEnTranslations,
     EditReport: EditReportEnTranslations,
     ReportDrawer: ReportDrawerEnTranslations,
     ShowReport: ShowReportEnTranslations,

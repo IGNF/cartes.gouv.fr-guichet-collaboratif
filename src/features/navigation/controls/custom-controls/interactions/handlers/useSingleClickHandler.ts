@@ -89,8 +89,7 @@ export const useSingleClickHandler = (props: UseSingleClickHandlerProps) => {
                         }
                     } else if (geoserviceType === "WMTS") {
                         const wmtsLayer = map.getAllLayers().find((l) => l.get("name") === mapWorkingLayer && l instanceof TileLayer) as
-                            | TileLayer<WMTS>
-                            | undefined;
+                            TileLayer<WMTS> | undefined;
                         const wmtsSource = wmtsLayer?.getSource();
 
                         if (!wmtsSource) return;
