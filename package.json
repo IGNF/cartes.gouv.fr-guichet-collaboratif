@@ -7,9 +7,9 @@
         "predev": "react-dsfr update-icons",
         "dev": "vite",
         "prebuild": "react-dsfr update-icons",
-        "build": "node_modules/typescript-7/bin/tsc --version && node_modules/typescript-7/bin/tsc -b && vite build",
+        "build": "node node_modules/typescript-7/bin/tsc -b && vite build",
         "preview": "vite preview",
-        "check-types": "node_modules/typescript-7/bin/tsc -b",
+        "check-types": "node node_modules/typescript-7/bin/tsc -b",
         "lint": "eslint .",
         "lint:fix": "eslint --fix .",
         "format": "prettier --check .",
@@ -71,5 +71,9 @@
     "lint-staged": {
         "*": "prettier --write --ignore-unknown --no-error-on-unmatched-pattern",
         "*.{js,ts,jsx,tsx}": "eslint"
+    },
+    "engines": {
+        "node": ">=26.0.0 <27.0.0",
+        "npm": ">=12.0.0"
     }
 }
