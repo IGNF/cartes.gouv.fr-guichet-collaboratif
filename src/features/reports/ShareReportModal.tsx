@@ -6,21 +6,23 @@ import Input from "@codegouvfr/react-dsfr/Input";
 import ModaleComponent from "@/components/ModaleComponent";
 import Tag from "@codegouvfr/react-dsfr/Tag";
 import { StatusMessage } from "@/constants/communities/types";
+import { HOME_URL } from "@/constants/urls";
 
 const ShareReportModal = () => {
     const [showToast, setShowToast] = useState<boolean>(false);
 
     const { t } = useTranslation({ ShareReportModal });
 
-    const { addAlertMessage } = useCommunityStore();
+    const { addAlertMessage, community } = useCommunityStore();
     const { selectedReport } = useReportStore();
+    const communityId = community?.id;
 
     const shareInput = useMemo(() => {
-        if (!selectedReport) return "";
-        const url = new URL(window.location.href);
+        if (!selectedReport || !communityId) return "";
+        const url = new URL(`${HOME_URL}/${communityId}`, window.location.origin);
         url.searchParams.set("report", String(selectedReport.id));
         return url.toString();
-    }, [selectedReport]);
+    }, [selectedReport, communityId]);
 
     const { shareReport } = useModalStore();
 
