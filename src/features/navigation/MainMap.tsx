@@ -150,7 +150,7 @@ export default function MainMap() {
     }, [mapLayers, addLayer]);
 
     return (
-        <div className={`${fr.cx("fr-grid-row")} grid-map-container`}>
+        <div className={cx(fr.cx("fr-grid-row"), "grid-map-container")}>
             <div
                 className={cx(fr.cx("fr-col"), "map-view")}
                 ref={mapTargetRef}
