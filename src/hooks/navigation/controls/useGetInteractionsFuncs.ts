@@ -67,7 +67,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             const selectedFeatures = e.selected;
             const deselectedFeatures = e.deselected;
             selectedFeatures.forEach((feat) => {
-                feat.set(FEATURE_TYPE_SELECTED_PROPERTY, true);
+                feat.set(FEATURE_TYPE_SELECTED_PROPERTY, 1);
             });
             deselectedFeatures.forEach((feat) => {
                 feat.unset(FEATURE_TYPE_SELECTED_PROPERTY);
