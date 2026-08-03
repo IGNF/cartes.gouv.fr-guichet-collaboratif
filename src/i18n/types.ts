@@ -74,6 +74,7 @@ export type ComponentKey =
     | import("../hooks/navigation/layers/locale/useGetWFSLayer.locale").I18n
     | import("../hooks/navigation/layers/locale/useGetWMSLayer.locale").I18n
     | import("../hooks/navigation/layers/locale/useGetWMTSLayer.locale").I18n
+    | import("../hooks/navigation/controls/locale/useGetInteractionsFuncs.locale").I18n
     | import("../hooks/reports/locale/useReportTools.locale").I18n
     | import("../hooks/reports/locale/useDeleteReport.locale").I18n
     | import("../hooks/working-layer/locale/useFeatureTypeValidation.locale").I18n
