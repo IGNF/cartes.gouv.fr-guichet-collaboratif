@@ -21,7 +21,7 @@ import NamedPositionModal from "../NamedPositionModal";
 let prevClickedControl: CustomControlItem | null = null;
 
 const CustomControls = () => {
-    const { clickedControl, setClickedControl, setWorkingLayerDrawerOpened, setClickedMapFeature, clickedMapFeature, workingLayerDrawerOpened } = useMapStore();
+    const { clickedControl, setClickedControl, setWorkingLayerDrawerOpened, setClickedMapFeature, workingLayerDrawerOpened } = useMapStore();
     const { selectedObjects, setSelectedObjects } = useContributionStore();
     const { confirmMultipleDeselectionModal, confirmMultipleObjectsActionModal } = useModalStore();
 
@@ -46,7 +46,9 @@ const CustomControls = () => {
     }, [selectedObjects, interactions.selectInteraction]);
 
     const clickToolButton = useCallback(() => {
-        if (!clickedControl || clickedControl.disabled || !(clickedControl?.interaction === InteractionType.CREATE_REPORT)) return;
+        if (!clickedControl || clickedControl.disabled || !clickedControl.target) return;
+        // Only delegate to embedded geopf buttons for tools with no OL interaction (measure tools) or CREATE_REPORT
+        if (clickedControl.interaction !== null && clickedControl.interaction !== InteractionType.CREATE_REPORT) return;
 
         const controlButton = document.querySelector(`button[id^='${clickedControl.target}']`) as HTMLButtonElement | null;
         if (controlButton) {
@@ -123,7 +125,6 @@ const CustomControls = () => {
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === "Delete") {
-                console.log(clickedMapFeature, selectedObjects);
                 if (isEditableTarget(e.target)) return;
 
                 const deleteControl = controlsList.find((control) => control.interaction === InteractionType.REMOVE);

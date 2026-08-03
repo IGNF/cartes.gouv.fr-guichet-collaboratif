@@ -47,6 +47,7 @@ export interface InteractionsFuncsProps {
     modifyInteractionFuncStart: (e: ModifyEvent) => void;
     drawInteractionFunc: (e: DrawEvent) => void;
     copyInteractionFunc: () => void;
+    shortestPathInteractionFunc: (e: MapBrowserEvent) => void;
     splitLineInteractionFuncEnd: (e: MapBrowserEvent) => void;
     splitLineInteractionFuncPointer: (e: MapBrowserEvent) => void;
     getInteractionByType: (type: string | null, target: string) => CustomInteraction;

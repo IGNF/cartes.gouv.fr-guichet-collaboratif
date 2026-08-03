@@ -269,6 +269,8 @@ export enum CommunityLayerFunctionalityType {
 export enum CommunityLayerRoleType {
     VISU = "visu",
     EDIT = "edit",
+    REF = "ref",
+    REF_EDIT = "ref_edit",
 }
 
 export enum InteractionType {
@@ -281,6 +283,7 @@ export enum InteractionType {
     COPY_OBJECT = "copy_object",
     TRANSLATE_OBJECT = "translate_object",
     SPLIT_LINE = "split_line",
+    SHORTEST_PATH = "shortest_path",
     EXPORT_IMAGE = "export_image",
 }
 

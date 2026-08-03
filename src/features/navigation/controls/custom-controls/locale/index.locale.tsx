@@ -15,6 +15,7 @@ export const CustomControlsFrTranslations: Translations<"fr">["CustomControls"] 
     export_image: "Exporter la carte en image",
     copy_object: "Copier un objet",
     paste_object: "Coller un objet",
+    shortest_path: "Créer un plus court chemin",
 };
 
 export const CustomControlsEnTranslations: Translations<"en">["CustomControls"] = {
@@ -31,6 +32,7 @@ export const CustomControlsEnTranslations: Translations<"en">["CustomControls"] 
     export_image: "Export map as an image",
     copy_object: "Copy an object",
     paste_object: "Paste an object",
+    shortest_path: "Create a shortest path",
 };
 
 const { i18n } = declareComponentKeys<
@@ -47,5 +49,6 @@ const { i18n } = declareComponentKeys<
     | "export_image"
     | "copy_object"
     | "paste_object"
+    | "shortest_path"
 >()("CustomControls");
 export type I18n = typeof i18n;
