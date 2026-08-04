@@ -139,6 +139,22 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
     );
 
     const pasteInteractionFuncRef = useRef<((e: MapBrowserEvent) => void) | null>(null);
+    const previousWorkingLayerRef = useRef(mapWorkingLayer);
+
+    useEffect(() => {
+        // Reset add control on working layer change,
+        // Otherwise, a different geometry type could be added to a layer
+        const previousWorkingLayer = previousWorkingLayerRef.current;
+        const didWorkingLayerChange = previousWorkingLayer !== mapWorkingLayer;
+        previousWorkingLayerRef.current = mapWorkingLayer;
+
+        if (!didWorkingLayerChange || clickedControl?.interaction !== InteractionType.ADD_OBJECT) return;
+
+        if (map) {
+            removeInteractionFromMap(InteractionType.ADD_OBJECT, map);
+        }
+        setClickedControl(null);
+    }, [mapWorkingLayer, clickedControl, map, setClickedControl]);
 
     const selectInteractionFunc = useCallback(
         (e: SelectEvent) => {
