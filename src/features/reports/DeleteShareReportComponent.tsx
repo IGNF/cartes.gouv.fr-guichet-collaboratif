@@ -23,8 +23,26 @@ const DeleteShareReportComponent = ({ handleDelete }: Props) => {
 
     return (
         <div className="report-deleteShare__wrapper">
-            {isAdmin && <Button iconId="ri-delete-bin-line" priority="secondary" title={t("delete")} nativeButtonProps={deleteShareReportModal.buttonProps} />}
-            <Button iconId="ri-share-forward-fill" priority="secondary" title={t("share")} nativeButtonProps={shareReport.buttonProps} />
+            {isAdmin && (
+                <Button
+                    iconId="ri-delete-bin-line"
+                    priority="secondary"
+                    title={t("delete")}
+                    nativeButtonProps={{
+                        ...deleteShareReportModal.buttonProps,
+                        "aria-label": t("delete"),
+                    }}
+                />
+            )}
+            <Button
+                iconId="ri-share-forward-fill"
+                priority="secondary"
+                title={t("share")}
+                nativeButtonProps={{
+                    ...shareReport.buttonProps,
+                    "aria-label": t("share"),
+                }}
+            />
 
             <ConfirmDeleteShareReportModal handleDelete={handleDelete} />
             <ShareReportModal />
