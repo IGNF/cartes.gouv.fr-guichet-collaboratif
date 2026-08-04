@@ -52,6 +52,7 @@ export type ComponentKey =
     | import("../features/reports/forms/locale/ThemeForm.locale").I18n
     | import("../features/reports/locale/CenterMessage.locale").I18n
     | import("../features/reports/locale/CreateReport.locale").I18n
+    | import("../features/reports/locale/DeleteShareReportComponent.locale").I18n
     | import("../features/reports/locale/EditReport.locale").I18n
     | import("../features/reports/locale/ShowReport.locale").I18n
     | import("../features/reports/locale/TableReportDrawer.locale").I18n

@@ -3,11 +3,9 @@ export const FRONT_URL = import.meta.env.VITE_FRONT_URL;
 export const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 export const API_URL = SERVER_URL + "/gcms/api";
 
-const FRONT_BASE_URL = BASE_URL + FRONT_URL;
-
-export const HOME_URL = FRONT_BASE_URL;
-export const PROFILE_URL = FRONT_BASE_URL + "/profile";
-export const PAGE_404_URL = FRONT_BASE_URL + "/page-404";
+export const HOME_URL = BASE_URL + FRONT_URL;
+export const PROFILE_URL = HOME_URL + "/profile";
+export const PAGE_404_URL = HOME_URL + "/page-404";
 
 export const LIST_COMMUNITIES_URL = SERVER_URL + "/front-office";
 export const DOWNLOAD_DOCUMENT_URL = SERVER_URL + "/document/download";
@@ -24,8 +22,8 @@ export const REPORTS_WFS_API_URL = API_URL + "/reports/wfs";
 
 export const CARTESGOUV_DISCOVER = BASE_URL + "/decouvrir";
 
-export const DASHBOARD_URL = FRONT_BASE_URL + "/tableau-de-bord";
-export const MY_ACCOUNT_URL = FRONT_BASE_URL + "/mon-compte";
+export const DASHBOARD_URL = HOME_URL + "/tableau-de-bord";
+export const MY_ACCOUNT_URL = HOME_URL + "/mon-compte";
 export const ADMIN_COMMUNITY_URL = BASE_URL + "/espace-collaboratif";
 
 // Header links (all external to community)
