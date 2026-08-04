@@ -3,13 +3,21 @@ import { InteractionsProps } from "@/constants/contributions/types";
 import { useCommunityStore, useMapStore } from "@/store";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import useKeyEvent from "@/hooks/useKeyEvent";
-import BaseObject from "ol/Object";
+import type { Collection } from "ol";
+import type { Interaction } from "ol/interaction";
 
 const isEditInteraction = (interaction: InteractionType | null | undefined): boolean => {
     return interaction === InteractionType.ADD_OBJECT || interaction === InteractionType.MODIFY || interaction === InteractionType.TRANSLATE_OBJECT;
 };
 
+/**
+ *  Ol uses last handle first for interactions:
+ *  - Snap is always last
+ *  - Enable/disable is done via setActive()
+ *    so we never reorder the collection just to toggle snapping on/off.
+ */
 const SnapInteractionEffect = (props: InteractionsProps) => {
+    const { snapInteraction } = props;
     const { map, clickedControl, mapWorkingLayer } = useMapStore();
     const { communityLayers } = useCommunityStore();
 
@@ -19,89 +27,66 @@ const SnapInteractionEffect = (props: InteractionsProps) => {
     );
 
     const needToSnap = Boolean(currentCommunityLayer?.snapto && isEditInteraction(clickedControl?.interaction));
+
     const needToSnapRef = useRef(needToSnap);
     const isShiftPressedRef = useRef(false);
-    const lockSnapUntilEditionEndRef = useRef(false);
+
+    const applyActive = useCallback(() => {
+        snapInteraction.setActive(needToSnapRef.current && !isShiftPressedRef.current);
+    }, [snapInteraction]);
 
     useEffect(() => {
         needToSnapRef.current = needToSnap;
-    }, [needToSnap]);
-
-    const applySnapState = useCallback(() => {
-        const shouldEnableSnap = needToSnapRef.current && !isShiftPressedRef.current && !lockSnapUntilEditionEndRef.current;
-        props.snapInteraction.setActive(shouldEnableSnap);
-    }, [props.snapInteraction]);
+        applyActive();
+    }, [needToSnap, applyActive]);
 
     useEffect(() => {
         if (!map) return;
 
-        const hasSnap = map.getInteractions().getArray().includes(props.snapInteraction);
-        if (!hasSnap) {
-            map.addInteraction(props.snapInteraction);
-        }
+        const interactions = map.getInteractions() as Collection<Interaction>;
 
-        if (!needToSnapRef.current) {
-            isShiftPressedRef.current = false;
-            lockSnapUntilEditionEndRef.current = false;
+        const moveSnapToTail = () => {
+            const array = interactions.getArray();
+            if (array[array.length - 1] === snapInteraction) return;
+            interactions.remove(snapInteraction);
+            interactions.push(snapInteraction);
+        };
+
+        let reordering = false;
+        const onAdd = (event: { element?: Interaction }) => {
+            if (reordering || event.element === snapInteraction) return;
+            reordering = true;
+            moveSnapToTail();
+            reordering = false;
+        };
+
+        if (!interactions.getArray().includes(snapInteraction)) {
+            interactions.push(snapInteraction);
+        } else {
+            moveSnapToTail();
         }
-        applySnapState();
+        applyActive();
+
+        interactions.on("add", onAdd as never);
 
         return () => {
-            if (map.getInteractions().getArray().includes(props.snapInteraction)) {
-                map.removeInteraction(props.snapInteraction);
+            interactions.un("add", onAdd as never);
+            if (interactions.getArray().includes(snapInteraction)) {
+                interactions.remove(snapInteraction);
             }
         };
-    }, [map, props.snapInteraction, needToSnap, applySnapState]);
+    }, [map, snapInteraction, applyActive]);
 
-    useEffect(() => {
-        const onEditionStart = () => {
-            if (isShiftPressedRef.current) {
-                lockSnapUntilEditionEndRef.current = true;
-                applySnapState();
-            }
-        };
-        const onEditionEnd = () => {
-            lockSnapUntilEditionEndRef.current = false;
-            applySnapState();
-        };
-
-        const editionInteractions: [BaseObject, string, string[]][] = [
-            [props.modifyInteraction, "modifystart", ["modifyend"]],
-            [props.translateInteraction, "translatestart", ["translateend"]],
-            [props.drawPointInteraction, "drawstart", ["drawend", "drawabort"]],
-            [props.drawLineInteraction, "drawstart", ["drawend", "drawabort"]],
-            [props.drawPolygonInteraction, "drawstart", ["drawend", "drawabort"]],
-        ];
-
-        editionInteractions.forEach(([interaction, startEvent, endEvents]) => {
-            interaction.on(startEvent as never, onEditionStart);
-            endEvents.forEach((endEvent) => interaction.on(endEvent as never, onEditionEnd));
-        });
-
-        return () => {
-            editionInteractions.forEach(([interaction, startEvent, endEvents]) => {
-                interaction.un(startEvent as never, onEditionStart);
-                endEvents.forEach((endEvent) => interaction.un(endEvent as never, onEditionEnd));
-            });
-        };
-    }, [
-        props.modifyInteraction,
-        props.translateInteraction,
-        props.drawPointInteraction,
-        props.drawLineInteraction,
-        props.drawPolygonInteraction,
-        applySnapState,
-    ]);
-
+    // Hold Shift to temporarily suspend snapping
     useKeyEvent(
         "keydown",
         useCallback(
             (e: KeyboardEvent) => {
-                if (e.key !== "Shift") return;
+                if (e.key !== "Shift" || isShiftPressedRef.current) return;
                 isShiftPressedRef.current = true;
-                applySnapState();
+                applyActive();
             },
-            [applySnapState]
+            [applyActive]
         )
     );
 
@@ -111,9 +96,9 @@ const SnapInteractionEffect = (props: InteractionsProps) => {
             (e: KeyboardEvent) => {
                 if (e.key !== "Shift") return;
                 isShiftPressedRef.current = false;
-                applySnapState();
+                applyActive();
             },
-            [applySnapState]
+            [applyActive]
         )
     );
 
