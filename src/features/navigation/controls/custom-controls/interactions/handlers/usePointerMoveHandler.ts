@@ -73,7 +73,7 @@ export const usePointerMoveHandler = (props: UsePointerMoveHandlerProps) => {
                         if (mapWorkingLayer === REPORTS_LAYER_TYPE) {
                             const fCluster = f.get("features");
                             if (fCluster?.length > 1) {
-                                result = { feature: fCluster[0] as Feature, layerName };
+                                return false;
                             } else {
                                 const inner = fCluster?.find((fc: Feature) => fc.get("reportData") || fc.get("new"));
                                 if (inner) result = { feature: inner as Feature, layerName };
@@ -154,38 +154,32 @@ export const usePointerMoveHandler = (props: UsePointerMoveHandlerProps) => {
                     tooltipRef.current.innerHTML = "";
 
                     if (mapWorkingLayer === REPORTS_LAYER_TYPE) {
-                        const innerFeatures: Feature[] = hoveredFeature.get("features") ?? [];
-                        if (innerFeatures.length > 1) {
-                            clearHoverState();
-                            return;
-                        } else {
-                            const reportData = innerFeatures[0]?.get("reportData");
-                            if (reportData) {
-                                const titleDiv = document.createElement("div");
-                                titleDiv.className = "map-hover-tooltip-title";
-                                titleDiv.textContent = "Signalement";
-                                tooltipRef.current.appendChild(titleDiv);
+                        const reportData = hoveredFeature.get("reportData");
+                        if (reportData) {
+                            const titleDiv = document.createElement("div");
+                            titleDiv.className = "map-hover-tooltip-title";
+                            titleDiv.textContent = "Signalement";
+                            tooltipRef.current.appendChild(titleDiv);
 
-                                if (reportData.id != null) {
-                                    const fieldDiv = document.createElement("div");
-                                    fieldDiv.className = "map-hover-tooltip-field";
+                            if (reportData.id != null) {
+                                const fieldDiv = document.createElement("div");
+                                fieldDiv.className = "map-hover-tooltip-field";
 
-                                    const parts: string[] = [`#${reportData.id}`];
+                                const parts: string[] = [`#${reportData.id}`];
 
-                                    const theme = reportData?.themes?.[0]?.theme;
-                                    if (theme) parts.push(`Theme: ${theme}`);
+                                const theme = reportData?.themes?.[0]?.theme;
+                                if (theme) parts.push(`Theme: ${theme}`);
 
-                                    fieldDiv.innerHTML = parts.join("<br/>");
-                                    tooltipRef.current.appendChild(fieldDiv);
+                                fieldDiv.innerHTML = parts.join("<br/>");
+                                tooltipRef.current.appendChild(fieldDiv);
 
-                                    const comment = reportData?.comment;
+                                const comment = reportData?.comment;
 
-                                    if (comment) {
-                                        const commentDiv = document.createElement("div");
-                                        commentDiv.className = "map-hover-tooltip-comment";
-                                        commentDiv.textContent = comment;
-                                        tooltipRef.current.appendChild(commentDiv);
-                                    }
+                                if (comment) {
+                                    const commentDiv = document.createElement("div");
+                                    commentDiv.className = "map-hover-tooltip-comment";
+                                    commentDiv.textContent = comment;
+                                    tooltipRef.current.appendChild(commentDiv);
                                 }
                             }
                         }
