@@ -81,20 +81,20 @@ const useGetInteractions = () => {
     );
 
     const drawPointInteraction = useMemo(() => {
-        const draw = new Draw({ type: "Point", condition: isEventInsideMapViewport });
+        const draw = new Draw({ type: "Point", condition: isEventInsideMapViewport, freehandCondition: () => false });
         draw.set("disablesTooltip", true);
         draw.set("disableSelect", true);
         return draw;
     }, [isEventInsideMapViewport]);
 
     const drawLineInteraction = useMemo(() => {
-        const draw = new Draw({ type: "LineString", condition: isEventInsideMapViewport });
+        const draw = new Draw({ type: "LineString", condition: isEventInsideMapViewport, freehandCondition: () => false });
         draw.set("disablesTooltip", true);
         return draw;
     }, [isEventInsideMapViewport]);
 
     const drawPolygonInteraction = useMemo(() => {
-        const draw = new Draw({ type: "Polygon", condition: isEventInsideMapViewport });
+        const draw = new Draw({ type: "Polygon", condition: isEventInsideMapViewport, freehandCondition: () => false });
         draw.set("disablesTooltip", true);
         return draw;
     }, [isEventInsideMapViewport]);

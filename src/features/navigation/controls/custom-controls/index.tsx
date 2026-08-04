@@ -17,6 +17,7 @@ import ConfirmMultipleObjectsActionModal from "@/features/working-layer/forms/Co
 import SearchObjectsModal from "@/features/working-layer/modal/searchObjects/SearchObjectsModal";
 import ExportMapModal from "./ExportMapModal";
 import NamedPositionModal from "../NamedPositionModal";
+import useKeyEvent from "@/hooks/useKeyEvent";
 
 let prevClickedControl: CustomControlItem | null = null;
 
@@ -122,58 +123,59 @@ const CustomControls = () => {
         return target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || (target instanceof HTMLElement && target.isContentEditable);
     }, []);
 
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === "Delete") {
-                if (isEditableTarget(e.target)) return;
+    useKeyEvent(
+        "keydown",
+        useCallback(
+            (e: KeyboardEvent) => {
+                if (e.key === "Delete") {
+                    if (isEditableTarget(e.target)) return;
 
-                const deleteControl = controlsList.find((control) => control.interaction === InteractionType.REMOVE);
-                if (!deleteControl || deleteControl.disabled) return;
+                    const deleteControl = controlsList.find((control) => control.interaction === InteractionType.REMOVE);
+                    if (!deleteControl || deleteControl.disabled) return;
 
-                if (selectedObjects.length > 1) {
-                    confirmMultipleObjectsActionModal.open();
-                    return;
-                }
-
-                const targetFeature = selectedObjects[0] ?? null;
-                if (targetFeature) {
-                    interactionsFuncs.deleteSelectedObjects([targetFeature]);
-                }
-                return;
-            }
-
-            if (e.key !== "Escape") return;
-            if (workingLayerDrawerOpened) {
-                setClickedMapFeature(null);
-                return;
-            }
-            if (clickedControl) {
-                if (clickedControl.interaction === InteractionType.SELECT && selectedObjects.length > 1) {
-                    return;
-                }
-                if (clickedControl.target) {
-                    const controlButton = document.querySelector(`button[id^='${clickedControl.target}']`) as HTMLButtonElement;
-                    if (controlButton?.classList.contains("active")) {
-                        controlButton.click();
+                    if (selectedObjects.length > 1) {
+                        confirmMultipleObjectsActionModal.open();
+                        return;
                     }
-                }
-                setClickedControl(null);
-            }
-        };
 
-        document.addEventListener("keydown", handleKeyDown);
-        return () => document.removeEventListener("keydown", handleKeyDown);
-    }, [
-        clickedControl,
-        setClickedControl,
-        selectedObjects,
-        workingLayerDrawerOpened,
-        setClickedMapFeature,
-        controlsList,
-        confirmMultipleObjectsActionModal,
-        interactionsFuncs,
-        isEditableTarget,
-    ]);
+                    const targetFeature = selectedObjects[0] ?? null;
+                    if (targetFeature) {
+                        interactionsFuncs.deleteSelectedObjects([targetFeature]);
+                    }
+                    return;
+                }
+
+                if (e.key !== "Escape") return;
+                if (workingLayerDrawerOpened) {
+                    setClickedMapFeature(null);
+                    return;
+                }
+                if (clickedControl) {
+                    if (clickedControl.interaction === InteractionType.SELECT && selectedObjects.length > 1) {
+                        return;
+                    }
+                    if (clickedControl.target) {
+                        const controlButton = document.querySelector(`button[id^='${clickedControl.target}']`) as HTMLButtonElement;
+                        if (controlButton?.classList.contains("active")) {
+                            controlButton.click();
+                        }
+                    }
+                    setClickedControl(null);
+                }
+            },
+            [
+                clickedControl,
+                setClickedControl,
+                selectedObjects,
+                workingLayerDrawerOpened,
+                setClickedMapFeature,
+                controlsList,
+                confirmMultipleObjectsActionModal,
+                interactionsFuncs,
+                isEditableTarget,
+            ]
+        )
+    );
 
     return (
         <>
