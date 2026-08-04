@@ -4,9 +4,8 @@ import TileLayer from "ol/layer/Tile";
 import VectorSource from "ol/source/Vector";
 import { WMTS } from "ol/source";
 import { Style } from "ol/style";
-import { FEATURE_TYPE_GEOSERVICE_PROPERTY, HIT_DETECTION_TOLERENCE } from "@/constants";
+import { FEATURE_TYPE_GEOSERVICE_PROPERTY } from "@/constants";
 import { CommunityGeoservice, CustomControlItem, InteractionType } from "@/constants/communities/types";
-import { getFeaturesInPixelBySource } from "@/constants/communities/utils";
 import { getClickedMapReport, getReportSketchFeatures, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import { getWMSFeatureInfo, getWMTSFeatureInfo } from "@/api/featureTypesData";
 import { Map } from "ol";
@@ -19,7 +18,6 @@ interface UseSingleClickHandlerProps {
     clickedControl: CustomControlItem | null;
     currentGeoservice: CommunityGeoservice | undefined;
     mapWorkingLayer: string;
-    clickableSource: VectorSource;
     reportClusterSource: VectorSource;
     selectedReport: CommunityReport | null;
     selectedFeatures: Feature[];
@@ -41,7 +39,6 @@ export const useSingleClickHandler = (props: UseSingleClickHandlerProps) => {
         clickedControl,
         currentGeoservice,
         mapWorkingLayer,
-        clickableSource,
         reportClusterSource,
         selectedReport,
         selectedFeatures,
@@ -89,8 +86,7 @@ export const useSingleClickHandler = (props: UseSingleClickHandlerProps) => {
                         }
                     } else if (geoserviceType === "WMTS") {
                         const wmtsLayer = map.getAllLayers().find((l) => l.get("name") === mapWorkingLayer && l instanceof TileLayer) as
-                            | TileLayer<WMTS>
-                            | undefined;
+                            TileLayer<WMTS> | undefined;
                         const wmtsSource = wmtsLayer?.getSource();
 
                         if (!wmtsSource) return;
@@ -132,24 +128,15 @@ export const useSingleClickHandler = (props: UseSingleClickHandlerProps) => {
             }
 
             const features: { feature: Feature; zIndex: number }[] = [];
-            const selectInteraction = map
+            const activeInteraction = map
                 ?.getInteractions()
                 .getArray()
-                .find((i) => i.get("type") === InteractionType.SELECT || i.get("type") === InteractionType.REMOVE);
+                .find((i) => i.get("type") !== undefined);
+
+            if (activeInteraction) return;
 
             const featuresAtPixel = map?.getFeaturesAtPixel(evt.pixel);
             if (!featuresAtPixel?.length) return;
-
-            const featuresAt = getFeaturesInPixelBySource(map!, clickableSource, evt.pixel, HIT_DETECTION_TOLERENCE);
-
-            if (featuresAt && featuresAt.length && mapWorkingLayer !== REPORTS_LAYER_TYPE) {
-                setClickableFeatures(featuresAt);
-                if (featuresAt.length > 1) {
-                    return;
-                }
-            }
-
-            if (selectInteraction) return;
 
             featuresAtPixel?.forEach((feature) => {
                 const clickedFeature = feature as Feature;
@@ -210,7 +197,11 @@ export const useSingleClickHandler = (props: UseSingleClickHandlerProps) => {
                         setSelectedReport(report);
                     }
                 } else {
-                    if (!selectInteraction) setClickedMapFeature(topFeature.feature);
+                    if (features.length > 1) {
+                        setClickableFeatures(features.map((f) => f.feature));
+                        return;
+                    }
+                    if (!activeInteraction) setClickedMapFeature(topFeature.feature);
                 }
             }
         },
@@ -221,7 +212,6 @@ export const useSingleClickHandler = (props: UseSingleClickHandlerProps) => {
             clickedControl,
             currentGeoservice,
             mapWorkingLayer,
-            clickableSource,
             reportClusterSource,
             selectedReport,
             selectedFeatures,

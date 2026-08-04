@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { FEATURE_TYPE_HOVER_PROPERTY } from "@/constants";
-import { CommunityGeoservice, InteractionType } from "@/constants/communities/types";
+import { CommunityGeoservice, GeoserviceFeatureTypeProp, InteractionType } from "@/constants/communities/types";
 import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import { useCommunityStore, useMapStore, useReportStore } from "@/store";
 import { Feature, Overlay } from "ol";
@@ -15,7 +15,7 @@ interface Props {
 }
 
 const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
-    const { map, mapWorkingLayer, clickedControl, setClickableFeatures, setClickedMapFeature, setFeatureInfo } = useMapStore();
+    const { map, mapWorkingLayer, clickedControl, setClickedMapFeature, setFeatureInfo, setClickableFeatures } = useMapStore();
     const { communityLayers } = useCommunityStore();
     const { reports, selectedReport, editReport, selectedFeatures, setSelectedReport, setSelectedFeatures, drawerOpened } = useReportStore();
 
@@ -91,13 +91,26 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
                     clickedControl.interaction !== InteractionType.REMOVE &&
                     clickedControl.interaction !== InteractionType.MODIFY &&
                     clickedControl.interaction !== InteractionType.TRANSLATE_OBJECT &&
-                    clickedControl.interaction !== InteractionType.COPY_OBJECT) ||
-                (editReport && mapWorkingLayer !== REPORTS_LAYER_TYPE) ||
+                    clickedControl.interaction !== InteractionType.COPY_OBJECT &&
+                    clickedControl.interaction !== InteractionType.SHORTEST_PATH) ||
+                editReport ||
                 selectedFeatures?.find((f) => f?.get("new")) ||
                 (!currentGeoservice?.featureType && !isRasterLayerQueryable && mapWorkingLayer !== REPORTS_LAYER_TYPE)
             ),
         [clickedControl, editReport, selectedFeatures, currentGeoservice, isRasterLayerQueryable, mapWorkingLayer]
     );
+
+    const shortestPathNetwork = useMemo(() => {
+        const currentLayer = communityLayers?.find((l) => l.geoservice.layer === mapWorkingLayer);
+        if (!currentLayer?.snapto) return [] as CommunityGeoservice[];
+        const snaptoIds = currentLayer.snapto
+            .split(",")
+            .map((v) => Number(v.trim()))
+            .filter((v) => !Number.isNaN(v));
+        return (communityLayers ?? [])
+            .filter((l) => snaptoIds.includes(l.geoservice.id) && l.geoservice.featureType === GeoserviceFeatureTypeProp.LINE)
+            .map((l) => l.geoservice);
+    }, [communityLayers, mapWorkingLayer]);
 
     const handleSingleClick = useSingleClickHandler({
         map,
@@ -106,7 +119,6 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
         clickedControl,
         currentGeoservice,
         mapWorkingLayer,
-        clickableSource,
         reportClusterSource,
         selectedReport,
         selectedFeatures,
@@ -125,6 +137,7 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
         isNotClickable,
         mapWorkingLayer,
         clickableSource,
+        shortestPathNetwork,
         selectedFeatures,
         currentGeoservice,
         clearHoverState,
@@ -132,6 +145,10 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
         overlayRef,
         tooltipRef,
     });
+
+    useEffect(() => {
+        clearHoverState();
+    }, [clickedControl, clearHoverState]);
 
     const handleClusterChange = useCallback(() => {
         if (!selectedReport || !drawerOpened) return;

@@ -1,9 +1,10 @@
 import Button from "@codegouvfr/react-dsfr/Button";
-import { useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 
 import { useTranslation } from "@/i18n";
 import { useCommunityStore } from "@/store/useCommunityStore";
 import { BASE_URL } from "@/constants/urls";
+import useKeyEvent from "@/hooks/useKeyEvent";
 
 const stripHtml = (html?: string) => (html ? (new DOMParser().parseFromString(html, "text/html").body.textContent ?? "") : "");
 
@@ -19,18 +20,21 @@ export default function CommunityTitle() {
         const handleClickOutside = (event: MouseEvent) => {
             if (containerRef.current && !containerRef.current.contains(event.target as Node)) setIsOpen(false);
         };
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === "Escape") setIsOpen(false);
-        };
         if (isOpen) {
             document.addEventListener("mousedown", handleClickOutside);
-            document.addEventListener("keydown", handleKeyDown);
         }
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
-            document.removeEventListener("keydown", handleKeyDown);
         };
     }, [isOpen]);
+
+    useKeyEvent(
+        "keydown",
+        useCallback((event: KeyboardEvent) => {
+            if (event.key === "Escape") setIsOpen(false);
+        }, []),
+        isOpen
+    );
 
     if (!community) return null;
 
