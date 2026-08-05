@@ -11,6 +11,7 @@ interface UsePointerMoveHandlerProps {
     isNotClickable: boolean;
     mapWorkingLayer: string;
     clickableSource: VectorSource;
+    shortestPathNetwork: CommunityGeoservice[];
     selectedFeatures: Feature[];
     currentGeoservice: CommunityGeoservice | undefined;
     clearHoverState: () => void;
@@ -19,12 +20,16 @@ interface UsePointerMoveHandlerProps {
     tooltipRef: RefObject<HTMLDivElement | null>;
 }
 
+/*
+ Handles pointer-move events: cursor style, hover highlight, and tooltip
+ */
 export const usePointerMoveHandler = (props: UsePointerMoveHandlerProps) => {
     const {
         map,
         isNotClickable,
         mapWorkingLayer,
         clickableSource,
+        shortestPathNetwork,
         selectedFeatures,
         currentGeoservice,
         clearHoverState,
@@ -40,125 +45,153 @@ export const usePointerMoveHandler = (props: UsePointerMoveHandlerProps) => {
                 clearHoverState();
                 return;
             }
-
             const activeInteractions = map?.getInteractions().getArray();
-            const tooltipDisabled = activeInteractions?.some((interaction) => interaction.get("disablesTooltip") === true);
 
-            const getHoveredFeature = () => {
-                const featuresAtPixel = map?.getFeaturesAtPixel(evt.pixel, {
-                    layerFilter: (layer) => {
-                        return layer.get("name") === mapWorkingLayer || layer.get("type") === mapWorkingLayer;
-                    },
-                    hitTolerance: HIT_DETECTION_TOLERENCE,
-                });
-
-                return featuresAtPixel?.find((f) => {
-                    if (mapWorkingLayer === REPORTS_LAYER_TYPE) {
-                        const fCluster = f.get("features");
-                        if (fCluster?.length > 1) return fCluster[0];
-                        return fCluster?.find((fc: Feature) => fc.get("reportData") || fc.get("new"));
-                    }
-                    if (clickableSource?.hasFeature(f as Feature)) {
-                        return f;
-                    }
-                    return null;
-                }) as Feature | undefined;
-            };
+            // Tooltip suppression
+            const tooltipSuppressedTools = [InteractionType.MODIFY, InteractionType.TRANSLATE_OBJECT];
+            const disabledByTool = !!clickedControl && tooltipSuppressedTools.includes(clickedControl.interaction as InteractionType);
+            const disabledByInteraction = activeInteractions?.some(
+                (interaction) => interaction.get("type") !== undefined && interaction.get("disablesTooltip") === true
+            );
+            const tooltipDisabled = evt.dragging || disabledByTool || disabledByInteraction;
 
             if (tooltipDisabled) {
-                const targetElement = map?.getTargetElement();
-                const hoveredFeature = getHoveredFeature();
-
-                if (
-                    targetElement &&
-                    hoveredFeature &&
-                    (clickedControl?.interaction === InteractionType.MODIFY ||
-                        clickedControl?.interaction === InteractionType.SELECT ||
-                        clickedControl?.interaction === InteractionType.REMOVE ||
-                        clickedControl?.interaction === InteractionType.TRANSLATE_OBJECT ||
-                        clickedControl?.interaction === InteractionType.COPY_OBJECT)
-                ) {
-                    targetElement.style.cursor = "pointer";
-                } else if (targetElement) {
-                    targetElement.style.cursor = "";
-                }
                 clearHoverState();
                 return;
             }
+            const getHoveredFeature = (): { feature: Feature; layerName: string } | undefined => {
+                const shortestPathNetworkLayerNames = shortestPathNetwork.map((gs) => gs.layer);
+                const isShortestPath = clickedControl?.interaction === InteractionType.SHORTEST_PATH && shortestPathNetworkLayerNames.length > 0;
 
-            const feature = getHoveredFeature();
+                let result: { feature: Feature; layerName: string } | undefined;
+                map?.forEachFeatureAtPixel(
+                    evt.pixel,
+                    (f, layer) => {
+                        //Stop after first match
+                        if (result) return true;
+                        const layerName: string = layer?.get("name") ?? "";
+                        if (mapWorkingLayer === REPORTS_LAYER_TYPE) {
+                            const fCluster = f.get("features");
+                            if (fCluster?.length > 1) {
+                                return false;
+                            } else {
+                                const inner = fCluster?.find((fc: Feature) => fc.get("reportData") || fc.get("new"));
+                                if (inner) result = { feature: inner as Feature, layerName };
+                            }
+                            return !!result;
+                        }
+                        if (isShortestPath) {
+                            result = { feature: f as Feature, layerName };
+                            return true;
+                        }
+                        if (clickableSource?.hasFeature(f as Feature)) {
+                            result = { feature: f as Feature, layerName };
+                            return true;
+                        }
+                        return false;
+                    },
+                    {
+                        layerFilter: (layer) => {
+                            if (isShortestPath) return shortestPathNetworkLayerNames.includes(layer.get("name"));
+                            return layer.get("name") === mapWorkingLayer || layer.get("type") === mapWorkingLayer;
+                        },
+                        hitTolerance: HIT_DETECTION_TOLERENCE,
+                    }
+                );
+                return result;
+            };
 
             const targetElement = map?.getTargetElement();
+            const hovered = getHoveredFeature();
+            const hoveredFeature = hovered?.feature;
 
-            if (!feature) {
+            if (targetElement) {
+                // Modify cursor style base on interaction
+                if (hoveredFeature) {
+                    switch (clickedControl?.interaction) {
+                        case InteractionType.COPY_OBJECT:
+                            targetElement.style.cursor = "copy";
+                            break;
+                        case InteractionType.SPLIT_LINE:
+                            targetElement.style.cursor = "crosshair";
+                            break;
+                        case InteractionType.TRANSLATE_OBJECT:
+                            targetElement.style.cursor = "move";
+                            break;
+                        case InteractionType.REMOVE:
+                            targetElement.style.cursor = "not-allowed";
+                            break;
+                        default:
+                            targetElement.style.cursor = "pointer";
+                    }
+                } else {
+                    targetElement.style.cursor = "";
+                }
+            }
+
+            if (!hoveredFeature) {
                 clearHoverState();
                 if (targetElement) targetElement.style.cursor = "";
                 return;
             }
-            if (selectedFeatures.length && !selectedFeatures.includes(feature) && selectedFeatures.find((f) => f.get("new"))) {
+            if (selectedFeatures.length && !selectedFeatures.includes(hoveredFeature) && selectedFeatures.find((f) => f.get("new"))) {
                 clearHoverState();
                 if (targetElement) targetElement.style.cursor = "";
                 return;
             }
 
-            if (targetElement) targetElement.style.cursor = "pointer";
-
-            if (hoveredFeatureRef.current !== feature) {
+            if (hoveredFeatureRef.current !== hoveredFeature) {
                 if (hoveredFeatureRef.current) {
                     hoveredFeatureRef.current.unset(FEATURE_TYPE_HOVER_PROPERTY);
                     hoveredFeatureRef.current.changed();
                 }
 
-                feature.set(FEATURE_TYPE_HOVER_PROPERTY, true);
-                feature.changed();
-                hoveredFeatureRef.current = feature;
+                hoveredFeature.set(FEATURE_TYPE_HOVER_PROPERTY, true);
+                hoveredFeature.changed();
+                hoveredFeatureRef.current = hoveredFeature;
 
                 if (tooltipRef.current) {
                     tooltipRef.current.innerHTML = "";
 
                     if (mapWorkingLayer === REPORTS_LAYER_TYPE) {
-                        const innerFeatures: Feature[] = feature.get("features") ?? [];
-                        if (innerFeatures.length > 1) {
-                            clearHoverState();
-                            return;
-                        } else {
-                            const reportData = innerFeatures[0]?.get("reportData");
-                            if (reportData) {
-                                const titleDiv = document.createElement("div");
-                                titleDiv.className = "map-hover-tooltip-title";
-                                titleDiv.textContent = "Signalement";
-                                tooltipRef.current.appendChild(titleDiv);
+                        const reportData = hoveredFeature.get("reportData");
+                        if (reportData) {
+                            const titleDiv = document.createElement("div");
+                            titleDiv.className = "map-hover-tooltip-title";
+                            titleDiv.textContent = "Signalement";
+                            tooltipRef.current.appendChild(titleDiv);
 
-                                if (reportData.id != null) {
-                                    const fieldDiv = document.createElement("div");
-                                    fieldDiv.className = "map-hover-tooltip-field";
+                            if (reportData.id != null) {
+                                const fieldDiv = document.createElement("div");
+                                fieldDiv.className = "map-hover-tooltip-field";
 
-                                    const parts: string[] = [`#${reportData.id}`];
+                                const parts: string[] = [`#${reportData.id}`];
 
-                                    const theme = reportData?.themes?.[0]?.theme;
-                                    if (theme) parts.push(`Theme: ${theme}`);
+                                const theme = reportData?.themes?.[0]?.theme;
+                                if (theme) parts.push(`Theme: ${theme}`);
 
-                                    fieldDiv.innerHTML = parts.join("<br/>");
-                                    tooltipRef.current.appendChild(fieldDiv);
+                                fieldDiv.innerHTML = parts.join("<br/>");
+                                tooltipRef.current.appendChild(fieldDiv);
 
-                                    const comment = reportData?.comment;
+                                const comment = reportData?.comment;
 
-                                    if (comment) {
-                                        const commentDiv = document.createElement("div");
-                                        commentDiv.className = "map-hover-tooltip-comment";
-                                        commentDiv.textContent = comment;
-                                        tooltipRef.current.appendChild(commentDiv);
-                                    }
+                                if (comment) {
+                                    const commentDiv = document.createElement("div");
+                                    commentDiv.className = "map-hover-tooltip-comment";
+                                    commentDiv.textContent = comment;
+                                    tooltipRef.current.appendChild(commentDiv);
                                 }
                             }
                         }
                     } else if (currentGeoservice) {
-                        const data = feature.get(FEATURE_TYPE_DATA_PROPERTY) as Record<string, unknown> | undefined;
-                        const idName = currentGeoservice.idName;
+                        const matchedGs = shortestPathNetwork.find((gs) => gs.layer === hovered?.layerName);
+                        const tooltipGeoservice = matchedGs ?? currentGeoservice;
+                        const data = hoveredFeature.get(FEATURE_TYPE_DATA_PROPERTY) as Record<string, unknown> | undefined;
+                        const idName = tooltipGeoservice.idName;
                         const featureId = data && idName ? data[idName] : (data?.id ?? "");
                         const titleDiv = document.createElement("div");
                         titleDiv.className = "map-hover-tooltip-title";
-                        titleDiv.textContent = currentGeoservice.layer;
+                        titleDiv.textContent = tooltipGeoservice.layer;
                         tooltipRef.current.appendChild(titleDiv);
 
                         if (featureId != null && featureId !== "") {
@@ -186,6 +219,7 @@ export const usePointerMoveHandler = (props: UsePointerMoveHandlerProps) => {
             clickedControl,
             mapWorkingLayer,
             clickableSource,
+            shortestPathNetwork,
             selectedFeatures,
             currentGeoservice,
             clearHoverState,

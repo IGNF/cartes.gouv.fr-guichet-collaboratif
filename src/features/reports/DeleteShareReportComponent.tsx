@@ -1,14 +1,16 @@
 import Button from "@codegouvfr/react-dsfr/Button";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import ConfirmDeleteShareReportModal from "./ConfirmDeleteShareReportModal";
 import { useCommunityStore, useModalStore } from "@/store";
 import ShareReportModal from "./ShareReportModal";
+import { useTranslation } from "@/i18n";
 import { useGetUserProfileAPI } from "@/api/userData";
+
 interface Props {
     handleDelete: () => void;
 }
 const DeleteShareReportComponent = ({ handleDelete }: Props) => {
-    const [showActions, setShowActions] = useState<boolean>(false);
+    const { t } = useTranslation({ DeleteShareReportComponent });
     const { deleteShareReportModal, shareReport } = useModalStore();
 
     const { community } = useCommunityStore();
@@ -21,25 +23,26 @@ const DeleteShareReportComponent = ({ handleDelete }: Props) => {
 
     return (
         <div className="report-deleteShare__wrapper">
-            <Button
-                iconId="ri-more-2-line"
-                className="btn-show-actions fr-btn fr-btn--tertiary-no-outline"
-                title="Afficher les actions"
-                onClick={() => setShowActions(!showActions)}
-            />
-
-            {showActions && (
-                <div className="report-deleteShare__container">
-                    {isAdmin && (
-                        <Button priority="tertiary no outline" nativeButtonProps={deleteShareReportModal.buttonProps}>
-                            Supprimer
-                        </Button>
-                    )}
-                    <Button priority="tertiary no outline" nativeButtonProps={shareReport.buttonProps}>
-                        Partager
-                    </Button>
-                </div>
+            {isAdmin && (
+                <Button
+                    iconId="ri-delete-bin-line"
+                    priority="secondary"
+                    title={t("delete")}
+                    nativeButtonProps={{
+                        ...deleteShareReportModal.buttonProps,
+                        "aria-label": t("delete"),
+                    }}
+                />
             )}
+            <Button
+                iconId="ri-share-forward-fill"
+                priority="secondary"
+                title={t("share")}
+                nativeButtonProps={{
+                    ...shareReport.buttonProps,
+                    "aria-label": t("share"),
+                }}
+            />
 
             <ConfirmDeleteShareReportModal handleDelete={handleDelete} />
             <ShareReportModal />

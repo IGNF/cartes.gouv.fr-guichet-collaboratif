@@ -53,6 +53,7 @@ export type ComponentKey =
     | import("../features/reports/forms/locale/ThemeForm.locale").I18n
     | import("../features/reports/locale/CenterMessage.locale").I18n
     | import("../features/reports/locale/CreateReport.locale").I18n
+    | import("../features/reports/locale/DeleteShareReportComponent.locale").I18n
     | import("../features/reports/locale/EditReport.locale").I18n
     | import("../features/reports/locale/ShowReport.locale").I18n
     | import("../features/reports/locale/TableReportDrawer.locale").I18n
@@ -75,6 +76,7 @@ export type ComponentKey =
     | import("../hooks/navigation/layers/locale/useGetWFSLayer.locale").I18n
     | import("../hooks/navigation/layers/locale/useGetWMSLayer.locale").I18n
     | import("../hooks/navigation/layers/locale/useGetWMTSLayer.locale").I18n
+    | import("../hooks/navigation/controls/locale/useGetInteractionsFuncs.locale").I18n
     | import("../hooks/reports/locale/useReportTools.locale").I18n
     | import("../hooks/reports/locale/useDeleteReport.locale").I18n
     | import("../hooks/working-layer/locale/useFeatureTypeValidation.locale").I18n

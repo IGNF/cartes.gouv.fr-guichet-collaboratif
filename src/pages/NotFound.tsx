@@ -1,6 +1,6 @@
 import React from "react";
 import { Button } from "@codegouvfr/react-dsfr/Button";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { HOME_URL } from "@/constants/urls";
 import { useTranslation } from "@/i18n";
 

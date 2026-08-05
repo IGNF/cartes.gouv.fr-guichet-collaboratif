@@ -1,7 +1,7 @@
 #----------------------------------------------------------------------
 # cartesgouvfr-guichet-collaboratif : Génération d'un build statique
 #----------------------------------------------------------------------
-FROM node:24-alpine AS builder
+FROM node:26-alpine AS builder
 
 ARG http_proxy=""
 ARG https_proxy=$http_proxy

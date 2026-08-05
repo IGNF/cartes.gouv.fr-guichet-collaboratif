@@ -3,7 +3,7 @@ import { useCommunityStore, useLocalStorageStore, useMapStore } from "@/store";
 import { EventTypes } from "ol/Observable";
 import { transform } from "ol/proj";
 import { useCallback, useEffect, useRef } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router";
 
 let timer: ReturnType<typeof setTimeout> | undefined;
 

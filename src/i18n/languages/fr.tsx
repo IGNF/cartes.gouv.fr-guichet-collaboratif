@@ -21,6 +21,7 @@ import { ThemeComponentFrTranslations } from "@/features/reports/forms/locale/Th
 import { ThemeFormFrTranslations } from "@/features/reports/forms/locale/ThemeForm.locale";
 import { CenterMessageFrTranslations } from "@/features/reports/locale/CenterMessage.locale";
 import { CreateReportFrTranslations } from "@/features/reports/locale/CreateReport.locale";
+import { DeleteShareReportComponentFrTranslations } from "@/features/reports/locale/DeleteShareReportComponent.locale";
 import { EditReportFrTranslations } from "@/features/reports/locale/EditReport.locale";
 import { ReportDrawerFrTranslations } from "@/features/reports/locale/ReportDrawer.locale";
 import { ShowReportFrTranslations } from "@/features/reports/locale/ShowReport.locale";
@@ -30,6 +31,7 @@ import { useGetReportsLayerFrTranslations } from "@/hooks/navigation/layers/loca
 import { useGetWFSLayerFrTranslations } from "@/hooks/navigation/layers/locale/useGetWFSLayer.locale";
 import { useGetWMSLayerFrTranslations } from "@/hooks/navigation/layers/locale/useGetWMSLayer.locale";
 import { useGetWMTSLayerFrTranslations } from "@/hooks/navigation/layers/locale/useGetWMTSLayer.locale";
+import { useGetInteractionsFuncsFrTranslations } from "@/hooks/navigation/controls/locale/useGetInteractionsFuncs.locale";
 import { useFeatureTypeValidationFrTranslations } from "@/hooks/working-layer/locale/useFeatureTypeValidation.locale";
 import { DrawerComponentFrTranslations } from "@/components/locale/DrawerComponent.locale";
 import { FilterAndSortReportFrTranslations } from "@/components/locale/FilterAndSortReport.locale";
@@ -94,6 +96,7 @@ export const translations: Translations<"fr"> = {
     ThemeForm: ThemeFormFrTranslations,
     CenterMessage: CenterMessageFrTranslations,
     CreateReport: CreateReportFrTranslations,
+    DeleteShareReportComponent: DeleteShareReportComponentFrTranslations,
     EditReport: EditReportFrTranslations,
     ReportDrawer: ReportDrawerFrTranslations,
     ShowReport: ShowReportFrTranslations,
@@ -103,6 +106,7 @@ export const translations: Translations<"fr"> = {
     useGetWFSLayer: useGetWFSLayerFrTranslations,
     useGetWMSLayer: useGetWMSLayerFrTranslations,
     useGetWMTSLayer: useGetWMTSLayerFrTranslations,
+    useGetInteractionsFuncs: useGetInteractionsFuncsFrTranslations,
     useFeatureTypeValidation: useFeatureTypeValidationFrTranslations,
     DrawingControl: DrawingControlFrTranslations,
     ToolsControl: ToolsControlFrTranslations,

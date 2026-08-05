@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router";
 import { useTranslation } from "@/i18n";
 import { useModalStore, useReportStore } from "@/store";
 import Button from "@codegouvfr/react-dsfr/Button";

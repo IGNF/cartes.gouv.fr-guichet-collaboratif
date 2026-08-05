@@ -714,7 +714,7 @@ export const getWebGLStyle = (geoservice: CommunityGeoservice, selectedStyle?: F
 
     let filterSelected = [
         {
-            filter: ["all", ["==", ["get", "featureType"], GeoserviceFeatureTypeProp.POINT], ["has", FEATURE_TYPE_SELECTED_PROPERTY]],
+            filter: ["all", ["==", ["get", "featureType"], GeoserviceFeatureTypeProp.POINT], ["==", ["get", FEATURE_TYPE_SELECTED_PROPERTY], 1]],
             style: getStyleWebGLPoint(isDefault),
         },
     ];
@@ -722,7 +722,7 @@ export const getWebGLStyle = (geoservice: CommunityGeoservice, selectedStyle?: F
     if (geoservice.featureType === GeoserviceFeatureTypeProp.POLYGON) {
         filterSelected = [
             {
-                filter: ["all", ["==", ["get", "featureType"], GeoserviceFeatureTypeProp.POLYGON], ["has", FEATURE_TYPE_SELECTED_PROPERTY]],
+                filter: ["all", ["==", ["get", "featureType"], GeoserviceFeatureTypeProp.POLYGON], ["==", ["get", FEATURE_TYPE_SELECTED_PROPERTY], 1]],
                 style: getStyleWebGLPolygon(isDefault),
             },
         ];
@@ -731,7 +731,7 @@ export const getWebGLStyle = (geoservice: CommunityGeoservice, selectedStyle?: F
     if (geoservice.featureType === GeoserviceFeatureTypeProp.LINE) {
         filterSelected = [
             {
-                filter: ["all", ["==", ["get", "featureType"], GeoserviceFeatureTypeProp.LINE], ["has", FEATURE_TYPE_SELECTED_PROPERTY]],
+                filter: ["all", ["==", ["get", "featureType"], GeoserviceFeatureTypeProp.LINE], ["==", ["get", FEATURE_TYPE_SELECTED_PROPERTY], 1]],
                 style: getStyleWebGLLine(isDefault),
             },
         ];
@@ -741,7 +741,7 @@ export const getWebGLStyle = (geoservice: CommunityGeoservice, selectedStyle?: F
         ...filterStyleByCondition,
         {
             else: true,
-            filter: ["!", ["has", FEATURE_TYPE_SELECTED_PROPERTY]],
+            filter: ["!=", ["get", FEATURE_TYPE_SELECTED_PROPERTY], 1],
             style: getStyleWebGLDefault(newTypes![0]),
         },
         ...filterSelected,

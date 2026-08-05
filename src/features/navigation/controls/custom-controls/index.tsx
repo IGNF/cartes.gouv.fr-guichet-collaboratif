@@ -18,9 +18,10 @@ import ConfirmMultipleObjectsActionModal from "@/features/working-layer/forms/Co
 import SearchObjectsModal from "@/features/working-layer/modal/searchObjects/SearchObjectsModal";
 import ExportMapModal from "./ExportMapModal";
 import NamedPositionModal from "../NamedPositionModal";
+import useKeyEvent from "@/hooks/useKeyEvent";
 
 const CustomControls = () => {
-    const { clickedControl, setClickedControl, setWorkingLayerDrawerOpened, setClickedMapFeature, clickedMapFeature, workingLayerDrawerOpened } = useMapStore();
+    const { clickedControl, setClickedControl, setWorkingLayerDrawerOpened, setClickedMapFeature, workingLayerDrawerOpened } = useMapStore();
     const { selectedObjects, setSelectedObjects } = useContributionStore();
     const { confirmMultipleDeselectionModal, confirmMultipleObjectsActionModal } = useModalStore();
 
@@ -46,7 +47,9 @@ const CustomControls = () => {
     }, [selectedObjects, interactions.selectInteraction]);
 
     const clickToolButton = useCallback(() => {
-        if (!clickedControl || clickedControl.disabled || !(clickedControl?.interaction === InteractionType.CREATE_REPORT)) return;
+        if (!clickedControl || clickedControl.disabled || !clickedControl.target) return;
+        // Only delegate to embedded geopf buttons for tools with no OL interaction (measure tools) or CREATE_REPORT
+        if (clickedControl.interaction !== null && clickedControl.interaction !== InteractionType.CREATE_REPORT) return;
 
         const controlButton = document.querySelector(`button[id^='${clickedControl.target}']`) as HTMLButtonElement | null;
         if (controlButton) {
@@ -143,59 +146,65 @@ const CustomControls = () => {
         },
     });
 
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === "Delete") {
-                console.log(clickedMapFeature, selectedObjects);
-                if (isEditableTarget(e.target)) return;
+    useIsModalOpen(confirmMultipleDeselectionModal, {
+        onConceal: () => {
+            pendingControlChange.current = null;
+        },
+    });
 
-                const deleteControl = controlsList.find((control) => control.interaction === InteractionType.REMOVE);
-                if (!deleteControl || deleteControl.disabled) return;
+    useKeyEvent(
+        "keydown",
+        useCallback(
+            (e: KeyboardEvent) => {
+                if (e.key === "Delete") {
+                    if (isEditableTarget(e.target)) return;
 
-                if (selectedObjects.length > 1) {
-                    confirmMultipleObjectsActionModal.open();
-                    return;
-                }
+                    const deleteControl = controlsList.find((control) => control.interaction === InteractionType.REMOVE);
+                    if (!deleteControl || deleteControl.disabled) return;
 
-                const targetFeature = selectedObjects[0] ?? null;
-                if (targetFeature) {
-                    interactionsFuncs.deleteSelectedObjects([targetFeature]);
-                }
-                return;
-            }
-
-            if (e.key !== "Escape") return;
-            if (workingLayerDrawerOpened) {
-                setClickedMapFeature(null);
-                return;
-            }
-            if (clickedControl) {
-                if (clickedControl.interaction === InteractionType.SELECT && selectedObjects.length > 1) {
-                    return;
-                }
-                if (clickedControl.target) {
-                    const controlButton = document.querySelector(`button[id^='${clickedControl.target}']`) as HTMLButtonElement;
-                    if (controlButton?.classList.contains("active")) {
-                        controlButton.click();
+                    if (selectedObjects.length > 1) {
+                        confirmMultipleObjectsActionModal.open();
+                        return;
                     }
-                }
-                setClickedControl(null);
-            }
-        };
 
-        document.addEventListener("keydown", handleKeyDown);
-        return () => document.removeEventListener("keydown", handleKeyDown);
-    }, [
-        clickedControl,
-        setClickedControl,
-        selectedObjects,
-        workingLayerDrawerOpened,
-        setClickedMapFeature,
-        controlsList,
-        confirmMultipleObjectsActionModal,
-        interactionsFuncs,
-        isEditableTarget,
-    ]);
+                    const targetFeature = selectedObjects[0] ?? null;
+                    if (targetFeature) {
+                        interactionsFuncs.deleteSelectedObjects([targetFeature]);
+                    }
+                    return;
+                }
+
+                if (e.key !== "Escape") return;
+                if (workingLayerDrawerOpened) {
+                    setClickedMapFeature(null);
+                    return;
+                }
+                if (clickedControl) {
+                    if (clickedControl.interaction === InteractionType.SELECT && selectedObjects.length > 1) {
+                        return;
+                    }
+                    if (clickedControl.target) {
+                        const controlButton = document.querySelector(`button[id^='${clickedControl.target}']`) as HTMLButtonElement;
+                        if (controlButton?.classList.contains("active")) {
+                            controlButton.click();
+                        }
+                    }
+                    setClickedControl(null);
+                }
+            },
+            [
+                clickedControl,
+                setClickedControl,
+                selectedObjects,
+                workingLayerDrawerOpened,
+                setClickedMapFeature,
+                controlsList,
+                confirmMultipleObjectsActionModal,
+                interactionsFuncs,
+                isEditableTarget,
+            ]
+        )
+    );
 
     return (
         <>

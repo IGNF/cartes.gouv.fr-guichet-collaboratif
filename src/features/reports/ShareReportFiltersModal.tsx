@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation } from "react-router";
 import { useTranslation } from "@/i18n";
 import { useCommunityStore, useModalStore, useReportStore } from "@/store";
 import Button from "@codegouvfr/react-dsfr/Button";

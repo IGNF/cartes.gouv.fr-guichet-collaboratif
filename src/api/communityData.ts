@@ -3,7 +3,7 @@ import { COMMUNITIES_API_URL, GRIDS_API_URL, LIST_COMMUNITIES_URL } from "@/cons
 import { QueryClient, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useUserStore } from "@/store/useUserStore";
 import { getGeoserviceAll } from "./geoservicesData";
-import { Community, CommunityGeoservice, CommunityGrids, CommunityLayer, layerData } from "@/constants/communities/types";
+import { Community, CommunityGeoservice, CommunityGrids, CommunityLayer, layerData, CommunityLayerRoleType } from "@/constants/communities/types";
 import { getAxiosApi } from ".";
 import { getFeatureTypesAll } from "./featureTypesData";
 import { parseContentRange } from "@/constants/utils";
@@ -81,6 +81,10 @@ async function getCommunityLayers(communityId: string, queryClient: QueryClient)
             layer.type === "geoservice"
                 ? (geoRes?.find((geo) => geo.id === layer.geoservice.id) as CommunityGeoservice)
                 : (featureTypeRes.find((featType) => featType.id === layer.table) as CommunityGeoservice);
+        const role =
+            layer.role === CommunityLayerRoleType.EDIT || layer.role === CommunityLayerRoleType.REF_EDIT
+                ? CommunityLayerRoleType.EDIT
+                : CommunityLayerRoleType.VISU;
         return {
             id: layer.id,
             type: layer.type,
@@ -88,7 +92,7 @@ async function getCommunityLayers(communityId: string, queryClient: QueryClient)
             order: layer.order,
             opacity: layer.opacity,
             visibility: layer.visibility,
-            role: layer.role,
+            role: role,
             database: layer.database,
             table: layer.table,
             snapto: layer.snapto,

@@ -1,7 +1,6 @@
 import { useEffect, useCallback, useMemo, memo, useRef } from "react";
-import { useCommunityStore, useLocalStorageStore, useMapStore } from "@/store";
-import { useContributionStore } from "@/store/useContributionStore";
-import { useModalStore } from "@/store/useModalStore";
+import { useCommunityStore, useLocalStorageStore, useMapStore, useContributionStore, useModalStore } from "@/store";
+import BaseLayer from "ol/layer/Base";
 
 import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import { useTranslation } from "@/i18n";
@@ -37,16 +36,14 @@ const WorkingLayerControl = () => {
         return layers;
     }, [mapLayers, reportLayer, communityLayers, t]);
 
-    const getLayerVisibilityButton = useCallback(
-        (layerName: string) => {
-            const targetLayer = mapLayers.find((layer) => layer.name === layerName);
-            if (!targetLayer) return null;
+    const getLayerVisibilityButton = useCallback((olLayer: BaseLayer) => {
+        // Use open layer id instead of our layer name
+        const gpLayerId = (olLayer as unknown as { gpLayerId?: number }).gpLayerId;
+        if (gpLayerId === undefined) return null;
 
-            const switcherControl = document.querySelector('div[id^="GPlayerSwitcher-"]');
-            return switcherControl?.querySelector(`button[id^='GPvisibilityPicto_ID_${targetLayer.order}-']`);
-        },
-        [mapLayers]
-    );
+        const switcherControl = document.querySelector('div[id^="GPlayerSwitcher-"]');
+        return switcherControl?.querySelector(`button[id^='GPvisibilityPicto_ID_${gpLayerId}-']`);
+    }, []);
 
     const refreshLayerSwitcherState = useCallback(() => {
         mapSwitcher?.changed();
@@ -94,7 +91,7 @@ const WorkingLayerControl = () => {
         if (!mapLayer) return;
 
         if (!mapLayer.getVisible()) {
-            const visibilityButton = getLayerVisibilityButton(mapWorkingLayer);
+            const visibilityButton = getLayerVisibilityButton(mapLayer);
             if (visibilityButton instanceof HTMLButtonElement) {
                 visibilityButton.click();
             } else {
