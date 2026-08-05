@@ -16,6 +16,9 @@ const WorkingLayerDrawer = () => {
 
     useEffect(() => {
         if (clickedMapFeature && !workingLayerDrawerOpened && !isReviewContribution) {
+            if (clickedMapFeature.get("new")) {
+                setFeatureTypeMode(FeatureTypeMode.EDIT);
+            }
             setWorkingLayerDrawerOpened(true);
         }
     }, [clickedMapFeature, workingLayerDrawerOpened, isReviewContribution, setWorkingLayerDrawerOpened]);
