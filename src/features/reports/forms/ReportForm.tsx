@@ -229,8 +229,9 @@ const ReportForm: React.FC<Props> = ({
                 await handleSubmitSketch(selectedFeatures);
                 setLoading(false);
             }
-        } catch {
+        } catch (error) {
             setLoading(false);
+            throw error;
         }
     };
 

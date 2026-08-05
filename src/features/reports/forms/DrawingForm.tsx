@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "@/i18n";
+import { isAxiosError } from "axios";
 import { Feature } from "ol";
 import Layer from "ol/layer/Layer";
 import VectorSource, { VectorSourceEvent } from "ol/source/Vector";
@@ -16,12 +17,13 @@ interface Props {
     clickedTool?: ClickedTool;
     handleToolClick?: (tool: ReportTool | undefined) => void;
     hideToolsDiv?: boolean;
-    onSubmitSketch?: () => void;
+    onSubmitSketch?: () => Promise<void>;
     expendedDrawing?: boolean;
 }
 
 const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsDiv, onSubmitSketch, expendedDrawing }) => {
     const [showSketch, setShowSketch] = useState<boolean>(false);
+    const sketchSnapshotRef = useRef<Feature[]>([]);
 
     const { user } = useUserStore();
     const { map, setClickedTool } = useMapStore();
@@ -165,7 +167,14 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsD
             <SketchList showSketch={showSketch} expendedDrawing={expendedDrawing} />
 
             {!hideToolsDiv && editReport && !showSketch && (
-                <Button priority="secondary" className="fr-mt-4v" onClick={() => setShowSketch(!showSketch)}>
+                <Button
+                    priority="secondary"
+                    className="fr-mt-4v"
+                    onClick={() => {
+                        sketchSnapshotRef.current = editReport && selectedReport ? getReportAllFeatures(selectedReport) : (drawingSource?.getFeatures() ?? []);
+                        setShowSketch(true);
+                    }}
+                >
                     {selectedReport?.sketch ? t("edit_sketchToEdit") : t("show_sketchToEdit")}
                 </Button>
             )}
@@ -230,14 +239,28 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsD
                 <div className="report__actions">
                     {editReport && (
                         <Button
-                            onClick={() => {
+                            onClick={async () => {
                                 if (drawingSource) {
                                     setSelectedFeatures(drawingSource.getFeatures());
                                 }
                                 releaseActiveTool();
                                 setShowSketch(false);
                                 if (onSubmitSketch) {
-                                    onSubmitSketch();
+                                    try {
+                                        await onSubmitSketch();
+                                    } catch (error) {
+                                        if (isAxiosError(error) && error.response?.status === 403) {
+                                            // Not recoverable — revert to original state
+                                            if (drawingSource) {
+                                                drawingSource.clear();
+                                                drawingSource.addFeatures(sketchSnapshotRef.current);
+                                                setSelectedFeatures(sketchSnapshotRef.current);
+                                            }
+                                        } else {
+                                            // Recoverable (400, network…) — re-open for retry
+                                            setShowSketch(true);
+                                        }
+                                    }
                                 }
                             }}
                         >
@@ -248,6 +271,11 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsD
                         priority="secondary"
                         onClick={() => {
                             releaseActiveTool();
+                            if (drawingSource) {
+                                drawingSource.clear();
+                                drawingSource.addFeatures(sketchSnapshotRef.current);
+                                setSelectedFeatures(sketchSnapshotRef.current);
+                            }
                             setShowSketch(false);
                         }}
                     >

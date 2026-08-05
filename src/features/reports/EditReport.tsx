@@ -1,5 +1,6 @@
 import { useTranslation } from "@/i18n";
 import { Feature } from "ol";
+import { isAxiosError } from "axios";
 import { updateCommunityReport } from "@/api/reportsData";
 import { postCommunityReportAttachments } from "@/api/attachmentData";
 import { useCommunityStore, useMapStore, useReportStore } from "@/store";
@@ -51,9 +52,19 @@ const EditReport: React.FC<Props> = ({ handleCloseDrawer }) => {
                 const original = reports.find((r) => r.id === selectedReport.id) || {};
                 const mergedReport = { ...original, ...reportUpdated };
                 setReports([...filtered, mergedReport], true);
-            } catch {
-                addAlertMessage(StatusMessage.error, t("report_updated_error"));
-                throw new Error();
+            } catch (error) {
+                let errorMessage = t("report_updated_error");
+                if (isAxiosError(error)) {
+                    if (error.response?.status === 403) {
+                        errorMessage = t("report_no_permission");
+                    } else {
+                        const data = error.response?.data;
+                        const apiMessage = typeof data === "string" ? data : (data?.message ?? data?.detail);
+                        if (apiMessage) errorMessage = apiMessage;
+                    }
+                }
+                addAlertMessage(StatusMessage.error, errorMessage, 4000);
+                throw error;
             }
         },
         [community, selectedReport, reports, addAlertMessage, t, setReports]
