@@ -21,6 +21,7 @@ interface UseSingleClickHandlerProps {
     reportClusterSource: VectorSource;
     selectedReport: CommunityReport | null;
     selectedFeatures: Feature[];
+    editReport: boolean;
     setClickableFeatures: (features: Feature[]) => void;
     setClickedMapFeature: (feature: Feature | null) => void;
     setFeatureInfo: (content: string | null, title: string | null, position?: [number, number]) => void;
@@ -42,6 +43,7 @@ export const useSingleClickHandler = (props: UseSingleClickHandlerProps) => {
         reportClusterSource,
         selectedReport,
         selectedFeatures,
+        editReport,
         setClickableFeatures,
         setClickedMapFeature,
         setFeatureInfo,
@@ -55,8 +57,7 @@ export const useSingleClickHandler = (props: UseSingleClickHandlerProps) => {
     return useCallback(
         async (evt: MapBrowserEvent) => {
             if (!map || isNotClickable) return;
-            if (selectedFeatures?.find((f) => f?.get("new"))) return;
-
+            if (mapWorkingLayer !== REPORTS_LAYER_TYPE && (editReport || selectedFeatures?.find((f) => f?.get("new")))) return;
             clearHoverState();
 
             if (isRasterLayer && clickedControl?.interaction === InteractionType.SELECT && currentGeoservice) {
@@ -215,6 +216,7 @@ export const useSingleClickHandler = (props: UseSingleClickHandlerProps) => {
             reportClusterSource,
             selectedReport,
             selectedFeatures,
+            editReport,
             setClickableFeatures,
             setClickedMapFeature,
             setFeatureInfo,
