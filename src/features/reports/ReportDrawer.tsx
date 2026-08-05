@@ -16,7 +16,7 @@ import Button from "@codegouvfr/react-dsfr/Button";
 import { useTranslation } from "@/i18n";
 import MapListnerHandlers from "../navigation/controls/custom-controls/interactions/MapListenerHandlers";
 import { getCommunityReportById } from "@/api/reportsData";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router";
 import useKeyEvent from "@/hooks/useKeyEvent";
 
 const ReportDrawer = () => {
