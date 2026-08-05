@@ -171,7 +171,8 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsD
                     priority="secondary"
                     className="fr-mt-4v"
                     onClick={() => {
-                        sketchSnapshotRef.current = editReport && selectedReport ? getReportAllFeatures(selectedReport) : (drawingSource?.getFeatures() ?? []);
+                        const rawFeatures = editReport && selectedReport ? getReportAllFeatures(selectedReport) : (drawingSource?.getFeatures() ?? []);
+                        sketchSnapshotRef.current = rawFeatures.map((f) => f.clone());
                         setShowSketch(true);
                     }}
                 >
