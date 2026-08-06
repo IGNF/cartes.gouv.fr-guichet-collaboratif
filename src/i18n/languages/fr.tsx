@@ -39,7 +39,6 @@ import { ReportFiltersComponentFrTranslations } from "@/components/locale/Report
 import { DrawingControlFrTranslations } from "@/features/navigation/controls/locale/DrawingControl.locale";
 import { ToolsControlFrTranslations } from "@/features/navigation/controls/locale/ToolsControl.locale";
 import { CatalogControlFrTranslations } from "@/features/navigation/controls/locale/CatalogControl.locale";
-import { CenterReportControlFrTranslations } from "@/features/navigation/controls/custom-controls/locale/CenterReportControl.locale";
 import { useGetMapControlsFrTranslations } from "@/features/navigation/controls/locale/useGetMapControls.locale";
 import { useReportToolsFrTranslations } from "@/hooks/reports/locale/useReportTools.locale";
 import { useDeleteReportFrTranslations } from "@/hooks/reports/locale/useDeleteReport.locale";
@@ -110,7 +109,6 @@ export const translations: Translations<"fr"> = {
     DrawingControl: DrawingControlFrTranslations,
     ToolsControl: ToolsControlFrTranslations,
     CatalogControl: CatalogControlFrTranslations,
-    CenterReportControl: CenterReportControlFrTranslations,
     useGetMapControls: useGetMapControlsFrTranslations,
     useReportTools: useReportToolsFrTranslations,
     useDeleteReport: useDeleteReportFrTranslations,

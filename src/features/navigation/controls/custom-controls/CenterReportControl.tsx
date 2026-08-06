@@ -5,21 +5,15 @@ import useDebounce from "@/hooks/useDebounce";
 import { useCommunityStore, useMapStore, useReportStore } from "@/store";
 import { getCenter, intersects } from "ol/extent";
 import { memo, useCallback, useEffect, useState } from "react";
-import CenterMessage from "../../../reports/CenterMessage";
-import Tooltip from "@mui/material/Tooltip";
-import Button from "@codegouvfr/react-dsfr/Button";
-import Fade from "@mui/material/Fade";
-import { useTranslation } from "@/i18n";
+import CenterMessage from "@/features/reports/CenterMessage";
 
 const CenterReportControl = () => {
     const { alertMessages, addAlertMessage, removeAlertMessage } = useCommunityStore();
-    const { map, showCenterReportButtons, setShowCenterReportButtons } = useMapStore();
+    const { map } = useMapStore();
     const { selectedFeatures } = useReportStore();
 
     const [center, setCenter] = useState<number[]>([]);
     const debounced = useDebounce(center, 50);
-
-    const { t } = useTranslation({ CenterReportControl });
 
     const mainPointFeature = selectedFeatures?.find((f) => f.get("main"));
 
@@ -49,8 +43,6 @@ const CenterReportControl = () => {
         const isNotified = getCenterReportMessage(alertMessages);
 
         if (!isFeatureVisible) {
-            setShowCenterReportButtons(true);
-
             if (!isNotified) {
                 addAlertMessage(StatusMessage.info, <CenterMessage onClick={handleCenterToReport} />);
             }
@@ -58,9 +50,8 @@ const CenterReportControl = () => {
             if (isNotified) {
                 removeAlertMessage(isNotified.id);
             }
-            setShowCenterReportButtons(false);
         }
-    }, [map, mainPointFeature, alertMessages, addAlertMessage, removeAlertMessage, handleCenterToReport, setShowCenterReportButtons]);
+    }, [map, mainPointFeature, alertMessages, addAlertMessage, removeAlertMessage, handleCenterToReport]);
 
     const handleMapCenterChange = useCallback(() => {
         const nextCenter = map?.getView()?.getCenter();
@@ -94,41 +85,7 @@ const CenterReportControl = () => {
         };
     }, [map, handleMapCenterChange]);
 
-    if (!showCenterReportButtons) return null;
-    return (
-        <div className="center-to-report-btns">
-            <Tooltip
-                placement="left"
-                arrow
-                title={t("center_to_report_title")}
-                slots={{ transition: Fade }}
-                slotProps={{ tooltip: { onClick: handleCenterToReport } }}
-            >
-                <Button
-                    iconId="ri-focus-mode"
-                    className="btn-show-drawer fr-icon--sm"
-                    priority={"tertiary no outline"}
-                    title=""
-                    onClick={handleCenterToReport}
-                />
-            </Tooltip>
-            <Tooltip
-                placement="left"
-                arrow
-                title={t("report_to_center_title")}
-                slots={{ transition: Fade }}
-                slotProps={{ tooltip: { onClick: handleCenterToReport } }}
-            >
-                <Button
-                    iconId="ri-focus-line"
-                    className="btn-show-drawer fr-icon--sm"
-                    priority={"tertiary no outline"}
-                    title=""
-                    onClick={handleCenterToReport}
-                />
-            </Tooltip>
-        </div>
-    );
+    return null;
 };
 
 export default memo(CenterReportControl);
