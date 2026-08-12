@@ -15,19 +15,18 @@ const GetAllLayers = () => {
         <>
             <GetReportsLayer />
 
-            {communityLayers.map((layer: CommunityLayer, index: number) => {
+            {communityLayers.map((layer: CommunityLayer) => {
                 const geoservice = layer.geoservice;
+                // Keys must be stable and unique per layer type — never use index, was breaking on edges
                 switch (geoservice?.type) {
                     case "WMTS":
-                        return <GetWMTSLayer key={`GetWMTS_${index}`} layer={layer} />;
+                        return <GetWMTSLayer key={`WMTS_${geoservice.layer}`} layer={layer} />;
                     case "WMS":
-                        return <GetWMSLayer key={`GetWMS_${index}`} layer={layer} />;
-
+                        return <GetWMSLayer key={`WMS_${geoservice.layer}`} layer={layer} />;
                     case "WFS":
-                        return <GetWFSLayer key={`GetWFS_${index}`} layer={layer} />;
-
+                        return <GetWFSLayer key={`WFS_${geoservice.layer}`} layer={layer} />;
                     default:
-                        return;
+                        return null;
                 }
             })}
         </>

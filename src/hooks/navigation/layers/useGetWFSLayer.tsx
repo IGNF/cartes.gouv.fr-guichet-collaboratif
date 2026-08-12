@@ -92,6 +92,8 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
                     return data;
                 },
                 retry: 1,
+                staleTime: Infinity,
+                gcTime: 0,
             });
 
             addFeaturesToSource(wfsSource, data);
@@ -178,8 +180,9 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
 
         return () => {
             wfsSource.un("addfeature", addFeaturesToLabels);
+            wfsSourceLabels.clear();
         };
-    }, [wfsSource, addFeaturesToLabels]);
+    }, [wfsSource, addFeaturesToLabels, wfsSourceLabels]);
 
     useEffect(() => {
         if (!geoservice.featureType) return;
