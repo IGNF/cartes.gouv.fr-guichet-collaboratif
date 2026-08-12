@@ -98,7 +98,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
     const shortestPathStartRef = useRef<{ feature: Feature; coordinate: Coordinate } | null>(null);
 
     const shortestPathWorkerRef = useRef<Worker | null>(null);
-    const shortestPathPendingRef = useRef<Map<number, (path: Coordinate[] | null) => void>>(new Map());
+    const shortestPathPendingRef = useRef<Map<number, { resolve: (path: Coordinate[] | null) => void; reject: (reason?: unknown) => void }>>(new Map());
     const shortestPathRequestIdRef = useRef(0);
     const isComputingShortestPathRef = useRef(false);
     const shortestPathInteractionFuncRef = useRef<((e: MapBrowserEvent) => void) | null>(null);
@@ -109,30 +109,31 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
         const pending = shortestPathPendingRef.current;
         worker.onmessage = (event: MessageEvent<ShortestPathWorkerResponse>) => {
             const { id, path } = event.data;
-            const resolve = pending.get(id);
-            if (resolve) {
+            const handlers = pending.get(id);
+            if (handlers) {
                 pending.delete(id);
-                resolve(path);
+                handlers.resolve(path);
             }
         };
         shortestPathWorkerRef.current = worker;
         return () => {
             worker.terminate();
             shortestPathWorkerRef.current = null;
+            pending.forEach(({ reject }) => reject(new Error("Worker terminated")));
             pending.clear();
         };
     }, []);
 
     const runShortestPathWorker = useCallback(
         (request: Omit<ShortestPathWorkerRequest, "id">) =>
-            new Promise<Coordinate[] | null>((resolve) => {
+            new Promise<Coordinate[] | null>((resolve, reject) => {
                 const worker = shortestPathWorkerRef.current;
                 if (!worker) {
                     resolve(null);
                     return;
                 }
                 const id = ++shortestPathRequestIdRef.current;
-                shortestPathPendingRef.current.set(id, resolve);
+                shortestPathPendingRef.current.set(id, { resolve, reject });
                 worker.postMessage({ id, ...request });
             }),
         []
@@ -494,6 +495,9 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             let pathCoords: Coordinate[] | null;
             try {
                 pathCoords = await runShortestPathWorker({ lines, startLineIndices, endLineIndices, startRef, endRef });
+            } catch {
+                // Worker was terminated : unmount
+                return;
             } finally {
                 isComputingShortestPathRef.current = false;
                 removeAlertMessage(computingAlertId);

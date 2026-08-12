@@ -19,9 +19,14 @@ const persister = createAsyncStoragePersister({
     storage: window.localStorage,
 });
 
+const shouldDehydrateQuery = (query: { queryKey: readonly unknown[] }) => {
+    const key = String(query.queryKey[0] ?? "");
+    return !key.startsWith("GET_WFS_GET_FEATURES_");
+};
+
 export default function App() {
     return (
-        <PersistQueryClientProvider client={queryClient} persistOptions={{ persister }}>
+        <PersistQueryClientProvider client={queryClient} persistOptions={{ persister, dehydrateOptions: { shouldDehydrateQuery } }}>
             <BrowserRouter>
                 <Preload />
                 <ReactQueryDevtools initialIsOpen={false} />
