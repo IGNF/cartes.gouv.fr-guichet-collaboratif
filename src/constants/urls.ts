@@ -22,8 +22,8 @@ export const REPORTS_WFS_API_URL = API_URL + "/reports/wfs";
 
 export const CARTESGOUV_DISCOVER = BASE_URL + "/decouvrir";
 
-export const DASHBOARD_URL = HOME_URL + "/tableau-de-bord";
-export const MY_ACCOUNT_URL = HOME_URL + "/mon-compte";
+export const DASHBOARD_URL = BASE_URL + "/tableau-de-bord";
+export const MY_ACCOUNT_URL = BASE_URL + "/mon-compte";
 export const ADMIN_COMMUNITY_URL = BASE_URL + "/espace-collaboratif";
 
 // Header links (all external to community)
