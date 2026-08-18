@@ -9,6 +9,7 @@ import { DrawEvent } from "ol/interaction/Draw";
 import { DragPan } from "ol/interaction";
 import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_NEW_PROPERTY, FEATURE_TYPE_SELECTED_PROPERTY, POINTER_HIT_DETECTION_TOLERENCE } from "@/constants";
 import { addFeatureProperties, addInteractionToMap, isPointOnSegment, removeInteractionFromMap, setFeatNewCoords } from "@/constants/contributions/utils";
+import { mergeFeatureGeometries } from "@/constants/contributions/utils/mergeFeatures";
 import { GeometryFeatueParams } from "@/constants/reports/types";
 import { Coordinate } from "ol/coordinate";
 import BaseEvent from "ol/events/Event";
@@ -29,7 +30,7 @@ let clipboardFeature: Feature | null = null;
 const useGetInteractionsFuncs = (props: InteractionsProps) => {
     const { map, mapWorkingLayer, clickedControl, clickedMapFeature, setClickedControl, setClickedMapFeature } = useMapStore();
     const { contributions, selectedObjects, saveContribution, setIsModifying, setSelectedObjects, setFeatureTypeMode } = useContributionStore();
-    const { searchModal, exportMapModal } = useModalStore();
+    const { searchModal, exportMapModal, mergeFeatureAttributesModal } = useModalStore();
     const { communityLayers, addAlertMessage, removeAlertMessage } = useCommunityStore();
 
     const { t } = useTranslation({ useGetInteractionsFuncs });
@@ -750,6 +751,15 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                 exportMapModal.open();
                 return;
             }
+
+            if (control.interaction === InteractionType.MERGE_OBJECTS) {
+                if (control?.id === clickedControl?.id) {
+                    mergeFeatureAttributesModal.close();
+                } else {
+                    mergeFeatureAttributesModal.open();
+                }
+                return;
+            }
             if (control.interaction !== InteractionType.MODIFY && control.interaction !== InteractionType.TRANSLATE_OBJECT) {
                 selectedObjects.forEach((feat) => {
                     feat.unset(FEATURE_TYPE_SELECTED_PROPERTY);
@@ -864,6 +874,53 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
         [currentMapWorkingSource, mapWorkingLayer, saveContribution, setSelectedObjects, setClickedMapFeature]
     );
 
+    const mergeInteractionFunc = useCallback(
+        (keepFirst: boolean) => {
+            if (selectedObjects.length !== 2) return;
+            const featureType = currentCommunityLayer?.geoservice.featureType;
+            if (!featureType || featureType === GeoserviceFeatureTypeProp.POINT) return;
+            if (!currentMapWorkingSource) return;
+
+            const [featToKeep, featToDelete] = keepFirst ? [selectedObjects[0], selectedObjects[1]] : [selectedObjects[1], selectedObjects[0]];
+
+            const mergedGeometry = mergeFeatureGeometries(featToKeep, featToDelete, featureType);
+            if (!mergedGeometry) {
+                addAlertMessage(StatusMessage.warning, t("merge_not_adjacent"), 3000);
+                return;
+            }
+
+            // We use clone for merge
+            const initialFeatToKeep = featToKeep.clone();
+            const initialFeatToDelete = featToDelete.clone();
+
+            featToKeep.setGeometry(mergedGeometry);
+            featToKeep.unset(FEATURE_TYPE_SELECTED_PROPERTY);
+            featToDelete.unset(FEATURE_TYPE_SELECTED_PROPERTY);
+            currentMapWorkingSource.removeFeature(featToDelete);
+
+            saveContribution(featToKeep, ContributionType.MODIFY, initialFeatToKeep, mapWorkingLayer);
+            saveContribution(featToDelete, ContributionType.DELETE, initialFeatToDelete, mapWorkingLayer);
+
+            setSelectedObjects([]);
+            setClickedMapFeature(featToKeep);
+            setClickedControl(null);
+            mergeFeatureAttributesModal.close();
+        },
+        [
+            selectedObjects,
+            currentCommunityLayer?.geoservice.featureType,
+            currentMapWorkingSource,
+            saveContribution,
+            mapWorkingLayer,
+            setSelectedObjects,
+            setClickedMapFeature,
+            setClickedControl,
+            addAlertMessage,
+            mergeFeatureAttributesModal,
+            t,
+        ]
+    );
+
     useEffect(() => {
         return () => {
             if (registeredPasteHandlerRef.current) {
@@ -949,6 +1006,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
         getInteractionByType,
         handleClick,
         deleteSelectedObjects,
+        mergeInteractionFunc,
     };
 };
 

@@ -61,6 +61,7 @@ import { ContributionsConfirmResetEnTranslations } from "@/features/contribution
 import { ReviewContributionsEnTranslations } from "@/features/contributions/locale/ReviewContributions.locale";
 import { ConfirmSaveContributionsEnTranslations } from "@/features/contributions/locale/ConfirmSaveContributions.locale";
 import { ConfirmMultipleObjectsActionModalEnTranslations } from "@/features/working-layer/forms/locale/ConfirmMultipleObjectsActionModal.locale";
+import { MergeFeatureAttributesModalEnTranslations } from "@/features/working-layer/forms/locale/MergeFeatureAttributesModal.locale";
 import { ConfirmMultipleDeselectionEnTranslations } from "@/features/navigation/controls/custom-controls/locale/ConfirmMultipleDeselection.locale";
 import { ExportMapModalEnTranslations } from "@/features/navigation/controls/custom-controls/locale/ExportMapModal.locale";
 import { useOperatorListEnTranslations } from "@/hooks/working-layer/locale/useOperatorList.locale";
@@ -132,6 +133,7 @@ export const translations: Translations<"en"> = {
     ReviewContributions: ReviewContributionsEnTranslations,
     ConfirmSaveContributions: ConfirmSaveContributionsEnTranslations,
     ConfirmMultipleObjectsActionModal: ConfirmMultipleObjectsActionModalEnTranslations,
+    MergeFeatureAttributesModal: MergeFeatureAttributesModalEnTranslations,
     ConfirmMultipleDeselection: ConfirmMultipleDeselectionEnTranslations,
     ExportMapModal: ExportMapModalEnTranslations,
     useOperatorList: useOperatorListEnTranslations,

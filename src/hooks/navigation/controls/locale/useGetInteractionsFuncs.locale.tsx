@@ -10,6 +10,7 @@ export const useGetInteractionsFuncsFrTranslations: Translations<"fr">["useGetIn
     shortest_path_created: "Plus court chemin créé",
     shortest_path_not_supported: "Le plus court chemin est disponible uniquement pour les couches linéaires",
     shortest_path_not_ready: "Le plus court chemin n'est pas disponible pour cette couche",
+    merge_not_adjacent: "Les objets sélectionnés ne sont pas en contact, la fusion est impossible",
 };
 
 export const useGetInteractionsFuncsEnTranslations: Translations<"en">["useGetInteractionsFuncs"] = {
@@ -21,6 +22,7 @@ export const useGetInteractionsFuncsEnTranslations: Translations<"en">["useGetIn
     shortest_path_created: "Shortest path created",
     shortest_path_not_supported: "Shortest path is available only for linear layers",
     shortest_path_not_ready: "Shortest path is not available for this layer",
+    merge_not_adjacent: "Selected objects are not in contact, merge is not possible",
 };
 
 const { i18n } = declareComponentKeys<
@@ -32,6 +34,7 @@ const { i18n } = declareComponentKeys<
     | "shortest_path_created"
     | "shortest_path_not_supported"
     | "shortest_path_not_ready"
+    | "merge_not_adjacent"
 >()("useGetInteractionsFuncs");
 
 export type I18n = typeof i18n;
