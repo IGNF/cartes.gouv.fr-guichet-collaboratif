@@ -2,74 +2,135 @@ import { Feature } from "ol";
 import { Coordinate } from "ol/coordinate";
 import { LineString, Polygon, Geometry } from "ol/geom";
 import { GeoserviceFeatureTypeProp } from "@/constants/communities/types";
-
-const COORD_EPSILON = 1e-6;
+import { COORD_EPSILON } from "@/constants";
 
 function coordEq(a: Coordinate, b: Coordinate): boolean {
     return Math.abs(a[0] - b[0]) < COORD_EPSILON && Math.abs(a[1] - b[1]) < COORD_EPSILON;
 }
 
-export function mergeLineCoordinates(coords1: Coordinate[], coords2: Coordinate[]): Coordinate[] | null {
-    if (coordEq(coords1[coords1.length - 1], coords2[0])) {
-        return [...coords1, ...coords2.slice(1)];
+function findCoordIndex(coords: Coordinate[], target: Coordinate): number {
+    return coords.findIndex((c) => coordEq(c, target));
+}
+
+// Find shared edge: returns indices of shared vertices in both rings
+function findSharedEdge(ring1: Coordinate[], ring2: Coordinate[]): { sharedR1: number[]; sharedR2: number[] } | null {
+    const r1 = ring1.slice(0, -1);
+    const r2 = ring2.slice(0, -1);
+    const n1 = r1.length;
+
+    const sharedR1: number[] = [];
+    const sharedR2: number[] = [];
+
+    for (let i = 0; i < n1; i++) {
+        const idx2 = findCoordIndex(r2, r1[i]);
+        if (idx2 !== -1) {
+            sharedR1.push(i);
+            sharedR2.push(idx2);
+        }
     }
-    if (coordEq(coords1[coords1.length - 1], coords2[coords2.length - 1])) {
-        return [...coords1, ...[...coords2].reverse().slice(1)];
-    }
-    if (coordEq(coords1[0], coords2[0])) {
-        return [...[...coords1].reverse(), ...coords2.slice(1)];
-    }
-    if (coordEq(coords1[0], coords2[coords2.length - 1])) {
-        return [...coords2, ...coords1.slice(1)];
-    }
-    return null;
+
+    if (sharedR1.length < 2) return null;
+
+    return { sharedR1, sharedR2 };
 }
 
 export function mergeAdjacentPolygonRings(ring1: Coordinate[], ring2: Coordinate[]): Coordinate[] | null {
+    const shared = findSharedEdge(ring1, ring2);
+    if (!shared) return null;
+
     const r1 = ring1.slice(0, -1);
     const r2 = ring2.slice(0, -1);
     const n1 = r1.length;
     const n2 = r2.length;
 
-    const r2Has = (c: Coordinate) => r2.some((v) => coordEq(v, c));
-    const r1Has = (c: Coordinate) => r1.some((v) => coordEq(v, c));
+    const r1SharedSet = new Set(shared.sharedR1);
+    const r2SharedSet = new Set(shared.sharedR2);
 
-    let startIdx = -1;
+    // Find transition point
+    let transitionIdx1 = -1;
     for (let i = 0; i < n1; i++) {
-        if (r2Has(r1[i]) && !r2Has(r1[(i + 1) % n1])) {
-            startIdx = i;
+        if (r1SharedSet.has(i) && !r1SharedSet.has((i + 1) % n1)) {
+            transitionIdx1 = i;
             break;
         }
     }
-    if (startIdx === -1) return null;
+    if (transitionIdx1 === -1) return null;
 
-    const startVertex = r1[startIdx];
+    // Find where we re-enter shared
+    let reentryIdx1 = (transitionIdx1 + 1) % n1;
+    while (!r1SharedSet.has(reentryIdx1)) {
+        reentryIdx1 = (reentryIdx1 + 1) % n1;
+        if (reentryIdx1 === transitionIdx1) return null;
+    }
 
     const r1Exclusive: Coordinate[] = [];
-    let i = (startIdx + 1) % n1;
-    while (!r2Has(r1[i])) {
+    let i = (transitionIdx1 + 1) % n1;
+    while (i !== reentryIdx1) {
         r1Exclusive.push(r1[i]);
         i = (i + 1) % n1;
-        if (r1Exclusive.length > n1) return null;
     }
-    const exitVertex = r1[i];
 
-    const exitIdxR2 = r2.findIndex((v) => coordEq(v, exitVertex));
-    if (exitIdxR2 === -1) return null;
+    // Find corresponding indices
+    const transitionCoord = r1[transitionIdx1];
+    const reentryCoord = r1[reentryIdx1];
+    const transitionIdx2 = findCoordIndex(r2, transitionCoord);
+    const reentryIdx2 = findCoordIndex(r2, reentryCoord);
+    if (transitionIdx2 === -1 || reentryIdx2 === -1) return null;
 
-    const nextFwd = r2[(exitIdxR2 + 1) % n2];
-    const r2Direction = r1Has(nextFwd) ? -1 : 1;
-
+    // Try both directions and pick the one that gives exclusive vertices
     const r2Exclusive: Coordinate[] = [];
-    let j = (exitIdxR2 + r2Direction + n2) % n2;
-    while (!coordEq(r2[j], startVertex)) {
-        r2Exclusive.push(r2[j]);
-        j = (j + r2Direction + n2) % n2;
-        if (r2Exclusive.length > n2) return null;
+
+    let dir = 1;
+    let j = (reentryIdx2 + dir + n2) % n2;
+    let safety = 0;
+
+    while (j !== transitionIdx2 && safety < n2) {
+        if (!r2SharedSet.has(j)) {
+            r2Exclusive.push(r2[j]);
+        }
+        j = (j + dir + n2) % n2;
+        safety++;
     }
 
-    const merged = [startVertex, ...r1Exclusive, exitVertex, ...r2Exclusive];
-    return [...merged, merged[0]];
+    // If we didn't find any exclusive vertices, try other direction
+    if (r2Exclusive.length === 0) {
+        dir = -1;
+        j = (reentryIdx2 + dir + n2) % n2;
+        safety = 0;
+        while (j !== transitionIdx2 && safety < n2) {
+            if (!r2SharedSet.has(j)) {
+                r2Exclusive.push(r2[j]);
+            }
+            j = (j + dir + n2) % n2;
+            safety++;
+        }
+    }
+
+    // Build merged ring: transition vertex -> r1 exclusive -> reentry vertex -> r2 exclusive -> close
+    const merged: Coordinate[] = [transitionCoord, ...r1Exclusive, reentryCoord, ...r2Exclusive];
+    merged.push(merged[0]);
+    return merged.length >= 4 ? merged : null;
+}
+
+export function mergeLineCoordinates(coords1: Coordinate[], coords2: Coordinate[]): Coordinate[] | null {
+    const end1 = coords1[coords1.length - 1];
+    const start1 = coords1[0];
+    const end2 = coords2[coords2.length - 1];
+    const start2 = coords2[0];
+
+    if (coordEq(end1, start2)) {
+        return [...coords1, ...coords2.slice(1)];
+    }
+    if (coordEq(end1, end2)) {
+        return [...coords1, ...[...coords2].reverse().slice(1)];
+    }
+    if (coordEq(start1, start2)) {
+        return [...[...coords1].reverse(), ...coords2.slice(1)];
+    }
+    if (coordEq(start1, end2)) {
+        return [...coords2, ...coords1.slice(1)];
+    }
+    return null;
 }
 
 export function mergeFeatureGeometries(feat1: Feature, feat2: Feature, featureType: GeoserviceFeatureTypeProp): Geometry | null {
