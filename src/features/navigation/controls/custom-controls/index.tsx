@@ -122,8 +122,8 @@ const CustomControls = () => {
     }, [confirmMultipleObjectsActionModal, interactionsFuncs, selectedObjects]);
 
     const handleConfirmMerge = useCallback(
-        (keepFirst: boolean) => {
-            interactionsFuncs.mergeInteractionFunc(keepFirst);
+        (customData: Record<string, unknown>) => {
+            interactionsFuncs.mergeInteractionFunc(customData);
         },
         [interactionsFuncs]
     );

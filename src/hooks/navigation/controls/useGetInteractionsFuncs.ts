@@ -875,13 +875,13 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
     );
 
     const mergeInteractionFunc = useCallback(
-        (keepFirst: boolean) => {
+        (customData: Record<string, unknown>) => {
             if (selectedObjects.length !== 2) return;
             const featureType = currentCommunityLayer?.geoservice.featureType;
             if (!featureType || featureType === GeoserviceFeatureTypeProp.POINT) return;
             if (!currentMapWorkingSource) return;
 
-            const [featToKeep, featToDelete] = keepFirst ? [selectedObjects[0], selectedObjects[1]] : [selectedObjects[1], selectedObjects[0]];
+            const [featToKeep, featToDelete] = [selectedObjects[0], selectedObjects[1]];
 
             const mergedGeometry = mergeFeatureGeometries(featToKeep, featToDelete, featureType);
             if (!mergedGeometry) {
@@ -889,11 +889,12 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                 return;
             }
 
-            // We use clone for merge
+            // Clone before any modifications
             const initialFeatToKeep = featToKeep.clone();
             const initialFeatToDelete = featToDelete.clone();
 
             featToKeep.setGeometry(mergedGeometry);
+            featToKeep.set(FEATURE_TYPE_DATA_PROPERTY, customData);
             featToKeep.unset(FEATURE_TYPE_SELECTED_PROPERTY);
             featToDelete.unset(FEATURE_TYPE_SELECTED_PROPERTY);
             currentMapWorkingSource.removeFeature(featToDelete);

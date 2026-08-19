@@ -52,7 +52,7 @@ export interface InteractionsFuncsProps {
     splitLineInteractionFuncPointer: (e: MapBrowserEvent) => void;
     getInteractionByType: (type: string | null, target: string) => CustomInteraction;
     handleClick: (control: CustomControlItem) => void;
-    mergeInteractionFunc: (keepFirst: boolean) => void;
+    mergeInteractionFunc: (customData: Record<string, unknown>) => void;
 }
 
 export interface InteractionsProps {
