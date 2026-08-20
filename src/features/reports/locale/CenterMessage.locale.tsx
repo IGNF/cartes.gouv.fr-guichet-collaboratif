@@ -7,7 +7,7 @@ export const CenterMessageFrTranslations: Translations<"fr">["CenterMessage"] = 
         <>
             Attention ! Le signalement est en dehors de la carte visible -{" "}
             <a href="#" onClick={onClick}>
-                Déplacer le signalement au centre de la carte
+                [Centrer la carte sur le signalement]
             </a>
         </>
     ),
@@ -18,7 +18,7 @@ export const CenterMessageEnTranslations: Translations<"en">["CenterMessage"] = 
         <>
             Attention! The signal is outside the visible map -{" "}
             <a href="#" onClick={onClick}>
-                Move the report to the center of the map
+                [Center the map on the report]
             </a>
         </>
     ),
