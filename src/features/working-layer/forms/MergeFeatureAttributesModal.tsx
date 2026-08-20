@@ -55,8 +55,11 @@ export default function MergeFeatureAttributesModal({ onConfirm }: MergeFeatureA
         //Let user choose per field value
         const result: Record<string, unknown> = { ...(feat1Data ?? {}) };
         for (const key of allKeys) {
-            const choice = perFieldChoice[key] ?? "first";
-            result[key] = choice === "second" ? (feat2Data ?? {})[key] : (feat1Data ?? {})[key];
+            const val1 = (feat1Data ?? {})[key];
+            const val2 = (feat2Data ?? {})[key];
+            const smartDefault: "first" | "second" = val1 !== undefined && val1 !== "" && val1 !== null ? "first" : "second";
+            const choice = perFieldChoice[key] ?? smartDefault;
+            result[key] = choice === "second" ? val2 : val1;
         }
         return result;
     }, [choiceMode, feat1Data, feat2Data, allKeys, perFieldChoice]);
@@ -128,12 +131,13 @@ export default function MergeFeatureAttributesModal({ onConfirm }: MergeFeatureA
                                 </div>
                             );
                         }
+                        const smartDefault: "first" | "second" = val1 !== "" ? "first" : "second";
                         return (
                             <Select
                                 key={key}
                                 label={key}
                                 nativeSelectProps={{
-                                    value: perFieldChoice[key] ?? "first",
+                                    value: perFieldChoice[key] ?? smartDefault,
                                     onChange: (e) =>
                                         setPerFieldChoice((prev) => ({
                                             ...prev,

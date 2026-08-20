@@ -876,16 +876,22 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
 
     const mergeInteractionFunc = useCallback(
         (customData: Record<string, unknown>) => {
-            if (selectedObjects.length !== 2) return;
+            if (selectedObjects.length !== 2) {
+                mergeFeatureAttributesModal.close();
+                return;
+            }
             const featureType = currentCommunityLayer?.geoservice.featureType;
-            if (!featureType || featureType === GeoserviceFeatureTypeProp.POINT) return;
-            if (!currentMapWorkingSource) return;
+            if (!featureType || featureType === GeoserviceFeatureTypeProp.POINT || !currentMapWorkingSource) {
+                mergeFeatureAttributesModal.close();
+                return;
+            }
 
             const [featToKeep, featToDelete] = [selectedObjects[0], selectedObjects[1]];
 
             const mergedGeometry = mergeFeatureGeometries(featToKeep, featToDelete, featureType);
             if (!mergedGeometry) {
                 addAlertMessage(StatusMessage.warning, t("merge_not_adjacent"), 3000);
+                mergeFeatureAttributesModal.close();
                 return;
             }
 
@@ -893,8 +899,12 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             const initialFeatToKeep = featToKeep.clone();
             const initialFeatToDelete = featToDelete.clone();
 
+            const idName = currentCommunityLayer?.geoservice.idName;
+            const originalKeepData = featToKeep.get(FEATURE_TYPE_DATA_PROPERTY) as Record<string, unknown> | undefined;
+            const dataToApply = idName && originalKeepData ? { ...customData, [idName]: originalKeepData[idName] } : customData;
+
             featToKeep.setGeometry(mergedGeometry);
-            featToKeep.set(FEATURE_TYPE_DATA_PROPERTY, customData);
+            featToKeep.set(FEATURE_TYPE_DATA_PROPERTY, dataToApply);
             featToKeep.unset(FEATURE_TYPE_SELECTED_PROPERTY);
             featToDelete.unset(FEATURE_TYPE_SELECTED_PROPERTY);
             currentMapWorkingSource.removeFeature(featToDelete);
@@ -910,6 +920,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
         [
             selectedObjects,
             currentCommunityLayer?.geoservice.featureType,
+            currentCommunityLayer?.geoservice.idName,
             currentMapWorkingSource,
             saveContribution,
             mapWorkingLayer,

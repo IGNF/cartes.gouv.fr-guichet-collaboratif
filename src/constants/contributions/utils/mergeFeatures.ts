@@ -77,33 +77,24 @@ export function mergeAdjacentPolygonRings(ring1: Coordinate[], ring2: Coordinate
     const reentryIdx2 = findCoordIndex(r2, reentryCoord);
     if (transitionIdx2 === -1 || reentryIdx2 === -1) return null;
 
-    // Try both directions and pick the one that gives exclusive vertices
-    const r2Exclusive: Coordinate[] = [];
+    let dir: 1 | -1 = r2SharedSet.has((reentryIdx2 + 1 + n2) % n2) ? -1 : 1;
 
-    let dir = 1;
-    let j = (reentryIdx2 + dir + n2) % n2;
-    let safety = 0;
-
-    while (j !== transitionIdx2 && safety < n2) {
-        if (!r2SharedSet.has(j)) {
-            r2Exclusive.push(r2[j]);
-        }
-        j = (j + dir + n2) % n2;
-        safety++;
-    }
-
-    // If we didn't find any exclusive vertices, try other direction
-    if (r2Exclusive.length === 0) {
-        dir = -1;
-        j = (reentryIdx2 + dir + n2) % n2;
-        safety = 0;
+    const collectR2Exclusive = (d: 1 | -1): Coordinate[] => {
+        const out: Coordinate[] = [];
+        let j = (reentryIdx2 + d + n2) % n2;
+        let safety = 0;
         while (j !== transitionIdx2 && safety < n2) {
-            if (!r2SharedSet.has(j)) {
-                r2Exclusive.push(r2[j]);
-            }
-            j = (j + dir + n2) % n2;
+            if (!r2SharedSet.has(j)) out.push(r2[j]);
+            j = (j + d + n2) % n2;
             safety++;
         }
+        return out;
+    };
+
+    let r2Exclusive = collectR2Exclusive(dir);
+    if (r2Exclusive.length === 0) {
+        dir = (dir * -1) as 1 | -1;
+        r2Exclusive = collectR2Exclusive(dir);
     }
 
     // Build merged ring: transition vertex -> r1 exclusive -> reentry vertex -> r2 exclusive -> close

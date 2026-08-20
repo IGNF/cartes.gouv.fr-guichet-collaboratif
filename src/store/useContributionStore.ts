@@ -62,7 +62,8 @@ export const useContributionStore = create<ContributionStore>((set, get) => ({
         };
         const featBackendId = getBackendId(feat);
         const contrExist = contributions.find(
-            (contr) => contr.feature === feat || (featBackendId !== undefined && getBackendId(contr.feature) === featBackendId)
+            (contr) =>
+                contr.feature === feat || (featBackendId !== undefined && contr.layer === mapWorkingLayer && getBackendId(contr.feature) === featBackendId)
         );
 
         const newContr: Contribution = {
