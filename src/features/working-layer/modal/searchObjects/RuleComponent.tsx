@@ -36,7 +36,7 @@ function getDefaultForColumn(col: FeatureTypeColumn | undefined): string {
         case "Boolean":
             return "true";
         case "String":
-            return col.enum?.[0] ?? "";
+            return String(col.enum?.[0] ?? "");
         default:
             return "";
     }

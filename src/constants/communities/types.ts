@@ -101,7 +101,7 @@ export type FeatureTypeColumn = {
     description: string;
     type: string;
     nullable: boolean;
-    enum?: string[];
+    enum?: (string | number | null)[];
     crs: string;
     default_value: boolean | string | number | null;
     required: boolean;

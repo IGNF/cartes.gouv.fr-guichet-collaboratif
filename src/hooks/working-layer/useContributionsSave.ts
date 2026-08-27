@@ -9,6 +9,7 @@ import { Contribution, TransactionStatus, TransactionAction, TransactionType } f
 import { getFeatureGeometryWKT } from "@/constants/utils";
 import { resetContributionToMap } from "@/constants/contributions/utils";
 import { postTransactions } from "@/api/transactionData";
+import { normalizeColumnEnum } from "@/constants/communities/utils";
 
 interface UseContributionsSaveOptions {
     pendingMessage: string;
@@ -29,8 +30,10 @@ export function useContributionsSave({ pendingMessage, successMessage, errorMess
 
     const verifyFeatData = useCallback((featData: Record<string, unknown>, geoservice: CommunityGeoservice) => {
         geoservice.columns.forEach((col) => {
-            if (col.enum && featData[col.name]) {
-                if (!col.enum.includes(featData[col.name] as string)) featData[col.name] = col.default_value;
+            const enumValues = normalizeColumnEnum(col.enum);
+            const fieldValue = featData[col.name];
+            if (enumValues.length > 0 && fieldValue !== null && fieldValue !== undefined && fieldValue !== "") {
+                if (!enumValues.includes(fieldValue as string | number | null)) featData[col.name] = col.default_value;
             }
         });
     }, []);
