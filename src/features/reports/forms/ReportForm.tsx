@@ -206,30 +206,25 @@ const ReportForm: React.FC<Props> = ({
     };
 
     const onSubmitTheme = async () => {
-        if (!validateTheme()) {
-            return;
-        }
-        if (!community || !selectedTheme) return;
+        if (!validateTheme()) return;
+        if (!community || !selectedTheme || !handleSubmitTheme) return;
+
         setLoading(true);
         try {
-            if (handleSubmitTheme) {
-                await handleSubmitTheme(selectedTheme, themeAttributes);
-                setLoading(false);
-            }
-        } catch {
+            await handleSubmitTheme(selectedTheme, themeAttributes);
+        } finally {
             setLoading(false);
         }
     };
 
     const onSubmitSketch = async () => {
         if (!community || !selectedTheme) return;
+        if (!handleSubmitSketch) return;
+
         setLoading(true);
         try {
-            if (handleSubmitSketch) {
-                await handleSubmitSketch(selectedFeatures);
-                setLoading(false);
-            }
-        } catch {
+            await handleSubmitSketch(selectedFeatures);
+        } finally {
             setLoading(false);
         }
     };
@@ -251,18 +246,14 @@ const ReportForm: React.FC<Props> = ({
     };
 
     const onSubmitDocument = async () => {
-        if (!validateTheme() || !validateFiles(filesUploaded)) {
-            return;
-        }
-        if (!community || !selectedTheme) return;
+        if (!validateTheme() || !validateFiles(filesUploaded)) return;
+        if (!community || !selectedTheme || !handleSubmitDocument) return;
+
         setLoading(true);
         try {
-            if (handleSubmitDocument) {
-                await handleSubmitDocument(filesUploaded);
-                setFilesUploaded([]);
-            }
-            setLoading(false);
-        } catch {
+            await handleSubmitDocument(filesUploaded);
+            setFilesUploaded([]);
+        } finally {
             setLoading(false);
         }
     };
