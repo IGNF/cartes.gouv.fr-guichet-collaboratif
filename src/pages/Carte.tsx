@@ -10,10 +10,12 @@ import { useTranslation } from "@/i18n";
 import LoaderComponent from "@/components/LoaderComponent";
 import ClickableFeaturesModal from "@/features/working-layer/modal/ClickableFeaturesModal";
 import GetFeatureInfoPopup from "@/features/working-layer/popUp/GetFeatureInfoPopUp";
+import { useBeforeUnload } from "@/hooks/working-layer/useBeforeUnload";
 
 const MainMap = lazy(() => import("@/features/navigation/MainMap"));
 
 const Carte: React.FC = () => {
+    useBeforeUnload();
     const params = useParams();
 
     const { community, communityLayers, isLoadingCommunity, setCommunity, setCommunityLayers, setIsLoadingCommunity, addAlertMessage } = useCommunityStore();
