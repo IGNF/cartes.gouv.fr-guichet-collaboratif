@@ -1,4 +1,5 @@
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
+import { useIsModalOpen } from "@codegouvfr/react-dsfr/Modal/useIsModalOpen";
 import { Feature, MapBrowserEvent } from "ol";
 import TileLayer from "ol/layer/Tile";
 import VectorSource from "ol/source/Vector";
@@ -10,6 +11,8 @@ import { getClickedMapReport, getReportSketchFeatures, REPORTS_LAYER_TYPE } from
 import { getWMSFeatureInfo, getWMTSFeatureInfo } from "@/api/featureTypesData";
 import { Map } from "ol";
 import { CommunityReport } from "@/constants/reports/types";
+import { useContributionStore } from "@/store/useContributionStore";
+import { useModalStore } from "@/store/useModalStore";
 
 interface UseSingleClickHandlerProps {
     map: Map | null;
@@ -54,7 +57,11 @@ export const useSingleClickHandler = (props: UseSingleClickHandlerProps) => {
         clearHoverState,
     } = props;
 
-    return useCallback(
+    const { selectedObjects } = useContributionStore();
+    const { confirmMultipleDeselectionModal } = useModalStore();
+    const pendingSingleClickEvent = useRef<MapBrowserEvent | null>(null);
+
+    const handleSingleClick = useCallback(
         async (evt: MapBrowserEvent) => {
             if (!map || isNotClickable) return;
             if (mapWorkingLayer !== REPORTS_LAYER_TYPE && (editReport || selectedFeatures?.find((f) => f?.get("new")))) return;
@@ -137,7 +144,13 @@ export const useSingleClickHandler = (props: UseSingleClickHandlerProps) => {
             if (activeInteraction) return;
 
             const featuresAtPixel = map?.getFeaturesAtPixel(evt.pixel);
-            if (!featuresAtPixel?.length) return;
+            if (!featuresAtPixel?.length) {
+                if (selectedObjects.length > 1) {
+                    pendingSingleClickEvent.current = evt;
+                    confirmMultipleDeselectionModal.open();
+                }
+                return;
+            }
 
             featuresAtPixel?.forEach((feature) => {
                 const clickedFeature = feature as Feature;
@@ -225,6 +238,25 @@ export const useSingleClickHandler = (props: UseSingleClickHandlerProps) => {
             handleCloseDrawer,
             handleClusterClick,
             clearHoverState,
+            selectedObjects,
+            confirmMultipleDeselectionModal,
         ]
     );
+
+    useEffect(() => {
+        if (!pendingSingleClickEvent.current || selectedObjects.length !== 0) return;
+        const pendingEvent = pendingSingleClickEvent.current;
+        pendingSingleClickEvent.current = null;
+        void handleSingleClick(pendingEvent);
+    }, [selectedObjects.length, handleSingleClick]);
+
+    useIsModalOpen(confirmMultipleDeselectionModal, {
+        onConceal: () => {
+            if (pendingSingleClickEvent.current && selectedObjects.length > 0) {
+                pendingSingleClickEvent.current = null;
+            }
+        },
+    });
+
+    return handleSingleClick;
 };

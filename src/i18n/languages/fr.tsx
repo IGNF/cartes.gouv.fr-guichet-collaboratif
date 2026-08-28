@@ -58,6 +58,7 @@ import { CustomControlsFrTranslations } from "@/features/navigation/controls/cus
 import { ContributionListFrTranslations } from "@/features/contributions/locale/ContributionList.locale";
 import { ContributionsConfirmResetFrTranslations } from "@/features/contributions/locale/ContributionsConfirmReset.locale";
 import { ReviewContributionsFrTranslations } from "@/features/contributions/locale/ReviewContributions.locale";
+import { ReviewSelectedObjectsFrTranslations } from "@/features/working-layer/multiple-selection/locale/ReviewSelectedObjects.locale";
 import { ConfirmSaveContributionsFrTranslations } from "@/features/contributions/locale/ConfirmSaveContributions.locale";
 import { ConfirmMultipleObjectsActionModalFrTranslations } from "@/features/working-layer/forms/locale/ConfirmMultipleObjectsActionModal.locale";
 import { ConfirmMultipleDeselectionFrTranslations } from "@/features/navigation/controls/custom-controls/locale/ConfirmMultipleDeselection.locale";
@@ -128,6 +129,7 @@ export const translations: Translations<"fr"> = {
     ContributionList: ContributionListFrTranslations,
     ContributionsConfirmReset: ContributionsConfirmResetFrTranslations,
     ReviewContributions: ReviewContributionsFrTranslations,
+    ReviewSelectedObjects: ReviewSelectedObjectsFrTranslations,
     ConfirmSaveContributions: ConfirmSaveContributionsFrTranslations,
     ConfirmMultipleObjectsActionModal: ConfirmMultipleObjectsActionModalFrTranslations,
     ConfirmMultipleDeselection: ConfirmMultipleDeselectionFrTranslations,
