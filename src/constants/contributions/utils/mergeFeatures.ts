@@ -4,12 +4,25 @@ import { LineString, Polygon, Geometry } from "ol/geom";
 import { GeoserviceFeatureTypeProp } from "@/constants/communities/types";
 import { COORD_EPSILON } from "@/constants";
 
+function coordDist(a: Coordinate, b: Coordinate): number {
+    return Math.hypot(a[0] - b[0], a[1] - b[1]);
+}
+
 function coordEq(a: Coordinate, b: Coordinate): boolean {
-    return Math.abs(a[0] - b[0]) < COORD_EPSILON && Math.abs(a[1] - b[1]) < COORD_EPSILON;
+    return coordDist(a, b) < COORD_EPSILON;
 }
 
 function findCoordIndex(coords: Coordinate[], target: Coordinate): number {
-    return coords.findIndex((c) => coordEq(c, target));
+    let bestIdx = -1;
+    let bestDist = COORD_EPSILON * 1000;
+    for (let i = 0; i < coords.length; i++) {
+        const dist = coordDist(coords[i], target);
+        if (dist < bestDist) {
+            bestDist = dist;
+            bestIdx = i;
+        }
+    }
+    return bestIdx;
 }
 
 // Find shared edge: returns indices of shared vertices in both rings
