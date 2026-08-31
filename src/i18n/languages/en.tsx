@@ -39,7 +39,6 @@ import { ReportFiltersComponentEnTranslations } from "@/components/locale/Report
 import { DrawingControlEnTranslations } from "@/features/navigation/controls/locale/DrawingControl.locale";
 import { ToolsControlEnTranslations } from "@/features/navigation/controls/locale/ToolsControl.locale";
 import { CatalogControlEnTranslations } from "@/features/navigation/controls/locale/CatalogControl.locale";
-import { CenterReportControlEnTranslations } from "@/features/navigation/controls/custom-controls/locale/CenterReportControl.locale";
 import { useGetMapControlsEnTranslations } from "@/features/navigation/controls/locale/useGetMapControls.locale";
 import { useReportToolsEnTranslations } from "@/hooks/reports/locale/useReportTools.locale";
 import { useDeleteReportEnTranslations } from "@/hooks/reports/locale/useDeleteReport.locale";
@@ -59,6 +58,7 @@ import { CustomControlsEnTranslations } from "@/features/navigation/controls/cus
 import { ContributionListEnTranslations } from "@/features/contributions/locale/ContributionList.locale";
 import { ContributionsConfirmResetEnTranslations } from "@/features/contributions/locale/ContributionsConfirmReset.locale";
 import { ReviewContributionsEnTranslations } from "@/features/contributions/locale/ReviewContributions.locale";
+import { ReviewSelectedObjectsEnTranslations } from "@/features/working-layer/multiple-selection/locale/ReviewSelectedObjects.locale";
 import { ConfirmSaveContributionsEnTranslations } from "@/features/contributions/locale/ConfirmSaveContributions.locale";
 import { ConfirmMultipleObjectsActionModalEnTranslations } from "@/features/working-layer/forms/locale/ConfirmMultipleObjectsActionModal.locale";
 import { MergeFeatureAttributesModalEnTranslations } from "@/features/working-layer/forms/locale/MergeFeatureAttributesModal.locale";
@@ -111,7 +111,6 @@ export const translations: Translations<"en"> = {
     DrawingControl: DrawingControlEnTranslations,
     ToolsControl: ToolsControlEnTranslations,
     CatalogControl: CatalogControlEnTranslations,
-    CenterReportControl: CenterReportControlEnTranslations,
     useGetMapControls: useGetMapControlsEnTranslations,
     useReportTools: useReportToolsEnTranslations,
     useDeleteReport: useDeleteReportEnTranslations,
@@ -131,6 +130,7 @@ export const translations: Translations<"en"> = {
     ContributionList: ContributionListEnTranslations,
     ContributionsConfirmReset: ContributionsConfirmResetEnTranslations,
     ReviewContributions: ReviewContributionsEnTranslations,
+    ReviewSelectedObjects: ReviewSelectedObjectsEnTranslations,
     ConfirmSaveContributions: ConfirmSaveContributionsEnTranslations,
     ConfirmMultipleObjectsActionModal: ConfirmMultipleObjectsActionModalEnTranslations,
     MergeFeatureAttributesModal: MergeFeatureAttributesModalEnTranslations,

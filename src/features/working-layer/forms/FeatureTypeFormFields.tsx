@@ -9,6 +9,7 @@ import { FeatureTypeColumn } from "@/constants/communities/types";
 import { useTranslation } from "@/i18n";
 import { useContributionStore } from "@/store";
 import { FeatureTypeMode } from "@/constants/contributions/types";
+import { normalizeColumnEnum } from "@/constants/communities/utils";
 
 interface FeatureTypeFormFieldsProps {
     columns: FeatureTypeColumn[];
@@ -42,6 +43,7 @@ export const FeatureTypeFormFields: React.FC<FeatureTypeFormFieldsProps> = ({ co
                 .map((col) => {
                     const v = formData[col.name];
                     const error = validationErrors[col.name];
+                    const enumValues = normalizeColumnEnum(col.enum);
 
                     const isIdColumn = idName && col.name === idName;
                     const isReadOnly = col.read_only || isIdColumn;
@@ -82,74 +84,76 @@ export const FeatureTypeFormFields: React.FC<FeatureTypeFormFieldsProps> = ({ co
                     } else {
                         switch (col.type.toLowerCase()) {
                             case "string":
-                                valueCell = col.enum ? (
-                                    <Select
-                                        label=""
-                                        state={error ? "error" : "default"}
-                                        stateRelatedMessage={error || undefined}
-                                        nativeSelectProps={{
-                                            value: String(v ?? ""),
-                                            onChange: (e) => updateField(col.name, e.target.value || null, col),
-                                            required: col.required,
-                                        }}
-                                    >
-                                        {col.enum.map((opt, idx) => (
-                                            <option key={idx} value={opt ?? ""}>
-                                                {opt ?? t("select_placeholder")}
-                                            </option>
-                                        ))}
-                                    </Select>
-                                ) : (
-                                    <Input
-                                        label=""
-                                        state={error ? "error" : "default"}
-                                        stateRelatedMessage={error || undefined}
-                                        nativeInputProps={{
-                                            value: (v as string) ?? "",
-                                            onChange: (e) => updateField(col.name, e.target.value, col),
-                                            required: col.required,
-                                            minLength: col.min_length ?? undefined,
-                                            maxLength: col.max_length ?? undefined,
-                                            pattern: col.pattern ?? undefined,
-                                        }}
-                                    />
-                                );
+                                valueCell =
+                                    enumValues.length > 0 ? (
+                                        <Select
+                                            label=""
+                                            state={error ? "error" : "default"}
+                                            stateRelatedMessage={error || undefined}
+                                            nativeSelectProps={{
+                                                value: String(v ?? ""),
+                                                onChange: (e) => updateField(col.name, e.target.value || null, col),
+                                                required: col.required,
+                                            }}
+                                        >
+                                            {enumValues.map((opt, idx) => (
+                                                <option key={idx} value={opt ?? ""}>
+                                                    {opt ?? t("select_placeholder")}
+                                                </option>
+                                            ))}
+                                        </Select>
+                                    ) : (
+                                        <Input
+                                            label=""
+                                            state={error ? "error" : "default"}
+                                            stateRelatedMessage={error || undefined}
+                                            nativeInputProps={{
+                                                value: (v as string) ?? "",
+                                                onChange: (e) => updateField(col.name, e.target.value, col),
+                                                required: col.required,
+                                                minLength: col.min_length ?? undefined,
+                                                maxLength: col.max_length ?? undefined,
+                                                pattern: col.pattern ?? undefined,
+                                            }}
+                                        />
+                                    );
                                 break;
 
                             case "integer":
-                                valueCell = col.enum ? (
-                                    <Select
-                                        label=""
-                                        state={error ? "error" : "default"}
-                                        stateRelatedMessage={error || undefined}
-                                        nativeSelectProps={{
-                                            value: String(v ?? ""),
-                                            onChange: (e) => updateField(col.name, e.target.value ? Number(e.target.value) : null, col),
-                                            required: col.required,
-                                        }}
-                                    >
-                                        <option value="">{t("select_placeholder")}</option>
-                                        {col.enum.map((opt, idx) => (
-                                            <option key={idx} value={opt}>
-                                                {opt}
-                                            </option>
-                                        ))}
-                                    </Select>
-                                ) : (
-                                    <Input
-                                        label=""
-                                        state={error ? "error" : "default"}
-                                        stateRelatedMessage={error || undefined}
-                                        nativeInputProps={{
-                                            type: "number",
-                                            value: (v as number | string) ?? "",
-                                            onChange: (e) => updateField(col.name, Number(e.target.value), col),
-                                            required: col.required,
-                                            min: col.min_value ?? undefined,
-                                            max: col.max_value ?? undefined,
-                                        }}
-                                    />
-                                );
+                                valueCell =
+                                    enumValues.length > 0 ? (
+                                        <Select
+                                            label=""
+                                            state={error ? "error" : "default"}
+                                            stateRelatedMessage={error || undefined}
+                                            nativeSelectProps={{
+                                                value: String(v ?? ""),
+                                                onChange: (e) => updateField(col.name, e.target.value ? Number(e.target.value) : null, col),
+                                                required: col.required,
+                                            }}
+                                        >
+                                            <option value="">{t("select_placeholder")}</option>
+                                            {enumValues.map((opt, idx) => (
+                                                <option key={idx} value={opt ?? ""}>
+                                                    {opt}
+                                                </option>
+                                            ))}
+                                        </Select>
+                                    ) : (
+                                        <Input
+                                            label=""
+                                            state={error ? "error" : "default"}
+                                            stateRelatedMessage={error || undefined}
+                                            nativeInputProps={{
+                                                type: "number",
+                                                value: (v as number | string) ?? "",
+                                                onChange: (e) => updateField(col.name, Number(e.target.value), col),
+                                                required: col.required,
+                                                min: col.min_value ?? undefined,
+                                                max: col.max_value ?? undefined,
+                                            }}
+                                        />
+                                    );
                                 break;
 
                             case "boolean":

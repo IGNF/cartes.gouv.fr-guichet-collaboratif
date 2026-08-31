@@ -26,13 +26,13 @@ export type ComponentKey =
     | import("../features/contributions/locale/ContributionList.locale").I18n
     | import("../features/contributions/locale/ContributionsConfirmReset.locale").I18n
     | import("../features/contributions/locale/ReviewContributions.locale").I18n
+    | import("../features/working-layer/multiple-selection/locale/ReviewSelectedObjects.locale").I18n
     | import("../features/contributions/locale/ConfirmSaveContributions.locale").I18n
     | import("../features/navigation/layers/locale/GetReportsLayer.locale").I18n
     | import("../features/navigation/layers/legends/locale/FeatureTypeLayerLegends.locale").I18n
     | import("../features/navigation/controls/locale/DrawingControl.locale").I18n
     | import("../features/navigation/controls/locale/ToolsControl.locale").I18n
     | import("../features/navigation/controls/locale/CatalogControl.locale").I18n
-    | import("../features/navigation/controls/custom-controls/locale/CenterReportControl.locale").I18n
     | import("../features/navigation/controls/custom-controls/locale/ConfirmMultipleDeselection.locale").I18n
     | import("../features/navigation/controls/custom-controls/locale/ExportMapModal.locale").I18n
     | import("../features/navigation/controls/locale/useGetMapControls.locale").I18n

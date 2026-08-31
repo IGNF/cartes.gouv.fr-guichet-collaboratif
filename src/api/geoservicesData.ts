@@ -1,6 +1,7 @@
 import { CommunityGeoservice, GeoserviceFeatureTypeProp } from "@/constants/communities/types";
 import { GEOSERVICES_API_URL } from "@/constants/urls";
 import { getAxiosApi } from ".";
+import { normalizeColumnEnum } from "@/constants/communities/utils";
 
 export async function getGeoserviceById(geoserviceId: number) {
     const api = await getAxiosApi();
@@ -26,7 +27,10 @@ export async function getGeoserviceAll(geoserviceIds: number[]): Promise<Communi
                 maxZoom: res.data.max_zoom,
                 tileZoom: res.data.min_zoom,
                 boxSrid: res.data.box_srid,
-                columns: res.data.columns || [],
+                columns: (res.data.columns || []).map((col: { enum?: unknown }) => ({
+                    ...col,
+                    enum: normalizeColumnEnum(col.enum),
+                })),
                 featureType: inferFeatureType(res.data),
             };
         });
