@@ -36,7 +36,7 @@ let clipboardFeature: Feature | null = null;
 
 const useGetInteractionsFuncs = (props: InteractionsProps) => {
     const { map, mapWorkingLayer, clickedControl, clickedMapFeature, setClickedControl, setClickedMapFeature } = useMapStore();
-    const { contributions, selectedObjects, saveContribution, setIsModifying, setSelectedObjects, setFeatureTypeMode } = useContributionStore();
+    const { selectedObjects, getCreateContributions, saveContribution, setIsModifying, setSelectedObjects, setFeatureTypeMode } = useContributionStore();
     const { searchModal, exportMapModal, confirmMultipleDeselectionModal } = useModalStore();
     const { communityLayers, addAlertMessage, removeAlertMessage } = useCommunityStore();
 
@@ -334,7 +334,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             if (currentMapWorkingSource) {
                 // Read the contributions directly from the store
                 // Otherwise, it can provide an already used id
-                const createdContributions = useContributionStore.getState().contributions.filter((contr) => contr.type === ContributionType.CREATE);
+                const createdContributions = getCreateContributions();
                 addFeatureProperties(feature, geoservice, createdContributions);
                 feature.set(FEATURE_TYPE_NEW_PROPERTY, true);
                 feature.set(FEATURE_TYPE_PENDING_FORM_PROPERTY, true);
@@ -344,7 +344,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                 setClickedMapFeature(feature);
             }
         },
-        [currentMapWorkingSource, currentCommunityLayer?.geoservice, mapWorkingLayer, saveContribution, setClickedMapFeature]
+        [currentMapWorkingSource, currentCommunityLayer?.geoservice, getCreateContributions, mapWorkingLayer, saveContribution, setClickedMapFeature]
     );
 
     const pasteInteractionFunc = useCallback(
@@ -364,7 +364,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                 geometry.translate(e.coordinate[0] - centerX, e.coordinate[1] - centerY);
             }
 
-            const createdContributions = contributions.filter((contr) => contr.type === ContributionType.CREATE);
+            const createdContributions = getCreateContributions();
             const sourceFeatureTypeData = pastedFeature.get(FEATURE_TYPE_DATA_PROPERTY);
 
             if (sourceFeatureTypeData && typeof sourceFeatureTypeData === "object") {
@@ -396,7 +396,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
         [
             currentMapWorkingSource,
             currentCommunityLayer?.geoservice,
-            contributions,
+            getCreateContributions,
             mapWorkingLayer,
             saveContribution,
             setClickedMapFeature,
@@ -528,8 +528,6 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             const endRef = e.coordinate;
             const outputSource = currentMapWorkingSource;
             const outputLayerName = mapWorkingLayer;
-            const createContributions = contributions.filter((contr) => contr.type === ContributionType.CREATE);
-
             isComputingShortestPathRef.current = true;
             const computingAlertId = addAlertMessage(StatusMessage.info, t("shortest_path_computing"), null);
 
@@ -552,6 +550,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
 
             const geometryNameColumn = geoservice.columns.find((col) => col.name === geoservice.geometryName);
             const newFeature = new Feature({ geometry: new LineString(pathCoords) });
+            const createContributions = getCreateContributions();
 
             addFeatureProperties(newFeature, geoservice, createContributions);
             newFeature.set(FEATURE_TYPE_NEW_PROPERTY, true);
@@ -581,7 +580,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             clearShortestPathStart,
             currentMapWorkingSource,
             currentCommunityLayer?.geoservice,
-            contributions,
+            getCreateContributions,
             saveContribution,
             setSelectedObjects,
             setClickedMapFeature,
@@ -672,10 +671,17 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                 originalFeatGeometry?.setCoordinates(newCoordsOriginal);
                 createdFeatGeometry?.setCoordinates(newCoordsCreated);
 
-                createdFeat.set(FEATURE_TYPE_DATA_PROPERTY, {
-                    ...createdFeat.get(FEATURE_TYPE_DATA_PROPERTY),
-                    [`${currentCommunityLayer?.geoservice.idName}`]: contributions.filter((contr) => contr.type === ContributionType.CREATE).length + 1,
-                });
+                const idName = currentCommunityLayer?.geoservice.idName;
+                if (idName) {
+                    const createdId = getCreateContributions().length + 1;
+                    createdFeat.set(FEATURE_TYPE_DATA_PROPERTY, {
+                        ...createdFeat.get(FEATURE_TYPE_DATA_PROPERTY),
+                        [idName]: createdId,
+                    });
+                    createdFeat.set(idName, createdId);
+                }
+                createdFeat.set(FEATURE_TYPE_NEW_PROPERTY, true);
+                createdFeat.set(FEATURE_TYPE_PENDING_FORM_PROPERTY, true);
 
                 originalFeat.unset(FEATURE_TYPE_SELECTED_PROPERTY);
                 clickableSource.addFeatures([originalFeat, createdFeat]);
@@ -688,7 +694,16 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                 removeInteractionFromMap(InteractionType.SPLIT_LINE, map!);
             }
         },
-        [map, mapWorkingLayer, clickableSource, contributions, currentCommunityLayer?.geoservice, saveContribution, setClickedMapFeature, setClickedControl]
+        [
+            map,
+            mapWorkingLayer,
+            clickableSource,
+            currentCommunityLayer?.geoservice,
+            getCreateContributions,
+            saveContribution,
+            setClickedMapFeature,
+            setClickedControl,
+        ]
     );
 
     // Keep stable handler references so `un()` removes the exact listener and avoids duplicates.
