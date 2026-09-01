@@ -11,7 +11,7 @@ export const ConfirmDeleteReportModalFrTranslations: Translations<"fr">["Confirm
     cancel_btn: "Annuler",
     delete_btn: "Supprimer",
     delete_one_report_message: ({ checkedIds }: { checkedIds: number[] }) => `Le signalement ${checkedIds} a été bien supprimé.`,
-    delete_reports_message: "Les signalements séléctionnés ont été bien supprimés",
+    delete_reports_message: "Les signalements sélectionnés ont été bien supprimés",
 };
 
 export const ConfirmDeleteReportModalEnTranslations: Translations<"en">["ConfirmDeleteReportModal"] = {
