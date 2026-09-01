@@ -32,7 +32,8 @@ interface PointDataProps {
 
 const EditFeatureTypeForm = ({ onClose }: { onClose?: () => void }) => {
     const { map, mapSwitcher, clickedMapFeature, mapWorkingLayer, setClickedMapFeature, setWorkingLayerDrawerOpened } = useMapStore();
-    const { selectedObjects, setSelectedObjects, setFeatureTypeMode, setColumnsToModify, setPendingFeatureFormValidator } = useContributionStore();
+    const { selectedObjects, setSelectedObjects, setFeatureTypeMode, columnsToModify, setColumnsToModify, setPendingFeatureFormValidator } =
+        useContributionStore();
 
     const { t } = useTranslation({ EditFeatureTypeForm });
     const { guard } = useFeatureFormGuard();
@@ -59,6 +60,8 @@ const EditFeatureTypeForm = ({ onClose }: { onClose?: () => void }) => {
     const { validationErrors, setValidationErrors, validateField, validateAll } = useFeatureTypeValidation();
 
     const { formData, updateField } = useFeatureTypeForm(pointData, columns, validateField, setValidationErrors);
+
+    const columnsToValidate = useMemo(() => (selectedObjects.length > 1 ? columnsToModify : columns), [selectedObjects.length, columnsToModify, columns]);
 
     const handleAutomaticFieldsCalculated = useCallback(
         (fields: Record<string, string | number | null>) => {
@@ -101,7 +104,7 @@ const EditFeatureTypeForm = ({ onClose }: { onClose?: () => void }) => {
         currentMapWorkingSource,
         clickableLayer,
         formData,
-        columns,
+        columns: columnsToValidate,
         validateAll,
         onSuccess: handleSuccess,
     });
