@@ -335,7 +335,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             if (currentMapWorkingSource) {
                 // Read the contributions directly from the store
                 // Otherwise, it can provide an already used id
-                const createdContributions = useContributionStore.getState().contributions.filter((contr) => contr.type === ContributionType.CREATE);
+                const createdContributions = getCreateContributions();
                 addFeatureProperties(feature, geoservice, createdContributions);
                 feature.set(FEATURE_TYPE_NEW_PROPERTY, true);
                 feature.set(FEATURE_TYPE_PENDING_FORM_PROPERTY, true);
