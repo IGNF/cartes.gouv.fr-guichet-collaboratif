@@ -6,8 +6,14 @@ import WebGLVectorLayer from "ol/layer/WebGLVector";
 import { ContributionType, CustomInteraction, InteractionsProps } from "@/constants/contributions/types";
 import { ModifyEvent } from "ol/interaction/Modify";
 import { DrawEvent } from "ol/interaction/Draw";
-import { DragPan } from "ol/interaction";
-import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_NEW_PROPERTY, FEATURE_TYPE_SELECTED_PROPERTY, POINTER_HIT_DETECTION_TOLERENCE } from "@/constants";
+import { DragPan, Draw } from "ol/interaction";
+import {
+    FEATURE_TYPE_DATA_PROPERTY,
+    FEATURE_TYPE_NEW_PROPERTY,
+    FEATURE_TYPE_PENDING_FORM_PROPERTY,
+    FEATURE_TYPE_SELECTED_PROPERTY,
+    POINTER_HIT_DETECTION_TOLERENCE,
+} from "@/constants";
 import { addFeatureProperties, addInteractionToMap, isPointOnSegment, removeInteractionFromMap, setFeatNewCoords } from "@/constants/contributions/utils";
 import { GeometryFeatueParams } from "@/constants/reports/types";
 import { Coordinate } from "ol/coordinate";
@@ -19,6 +25,8 @@ import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import { LineString, SimpleGeometry } from "ol/geom";
 import { FeatureTypeMode } from "@/constants/contributions/types";
 import { useTranslation } from "@/i18n";
+import { useFeatureFormGuard } from "@/hooks/working-layer/useFeatureFormGuard";
+import useStableCallback from "@/hooks/useStableCallback";
 import ShortestPathWorker from "./shortestPath/shortestPath.worker.ts?worker";
 import type { ShortestPathWorkerRequest, ShortestPathWorkerResponse } from "./shortestPath/shortestPath.worker";
 
@@ -33,6 +41,8 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
     const { communityLayers, addAlertMessage, removeAlertMessage } = useCommunityStore();
 
     const { t } = useTranslation({ useGetInteractionsFuncs });
+
+    const { guard: guardPendingFeatureForm } = useFeatureFormGuard();
 
     const currentCommunityLayer = useMemo(() => communityLayers?.find((l) => l?.geoservice?.layer === mapWorkingLayer), [communityLayers, mapWorkingLayer]);
 
@@ -162,7 +172,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
         setClickedControl(null);
     }, [mapWorkingLayer, clickedControl, map, setClickedControl]);
 
-    const selectInteractionFunc = useCallback(
+    const handleSelectInteraction = useCallback(
         (e: SelectEvent) => {
             const selectedFeatures = e.selected;
             const deselectedFeatures = e.deselected;
@@ -205,7 +215,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
         }
     }, [clickableSource, dragInteraction, selectInteraction, setClickedMapFeature, setSelectedObjects]);
 
-    const removeInteractionFunc = useCallback(
+    const handleRemoveInteraction = useCallback(
         (e: SelectEvent) => {
             selectInteraction.clearSelection();
             const features = e.selected;
@@ -219,7 +229,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
         [currentMapWorkingSource, selectInteraction, mapWorkingLayer, saveContribution]
     );
 
-    const modifyInteractionFunc = useCallback(
+    const handleModifyInteraction = useCallback(
         (e: ModifyEvent) => {
             setIsModifying(false);
             const shouldKeepSelectDisabled =
@@ -270,7 +280,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
         [mapWorkingLayer, saveContribution, setIsModifying, selectInteraction, clickedControl, map]
     );
 
-    const modifyInteractionFuncStart = useCallback(
+    const handleModifyInteractionStart = useCallback(
         (e: ModifyEvent) => {
             setIsModifying(true);
             const features = e.features.getArray();
@@ -294,25 +304,47 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
         [setIsModifying, clickedControl, map]
     );
 
-    const drawInteractionFunc = useCallback(
+    const discardDrawRef = useRef(false);
+
+    const handleDrawStartInteraction = useCallback(
         (e: DrawEvent) => {
+            const draw = e.target as Draw;
+            guardPendingFeatureForm(
+                () => {
+                    discardDrawRef.current = false;
+                },
+                () => {
+                    discardDrawRef.current = true;
+                    setTimeout(() => draw.abortDrawing(), 0);
+                }
+            );
+        },
+        [guardPendingFeatureForm]
+    );
+
+    const handleDrawInteraction = useCallback(
+        (e: DrawEvent) => {
+            if (discardDrawRef.current) {
+                discardDrawRef.current = false;
+                return;
+            }
             const feature = e.feature;
             const geoservice = currentCommunityLayer?.geoservice;
             const geometryNameColumn = geoservice?.columns.find((col) => col.name === geoservice.geometryName);
             if (currentMapWorkingSource) {
-                addFeatureProperties(
-                    feature,
-                    currentCommunityLayer?.geoservice,
-                    contributions.filter((contr) => contr.type === ContributionType.CREATE)
-                );
+                // Read the contributions directly from the store
+                // Otherwise, it can provide an already used id
+                const createdContributions = useContributionStore.getState().contributions.filter((contr) => contr.type === ContributionType.CREATE);
+                addFeatureProperties(feature, geoservice, createdContributions);
                 feature.set(FEATURE_TYPE_NEW_PROPERTY, true);
+                feature.set(FEATURE_TYPE_PENDING_FORM_PROPERTY, true);
                 if (geometryNameColumn?.is3d) setFeatNewCoords(feature);
                 currentMapWorkingSource.addFeature(feature);
-                saveContribution(feature, ContributionType.CREATE, initialFeat, mapWorkingLayer);
+                saveContribution(feature, ContributionType.CREATE, null, mapWorkingLayer);
                 setClickedMapFeature(feature);
             }
         },
-        [currentMapWorkingSource, currentCommunityLayer?.geoservice, contributions, mapWorkingLayer, saveContribution, setClickedMapFeature]
+        [currentMapWorkingSource, currentCommunityLayer?.geoservice, mapWorkingLayer, saveContribution, setClickedMapFeature]
     );
 
     const pasteInteractionFunc = useCallback(
@@ -347,6 +379,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             }
 
             pastedFeature.set(FEATURE_TYPE_NEW_PROPERTY, true);
+            pastedFeature.set(FEATURE_TYPE_PENDING_FORM_PROPERTY, true);
             if (geometryNameColumn?.is3d) setFeatNewCoords(pastedFeature);
 
             currentMapWorkingSource.addFeature(pastedFeature);
@@ -522,6 +555,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
 
             addFeatureProperties(newFeature, geoservice, createContributions);
             newFeature.set(FEATURE_TYPE_NEW_PROPERTY, true);
+            newFeature.set(FEATURE_TYPE_PENDING_FORM_PROPERTY, true);
             if (geometryNameColumn?.is3d) setFeatNewCoords(newFeature);
 
             outputSource.addFeature(newFeature);
@@ -580,7 +614,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
         }
     }, [map]);
 
-    const splitLineInteractionFuncPointer = useCallback(
+    const handleSplitLineInteractionPointer = useCallback(
         (e: MapBrowserEvent) => {
             const features = map?.getFeaturesAtPixel(e.pixel, {
                 layerFilter: (layer) => layer.get("name") === mapWorkingLayer,
@@ -602,7 +636,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
         [map, mapWorkingLayer]
     );
 
-    const splitLineInteractionFuncEnd = useCallback(
+    const handleSplitLineInteractionEnd = useCallback(
         (e: MapBrowserEvent) => {
             const features = map?.getFeaturesAtPixel(e.pixel, {
                 layerFilter: (layer) => layer.get("name") === mapWorkingLayer,
@@ -657,6 +691,16 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
         [map, mapWorkingLayer, clickableSource, contributions, currentCommunityLayer?.geoservice, saveContribution, setClickedMapFeature, setClickedControl]
     );
 
+    // Keep stable handler references so `un()` removes the exact listener and avoids duplicates.
+    const selectInteractionFunc = useStableCallback(handleSelectInteraction);
+    const removeInteractionFunc = useStableCallback(handleRemoveInteraction);
+    const modifyInteractionFuncStart = useStableCallback(handleModifyInteractionStart);
+    const modifyInteractionFunc = useStableCallback(handleModifyInteraction);
+    const drawStartInteractionFunc = useStableCallback(handleDrawStartInteraction);
+    const drawInteractionFunc = useStableCallback(handleDrawInteraction);
+    const splitLineInteractionFuncEnd = useStableCallback(handleSplitLineInteractionEnd);
+    const splitLineInteractionFuncPointer = useStableCallback(handleSplitLineInteractionPointer);
+
     const getInteractionByType = useCallback(
         (type: string | null, target: string): CustomInteraction => {
             if (!clickableLayer || !clickableSource) return null;
@@ -671,6 +715,11 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             drawPointInteraction.un("drawend", drawInteractionFunc);
             drawLineInteraction.un("drawend", drawInteractionFunc);
             drawPolygonInteraction.un("drawend", drawInteractionFunc);
+            drawPointInteraction.un("drawstart", drawStartInteractionFunc);
+            drawLineInteraction.un("drawstart", drawStartInteractionFunc);
+            drawPolygonInteraction.un("drawstart", drawStartInteractionFunc);
+            map?.un("singleclick", splitLineInteractionFuncEnd);
+            map?.un("pointermove", splitLineInteractionFuncPointer);
 
             // Any tool other than shortest path must drop the stale shortest-path
             // click listener, otherwise it keeps hijacking SELECT/MODIFY clicks.
@@ -696,6 +745,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                     interaction = drawPointInteraction;
                     if (target === "line") interaction = drawLineInteraction;
                     if (target === "polygon") interaction = drawPolygonInteraction;
+                    interaction.on("drawstart", drawStartInteractionFunc);
                     interaction.on("drawend", drawInteractionFunc);
                     break;
                 case InteractionType.TRANSLATE_OBJECT:
@@ -733,6 +783,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             modifyInteractionFunc,
             modifyInteractionFuncStart,
             drawInteractionFunc,
+            drawStartInteractionFunc,
             splitLineInteractionFuncEnd,
             splitLineInteractionFuncPointer,
             registerShortestPathListener,

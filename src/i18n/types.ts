@@ -80,6 +80,7 @@ export type ComponentKey =
     | import("../hooks/reports/locale/useDeleteReport.locale").I18n
     | import("../hooks/working-layer/locale/useFeatureTypeValidation.locale").I18n
     | import("../hooks/working-layer/locale/useOperatorList.locale").I18n
+    | import("../hooks/working-layer/locale/useFeatureFormGuard.locale").I18n
     | import("../features/reports/forms/locale/FormAttachments.locale").I18n;
 
 export type Translations<L extends Language> = GenericTranslations<ComponentKey, Language, typeof fallbackLanguage, L>;
