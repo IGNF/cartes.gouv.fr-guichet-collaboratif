@@ -58,7 +58,7 @@ export function useContributionsSave({ pendingMessage, successMessage, errorMess
             setWorkingLayerDrawerOpened(false);
             setClickedMapFeature(null);
             setClickedControl(null);
-            addAlertMessage(StatusMessage.success, successMessage);
+            addAlertMessage(StatusMessage.success, successMessage, 2000);
         },
         [setContributions, setWorkingLayerDrawerOpened, setClickedMapFeature, setClickedControl, addAlertMessage, successMessage]
     );
@@ -119,23 +119,23 @@ export function useContributionsSave({ pendingMessage, successMessage, errorMess
             }
         });
 
+        const pendingId = addAlertMessage(StatusMessage.info, pendingMessage);
         try {
-            const pendingId = addAlertMessage(StatusMessage.info, pendingMessage);
             const postResAll = await postTransactions(apis);
-            setIsLoading(false);
-            removeAlertMessage(pendingId);
             const transactionStatuses: TransactionStatus[] = postResAll.map((res) => res.data);
             const allSuccess = transactionStatuses.every((s) => s.status === TransactionType.COMMITTED);
             const failedStatuses = transactionStatuses.filter((s) => s.status !== TransactionType.COMMITTED);
             if (allSuccess) handleSuccess(transactionStatuses, geomContr);
             else handleError(failedStatuses, geomContr);
         } catch (error) {
-            setIsLoading(false);
             if (error instanceof AxiosError) {
-                addAlertMessage(StatusMessage.error, error.response?.data?.message || error.message);
+                addAlertMessage(StatusMessage.error, error.response?.data?.message || error.message, 5000);
             } else {
-                addAlertMessage(StatusMessage.error, String(error));
+                addAlertMessage(StatusMessage.error, String(error), 5000);
             }
+        } finally {
+            setIsLoading(false);
+            removeAlertMessage(pendingId);
         }
     }, [contributions, user, lang, mapProj, verifyFeatData, addAlertMessage, removeAlertMessage, pendingMessage, handleSuccess, handleError]);
 

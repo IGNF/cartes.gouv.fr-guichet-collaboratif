@@ -16,6 +16,7 @@ export const MEMBER_ROLE = "member";
 
 export const HIT_DETECTION_TOLERENCE = 1;
 export const POINTER_HIT_DETECTION_TOLERENCE = 10;
+export const COORD_EPSILON = 0.01;
 
 export const TILE_SIZE = 2048;
 export const TILE_MAX_FEATURES = 5000;

@@ -47,7 +47,7 @@ const TransformReportsToTableData = (reports: CommunityReport[]) => {
                 <Checkbox
                     options={[
                         {
-                            label: <span className="fr-sr-only">Séléctionner un signalement </span>,
+                            label: <span className="fr-sr-only">{t("select")} </span>,
                             nativeInputProps: {
                                 checked: !!isChecked[report.id],
                                 onChange: (e) => {

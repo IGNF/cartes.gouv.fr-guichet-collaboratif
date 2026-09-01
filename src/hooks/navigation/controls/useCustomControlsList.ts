@@ -7,7 +7,7 @@ import {
 } from "@/constants/communities/types";
 import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import { ComponentKey } from "@/i18n/types";
-import { useCommunityStore, useMapStore } from "@/store";
+import { useCommunityStore, useContributionStore, useMapStore } from "@/store";
 import { useRasterWorkingLayer } from "@/hooks/working-layer/useRasterWorkingLayer";
 import { TranslationFunction } from "i18nifty/typeUtils/TranslationFunction";
 import { useMemo } from "react";
@@ -15,6 +15,7 @@ import { useMemo } from "react";
 const useCustomControlsList = (t: TranslationFunction<"CustomControls", ComponentKey>): CustomControlItem[] => {
     const { mapWorkingLayer, clickedMapFeature, clickedControl } = useMapStore();
     const { community, communityLayers } = useCommunityStore();
+    const { selectedObjects } = useContributionStore();
 
     const communityEditableLayers = useMemo(() => communityLayers?.filter((l) => l.role !== CommunityLayerRoleType.VISU), [communityLayers]);
     const currentCommunityLayer = useMemo(() => communityLayers?.find((l) => l?.geoservice?.layer === mapWorkingLayer), [communityLayers, mapWorkingLayer]);
@@ -163,6 +164,24 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
             },
             {
                 id: 13,
+                title: t("merge_objects"),
+                target: "",
+                icon: "ri-merge-cells-horizontal",
+                disabled:
+                    currentCommunityLayer?.role === CommunityLayerRoleType.VISU ||
+                    mapWorkingLayer === REPORTS_LAYER_TYPE ||
+                    currentCommunityLayer?.geoservice.featureType === GeoserviceFeatureTypeProp.POINT ||
+                    selectedObjects.length !== 2,
+                enabled:
+                    (!!communityEditableLayers?.length &&
+                        //Disable this test as it's not in the api right now
+                        // !!community?.functionalities?.includes(CommunityLayerFunctionalityType.MERGE) &&
+                        currentCommunityLayer?.geoservice.featureType == GeoserviceFeatureTypeProp.LINE) ||
+                    currentCommunityLayer?.geoservice.featureType == GeoserviceFeatureTypeProp.POLYGON,
+                interaction: InteractionType.MERGE_OBJECTS,
+            },
+            {
+                id: 14,
                 title: t("export_image"),
                 target: "",
                 icon: "ri-printer-line",
@@ -173,7 +192,7 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
         ];
     }, [
         community,
-        currentCommunityLayer?.geoservice.featureType,
+        currentCommunityLayer?.geoservice,
         currentCommunityLayer?.role,
         clickedControl?.interaction,
         mapWorkingLayer,
@@ -182,6 +201,7 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
         isRasterLayer,
         isRasterLayerQueryable,
         isShortestPathEnabled,
+        selectedObjects,
         t,
     ]);
 
