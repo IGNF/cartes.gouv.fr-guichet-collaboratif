@@ -912,14 +912,15 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
 
             featToKeep.setGeometry(mergedGeometry);
             featToKeep.set(FEATURE_TYPE_DATA_PROPERTY, dataToApply);
-            featToKeep.unset(FEATURE_TYPE_SELECTED_PROPERTY);
             featToDelete.unset(FEATURE_TYPE_SELECTED_PROPERTY);
             currentMapWorkingSource.removeFeature(featToDelete);
 
             saveContribution(featToKeep, ContributionType.MODIFY, initialFeatToKeep, mapWorkingLayer);
             saveContribution(featToDelete, ContributionType.DELETE, initialFeatToDelete, mapWorkingLayer);
 
-            setSelectedObjects([]);
+            selectInteraction.getFeatures().clear();
+            selectInteraction.getFeatures().push(featToKeep);
+            setSelectedObjects([featToKeep]);
             setClickedMapFeature(featToKeep);
             setClickedControl(null);
             mergeFeatureAttributesModal.close();
@@ -929,6 +930,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             currentCommunityLayer?.geoservice.featureType,
             currentCommunityLayer?.geoservice.idName,
             currentMapWorkingSource,
+            selectInteraction,
             saveContribution,
             mapWorkingLayer,
             setSelectedObjects,

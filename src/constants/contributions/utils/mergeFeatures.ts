@@ -4,17 +4,15 @@ import { LineString, Polygon, Geometry } from "ol/geom";
 import { GeoserviceFeatureTypeProp } from "@/constants/communities/types";
 import { COORD_EPSILON } from "@/constants";
 
+const NODE_MATCH_MARGIN = COORD_EPSILON * 1000;
+
 function coordDist(a: Coordinate, b: Coordinate): number {
     return Math.hypot(a[0] - b[0], a[1] - b[1]);
 }
 
-function coordEq(a: Coordinate, b: Coordinate): boolean {
-    return coordDist(a, b) < COORD_EPSILON;
-}
-
 function findCoordIndex(coords: Coordinate[], target: Coordinate): number {
     let bestIdx = -1;
-    let bestDist = COORD_EPSILON * 1000;
+    let bestDist = NODE_MATCH_MARGIN;
     for (let i = 0; i < coords.length; i++) {
         const dist = coordDist(coords[i], target);
         if (dist < bestDist) {
@@ -116,25 +114,47 @@ export function mergeAdjacentPolygonRings(ring1: Coordinate[], ring2: Coordinate
     return merged.length >= 4 ? merged : null;
 }
 
-export function mergeLineCoordinates(coords1: Coordinate[], coords2: Coordinate[]): Coordinate[] | null {
+type EndpointPairType = "end1-start2" | "end1-end2" | "start1-start2" | "start1-end2";
+
+interface EndpointPair {
+    type: EndpointPairType;
+    dist: number;
+}
+
+function findClosestEndpointPair(coords1: Coordinate[], coords2: Coordinate[]): EndpointPair | null {
     const end1 = coords1[coords1.length - 1];
     const start1 = coords1[0];
     const end2 = coords2[coords2.length - 1];
     const start2 = coords2[0];
 
-    if (coordEq(end1, start2)) {
-        return [...coords1, ...coords2.slice(1)];
+    const candidates: EndpointPair[] = [
+        { type: "end1-start2", dist: coordDist(end1, start2) },
+        { type: "end1-end2", dist: coordDist(end1, end2) },
+        { type: "start1-start2", dist: coordDist(start1, start2) },
+        { type: "start1-end2", dist: coordDist(start1, end2) },
+    ];
+
+    const best = candidates.reduce((min, candidate) => (candidate.dist < min.dist ? candidate : min));
+    if (best.dist >= NODE_MATCH_MARGIN) return null;
+    return best;
+}
+
+export function mergeLineCoordinates(coords1: Coordinate[], coords2: Coordinate[]): Coordinate[] | null {
+    if (coords1.length < 2 || coords2.length < 2) return null;
+
+    const pair = findClosestEndpointPair(coords1, coords2);
+    if (!pair) return null;
+
+    switch (pair.type) {
+        case "end1-start2":
+            return [...coords1, ...coords2.slice(1)];
+        case "end1-end2":
+            return [...coords1, ...[...coords2].reverse().slice(1)];
+        case "start1-start2":
+            return [...[...coords1].reverse(), ...coords2.slice(1)];
+        case "start1-end2":
+            return [...coords2, ...coords1.slice(1)];
     }
-    if (coordEq(end1, end2)) {
-        return [...coords1, ...[...coords2].reverse().slice(1)];
-    }
-    if (coordEq(start1, start2)) {
-        return [...[...coords1].reverse(), ...coords2.slice(1)];
-    }
-    if (coordEq(start1, end2)) {
-        return [...coords2, ...coords1.slice(1)];
-    }
-    return null;
 }
 
 export function mergeFeatureGeometries(feat1: Feature, feat2: Feature, featureType: GeoserviceFeatureTypeProp): Geometry | null {
