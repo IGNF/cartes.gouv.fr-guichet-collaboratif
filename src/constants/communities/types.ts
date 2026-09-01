@@ -264,6 +264,7 @@ export enum CommunityLayerFunctionalityType {
     COPY_REF = "copyRef",
     TOOLTIP = "tooltip",
     OVERVIEW = "overview_map_control",
+    MERGE = "merge",
 }
 
 export enum CommunityLayerRoleType {
@@ -285,6 +286,7 @@ export enum InteractionType {
     SPLIT_LINE = "split_line",
     SHORTEST_PATH = "shortest_path",
     EXPORT_IMAGE = "export_image",
+    MERGE_OBJECTS = "merge_objects",
 }
 
 export type CustomControlItem = {

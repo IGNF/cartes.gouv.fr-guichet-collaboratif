@@ -1,6 +1,8 @@
 import { FeatureTypeColumn } from "@/constants/communities/types";
 import { Contribution, ContributionType, FeatureTypeMode } from "@/constants/contributions/types";
 import { SearchResultItem } from "@/constants/savedSearches/types";
+import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_GEOSERVICE_PROPERTY } from "@/constants";
+import { CommunityGeoservice } from "@/constants/communities/types";
 import { Feature } from "ol";
 import { create } from "zustand";
 
@@ -52,7 +54,17 @@ export const useContributionStore = create<ContributionStore>((set, get) => ({
     saveContribution: (feat, type, initialFeat, mapWorkingLayer) => {
         if (!feat) return;
         const { contributions, setContributions } = get();
-        const contrExist = contributions.find((contr) => contr.feature === feat);
+
+        const getBackendId = (f: Feature): unknown => {
+            const geoservice = f.get(FEATURE_TYPE_GEOSERVICE_PROPERTY) as CommunityGeoservice | undefined;
+            const data = f.get(FEATURE_TYPE_DATA_PROPERTY) as Record<string, unknown> | undefined;
+            return geoservice?.idName && data ? data[geoservice.idName] : undefined;
+        };
+        const featBackendId = getBackendId(feat);
+        const contrExist = contributions.find(
+            (contr) =>
+                contr.feature === feat || (featBackendId !== undefined && contr.layer === mapWorkingLayer && getBackendId(contr.feature) === featBackendId)
+        );
 
         const newContr: Contribution = {
             feature: feat,
