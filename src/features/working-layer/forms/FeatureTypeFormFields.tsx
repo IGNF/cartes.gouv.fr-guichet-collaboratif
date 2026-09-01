@@ -53,7 +53,7 @@ export const FeatureTypeFormFields: React.FC<FeatureTypeFormFieldsProps> = ({ co
 
                     const titleName = (
                         <span>
-                            {showTitleCellCheckbox && col.nullable && !isIdColumn ? (
+                            {showTitleCellCheckbox && !isReadOnly ? (
                                 <Checkbox
                                     options={[
                                         {
