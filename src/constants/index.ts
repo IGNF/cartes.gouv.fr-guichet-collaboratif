@@ -10,9 +10,6 @@ export const FEATURE_TYPE_HOVER_PROPERTY = "hover";
 export const FEATURE_TYPE_NEW_PROPERTY = "new";
 export const FEATURE_TYPE_NEW_Z_COOD = -1000;
 
-export const ADMIN_ROLE = "admin";
-export const MEMBER_ROLE = "member";
-
 export const HIT_DETECTION_TOLERENCE = 1;
 export const POINTER_HIT_DETECTION_TOLERENCE = 10;
 export const COORD_EPSILON = 0.01;

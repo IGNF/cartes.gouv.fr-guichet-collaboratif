@@ -1,3 +1,9 @@
+export enum CommunityRole {
+    ADMIN = "admin",
+    MEMBER = "member",
+    GESTIONNAIRE = "gestionnaire",
+}
+
 export interface UserAPIData {
     id: number;
     username: string;
@@ -6,13 +12,13 @@ export interface UserAPIData {
     email: string;
     communities_member: {
         community_id: string;
-        role: string;
+        role: CommunityRole;
         grids: string[];
     }[];
 }
 export interface CommunityMember {
     communityId: string;
-    role: string;
+    role: CommunityRole;
     grids: string[];
 }
 export type User = {

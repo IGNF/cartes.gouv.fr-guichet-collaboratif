@@ -33,17 +33,17 @@ const Carte: React.FC = () => {
 
     useEffect(() => {
         if (userData) {
-            setUser(userData);
+            setUser(userData, communityId);
         }
         if (userError) {
-            setUser(null);
+            setUser(null, communityId);
             setCommunity(null);
             addAlertMessage(StatusMessage.error, userError.message);
         }
         setIsLoadingUser(userIsLoading);
 
-        return () => setUser(null);
-    }, [userData, userError, userIsLoading, setCommunity, setUser, setIsLoadingUser, addAlertMessage]);
+        return () => setUser(null, communityId);
+    }, [userData, userError, userIsLoading, communityId, setCommunity, setUser, setIsLoadingUser, addAlertMessage]);
 
     useEffect(() => {
         if (communityData) {
