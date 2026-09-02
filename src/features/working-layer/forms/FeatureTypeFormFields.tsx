@@ -28,7 +28,9 @@ export const FeatureTypeFormFields: React.FC<FeatureTypeFormFieldsProps> = ({ co
     const handleCheckboxChange = useCallback(
         (column: FeatureTypeColumn, checked: boolean) => {
             if (checked) {
-                setColumnsToModify([...columnsToModify, column]);
+                if (!columnsToModify.some((col) => col.name === column.name)) {
+                    setColumnsToModify([...columnsToModify, column]);
+                }
             } else {
                 setColumnsToModify(columnsToModify.filter((col) => col.name !== column.name));
             }
@@ -42,7 +44,8 @@ export const FeatureTypeFormFields: React.FC<FeatureTypeFormFieldsProps> = ({ co
                 .filter((col) => !col.crs)
                 .map((col) => {
                     const v = formData[col.name];
-                    const error = validationErrors[col.name];
+                    const isColumnSelected = !showTitleCellCheckbox || columnsToModify.some((column) => column.name === col.name);
+                    const error = isColumnSelected ? validationErrors[col.name] : null;
                     const enumValues = normalizeColumnEnum(col.enum);
 
                     const isIdColumn = idName && col.name === idName;
@@ -50,13 +53,14 @@ export const FeatureTypeFormFields: React.FC<FeatureTypeFormFieldsProps> = ({ co
 
                     const titleName = (
                         <span>
-                            {showTitleCellCheckbox && col.nullable && !isIdColumn ? (
+                            {showTitleCellCheckbox && !isReadOnly ? (
                                 <Checkbox
                                     options={[
                                         {
                                             label: col.title,
                                             nativeInputProps: {
                                                 name: `${col.name}`,
+                                                checked: isColumnSelected,
                                                 onChange: (e) => handleCheckboxChange(col, e.target.checked),
                                             },
                                         },
@@ -93,7 +97,7 @@ export const FeatureTypeFormFields: React.FC<FeatureTypeFormFieldsProps> = ({ co
                                             nativeSelectProps={{
                                                 value: String(v ?? ""),
                                                 onChange: (e) => updateField(col.name, e.target.value || null, col),
-                                                required: col.required,
+                                                required: col.required && isColumnSelected,
                                             }}
                                         >
                                             {enumValues.map((opt, idx) => (
@@ -110,7 +114,7 @@ export const FeatureTypeFormFields: React.FC<FeatureTypeFormFieldsProps> = ({ co
                                             nativeInputProps={{
                                                 value: (v as string) ?? "",
                                                 onChange: (e) => updateField(col.name, e.target.value, col),
-                                                required: col.required,
+                                                required: col.required && isColumnSelected,
                                                 minLength: col.min_length ?? undefined,
                                                 maxLength: col.max_length ?? undefined,
                                                 pattern: col.pattern ?? undefined,
@@ -129,7 +133,7 @@ export const FeatureTypeFormFields: React.FC<FeatureTypeFormFieldsProps> = ({ co
                                             nativeSelectProps={{
                                                 value: String(v ?? ""),
                                                 onChange: (e) => updateField(col.name, e.target.value ? Number(e.target.value) : null, col),
-                                                required: col.required,
+                                                required: col.required && isColumnSelected,
                                             }}
                                         >
                                             <option value="">{t("select_placeholder")}</option>
@@ -148,7 +152,7 @@ export const FeatureTypeFormFields: React.FC<FeatureTypeFormFieldsProps> = ({ co
                                                 type: "number",
                                                 value: (v as number | string) ?? "",
                                                 onChange: (e) => updateField(col.name, Number(e.target.value), col),
-                                                required: col.required,
+                                                required: col.required && isColumnSelected,
                                                 min: col.min_value ?? undefined,
                                                 max: col.max_value ?? undefined,
                                             }}
@@ -168,7 +172,7 @@ export const FeatureTypeFormFields: React.FC<FeatureTypeFormFieldsProps> = ({ co
                                                 const val = e.target.value;
                                                 updateField(col.name, val === "" ? null : val === "true", col);
                                             },
-                                            required: col.required,
+                                            required: col.required && isColumnSelected,
                                         }}
                                     >
                                         {col.nullable && !col.required && <option value=""></option>}
@@ -188,7 +192,7 @@ export const FeatureTypeFormFields: React.FC<FeatureTypeFormFieldsProps> = ({ co
                                             type: "date",
                                             value: (v as string) ?? "",
                                             onChange: (e) => updateField(col.name, e.target.value, col),
-                                            required: col.required,
+                                            required: col.required && isColumnSelected,
                                         }}
                                     />
                                 );
@@ -204,7 +208,7 @@ export const FeatureTypeFormFields: React.FC<FeatureTypeFormFieldsProps> = ({ co
                                         stateRelatedMessage={error || undefined}
                                         nativeInputProps={{
                                             onChange: (e) => updateField(col.name, Array.from(e.target.files ?? []), col),
-                                            required: col.required,
+                                            required: col.required && isColumnSelected,
                                         }}
                                     />
                                 );
@@ -222,7 +226,7 @@ export const FeatureTypeFormFields: React.FC<FeatureTypeFormFieldsProps> = ({ co
                         </div>,
                     ];
                 }),
-        [columns, formData, validationErrors, showTitleCellCheckbox, updateField, handleCheckboxChange, t, idName]
+        [columns, formData, validationErrors, showTitleCellCheckbox, columnsToModify, updateField, handleCheckboxChange, t, idName]
     );
 
     return <Table bordered fixed className="feature-type-form-table" data={dataColumns} />;

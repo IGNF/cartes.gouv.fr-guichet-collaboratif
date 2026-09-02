@@ -16,6 +16,9 @@ interface ContributionStore {
     columnsToModify: FeatureTypeColumn[];
     searchResult: SearchResultItem[];
     searchItemToDelete: Feature | null;
+    pendingFeatureFormValidator: (() => boolean) | null;
+    setPendingFeatureFormValidator: (validator: (() => boolean) | null) => void;
+    getCreateContributions: () => Contribution[];
     setContributions: (contributions: Contribution[]) => void;
     setReviewContribution: (isReview: boolean) => void;
     setContrToCancel: (contributions: Contribution[]) => void;
@@ -40,6 +43,9 @@ export const useContributionStore = create<ContributionStore>((set, get) => ({
     columnsToModify: [],
     searchResult: [],
     searchItemToDelete: null,
+    pendingFeatureFormValidator: null,
+    setPendingFeatureFormValidator: (validator) => set({ pendingFeatureFormValidator: validator }),
+    getCreateContributions: () => get().contributions.filter((contribution) => contribution.type === ContributionType.CREATE),
     setContributions: (contributions) => set({ contributions }),
     setReviewContribution: (isReview) => set({ isReviewContribution: isReview }),
     setContrToCancel: (contributions) => set({ contrToCancel: contributions }),

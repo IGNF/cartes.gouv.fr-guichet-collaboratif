@@ -6,7 +6,13 @@ import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
 import WebGLVectorLayer from "ol/layer/WebGLVector";
 
-import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_GEOSERVICE_PROPERTY, FEATURE_TYPE_NEW_PROPERTY, FEATURE_TYPE_SELECTED_PROPERTY } from "@/constants";
+import {
+    FEATURE_TYPE_DATA_PROPERTY,
+    FEATURE_TYPE_GEOSERVICE_PROPERTY,
+    FEATURE_TYPE_NEW_PROPERTY,
+    FEATURE_TYPE_PENDING_FORM_PROPERTY,
+    FEATURE_TYPE_SELECTED_PROPERTY,
+} from "@/constants";
 import { FeatureTypeMode } from "@/constants/contributions/types";
 
 import { CommunityGeoservice, FeatureTypeColumn } from "@/constants/communities/types";
@@ -17,6 +23,7 @@ import { FeatureTypeFormHeader } from "./FeatureTypeFormHeader";
 import { FeatureTypeFormFields } from "./FeatureTypeFormFields";
 import { FeatureTypeFormActions } from "./FeatureTypeFormActions";
 import { FeatureTypeFormAutomatic } from "./FeatureTypeFormAutomatic";
+import { useFeatureFormGuard } from "@/hooks/working-layer/useFeatureFormGuard";
 import { useTranslation } from "@/i18n";
 
 interface PointDataProps {
@@ -25,14 +32,17 @@ interface PointDataProps {
 
 const EditFeatureTypeForm = ({ onClose }: { onClose?: () => void }) => {
     const { map, mapSwitcher, clickedMapFeature, mapWorkingLayer, setClickedMapFeature, setWorkingLayerDrawerOpened } = useMapStore();
-    const { selectedObjects, setSelectedObjects, setFeatureTypeMode, setColumnsToModify } = useContributionStore();
+    const { selectedObjects, setSelectedObjects, setFeatureTypeMode, columnsToModify, setColumnsToModify, setPendingFeatureFormValidator } =
+        useContributionStore();
 
     const { t } = useTranslation({ EditFeatureTypeForm });
+    const { guard } = useFeatureFormGuard();
 
     const pointData: PointDataProps = clickedMapFeature?.get(FEATURE_TYPE_DATA_PROPERTY);
     const geoserviceData: CommunityGeoservice = clickedMapFeature?.get(FEATURE_TYPE_GEOSERVICE_PROPERTY);
     const columns: FeatureTypeColumn[] = useMemo(() => clickedMapFeature?.get(FEATURE_TYPE_GEOSERVICE_PROPERTY).columns || [], [clickedMapFeature]);
     const isNewFeature = useMemo(() => clickedMapFeature && clickedMapFeature?.get(FEATURE_TYPE_NEW_PROPERTY), [clickedMapFeature]);
+    const hasPendingForm = clickedMapFeature?.get(FEATURE_TYPE_PENDING_FORM_PROPERTY) === true;
 
     const currentMapWorkingSource = useMemo(
         () =>
@@ -50,6 +60,8 @@ const EditFeatureTypeForm = ({ onClose }: { onClose?: () => void }) => {
     const { validationErrors, setValidationErrors, validateField, validateAll } = useFeatureTypeValidation();
 
     const { formData, updateField } = useFeatureTypeForm(pointData, columns, validateField, setValidationErrors);
+
+    const columnsToValidate = useMemo(() => (selectedObjects.length > 1 ? columnsToModify : columns), [selectedObjects.length, columnsToModify, columns]);
 
     const handleAutomaticFieldsCalculated = useCallback(
         (fields: Record<string, string | number | null>) => {
@@ -87,21 +99,26 @@ const EditFeatureTypeForm = ({ onClose }: { onClose?: () => void }) => {
         setFeatureTypeMode(FeatureTypeMode.VIEW);
     }, [selectedObjects, setSelectedObjects, setColumnsToModify, setClickedMapFeature, setWorkingLayerDrawerOpened, setFeatureTypeMode]);
 
-    const { handleSave, handleDelete } = useFeatureTypeActions({
+    const { handleSave, handleDelete, trySilentSave } = useFeatureTypeActions({
         clickedMapFeature,
         currentMapWorkingSource,
         clickableLayer,
         formData,
-        columns,
+        columns: columnsToValidate,
         validateAll,
         onSuccess: handleSuccess,
     });
 
     const handleModeChange = useCallback(
         (newMode: FeatureTypeMode) => {
-            setFeatureTypeMode(newMode);
+            if (newMode !== FeatureTypeMode.VIEW || !hasPendingForm) {
+                setFeatureTypeMode(newMode);
+                return;
+            }
+
+            guard(() => setFeatureTypeMode(newMode), undefined, "finish_before_view");
         },
-        [setFeatureTypeMode]
+        [guard, hasPendingForm, setFeatureTypeMode]
     );
 
     const handleLayerVisibility = useCallback(() => {
@@ -129,6 +146,23 @@ const EditFeatureTypeForm = ({ onClose }: { onClose?: () => void }) => {
             }
         };
     }, [clickedMapFeature, geoserviceData, clickableLayer, setWorkingLayerDrawerOpened]);
+
+    // Before letting the user navigate away from his new object form without saving
+    // We ensure that the form is valid (in terms of field constraints)
+    useEffect(() => {
+        if (!hasPendingForm) return;
+        setPendingFeatureFormValidator(trySilentSave);
+        return () => setPendingFeatureFormValidator(null);
+    }, [hasPendingForm, trySilentSave, setPendingFeatureFormValidator]);
+
+    const guardedClose = useCallback(() => {
+        if (!hasPendingForm) {
+            (onClose ?? handleCancel)();
+            return;
+        }
+        guard(onClose ?? handleCancel, undefined, "finish_before_close");
+    }, [guard, hasPendingForm, onClose, handleCancel]);
+
     if (!pointData) return null;
 
     return (
@@ -138,7 +172,7 @@ const EditFeatureTypeForm = ({ onClose }: { onClose?: () => void }) => {
                 featureId={pointData?.[geoserviceData?.idName || "id"] || ""}
                 mode={FeatureTypeMode.EDIT}
                 onModeChange={handleModeChange}
-                onClose={onClose ?? handleCancel}
+                onClose={guardedClose}
             />
             <div className="feature-type-form-scrollable">
                 <FeatureTypeFormAutomatic columns={columns} formData={formData} onAutomaticFieldsCalculated={handleAutomaticFieldsCalculated} />
@@ -152,7 +186,7 @@ const EditFeatureTypeForm = ({ onClose }: { onClose?: () => void }) => {
             </div>
 
             <div className="feature-type-form-actions-fixed">
-                <FeatureTypeFormActions onSave={() => handleSave()} onDelete={() => handleDelete()} onCancel={onClose ?? handleCancel} />
+                <FeatureTypeFormActions onSave={() => handleSave()} onDelete={() => handleDelete()} onCancel={guardedClose} />
             </div>
         </div>
     );
