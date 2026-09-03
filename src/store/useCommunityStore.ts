@@ -7,7 +7,7 @@ import {
     StatusMessage,
     CommunityLayerRoleType,
 } from "@/constants/communities/types";
-import { LAYER_FEATURE_TYPE } from "@/constants";
+import { DEFAULT_ALERT_TIMEOUT, LAYER_FEATURE_TYPE } from "@/constants";
 import { ReactNode } from "react";
 import { create } from "zustand";
 
@@ -55,13 +55,13 @@ export const useCommunityStore = create<CommunityStore>((set, get) => ({
             return { isLoadingCommunity: value };
         });
     },
-    addAlertMessage: (status, message, duration) => {
+    addAlertMessage: (status, message, duration = DEFAULT_ALERT_TIMEOUT) => {
         const messageExist = get().alertMessages.find((msg) => msg.text === message);
         if (messageExist) return messageExist.id;
 
         const id = idMessageCounter++;
         set(() => ({
-            alertMessages: [...get().alertMessages, { id, status, text: message, duration: duration ?? null }],
+            alertMessages: [...get().alertMessages, { id, status, text: message, duration }],
         }));
         return id;
     },

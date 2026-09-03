@@ -32,3 +32,5 @@ export enum TRAFFIC_FLOW_DIRECTION {
     UNKNOWN = "Sans objet",
 }
 export const TRAFFIC_FLOW_DIRECTION_NAME = "sens_de_circulation";
+
+export const DEFAULT_ALERT_TIMEOUT = 3000;
