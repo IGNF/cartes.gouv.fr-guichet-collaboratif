@@ -3,10 +3,11 @@ import { ChangeEvent, useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "@/i18n";
 import { Feature } from "ol";
 import { useGetReportReplies } from "@/api/repliesData";
-import { useCommunityStore, useMapStore, useModalStore, useReportStore } from "@/store";
+import { useCommunityStore, useMapStore, useModalStore, useReportStore, useUserStore } from "@/store";
 import { useReplyStore } from "@/store/useReplyStore";
 import { CommunityTheme } from "@/constants/communities/types";
 import { ClickedTool, ErrorFile, PostThemeReport, ReportTool } from "@/constants/reports/types";
+import { CommunityRole } from "@/constants/user/types";
 import { getThemeAttributes } from "@/constants/utils";
 import useReportTools from "@/hooks/reports/useReportTools";
 import Accordion from "@codegouvfr/react-dsfr/Accordion";
@@ -46,6 +47,7 @@ const ReportForm: React.FC<Props> = ({
     handleClose,
 }) => {
     const { community } = useCommunityStore();
+    const { user, role } = useUserStore();
 
     const { editReport, selectedReport, selectedFeatures, setSelectedFeatures, setTableDrawerOpened, setDrawerOpened, toggleSortByDateCreation } =
         useReportStore();
@@ -355,7 +357,7 @@ const ReportForm: React.FC<Props> = ({
                     <h2 className="ri-map-pin-add-line fr-mt-4v fr-mb-1v fr-text--md">
                         {selectedReport ? t("edit_report_title", { reportId: selectedReport.id }) : t("create_report_title")}
                     </h2>
-                    {editReport && <DeleteShareReportComponent handleDelete={onDelete} />}
+                    {editReport && <DeleteShareReportComponent canDelete={user?.administrator || role === CommunityRole.ADMIN} handleDelete={onDelete} />}
                 </div>
                 {selectedReport && <ReportFiltersComponent reportStatus={committedStatus} />}
                 {!selectedReport && (

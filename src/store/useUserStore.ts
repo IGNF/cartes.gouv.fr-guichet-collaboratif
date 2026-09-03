@@ -1,5 +1,4 @@
-import { User } from "@/constants/user/types";
-import { CommunityRole } from "@/constants/user/types";
+import { CommunityRole, User } from "@/constants/user/types";
 import { create } from "zustand";
 
 interface UserStore {

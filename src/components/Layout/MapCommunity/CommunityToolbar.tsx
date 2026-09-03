@@ -13,7 +13,7 @@ import { useContributionsSave } from "@/hooks/working-layer/useContributionsSave
 
 export default function CommunityToolbar() {
     const { community, hasOneEditableLayer, addAlertMessage } = useCommunityStore();
-    const { role } = useUserStore();
+    const { user, role } = useUserStore();
     const { contributions, isReviewContribution, setReviewContribution } = useContributionStore();
     const { confirmSaveContributionModal } = useModalStore();
 
@@ -25,14 +25,14 @@ export default function CommunityToolbar() {
         errorMessage: t("save_error"),
     });
 
-    const isAdmin = role === CommunityRole.ADMIN;
+    const isAdmin = user?.administrator || role === CommunityRole.ADMIN;
 
     const handleShare = async () => {
         try {
             await navigator.clipboard.writeText(window.location.href);
-            addAlertMessage(StatusMessage.success, t("share_success"), 2000);
+            addAlertMessage(StatusMessage.success, t("share_success"));
         } catch {
-            addAlertMessage(StatusMessage.error, t("share_error"), 2000);
+            addAlertMessage(StatusMessage.error, t("share_error"));
         }
     };
 

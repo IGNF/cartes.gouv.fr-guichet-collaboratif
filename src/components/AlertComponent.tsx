@@ -26,7 +26,7 @@ const AlertMessage: React.FC<AlertMessageProps> = memo(({ message, index }) => {
 
     useEffect(() => {
         if (message?.status === StatusMessage.success || message?.duration) {
-            const removeDuration = message?.duration ?? 3000;
+            const removeDuration = message?.duration || 3000;
             const removeTimer = setTimeout(() => {
                 onClose(message.id);
             }, removeDuration);

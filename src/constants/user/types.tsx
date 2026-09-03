@@ -10,6 +10,7 @@ export interface UserAPIData {
     surname: string;
     firstname: string;
     email: string;
+    administrator: boolean;
     communities_member: {
         community_id: string;
         role: CommunityRole;
@@ -28,4 +29,5 @@ export type User = {
     surname: string;
     email: string;
     communitiesMember: CommunityMember[];
+    administrator: boolean;
 } | null;
