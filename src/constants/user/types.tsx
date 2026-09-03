@@ -1,7 +1,6 @@
 export enum CommunityRole {
     ADMIN = "admin",
     MEMBER = "member",
-    GESTIONNAIRE = "gestionnaire",
 }
 
 export interface UserAPIData {
