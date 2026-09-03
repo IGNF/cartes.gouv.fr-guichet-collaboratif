@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo, useRef } from "react";
 import { useTranslation } from "@/i18n";
 import { useGetReportReplies } from "@/api/repliesData";
-import { useCommunityStore, useMapStore, useReportStore } from "@/store";
+import { useCommunityStore, useMapStore, useReportStore, useUserStore } from "@/store";
 import { useReplyStore } from "@/store/useReplyStore";
 import { ReportTool } from "@/constants/reports/types";
 import RadioButtons from "@codegouvfr/react-dsfr/RadioButtons";
@@ -14,8 +14,9 @@ import DrawingForm from "./forms/DrawingForm";
 import { STATUS_NOT_ALLOWED } from "@/constants/utils";
 import DeleteShareReportComponent from "./DeleteShareReportComponent";
 import LoaderComponent from "@/components/LoaderComponent";
-
 import { useDeleteReport } from "@/hooks/reports/useDeleteReport";
+import { CommunityRole } from "@/constants/user/types";
+
 interface Props {
     handleCloseDrawer: () => void;
 }
@@ -29,6 +30,7 @@ const ShowReport: React.FC<Props> = ({ handleCloseDrawer }) => {
     const { clickedTool, setClickedTool } = useMapStore();
     const { community } = useCommunityStore();
     const { setReplies } = useReplyStore();
+    const { user, role } = useUserStore();
 
     const accordionRef = useRef<HTMLDivElement>(null);
 
@@ -37,6 +39,8 @@ const ShowReport: React.FC<Props> = ({ handleCloseDrawer }) => {
     const reportId = selectedReport?.id;
     const { data: repliesData } = useGetReportReplies(reportId);
     const repliesRes = useMemo(() => repliesData?.replies ?? [], [repliesData]);
+
+    const canDelete = user?.administrator || role === CommunityRole.ADMIN;
 
     const handleToolClick = useCallback(
         (tool: ReportTool | undefined) => {
@@ -81,7 +85,7 @@ const ShowReport: React.FC<Props> = ({ handleCloseDrawer }) => {
                         <span className="ri-map-pin-add-line fr-pr-1v" />
                         {t("report_title", { reportId: selectedReport.id })}
                     </h2>
-                    <DeleteShareReportComponent handleDelete={() => deleteReport(selectedReport!)} />
+                    <DeleteShareReportComponent canDelete={canDelete} handleDelete={() => deleteReport(selectedReport!)} />
                 </div>
                 <ReportFiltersComponent reportStatus={committedStatus} />
                 {!STATUS_NOT_ALLOWED.includes(selectedReport.status) && (
