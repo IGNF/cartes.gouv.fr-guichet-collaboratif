@@ -15,7 +15,6 @@ import { FeatureTypeFormActionMode } from "@/constants/contributions/types";
 import { FEATURE_TYPE_SELECTED_PROPERTY } from "@/constants";
 import ConfirmMultipleDeselection from "./ConfirmMultipleDeselection";
 import ConfirmMultipleObjectsActionModal from "@/features/working-layer/forms/ConfirmMultipleObjectsActionModal";
-import MergeFeatureAttributesModal from "@/features/working-layer/forms/MergeFeatureAttributesModal";
 import SearchObjectsModal from "@/features/working-layer/modal/searchObjects/SearchObjectsModal";
 import ExportMapModal from "./ExportMapModal";
 import NamedPositionModal from "../NamedPositionModal";
@@ -67,8 +66,7 @@ const CustomControls = () => {
             if (
                 control.interaction !== InteractionType.MODIFY &&
                 control.interaction !== InteractionType.TRANSLATE_OBJECT &&
-                control.interaction !== InteractionType.COPY_OBJECT &&
-                control.interaction !== InteractionType.MERGE_OBJECTS
+                control.interaction !== InteractionType.COPY_OBJECT
             ) {
                 interactions.selectInteraction.clearSelection();
                 selectedObjects.forEach((feat) => {
@@ -98,7 +96,7 @@ const CustomControls = () => {
         (control: CustomControlItem) => {
             if (control.disabled) return;
 
-            if (clickedControl?.interaction === InteractionType.SELECT && selectedObjects.length > 1 && control.interaction !== InteractionType.MERGE_OBJECTS) {
+            if (clickedControl?.interaction === InteractionType.SELECT && selectedObjects.length > 1) {
                 pendingControlChange.current = control;
                 confirmMultipleDeselectionModal.open();
                 return;
@@ -137,13 +135,6 @@ const CustomControls = () => {
             onConfirm(control);
         }
     };
-
-    const handleConfirmMerge = useCallback(
-        (customData: Record<string, unknown>) => {
-            interactionsFuncs.mergeInteractionFunc(customData);
-        },
-        [interactionsFuncs]
-    );
 
     const isEditableTarget = useCallback((target: EventTarget | null) => {
         return target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || (target instanceof HTMLElement && target.isContentEditable);
@@ -233,7 +224,6 @@ const CustomControls = () => {
             <ConfirmMultipleDeselection onConfirm={handleConfirmUnSelectMultiple} />
             <SearchObjectsModal />
             <ConfirmMultipleObjectsActionModal action={FeatureTypeFormActionMode.DELETE} onConfirm={handleConfirmDeleteMultiple} />
-            <MergeFeatureAttributesModal onConfirm={handleConfirmMerge} />
             <ExportMapModal />
             <NamedPositionModal />
         </>
