@@ -14,6 +14,7 @@ import ChoiceValueComponent from "./ChoiceValueComponent";
 import OperatorComponent from "./OperatorComponent";
 import { Rule } from "@/constants/savedSearches/types";
 import useOperatorList from "@/hooks/working-layer/searchObjects/useOperatorList";
+import useLoadedColumnValues from "@/hooks/working-layer/searchObjects/useLoadedColumnValues";
 import { getOperators } from "@/constants/working-layer/utils";
 import { TranslationFunction } from "i18nifty/typeUtils/TranslationFunction";
 import { ComponentKey } from "@/i18n/types";
@@ -68,6 +69,7 @@ const RuleComponent: React.FC<RuleProps> = ({ t, rule, className, onDelete, onCh
     const currentColumn = useMemo(() => queryableColumns?.find((col) => col.name === type), [queryableColumns, type]);
     const operatorList = useOperatorList();
     const currentOprators = useMemo(() => getOperators(currentColumn, operatorList), [currentColumn, operatorList]);
+    const loadedColumnValues = useLoadedColumnValues(currentColumn?.name);
 
     const handleTypeChange = useCallback(
         (newType: string) => {
@@ -129,6 +131,7 @@ const RuleComponent: React.FC<RuleProps> = ({ t, rule, className, onDelete, onCh
                         operator={operator}
                         handleChoiceValueChange={handleChoiceValueChange}
                         disabled={NO_VALUE_OPERATORS.has(operator)}
+                        fallbackSuggestions={loadedColumnValues}
                     />
                 </>
             )}
