@@ -346,8 +346,12 @@ export const getOperators = (
     return operatorList.filter((op) => operators.includes(op.value));
 };
 
+const escapeRegExp = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 export function buildCondition(rule: RuleSearch) {
     const { name, operator, value = [] } = rule;
+    const escapedValue = escapeRegExp(value[0] ?? "");
+
     switch (operator) {
         case OperatorType.in:
             return { [name]: { $in: value ?? "" } };
@@ -355,35 +359,35 @@ export function buildCondition(rule: RuleSearch) {
             return { [name]: { $nin: value ?? "" } };
         case OperatorType.equal:
             return {
-                [name]: { $regex: `^${value[0] ?? ""}$`, $options: "i" },
+                [name]: { $regex: `^${escapedValue}$`, $options: "i" },
             };
         case OperatorType.not_equal:
             return {
-                [name]: { $regex: `^(?!${value[0] ?? ""}$).*$`, $options: "i" },
+                [name]: { $regex: `^(?!${escapedValue}$).*$`, $options: "i" },
             };
         case OperatorType.begins_with:
             return {
-                [name]: { $regex: `^${value[0] ?? ""}`, $options: "i" },
+                [name]: { $regex: `^${escapedValue}`, $options: "i" },
             };
         case OperatorType.not_begins_with:
             return {
-                [name]: { $regex: `^(?!${value[0] ?? ""}).*$`, $options: "i" },
+                [name]: { $regex: `^(?!${escapedValue}).*$`, $options: "i" },
             };
         case OperatorType.contains:
             return {
-                [name]: { $regex: value[0] ?? "", $options: "i" },
+                [name]: { $regex: escapedValue, $options: "i" },
             };
         case OperatorType.not_contains:
             return {
-                [name]: { $regex: `^((?!${value[0] ?? ""}).)*$`, $options: "i" },
+                [name]: { $regex: `^((?!${escapedValue}).)*$`, $options: "i" },
             };
         case OperatorType.ends_with:
             return {
-                [name]: { $regex: `${value[0] ?? ""}$`, $options: "i" },
+                [name]: { $regex: `${escapedValue}$`, $options: "i" },
             };
         case OperatorType.not_ends_with:
             return {
-                [name]: { $regex: `(?<!${value[0] ?? ""})$`, $options: "i" },
+                [name]: { $regex: `(?<!${escapedValue})$`, $options: "i" },
             };
         case OperatorType.is_empty:
             return {
