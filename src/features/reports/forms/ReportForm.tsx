@@ -50,10 +50,10 @@ const ReportForm: React.FC<Props> = ({
     const { editReport, selectedReport, selectedFeatures, setSelectedFeatures, setTableDrawerOpened, setDrawerOpened, toggleSortByDateCreation } =
         useReportStore();
 
-    const [selectedTheme, setSelectedTheme] = useState<CommunityTheme | null>(selectedReport?.themes[0] ?? null);
+    const reportTheme = selectedReport?.themes[0];
+    const [selectedTheme, setSelectedTheme] = useState<CommunityTheme | null>(community?.themes.find((theme) => theme.theme === reportTheme?.theme) ?? null);
     const [themeAttributes, setThemeAttributes] = useState<PostThemeReport>(() => {
-        const initialTheme = selectedReport?.themes[0];
-        return initialTheme ? getThemeAttributes(initialTheme) : {};
+        return reportTheme ? getThemeAttributes(reportTheme) : {};
     });
     const [description, setDescription] = useState<string>(selectedReport?.comment ?? "");
     const [filesUploaded, setFilesUploaded] = useState<File[]>([]);
@@ -115,17 +115,15 @@ const ReportForm: React.FC<Props> = ({
     const validateThemeAttributes = useCallback(
         (attributes: PostThemeReport) => {
             const communityTheme = community?.themes.find((t) => t.theme === selectedTheme?.theme);
-            const errors: string[] = [];
-            if (communityTheme?.attributes.length && !Object.keys(attributes).length) {
-                errors.push(t("all_fields_error"));
-            }
-            Object.keys(attributes).forEach((key) => {
-                const item = communityTheme?.attributes.find((attr) => attr.name === key);
-                const itemValue = attributes[key];
-                if (item?.mandatory && !itemValue) {
-                    errors.push(item.name);
-                }
-            });
+            const errors =
+                communityTheme?.attributes
+                    .filter((item) => item.mandatory)
+                    .filter((item) => {
+                        const value = attributes[item.name];
+                        return value === undefined || value === null || value.trim() === "";
+                    })
+                    .map((item) => item.name) ?? [];
+
             if (errors.length) {
                 setErrorTheme(() => t("all_fields_error_message"));
                 themeRef?.current?.scrollIntoView({

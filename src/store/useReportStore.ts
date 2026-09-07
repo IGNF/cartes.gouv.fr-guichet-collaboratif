@@ -1,5 +1,5 @@
 import { CommunityTheme } from "@/constants/communities/types";
-import { CommunityReport, FilterState, PostThemeReport, SortType } from "@/constants/reports/types";
+import { CommunityReport, FilterState, PostThemeReport, ReportTheme, SortType } from "@/constants/reports/types";
 import { getThemeAttributes } from "@/constants/utils";
 import { Feature } from "ol";
 import { create } from "zustand";
@@ -43,13 +43,13 @@ interface ReportStore {
     hideToolsDiv?: boolean;
 
     formData: {
-        theme: CommunityTheme | null;
+        theme: CommunityTheme | ReportTheme | null;
         themeAttributes: PostThemeReport;
         description: string;
         files: File[];
     };
     resetForm: (report?: CommunityReport) => void;
-    updateTheme: (theme: CommunityTheme | null, attributes: PostThemeReport) => void;
+    updateTheme: (theme: CommunityTheme | ReportTheme | null, attributes: PostThemeReport) => void;
     updateDescription: (description: string) => void;
     updateFiles: (files: File[]) => void;
     clearFiles: () => void;
@@ -164,15 +164,17 @@ export const useReportStore = create<ReportStore>((set, get) => ({
         const state = get();
         const params = new URLSearchParams();
 
-        if (state.currentFilters.status) params.set("status", state.currentFilters.status);
-        if (state.currentFilters.theme) params.set("theme", state.currentFilters.theme);
-        if (state.currentFilters.author != null) params.set("author", String(state.currentFilters.author));
-        if (state.currentFilters.departement) params.set("departement", state.currentFilters.departement);
+        const urlValues = {
+            ...state.currentFilters,
+            search: state.searchReport,
+            sortBy: state.sortBy,
+            page: state.currentPage,
+            limit: state.limitPerPage,
+        };
 
-        if (state.searchReport) params.set("search", state.searchReport);
-        if (state.sortBy) params.set("sortBy", state.sortBy);
-        if (state.currentPage) params.set("page", String(state.currentPage));
-        if (state.limitPerPage) params.set("limit", String(state.limitPerPage));
+        Object.entries(urlValues).forEach(([key, value]) => {
+            if (value !== "" && value != null && value !== 0) params.set(key, String(value));
+        });
 
         const newUrl = `?${params.toString()}`;
         return newUrl;

@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { isAxiosError } from "axios";
 import { Feature } from "ol";
 import { useTranslation } from "@/i18n";
 import { postCommunityReportAttachments } from "@/api/attachmentData";
@@ -14,6 +15,20 @@ import CreateReportModifyInteraction from "./CreateReportModifyInteraction";
 interface Props {
     handleCloseDrawer: () => void;
 }
+
+const getApiErrorMessage = (error: unknown, fallback: string): string => {
+    if (!isAxiosError(error)) return fallback;
+
+    const data: unknown = error.response?.data;
+    if (typeof data === "string") return data;
+    if (data && typeof data === "object") {
+        const apiError = data as Record<string, unknown>;
+        const message = apiError.message ?? apiError.detail;
+        if (typeof message === "string") return message;
+    }
+
+    return error.message || fallback;
+};
 
 const CreateReport: React.FC<Props> = ({ handleCloseDrawer }) => {
     const { community, addAlertMessage } = useCommunityStore();
@@ -36,7 +51,11 @@ const CreateReport: React.FC<Props> = ({ handleCloseDrawer }) => {
         features: Feature[]
     ) => {
         const mainFeature = features.find((f) => f.get("main"));
-        if (!mainFeature) return;
+
+        if (!mainFeature) {
+            addAlertMessage(StatusMessage.error, t("report_created_error"));
+            throw new Error("Cannot create a report without a location");
+        }
         const newReport: PostReport = {
             community: community?.id,
             geometry: getFeatureGeometryWKT(mainFeature),
@@ -47,20 +66,34 @@ const CreateReport: React.FC<Props> = ({ handleCloseDrawer }) => {
         if (features.length > 1) {
             newReport.sketch = getReportSketch(features, map);
         }
-        const reportCreated: CommunityReport | null = currentReport ?? (await postCommunityReport(newReport));
+
+        let reportCreated: CommunityReport | null;
+        try {
+            reportCreated = currentReport ?? (await postCommunityReport(newReport));
+        } catch (error) {
+            addAlertMessage(StatusMessage.error, getApiErrorMessage(error, t("report_created_error")), 5000);
+            return;
+        }
+
         if (!reportCreated) {
             addAlertMessage(StatusMessage.error, t("report_created_error"));
-            throw Error;
+            return;
         } else {
             setCurrentReport(reportCreated);
         }
 
         if (filesUpload.length) {
-            const attachmentsUploaded = await postCommunityReportAttachments({ ...reportCreated, id: reportCreated.id }, filesUpload);
+            let attachmentsUploaded: Awaited<ReturnType<typeof postCommunityReportAttachments>>;
+            try {
+                attachmentsUploaded = await postCommunityReportAttachments({ ...reportCreated, id: reportCreated.id }, filesUpload);
+            } catch (error) {
+                addAlertMessage(StatusMessage.error, getApiErrorMessage(error, t("report_document_uploaded_error")), 5000);
+                return;
+            }
 
             if (!attachmentsUploaded) {
                 addAlertMessage(StatusMessage.error, t("report_document_uploaded_error"));
-                throw Error;
+                return;
             } else {
                 reportCreated.attachments = attachmentsUploaded;
                 setCurrentReport(null);
