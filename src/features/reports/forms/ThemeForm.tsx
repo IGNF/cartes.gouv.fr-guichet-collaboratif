@@ -3,6 +3,7 @@ import { useTranslation } from "@/i18n";
 import { useCommunityStore, useReportStore } from "@/store";
 import { PostThemeReport } from "@/constants/reports/types";
 import { CommunityTheme } from "@/constants/communities/types";
+import { getThemeAttributeError } from "@/constants/reports/utils";
 import { Checkbox } from "@codegouvfr/react-dsfr/Checkbox";
 import Input from "@codegouvfr/react-dsfr/Input";
 import Select from "@codegouvfr/react-dsfr/Select";
@@ -37,8 +38,11 @@ const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeTheme
         <div className="report-theme-form">
             {communityTheme?.attributes?.map((item, index) => {
                 const value = themeAttributes[item.name] ?? item.default;
-                const isMissing = item.mandatory && !readOnly && value.trim() === "";
-                const isInvalidInteger = !readOnly && value !== "" && !Number.isInteger(Number(value));
+                const validationError = readOnly ? null : getThemeAttributeError(item, value);
+                const isMissing = validationError === "mandatory";
+                const isInvalidInteger = validationError === "integer";
+                const isInvalidNumber = validationError === "number";
+                const isInvalidList = validationError === "list";
 
                 switch (item.type) {
                     case "text":
@@ -109,8 +113,8 @@ const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeTheme
                             <Select
                                 key={item.type + index}
                                 label={item.name + (item.mandatory && !readOnly ? " *" : "")}
-                                state={isMissing ? "error" : "default"}
-                                stateRelatedMessage={isMissing ? t("mandatory_field") : ""}
+                                state={isMissing || isInvalidList ? "error" : "default"}
+                                stateRelatedMessage={isMissing ? t("mandatory_field") : isInvalidList ? t("list_status") : ""}
                                 hint={readOnly ? "" : item.help}
                                 disabled={readOnly}
                                 nativeSelectProps={{
@@ -159,8 +163,8 @@ const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeTheme
                             <Input
                                 key={item.type + index}
                                 label={item.name + (item.mandatory && !readOnly ? " *" : "")}
-                                state={isMissing ? "error" : "default"}
-                                stateRelatedMessage={isMissing ? t("mandatory_field") : ""}
+                                state={isMissing || isInvalidNumber ? "error" : "default"}
+                                stateRelatedMessage={isMissing ? t("mandatory_field") : isInvalidNumber ? t("number_status") : ""}
                                 hintText={readOnly ? "" : item.help}
                                 disabled={readOnly}
                                 nativeInputProps={{

@@ -54,7 +54,7 @@ const CreateReport: React.FC<Props> = ({ handleCloseDrawer }) => {
 
         if (!mainFeature) {
             addAlertMessage(StatusMessage.error, t("report_created_error"));
-            throw new Error("Cannot create a report without a location");
+            return false;
         }
         const newReport: PostReport = {
             community: community?.id,
@@ -72,12 +72,12 @@ const CreateReport: React.FC<Props> = ({ handleCloseDrawer }) => {
             reportCreated = currentReport ?? (await postCommunityReport(newReport));
         } catch (error) {
             addAlertMessage(StatusMessage.error, getApiErrorMessage(error, t("report_created_error")), 5000);
-            return;
+            return false;
         }
 
         if (!reportCreated) {
             addAlertMessage(StatusMessage.error, t("report_created_error"));
-            return;
+            return false;
         } else {
             setCurrentReport(reportCreated);
         }
@@ -88,12 +88,12 @@ const CreateReport: React.FC<Props> = ({ handleCloseDrawer }) => {
                 attachmentsUploaded = await postCommunityReportAttachments({ ...reportCreated, id: reportCreated.id }, filesUpload);
             } catch (error) {
                 addAlertMessage(StatusMessage.error, getApiErrorMessage(error, t("report_document_uploaded_error")), 5000);
-                return;
+                return false;
             }
 
             if (!attachmentsUploaded) {
                 addAlertMessage(StatusMessage.error, t("report_document_uploaded_error"));
-                return;
+                return false;
             } else {
                 reportCreated.attachments = attachmentsUploaded;
                 setCurrentReport(null);
@@ -104,7 +104,7 @@ const CreateReport: React.FC<Props> = ({ handleCloseDrawer }) => {
 
         setReports([...reports, reportCreated]);
         clearDrawingLayer(map);
-        handleCloseDrawer();
+        return true;
     };
     return (
         <>

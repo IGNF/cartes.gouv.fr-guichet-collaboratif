@@ -1,4 +1,5 @@
 import { ClickedMapReportProps, CommunityReport, GeometryFeatueParams, SketchFeatureType, SketchObject, SketchReport } from "../types";
+import { ThemeItem } from "../../communities/types";
 import { Feature, Map } from "ol";
 import { Coordinate } from "ol/coordinate";
 import { getFeatureDiam, getFeatureGeometryWKT, getFeatureLine, getFeaturePoint, getFeaturePolygon, getSketchFeatureType, markersStyles } from "../../utils";
@@ -11,6 +12,31 @@ import { Style } from "ol/style";
 import { getClickedReport, showClusterFeatures } from "./cluster";
 
 export const REPORTS_LAYER_TYPE = "reports";
+
+export type ThemeAttributeError = "mandatory" | "integer" | "number" | "list";
+
+export const getThemeAttributeError = (attribute: ThemeItem, value: string | undefined): ThemeAttributeError | null => {
+    const normalizedValue = value ?? attribute.default ?? "";
+
+    if (normalizedValue.trim() === "") {
+        return attribute.mandatory ? "mandatory" : null;
+    }
+
+    if (attribute.type === "integer") {
+        const parsedValue = Number(normalizedValue);
+        return Number.isFinite(parsedValue) && Number.isInteger(parsedValue) ? null : "integer";
+    }
+
+    if (attribute.type === "double") {
+        return Number.isFinite(Number(normalizedValue)) ? null : "number";
+    }
+
+    if (attribute.type === "list" && attribute.values?.length && !attribute.values.includes(normalizedValue)) {
+        return "list";
+    }
+
+    return null;
+};
 
 export const getReportSketch = (features: Feature[], map: Map, edit: boolean = false): SketchReport => {
     const mainFeature = features.find((f) => {

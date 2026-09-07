@@ -8,6 +8,7 @@ import { useReplyStore } from "@/store/useReplyStore";
 import { CommunityTheme } from "@/constants/communities/types";
 import { ClickedTool, ErrorFile, PostThemeReport, ReportTool } from "@/constants/reports/types";
 import { getThemeAttributes } from "@/constants/utils";
+import { getThemeAttributeError } from "@/constants/reports/utils";
 import useReportTools from "@/hooks/reports/useReportTools";
 import Accordion from "@codegouvfr/react-dsfr/Accordion";
 import Button from "@codegouvfr/react-dsfr/Button";
@@ -27,11 +28,11 @@ const maxSizeMB = 3;
 const maxSizeBytes = maxSizeMB * 1024 * 1024;
 
 interface Props {
-    handleSubmit?: (theme: CommunityTheme, themeAttributes: PostThemeReport, description: string, files: File[], features: Feature[]) => Promise<void>;
-    handleSubmitSketch?: (features: Feature[]) => Promise<void>;
-    handleSubmitTheme?: (theme: CommunityTheme, themeAttributes: PostThemeReport) => Promise<void>;
-    handleSubmitDescription?: (description: string) => Promise<void>;
-    handleSubmitDocument?: (files: File[]) => Promise<void>;
+    handleSubmit?: (theme: CommunityTheme, themeAttributes: PostThemeReport, description: string, files: File[], features: Feature[]) => Promise<boolean>;
+    handleSubmitSketch?: (features: Feature[]) => Promise<boolean | void>;
+    handleSubmitTheme?: (theme: CommunityTheme, themeAttributes: PostThemeReport) => Promise<boolean | void>;
+    handleSubmitDescription?: (description: string) => Promise<boolean | void>;
+    handleSubmitDocument?: (files: File[]) => Promise<boolean | void>;
     handleDelete?: () => void;
     handleClose?: () => void;
 }
@@ -116,13 +117,7 @@ const ReportForm: React.FC<Props> = ({
         (attributes: PostThemeReport) => {
             const communityTheme = community?.themes.find((t) => t.theme === selectedTheme?.theme);
             const errors =
-                communityTheme?.attributes
-                    .filter((item) => item.mandatory)
-                    .filter((item) => {
-                        const value = attributes[item.name];
-                        return value === undefined || value === null || value.trim() === "";
-                    })
-                    .map((item) => item.name) ?? [];
+                communityTheme?.attributes.filter((item) => getThemeAttributeError(item, attributes[item.name]) !== null).map((item) => item.name) ?? [];
 
             if (errors.length) {
                 setErrorTheme(() => t("all_fields_error_message"));
@@ -193,11 +188,10 @@ const ReportForm: React.FC<Props> = ({
         if (!community || !selectedTheme) return;
         try {
             setLoading(true);
-            if (handleSubmit) {
-                await handleSubmit(selectedTheme, themeAttributes, description, filesUploaded, selectedFeatures);
-            }
+            const submitted = handleSubmit ? await handleSubmit(selectedTheme, themeAttributes, description, filesUploaded, selectedFeatures) : false;
 
-            onClose();
+            if (submitted) onClose();
+            else setLoading(false);
         } catch {
             setLoading(false);
         }
