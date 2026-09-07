@@ -14,6 +14,7 @@ import DrawingForm from "./forms/DrawingForm";
 import { STATUS_NOT_ALLOWED } from "@/constants/utils";
 import DeleteShareReportComponent from "./DeleteShareReportComponent";
 import LoaderComponent from "@/components/LoaderComponent";
+import ThemeForm from "./forms/ThemeForm";
 
 import { useDeleteReport } from "@/hooks/reports/useDeleteReport";
 interface Props {
@@ -59,6 +60,7 @@ const ShowReport: React.FC<Props> = ({ handleCloseDrawer }) => {
     const selectedTheme = selectedReport.themes?.[0]?.theme ?? t("report_no_theme");
     const description = selectedReport.comment || "";
     const reportTheme = community.themes.find((theme) => theme.theme === selectedTheme);
+    const reportThemeAttributes = selectedReport.themes?.[0]?.attributes ?? {};
 
     return (
         <>
@@ -114,6 +116,7 @@ const ShowReport: React.FC<Props> = ({ handleCloseDrawer }) => {
                             small
                             className="theme-radio fr-mt-4v fr-mb-1v fr-text--md"
                         />
+                        {reportTheme && <ThemeForm theme={reportTheme} themeAttributes={reportThemeAttributes} readOnly />}
                     </Accordion>
                     <Accordion label={t("report_sketch_list")} defaultExpanded={false}>
                         <DrawingForm handleToolClick={handleToolClick} hideToolsDiv={true} />

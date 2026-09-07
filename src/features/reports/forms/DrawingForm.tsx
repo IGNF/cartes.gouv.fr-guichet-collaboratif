@@ -90,6 +90,12 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsD
     }, [drawingSource, handleDrawingAdd, handleDrawingChange]);
 
     useEffect(() => {
+        const features = drawingSource?.getFeatures() ?? [];
+        lastFeaturesRef.current = features;
+        setSelectedFeatures(features);
+    }, [drawingSource, setSelectedFeatures]);
+
+    useEffect(() => {
         let selectedReportFeatures: Feature[] = [];
         let reportMainFeature: Feature | undefined;
 
