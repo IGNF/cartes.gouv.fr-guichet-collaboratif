@@ -151,16 +151,16 @@ const ReportDrawer = () => {
     }, [drawerOpened, responseDrawerOpened, setDrawerOpened, setResponseDrawerOpened, setTableDrawerOpened, tableDrawerOpened]);
 
     const isAdmin = user?.administrator || role === CommunityRole.ADMIN;
-
-    const isOwner = Number(user?.id) === Number(selectedReport?.author?.id);
+    const isCreator = Number(user?.id) === Number(selectedReport?.author?.id);
+    const canEditReport = isAdmin || isCreator;
 
     useEffect(() => {
-        if (drawerOpened && selectedReport && (isAdmin || isOwner)) {
+        if (drawerOpened && selectedReport && canEditReport) {
             setEditReport(true);
         } else {
             setEditReport(false);
         }
-    }, [drawerOpened, selectedReport, isAdmin, isOwner, setEditReport]);
+    }, [drawerOpened, selectedReport, canEditReport, setEditReport]);
 
     useKeyEvent(
         "keydown",
@@ -248,7 +248,7 @@ const ReportDrawer = () => {
                             </div>
                             {!selectedReport ? (
                                 <CreateReport handleCloseDrawer={handleCloseDrawer} />
-                            ) : !STATUS_NOT_ALLOWED.includes(selectedReport.status) && (isAdmin || isOwner) ? (
+                            ) : !STATUS_NOT_ALLOWED.includes(selectedReport.status) && canEditReport ? (
                                 <EditReport handleCloseDrawer={handleCloseDrawer} />
                             ) : (
                                 <ShowReport handleCloseDrawer={handleCloseDrawer} />
