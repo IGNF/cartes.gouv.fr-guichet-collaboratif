@@ -19,6 +19,7 @@ async function getUserProfile(): Promise<User> {
         firstname: user.firstname,
         surname: user.surname,
         email: user.email,
+        administrator: user.administrator,
         communitiesMember: user.communities_member.map((cm) => {
             return {
                 communityId: `${cm.community_id}`,

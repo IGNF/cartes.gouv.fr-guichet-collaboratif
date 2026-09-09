@@ -1,9 +1,8 @@
 import Button from "@codegouvfr/react-dsfr/Button";
-import { useMemo } from "react";
 
 import { useCommunityStore, useContributionStore, useModalStore, useUserStore } from "@/store";
 import { useTranslation } from "@/i18n";
-import { ADMIN_ROLE } from "@/constants";
+import { CommunityRole } from "@/constants/user/types";
 import { ADMIN_COMMUNITY_URL } from "@/constants/urls";
 import { StatusMessage } from "@/constants/communities/types";
 import LoaderComponent from "@/components/LoaderComponent";
@@ -14,7 +13,7 @@ import { useContributionsSave } from "@/hooks/working-layer/useContributionsSave
 
 export default function CommunityToolbar() {
     const { community, hasOneEditableLayer, addAlertMessage } = useCommunityStore();
-    const { user } = useUserStore();
+    const { user, role } = useUserStore();
     const { contributions, isReviewContribution, setReviewContribution } = useContributionStore();
     const { confirmSaveContributionModal } = useModalStore();
 
@@ -26,14 +25,14 @@ export default function CommunityToolbar() {
         errorMessage: t("save_error"),
     });
 
-    const isAdmin = useMemo(() => user?.communitiesMember.find((cm) => cm.communityId === String(community?.id))?.role === ADMIN_ROLE, [user, community]);
+    const isAdmin = user?.administrator || role === CommunityRole.ADMIN;
 
     const handleShare = async () => {
         try {
             await navigator.clipboard.writeText(window.location.href);
-            addAlertMessage(StatusMessage.success, t("share_success"), 2000);
+            addAlertMessage(StatusMessage.success, t("share_success"));
         } catch {
-            addAlertMessage(StatusMessage.error, t("share_error"), 2000);
+            addAlertMessage(StatusMessage.error, t("share_error"));
         }
     };
 

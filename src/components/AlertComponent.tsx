@@ -1,4 +1,5 @@
-import { AlertMessageType, StatusMessage } from "@/constants/communities/types";
+import { AlertMessageType } from "@/constants/communities/types";
+import { DEFAULT_ALERT_TIMEOUT } from "@/constants";
 import { useCommunityStore } from "@/store";
 import Alert from "@codegouvfr/react-dsfr/Alert";
 import { memo, useCallback, useEffect, useState } from "react";
@@ -25,8 +26,8 @@ const AlertMessage: React.FC<AlertMessageProps> = memo(({ message, index }) => {
     );
 
     useEffect(() => {
-        if (message?.status === StatusMessage.success || message?.duration) {
-            const removeDuration = message?.duration ?? 3000;
+        if (message.duration !== null) {
+            const removeDuration = message.duration ?? DEFAULT_ALERT_TIMEOUT;
             const removeTimer = setTimeout(() => {
                 onClose(message.id);
             }, removeDuration);
