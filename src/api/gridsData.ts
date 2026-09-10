@@ -9,7 +9,7 @@ async function getGridDetails(gridName: string): Promise<GridDetails> {
     const api = await getAxiosApi();
     const res = await api.get<GridDetails>(`${GRIDS_API_URL}/${encodeURIComponent(gridName)}`, {
         params: {
-            fields: ["extent", "geometry"],
+            fields: ["name", "title", "extent", "geometry"].join(","),
         },
     });
     return res.data;
@@ -34,7 +34,7 @@ export const useGetCommunityGridsAPI = (communityId: string, communityGrids?: Co
                     })),
                 }))
             ),
-        enabled: communityGrids !== undefined && allowedGridNames !== undefined && gridNames.length > 0,
+        enabled: communityGrids !== undefined && allowedGridNames !== undefined,
         retry: 1,
         staleTime: Infinity,
     });
