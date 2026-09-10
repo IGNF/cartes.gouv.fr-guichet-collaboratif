@@ -7,7 +7,7 @@ import VectorSource from "ol/source/Vector";
 
 import { ContributionType } from "@/constants/contributions/types";
 import { useContributionStore, useMapStore } from "@/store";
-import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_NEW_PROPERTY } from "@/constants";
+import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_NEW_PROPERTY, FEATURE_TYPE_PENDING_FORM_PROPERTY } from "@/constants";
 import { FeatureTypeColumn } from "@/constants/communities/types";
 import BaseLayer from "ol/layer/Base";
 
@@ -68,6 +68,7 @@ export const useFeatureTypeActions = ({
             setFeatureData(feat, newFormData);
 
             addFeatureToContributions(feat, initialFeat);
+            feat.unset(FEATURE_TYPE_PENDING_FORM_PROPERTY);
         },
         [setFeatureData, addFeatureToContributions]
     );
@@ -82,6 +83,32 @@ export const useFeatureTypeActions = ({
         },
         [currentMapWorkingSource, mapWorkingLayer, saveContribution]
     );
+
+    /**
+     * Validate the current form and if valid, silently save attributes.
+     */
+    const trySilentSave = useCallback((): boolean => {
+        if (!clickedMapFeature) return true;
+
+        if (!validateAll(columns, formData)) {
+            return false;
+        }
+
+        if (selectedObjects.length > 1) {
+            if (!columnsToModify.length) return true;
+            const newFormData: FormData = {};
+            columnsToModify.forEach((col) => {
+                newFormData[col.name] = formData[col.name];
+            });
+            selectedObjects.forEach((feat) => {
+                saveFeature(feat, newFormData);
+            });
+        } else {
+            saveFeature(clickedMapFeature, formData);
+        }
+
+        return true;
+    }, [clickedMapFeature, formData, columnsToModify, selectedObjects, validateAll, columns, saveFeature]);
 
     const handleSave = useCallback(async () => {
         if (!clickedMapFeature) return false;
@@ -127,5 +154,6 @@ export const useFeatureTypeActions = ({
     return {
         handleSave,
         handleDelete,
+        trySilentSave,
     };
 };
