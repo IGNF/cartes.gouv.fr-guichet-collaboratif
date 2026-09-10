@@ -1,7 +1,6 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect } from "react";
 import Layer from "ol/layer/Layer";
 import VectorSource from "ol/source/Vector";
-import { useGetUserProfileAPI } from "@/api/userData";
 import { useCommunityStore, useLocalStorageStore, useMapStore, useReportStore, useUserStore } from "@/store";
 import { hasReportParams, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import { getCenterReportMessage, handleShowOnMap, showCenterReportButtons, STATUS_NOT_ALLOWED } from "@/constants/utils";
@@ -18,9 +17,10 @@ import MapListnerHandlers from "../navigation/controls/custom-controls/interacti
 import { getCommunityReportById } from "@/api/reportsData";
 import { useSearchParams, useNavigate } from "react-router";
 import useKeyEvent from "@/hooks/useKeyEvent";
+import { CommunityRole } from "@/constants/user/types";
 
 const ReportDrawer = () => {
-    const { user } = useUserStore();
+    const { user, role } = useUserStore();
     const navigate = useNavigate();
 
     const {
@@ -46,9 +46,6 @@ const ReportDrawer = () => {
     const reportClusterLayer = map?.getAllLayers().find((layer) => layer.get("type") === REPORTS_LAYER_TYPE && layer.getSource() instanceof VectorSource);
     const reportClusterSource = reportClusterLayer?.getSource() as VectorSource;
 
-    const { community } = useCommunityStore();
-
-    const { data: userData } = useGetUserProfileAPI();
     const { t } = useTranslation({ ReportDrawer });
     const [searchParams] = useSearchParams();
 
@@ -153,20 +150,17 @@ const ReportDrawer = () => {
         }
     }, [drawerOpened, responseDrawerOpened, setDrawerOpened, setResponseDrawerOpened, setTableDrawerOpened, tableDrawerOpened]);
 
-    const isAdmin = useMemo(() => {
-        const currentUser = userData?.communitiesMember?.filter((cm) => cm.communityId === String(community?.id));
-        return Array.isArray(currentUser) ? currentUser.some((role) => role.role === "admin") : false;
-    }, [userData, community?.id]);
-
-    const isOwner = Number(user?.id) === Number(selectedReport?.author?.id);
+    const isAdmin = user?.administrator || role === CommunityRole.ADMIN;
+    const isCreator = Number(user?.id) === Number(selectedReport?.author?.id);
+    const canEditReport = isAdmin || isCreator;
 
     useEffect(() => {
-        if (drawerOpened && selectedReport && (isAdmin || isOwner)) {
+        if (drawerOpened && selectedReport && canEditReport) {
             setEditReport(true);
         } else {
             setEditReport(false);
         }
-    }, [drawerOpened, selectedReport, isAdmin, isOwner, setEditReport]);
+    }, [drawerOpened, selectedReport, canEditReport, setEditReport]);
 
     useKeyEvent(
         "keydown",
@@ -254,7 +248,7 @@ const ReportDrawer = () => {
                             </div>
                             {!selectedReport ? (
                                 <CreateReport handleCloseDrawer={handleCloseDrawer} />
-                            ) : !STATUS_NOT_ALLOWED.includes(selectedReport.status) && (isAdmin || isOwner) ? (
+                            ) : !STATUS_NOT_ALLOWED.includes(selectedReport.status) && canEditReport ? (
                                 <EditReport handleCloseDrawer={handleCloseDrawer} />
                             ) : (
                                 <ShowReport handleCloseDrawer={handleCloseDrawer} />
