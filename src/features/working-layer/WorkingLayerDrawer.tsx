@@ -1,27 +1,39 @@
 import DrawerComponent from "@/components/DrawerComponent";
 import { useContributionStore, useMapStore, useModalStore } from "@/store";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import ShowFeatureTypeForm from "./forms/ShowFeatureTypeForm";
 import EditFeatureTypeForm from "./forms/EditFeatureTypeForm";
 import { FeatureTypeMode } from "@/constants/contributions/types";
 import { FEATURE_TYPE_NEW_PROPERTY, FEATURE_TYPE_SELECTED_PROPERTY } from "@/constants";
 import ConfirmMultipleDeselection from "@/features/navigation/controls/custom-controls/ConfirmMultipleDeselection";
+import { useFeatureAuthorisation } from "@/hooks/working-layer/useContributionAuthorisation";
 
 const WorkingLayerDrawer = () => {
     const { clickedMapFeature, workingLayerDrawerOpened, setWorkingLayerDrawerOpened, setClickedMapFeature } = useMapStore();
     const { featureTypeMode, isReviewContribution, selectedObjects, setSelectedObjects, setFeatureTypeMode, setColumnsToModify } = useContributionStore();
     const { confirmMultipleDeselectionModal } = useModalStore();
+    const { isFeatureAuthorised } = useFeatureAuthorisation();
 
     const pendingClose = useRef<(() => void) | null>(null);
+    const isEditAuthorised = useMemo<boolean | undefined>(() => {
+        const features = selectedObjects.length > 1 ? selectedObjects : clickedMapFeature ? [clickedMapFeature] : [];
+        return features.length ? features.every(isFeatureAuthorised) : undefined;
+    }, [clickedMapFeature, isFeatureAuthorised, selectedObjects]);
 
     useEffect(() => {
         if (clickedMapFeature && !workingLayerDrawerOpened && !isReviewContribution) {
-            if (clickedMapFeature.get(FEATURE_TYPE_NEW_PROPERTY)) {
+            if (clickedMapFeature.get(FEATURE_TYPE_NEW_PROPERTY) && isEditAuthorised) {
                 setFeatureTypeMode(FeatureTypeMode.EDIT);
             }
             setWorkingLayerDrawerOpened(true);
         }
-    }, [clickedMapFeature, workingLayerDrawerOpened, isReviewContribution, setWorkingLayerDrawerOpened, setFeatureTypeMode]);
+    }, [clickedMapFeature, isEditAuthorised, workingLayerDrawerOpened, isReviewContribution, setWorkingLayerDrawerOpened, setFeatureTypeMode]);
+
+    useEffect(() => {
+        if (isEditAuthorised === false) {
+            setFeatureTypeMode(FeatureTypeMode.VIEW);
+        }
+    }, [isEditAuthorised, setFeatureTypeMode]);
 
     const closeDrawer = useCallback(() => {
         selectedObjects.forEach((feat) => {
@@ -63,9 +75,9 @@ const WorkingLayerDrawer = () => {
             <DrawerComponent anchor="left" isOpen={workingLayerDrawerOpened} onClose={handleCloseDrawer}>
                 <div className="working-layer-drawer" style={{ maxWidth: drawerWidth }}>
                     {featureTypeMode === FeatureTypeMode.VIEW ? (
-                        <ShowFeatureTypeForm onClose={handleCloseDrawer} />
+                        <ShowFeatureTypeForm isEditAuthorised={isEditAuthorised} onClose={handleCloseDrawer} />
                     ) : (
-                        <EditFeatureTypeForm onClose={handleCloseDrawer} />
+                        <EditFeatureTypeForm isEditAuthorised={isEditAuthorised} onClose={handleCloseDrawer} />
                     )}
                 </div>
             </DrawerComponent>

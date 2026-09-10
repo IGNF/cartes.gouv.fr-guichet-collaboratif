@@ -19,80 +19,62 @@ interface ParsedGrid {
 const wktFormat = new WKT();
 const geoJSONFormat = new GeoJSON();
 
-export function useContributionAuthorisation() {
-    const { community, communityGridsStatus, addAlertMessage } = useCommunityStore();
+export function useFeatureAuthorisation() {
+    const { community, communityGridsStatus } = useCommunityStore();
     const map = useMapStore((state) => state.map);
-    const { t } = useTranslation({ useContributionAuthorisation });
+    const communityGrids = community?.grids;
 
-    const parsedGrids = useMemo(() => {
-        const parsed: ParsedGrid[] = [];
-        let hasInvalidGeometry = false;
-
-        community?.grids.forEach((grid) => {
-            try {
+    const parsedGrids = useMemo<ParsedGrid[]>(
+        () =>
+            communityGrids?.map((grid) => {
                 const geometry = wktFormat.readGeometry(grid.geometry);
-                parsed.push({
+                return {
                     data: grid,
                     geometry: geoJSONFormat.writeGeometryObject(geometry) as GeoJSONGeometry,
-                });
-            } catch {
-                hasInvalidGeometry = true;
-            }
-        });
+                };
+            }) ?? [],
+        [communityGrids]
+    );
 
-        return { parsed, hasInvalidGeometry };
-    }, [community?.grids]);
+    const isFeatureAuthorised = useCallback(
+        (feature: Feature): boolean => {
+            if (communityGridsStatus !== "ready" || !communityGrids?.length) return false;
 
-    const authoriseContribution = useCallback(
-        (feature: Feature, type: ContributionType, initialFeature: Feature | null = null) => {
-            if (communityGridsStatus === "loading" || communityGridsStatus === "idle") {
-                addAlertMessage(StatusMessage.warning, t("grids_loading"), 3000);
-                return false;
-            }
-            if (communityGridsStatus === "error") {
-                addAlertMessage(StatusMessage.error, t("grids_unavailable"), 5000);
-                return false;
-            }
-            if (!community?.grids.length) {
-                addAlertMessage(StatusMessage.warning, t("no_authorised_grids"), 5000);
-                return false;
-            }
-
-            const geometryToCheck = type === ContributionType.DELETE ? (initialFeature?.getGeometry() ?? feature.getGeometry()) : feature.getGeometry();
+            const geometryToCheck = feature.getGeometry();
             const mapProjection = map?.getView().getProjection();
-            if (!geometryToCheck || !mapProjection) {
-                addAlertMessage(StatusMessage.error, t("grids_unavailable"), 5000);
-                return false;
-            }
+            if (!geometryToCheck || !mapProjection) return false;
 
             const geometry = geometryToCheck.clone().transform(mapProjection, "EPSG:4326") as Geometry;
             const geometryExtent = geometry.getExtent();
             const geometryGeoJSON = geoJSONFormat.writeGeometryObject(geometry) as GeoJSONGeometry;
-            let intersectsAuthorizedGrid = false;
-            let hasIntersectionError = false;
-            for (const grid of parsedGrids.parsed) {
+            for (const grid of parsedGrids) {
                 if (!intersects(geometryExtent, grid.data.extent)) continue;
-                try {
-                    if (booleanIntersects(geometryGeoJSON, grid.geometry)) {
-                        intersectsAuthorizedGrid = true;
-                        break;
-                    }
-                } catch {
-                    hasIntersectionError = true;
-                }
+                if (booleanIntersects(geometryGeoJSON, grid.geometry)) return true;
             }
-
-            if (intersectsAuthorizedGrid) return true;
-            if (parsedGrids.hasInvalidGeometry || hasIntersectionError) {
-                addAlertMessage(StatusMessage.error, t("grids_unavailable"), 5000);
-                return false;
-            }
-
-            const gridTitles = [...new Set(community.grids.map((grid) => grid.title))].join(", ");
-            addAlertMessage(StatusMessage.warning, t("outside_authorised_grids", { grids: gridTitles }), 5000);
             return false;
         },
-        [addAlertMessage, community, communityGridsStatus, map, parsedGrids, t]
+        [communityGrids, communityGridsStatus, map, parsedGrids]
+    );
+
+    const authorisedGridTitles = useMemo(() => [...new Set(communityGrids?.map((grid) => grid.title) ?? [])], [communityGrids]);
+
+    return { isFeatureAuthorised, authorisedGridTitles };
+}
+
+export function useContributionAuthorisation() {
+    const { addAlertMessage } = useCommunityStore();
+    const { isFeatureAuthorised, authorisedGridTitles } = useFeatureAuthorisation();
+    const { t } = useTranslation({ useContributionAuthorisation });
+
+    const authoriseContribution = useCallback(
+        (feature: Feature, type: ContributionType, initialFeature: Feature | null = null) => {
+            const featureToCheck = type === ContributionType.DELETE && initialFeature ? new Feature(initialFeature.getGeometry()?.clone()) : feature;
+            if (isFeatureAuthorised(featureToCheck)) return true;
+
+            addAlertMessage(StatusMessage.warning, t("not_authorised", { grids: authorisedGridTitles.join(", ") }), 5000);
+            return false;
+        },
+        [addAlertMessage, authorisedGridTitles, isFeatureAuthorised, t]
     );
 
     return authoriseContribution;
