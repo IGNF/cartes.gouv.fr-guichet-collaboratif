@@ -2,6 +2,7 @@ import {
     AlertMessageType,
     Community,
     CommunityGeoservice,
+    GridData,
     CommunityLayer,
     MapLayer,
     StatusMessage,
@@ -22,6 +23,7 @@ interface CommunityStore {
     isLoadingCommunity: boolean;
     hasOneEditableLayer: boolean;
     setCommunity: (community: Community | null) => void;
+    setCommunityGrids: (communityId: string, grids: GridData[]) => void;
     setCommunityLayers: (layers: CommunityLayer[] | null) => void;
     addAlertMessage: (status: StatusMessage, message: string | NonNullable<ReactNode>, duration?: number | null) => number;
     removeAlertMessage: (id: number) => void;
@@ -42,6 +44,12 @@ export const useCommunityStore = create<CommunityStore>((set, get) => ({
     setCommunity: (community) => {
         set(() => {
             return { community };
+        });
+    },
+    setCommunityGrids: (communityId, grids) => {
+        set((state) => {
+            if (!state.community || String(state.community.id) !== communityId) return state;
+            return { community: { ...state.community, grids } };
         });
     },
     setCommunityLayers: (layers) => {

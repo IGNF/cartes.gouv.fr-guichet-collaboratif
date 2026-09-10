@@ -196,6 +196,10 @@ export interface CommunityGrids {
     extent: Extent;
 }
 
+export interface GridData extends CommunityGrids {
+    geometry: string;
+}
+
 export interface Community {
     id: number;
     listed: boolean;
@@ -209,7 +213,7 @@ export interface Community {
     zoom: number;
     minZoom: number;
     maxZoom: number;
-    grids: CommunityGrids[];
+    grids: GridData[];
 }
 
 export const enum StatusMessage {

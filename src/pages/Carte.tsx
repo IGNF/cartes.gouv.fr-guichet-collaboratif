@@ -4,6 +4,8 @@ import { lazy, Suspense, useEffect } from "react";
 import { useCommunityStore, useLocalStorageStore, useUserStore } from "@/store";
 import { isDigital, useGetCommunityByIdAPI } from "@/api/communityData";
 import { useGetUserProfileAPI } from "@/api/userData";
+import { useGetCommunityGridsAPI } from "@/api/gridsData";
+import { useGetCommunityMemberGridsAPI } from "@/api/memberData";
 import AlertComponent from "@/components/AlertComponent";
 import { StatusMessage } from "@/constants/communities/types";
 import { useTranslation } from "@/i18n";
@@ -18,7 +20,8 @@ const Carte: React.FC = () => {
     useBeforeUnload();
     const params = useParams();
 
-    const { community, communityLayers, isLoadingCommunity, setCommunity, setCommunityLayers, setIsLoadingCommunity, addAlertMessage } = useCommunityStore();
+    const { community, communityLayers, isLoadingCommunity, setCommunity, setCommunityGrids, setCommunityLayers, setIsLoadingCommunity, addAlertMessage } =
+        useCommunityStore();
     const { isLoadingUser, setUser, setIsLoadingUser } = useUserStore();
     const { initLocalStorage } = useLocalStorageStore();
 
@@ -27,6 +30,8 @@ const Carte: React.FC = () => {
     const { data: userData, error: userError, isLoading: userIsLoading } = useGetUserProfileAPI();
 
     const { data: communityData, error: communityError, isLoading: communityIsLoading } = useGetCommunityByIdAPI(communityId);
+    const { data: communityMemberData } = useGetCommunityMemberGridsAPI(communityId, userData?.id);
+    const { data: gridsData } = useGetCommunityGridsAPI(communityId, communityData?.[2], communityMemberData?.grids);
     const communityNotFound = Boolean(communityError);
 
     const { t } = useTranslation({ Carte });
@@ -61,6 +66,12 @@ const Carte: React.FC = () => {
 
         return () => setCommunity(null);
     }, [communityData, communityError, communityIsLoading, setCommunity, setCommunityLayers, setIsLoadingCommunity, initLocalStorage, addAlertMessage]);
+
+    useEffect(() => {
+        if (gridsData) {
+            setCommunityGrids(communityId, gridsData);
+        }
+    }, [community?.id, communityId, gridsData, setCommunityGrids]);
 
     if (!isDigital(communityId) || communityNotFound) {
         return <NotFound />;
