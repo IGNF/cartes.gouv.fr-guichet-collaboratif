@@ -10,6 +10,8 @@ import { useContributionStore, useMapStore } from "@/store";
 import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_NEW_PROPERTY } from "@/constants";
 import { FeatureTypeColumn } from "@/constants/communities/types";
 import BaseLayer from "ol/layer/Base";
+import { restoreFeature } from "@/constants/contributions/utils";
+import { useContributionAuthorisation } from "./useContributionAuthorisation";
 
 type FormData = Record<string, string | number | boolean | File[] | null>;
 
@@ -33,6 +35,7 @@ export const useFeatureTypeActions = ({
 }: UseFeatureTypeActionsProps) => {
     const { mapWorkingLayer } = useMapStore();
     const { columnsToModify, selectedObjects, saveContribution } = useContributionStore();
+    const authoriseContribution = useContributionAuthorisation();
 
     const setFeatureData = useCallback((feat: Feature, newFormData: FormData) => {
         const geometry = feat.getGeometry();
@@ -56,9 +59,11 @@ export const useFeatureTypeActions = ({
             const isNew = feat.get(FEATURE_TYPE_NEW_PROPERTY) === true;
             const type = isNew ? ContributionType.CREATE : ContributionType.MODIFY;
 
+            if (!authoriseContribution(feat, type, initialFeat)) return false;
             saveContribution(feat, type, initialFeat, mapWorkingLayer);
+            return true;
         },
-        [mapWorkingLayer, saveContribution]
+        [authoriseContribution, mapWorkingLayer, saveContribution]
     );
 
     const saveFeature = useCallback(
@@ -67,20 +72,27 @@ export const useFeatureTypeActions = ({
 
             setFeatureData(feat, newFormData);
 
-            addFeatureToContributions(feat, initialFeat);
+            if (!addFeatureToContributions(feat, initialFeat)) {
+                restoreFeature(feat, initialFeat);
+                return false;
+            }
+            return true;
         },
         [setFeatureData, addFeatureToContributions]
     );
 
     const deleteFeature = useCallback(
         (feat: Feature) => {
+            const initialFeature = feat.clone();
+            if (!authoriseContribution(feat, ContributionType.DELETE, initialFeature)) return false;
+
+            saveContribution(feat, ContributionType.DELETE, initialFeature, mapWorkingLayer);
             if (currentMapWorkingSource) {
                 currentMapWorkingSource.removeFeature(feat);
             }
-
-            saveContribution(feat, ContributionType.DELETE, feat.clone(), mapWorkingLayer);
+            return true;
         },
-        [currentMapWorkingSource, mapWorkingLayer, saveContribution]
+        [authoriseContribution, currentMapWorkingSource, mapWorkingLayer, saveContribution]
     );
 
     const handleSave = useCallback(async () => {
@@ -98,11 +110,10 @@ export const useFeatureTypeActions = ({
                 newFormData[col.name] = formData[col.name];
             });
 
-            selectedObjects.forEach((feat) => {
-                saveFeature(feat, newFormData);
-            });
+            const hasSavedFeature = selectedObjects.map((feat) => saveFeature(feat, newFormData)).some(Boolean);
+            if (!hasSavedFeature) return false;
         } else {
-            saveFeature(clickedMapFeature, formData);
+            if (!saveFeature(clickedMapFeature, formData)) return false;
         }
 
         onSuccess();
@@ -113,11 +124,10 @@ export const useFeatureTypeActions = ({
         if (!clickedMapFeature) return false;
 
         if (selectedObjects.length > 1) {
-            selectedObjects.forEach((feat) => {
-                deleteFeature(feat);
-            });
+            const hasDeletedFeature = selectedObjects.map(deleteFeature).some(Boolean);
+            if (!hasDeletedFeature) return false;
         } else {
-            deleteFeature(clickedMapFeature);
+            if (!deleteFeature(clickedMapFeature)) return false;
         }
 
         onSuccess();

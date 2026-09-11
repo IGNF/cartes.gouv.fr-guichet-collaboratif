@@ -2,6 +2,7 @@ import {
     AlertMessageType,
     Community,
     CommunityGeoservice,
+    GridData,
     CommunityLayer,
     MapLayer,
     StatusMessage,
@@ -21,7 +22,10 @@ interface CommunityStore {
     alertMessages: AlertMessageType[];
     isLoadingCommunity: boolean;
     hasOneEditableLayer: boolean;
+    communityGridsStatus: "idle" | "loading" | "ready" | "error";
     setCommunity: (community: Community | null) => void;
+    setCommunityGrids: (communityId: string, grids: GridData[]) => void;
+    setCommunityGridsError: (communityId: string) => void;
     setCommunityLayers: (layers: CommunityLayer[] | null) => void;
     addAlertMessage: (status: StatusMessage, message: string | NonNullable<ReactNode>, duration?: number | null) => number;
     removeAlertMessage: (id: number) => void;
@@ -39,9 +43,22 @@ export const useCommunityStore = create<CommunityStore>((set, get) => ({
     geoservices: [],
     isLoadingCommunity: false,
     hasOneEditableLayer: false,
+    communityGridsStatus: "idle",
     setCommunity: (community) => {
         set(() => {
-            return { community };
+            return { community, communityGridsStatus: community ? "loading" : "idle" };
+        });
+    },
+    setCommunityGrids: (communityId, grids) => {
+        set((state) => {
+            if (!state.community || String(state.community.id) !== communityId) return state;
+            return { community: { ...state.community, grids }, communityGridsStatus: "ready" };
+        });
+    },
+    setCommunityGridsError: (communityId) => {
+        set((state) => {
+            if (!state.community || String(state.community.id) !== communityId) return state;
+            return { communityGridsStatus: "error" };
         });
     },
     setCommunityLayers: (layers) => {
