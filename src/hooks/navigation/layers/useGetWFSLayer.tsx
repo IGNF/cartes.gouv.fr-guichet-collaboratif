@@ -84,7 +84,7 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
                 `&bbox=${transformedExtent.join(",")},${geoProjCode}`;
 
             const queryKey = [`GET_WFS_GET_FEATURES_${geoservice.url}_${geoservice.version}_${geoservice.layer}_${transformedExtent.join(",")}_${page}`];
-            const data: GeoJSONProps | ArrayGeoJSONProps[] = await queryClient.fetchQuery({
+            const data: GeoJSONProps | ArrayGeoJSONProps[] = await queryClient.query({
                 queryKey,
                 queryFn: async () => {
                     const api = await getAxiosApi();

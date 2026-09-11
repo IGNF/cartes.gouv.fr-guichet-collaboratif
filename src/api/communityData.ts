@@ -44,7 +44,7 @@ async function getCommunityLayers(communityId: string, queryClient: QueryClient)
     if (cachedGeoservices) {
         geoRes = cachedGeoservices as CommunityGeoservice[];
     } else {
-        geoRes = await queryClient.fetchQuery({
+        geoRes = await queryClient.query({
             queryKey: communityGeoservicesKey,
             queryFn: () => getGeoserviceAll(geoservicesIds),
         });
@@ -52,7 +52,7 @@ async function getCommunityLayers(communityId: string, queryClient: QueryClient)
     if (cachedFeatureTypes) {
         featureTypeRes = cachedFeatureTypes as CommunityGeoservice[];
     } else {
-        featureTypeRes = await queryClient.fetchQuery({
+        featureTypeRes = await queryClient.query({
             queryKey: communityFeatureTypesKey,
             queryFn: () => getFeatureTypesAll(featureTypesIds),
         });
@@ -140,7 +140,7 @@ async function getCommunityById(communityId: string, queryClient: QueryClient): 
     if (cached) {
         layers = cached as CommunityLayer[];
     } else {
-        layers = await queryClient?.fetchQuery({
+        layers = await queryClient?.query({
             queryKey: communityLayersKey,
             queryFn: () => getCommunityLayers(communityId, queryClient),
         });

@@ -219,7 +219,7 @@ export const searchFilteredObjects = async (
         wfsUrl += `&bbox=${transformedExtent.join(",")},${geoProjCode}`;
         queryKey += `_${transformedExtent.join(",")}`;
     }
-    const data = await queryClient.fetchQuery({
+    const data = await queryClient.query({
         queryKey: [queryKey],
         queryFn: async () => {
             const api = await getAxiosApi();

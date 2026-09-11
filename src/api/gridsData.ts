@@ -27,7 +27,7 @@ export const useGetCommunityGridsAPI = (communityId: string, communityGrids?: Co
             Promise.all(
                 filteredCommunityGrids.map(async (grid) => ({
                     ...grid,
-                    ...(await queryClient.fetchQuery({
+                    ...(await queryClient.query({
                         queryKey: ["GRID_DETAILS_DATA", grid.name],
                         queryFn: () => getGridDetails(grid.name),
                         staleTime: Infinity,
