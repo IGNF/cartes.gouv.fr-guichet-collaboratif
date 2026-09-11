@@ -9,7 +9,6 @@ import { DrawEvent } from "ol/interaction/Draw";
 import { DragPan } from "ol/interaction";
 import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_NEW_PROPERTY, FEATURE_TYPE_SELECTED_PROPERTY, POINTER_HIT_DETECTION_TOLERENCE } from "@/constants";
 import { addFeatureProperties, addInteractionToMap, isPointOnSegment, removeInteractionFromMap, setFeatNewCoords } from "@/constants/contributions/utils";
-import { mergeFeatureGeometries } from "@/constants/contributions/utils/mergeFeatures";
 import { GeometryFeatueParams } from "@/constants/reports/types";
 import { Coordinate } from "ol/coordinate";
 import BaseEvent from "ol/events/Event";
@@ -30,7 +29,7 @@ let clipboardFeature: Feature | null = null;
 const useGetInteractionsFuncs = (props: InteractionsProps) => {
     const { map, mapWorkingLayer, clickedControl, clickedMapFeature, setClickedControl, setClickedMapFeature } = useMapStore();
     const { contributions, selectedObjects, saveContribution, setIsModifying, setSelectedObjects, setFeatureTypeMode } = useContributionStore();
-    const { searchModal, exportMapModal, confirmMultipleDeselectionModal, mergeFeatureAttributesModal } = useModalStore();
+    const { searchModal, exportMapModal, confirmMultipleDeselectionModal } = useModalStore();
     const { communityLayers, addAlertMessage, removeAlertMessage } = useCommunityStore();
 
     const { t } = useTranslation({ useGetInteractionsFuncs });
@@ -759,15 +758,6 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                 exportMapModal.open();
                 return;
             }
-
-            if (control.interaction === InteractionType.MERGE_OBJECTS) {
-                if (control?.id === clickedControl?.id) {
-                    mergeFeatureAttributesModal.close();
-                } else {
-                    mergeFeatureAttributesModal.open();
-                }
-                return;
-            }
             if (control.interaction !== InteractionType.MODIFY && control.interaction !== InteractionType.TRANSLATE_OBJECT) {
                 selectedObjectsRef.current.forEach((feat) => {
                     feat.unset(FEATURE_TYPE_SELECTED_PROPERTY);
@@ -881,67 +871,6 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
         [currentMapWorkingSource, mapWorkingLayer, saveContribution, setSelectedObjects, setClickedMapFeature]
     );
 
-    const mergeInteractionFunc = useCallback(
-        (customData: Record<string, unknown>) => {
-            if (selectedObjects.length !== 2) {
-                mergeFeatureAttributesModal.close();
-                return;
-            }
-            const featureType = currentCommunityLayer?.geoservice.featureType;
-            if (!featureType || featureType === GeoserviceFeatureTypeProp.POINT || !currentMapWorkingSource) {
-                mergeFeatureAttributesModal.close();
-                return;
-            }
-
-            const [featToKeep, featToDelete] = [selectedObjects[0], selectedObjects[1]];
-
-            const mergedGeometry = mergeFeatureGeometries(featToKeep, featToDelete, featureType);
-            if (!mergedGeometry) {
-                addAlertMessage(StatusMessage.warning, t("merge_not_adjacent"), 3000);
-                mergeFeatureAttributesModal.close();
-                return;
-            }
-
-            // Clone before any modifications
-            const initialFeatToKeep = featToKeep.clone();
-            const initialFeatToDelete = featToDelete.clone();
-
-            const idName = currentCommunityLayer?.geoservice.idName;
-            const originalKeepData = featToKeep.get(FEATURE_TYPE_DATA_PROPERTY) as Record<string, unknown> | undefined;
-            const dataToApply = idName && originalKeepData ? { ...customData, [idName]: originalKeepData[idName] } : customData;
-
-            featToKeep.setGeometry(mergedGeometry);
-            featToKeep.set(FEATURE_TYPE_DATA_PROPERTY, dataToApply);
-            featToDelete.unset(FEATURE_TYPE_SELECTED_PROPERTY);
-            currentMapWorkingSource.removeFeature(featToDelete);
-
-            saveContribution(featToKeep, ContributionType.MODIFY, initialFeatToKeep, mapWorkingLayer);
-            saveContribution(featToDelete, ContributionType.DELETE, initialFeatToDelete, mapWorkingLayer);
-
-            selectInteraction.getFeatures().clear();
-            selectInteraction.getFeatures().push(featToKeep);
-            setSelectedObjects([featToKeep]);
-            setClickedMapFeature(featToKeep);
-            setClickedControl(null);
-            mergeFeatureAttributesModal.close();
-        },
-        [
-            selectedObjects,
-            currentCommunityLayer?.geoservice.featureType,
-            currentCommunityLayer?.geoservice.idName,
-            currentMapWorkingSource,
-            selectInteraction,
-            saveContribution,
-            mapWorkingLayer,
-            setSelectedObjects,
-            setClickedMapFeature,
-            setClickedControl,
-            addAlertMessage,
-            mergeFeatureAttributesModal,
-            t,
-        ]
-    );
-
     useEffect(() => {
         return () => {
             if (registeredPasteHandlerRef.current) {
@@ -1027,7 +956,6 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
         getInteractionByType,
         handleClick,
         deleteSelectedObjects,
-        mergeInteractionFunc,
     };
 };
 
