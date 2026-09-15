@@ -95,10 +95,13 @@ export function useContributionsSave({ pendingMessage, successMessage, errorMess
             const apiExist = apis.find((api) => api.database === geoservice.database);
             let featGeometry = getFeatureGeometryWKT(feat, mapProj, featProj);
             if (geometryNameColumn?.is3d && featGeometry.includes(" Z")) featGeometry = featGeometry.replace(" Z", "");
-            const validColumnNames = new Set(geoservice.columns.map((c) => c.name));
+            const columnsByName = new Map(geoservice.columns.map((column) => [column.name, column]));
             const filteredFeatData: Record<string, unknown> = {};
             Object.entries(featData).forEach(([key, value]) => {
-                if (validColumnNames.has(key)) filteredFeatData[key] = value;
+                const column = columnsByName.get(key);
+                if (!column) return;
+
+                filteredFeatData[key] = column.type.toLowerCase() === "datetime" && typeof value === "string" ? value.slice(0, 19).replace("T", " ") : value;
             });
             const action = {
                 table: geoservice.table,
