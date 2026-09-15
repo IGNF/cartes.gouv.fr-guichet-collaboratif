@@ -3,7 +3,7 @@ import { AxiosError } from "axios";
 
 import { useCommunityStore, useContributionStore, useMapStore, useUserStore } from "@/store";
 import { useLang } from "@/i18n";
-import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_GEOSERVICE_PROPERTY, FEATURE_TYPE_NEW_PROPERTY } from "@/constants";
+import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_FINGERPRINT_COLUMN, FEATURE_TYPE_GEOSERVICE_PROPERTY, FEATURE_TYPE_NEW_PROPERTY } from "@/constants";
 import { CommunityGeoservice, StatusMessage } from "@/constants/communities/types";
 import { Contribution, TransactionStatus, TransactionAction, TransactionType } from "@/constants/contributions/types";
 import { getFeatureGeometryWKT } from "@/constants/utils";
@@ -93,13 +93,17 @@ export function useContributionsSave({ pendingMessage, successMessage, errorMess
             const featProj = geometryNameColumn?.crs;
             if (!geoservice.database) return;
             const apiExist = apis.find((api) => api.database === geoservice.database);
-            let featGeometry = getFeatureGeometryWKT(feat, mapProj, featProj);
-            if (geometryNameColumn?.is3d && featGeometry.includes(" Z")) featGeometry = featGeometry.replace(" Z", "");
+            const geometryWKT = getFeatureGeometryWKT(feat, mapProj, featProj);
+            const featGeometry =
+                geometryNameColumn?.is3d && !geometryWKT.match(/^[A-Z]+ Z(?:M)?\b/) ? geometryWKT.replace(/^([A-Z]+)(?=\s*\()/, "$1 Z") : geometryWKT;
             const columnsByName = new Map(geoservice.columns.map((column) => [column.name, column]));
             const filteredFeatData: Record<string, unknown> = {};
             Object.entries(featData).forEach(([key, value]) => {
                 const column = columnsByName.get(key);
-                if (!column) return;
+                if (!column) {
+                    if (key === FEATURE_TYPE_FINGERPRINT_COLUMN) filteredFeatData[key] = value;
+                    return;
+                }
 
                 filteredFeatData[key] = column.type.toLowerCase() === "datetime" && typeof value === "string" ? value.slice(0, 19).replace("T", " ") : value;
             });
