@@ -3,9 +3,10 @@ import { Feature } from "ol";
 import { isAxiosError } from "axios";
 import { updateCommunityReport } from "@/api/reportsData";
 import { postCommunityReportAttachments } from "@/api/attachmentData";
-import { useCommunityStore, useMapStore, useReportStore } from "@/store";
+import { useCommunityStore, useMapStore, useReportStore, useUserStore } from "@/store";
 import { CommunityTheme, StatusMessage } from "@/constants/communities/types";
 import { PostReport, PostThemeReport } from "@/constants/reports/types";
+import { CommunityRole } from "@/constants/user/types";
 import { getFeatureGeometryWKT } from "@/constants/utils";
 import { getReportSketch } from "@/constants/reports/utils";
 import ReportForm from "./forms/ReportForm";
@@ -20,14 +21,18 @@ interface Props {
 const EditReport: React.FC<Props> = ({ handleCloseDrawer }) => {
     const { community, addAlertMessage } = useCommunityStore();
     const { reports, selectedReport, setReports, setTableDrawerOpened, setDrawerOpened } = useReportStore();
+    const { user, role } = useUserStore();
 
     const { map } = useMapStore();
 
     const { t } = useTranslation({ EditReport });
+    const isAdmin = user?.administrator || role === CommunityRole.ADMIN;
+    const isCreator = Number(user?.id) === Number(selectedReport?.author?.id);
+    const canEditReport = isAdmin || isCreator;
 
     const updateReport = useCallback(
         async (reportPatch: PostReport, filesUploaded: File[] = []) => {
-            if (!community || !selectedReport) return;
+            if (!community || !selectedReport || !canEditReport) return;
 
             try {
                 const reportUpdated = await updateCommunityReport(reportPatch, selectedReport.id);
@@ -67,12 +72,12 @@ const EditReport: React.FC<Props> = ({ handleCloseDrawer }) => {
                 throw error;
             }
         },
-        [community, selectedReport, reports, addAlertMessage, t, setReports]
+        [community, selectedReport, canEditReport, reports, addAlertMessage, t, setReports]
     );
 
     const { deleteReport } = useDeleteReport({ handleCloseDrawer });
 
-    if (!community || !map || !selectedReport) return null;
+    if (!community || !map || !selectedReport || !canEditReport) return null;
 
     const handleUpdateReport = async (
         selectedTheme: CommunityTheme,
