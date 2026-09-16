@@ -3,11 +3,11 @@ import { AxiosError } from "axios";
 
 import { useCommunityStore, useContributionStore, useMapStore, useUserStore } from "@/store";
 import { useLang } from "@/i18n";
-import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_GEOSERVICE_PROPERTY, FEATURE_TYPE_NEW_PROPERTY } from "@/constants";
+import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_FINGERPRINT_COLUMN, FEATURE_TYPE_GEOSERVICE_PROPERTY, FEATURE_TYPE_NEW_PROPERTY } from "@/constants";
 import { CommunityGeoservice, StatusMessage } from "@/constants/communities/types";
-import { Contribution, TransactionStatus, TransactionAction, TransactionType } from "@/constants/contributions/types";
+import { Contribution, ContributionType, TransactionApi, TransactionStatus, TransactionAction, TransactionType } from "@/constants/contributions/types";
 import { getFeatureGeometryWKT } from "@/constants/utils";
-import { resetContributionToMap } from "@/constants/contributions/utils";
+import { resetContributionToMap, areEqual } from "@/constants/contributions/utils";
 import { postTransactions } from "@/api/transactionData";
 import { normalizeColumnEnum } from "@/constants/communities/utils";
 
@@ -15,15 +15,15 @@ interface UseContributionsSaveOptions {
     pendingMessage: string;
     successMessage: string;
     errorMessage: string;
+    missingConfigurationMessage: string;
 }
 
-export function useContributionsSave({ pendingMessage, successMessage, errorMessage }: UseContributionsSaveOptions) {
+export function useContributionsSave({ pendingMessage, successMessage, errorMessage, missingConfigurationMessage }: UseContributionsSaveOptions) {
     const { map, setWorkingLayerDrawerOpened, setClickedMapFeature, setClickedControl } = useMapStore();
     const { contributions, contrToCancel, setReviewContribution, setContributions, setContrToCancel } = useContributionStore();
     const { addAlertMessage, removeAlertMessage } = useCommunityStore();
     const { user } = useUserStore();
     const { lang } = useLang();
-
     const [isLoading, setIsLoading] = useState(false);
 
     const mapProj = useMemo(() => map?.getView()?.getProjection().getCode(), [map]);
@@ -79,46 +79,71 @@ export function useContributionsSave({ pendingMessage, successMessage, errorMess
     );
 
     const onSave = useCallback(async () => {
-        setIsLoading(true);
-        const apis: { database: number; body: { comment: string; actions: object[] } }[] = [];
+        const validator = useContributionStore.getState().pendingFeatureFormValidator;
+        if (validator?.() === false) return;
+
+        const { contributions } = useContributionStore.getState();
+        const apis: TransactionApi[] = [];
         const today = new Date();
         const geomContr: { contr: Contribution; geom: string }[] = [];
 
-        contributions.forEach((contr) => {
+        for (const contr of contributions) {
             const feat = contr.feature;
-            const featData = feat.get(FEATURE_TYPE_DATA_PROPERTY);
+            const featData = feat.get(FEATURE_TYPE_DATA_PROPERTY) as Record<string, unknown>;
+            const initialFeatData = contr.initialFeature?.get(FEATURE_TYPE_DATA_PROPERTY) as Record<string, unknown> | undefined;
             const geoservice: CommunityGeoservice = feat.get(FEATURE_TYPE_GEOSERVICE_PROPERTY);
+            const { database, table } = geoservice;
+            if (database === undefined || table === undefined) {
+                addAlertMessage(StatusMessage.error, missingConfigurationMessage);
+                return;
+            }
+
             verifyFeatData(featData, geoservice);
             const geometryNameColumn = geoservice.columns.find((c) => c.name === geoservice.geometryName);
             const featProj = geometryNameColumn?.crs;
-            if (!geoservice.database) return;
-            const apiExist = apis.find((api) => api.database === geoservice.database);
-            let featGeometry = getFeatureGeometryWKT(feat, mapProj, featProj);
-            if (geometryNameColumn?.is3d && featGeometry.includes(" Z")) featGeometry = featGeometry.replace(" Z", "");
-            const validColumnNames = new Set(geoservice.columns.map((c) => c.name));
+            const apiExist = apis.find((api) => api.database === database);
+            const geometryWKT = getFeatureGeometryWKT(feat, mapProj, featProj);
+            const featGeometry =
+                geometryNameColumn?.is3d && !geometryWKT.match(/^[A-Z]+ Z(?:M)?\b/) ? geometryWKT.replace(/^([A-Z]+)(?=\s*\()/, "$1 Z") : geometryWKT;
+            const initialGeometry = contr.initialFeature ? getFeatureGeometryWKT(contr.initialFeature, mapProj, featProj) : undefined;
+            const columnsByName = new Map(geoservice.columns.map((column) => [column.name, column]));
             const filteredFeatData: Record<string, unknown> = {};
             Object.entries(featData).forEach(([key, value]) => {
-                if (validColumnNames.has(key)) filteredFeatData[key] = value;
+                const column = columnsByName.get(key);
+                if (!column) {
+                    if (key === FEATURE_TYPE_FINGERPRINT_COLUMN) filteredFeatData[key] = value;
+                    return;
+                }
+
+                const isIdentifier = key === geoservice.idName;
+                const isChanged = !areEqual(value, initialFeatData?.[key]);
+                if (contr.type !== ContributionType.CREATE && !isIdentifier && !isChanged) return;
+
+                filteredFeatData[key] = column.type.toLowerCase() === "datetime" && typeof value === "string" ? value.slice(0, 19).replace("T", " ") : value;
             });
+            if (contr.type === ContributionType.CREATE || featGeometry !== initialGeometry) {
+                filteredFeatData[`${geoservice.geometryName}`] = featGeometry;
+            }
             const action = {
-                table: geoservice.table,
+                table,
                 state: contr.type,
-                data: { ...filteredFeatData, [`${geoservice.geometryName}`]: featGeometry },
+                data: filteredFeatData,
             };
             geomContr.push({ contr, geom: featGeometry });
             if (apiExist) {
                 apiExist.body.actions.push(action);
             } else {
                 apis.push({
-                    database: geoservice.database,
+                    database,
                     body: {
                         comment: `Transaction ajoutée par l'utilisateur ${user?.username} ; date et heure : ${today.toLocaleDateString(lang, { formatMatcher: "best fit" })} ${today.toLocaleTimeString(lang)} (code : wfsTransactions)`,
                         actions: [action],
                     },
                 });
             }
-        });
+        }
 
+        setIsLoading(true);
         const pendingId = addAlertMessage(StatusMessage.info, pendingMessage);
         try {
             const postResAll = await postTransactions(apis);
@@ -137,7 +162,7 @@ export function useContributionsSave({ pendingMessage, successMessage, errorMess
             setIsLoading(false);
             removeAlertMessage(pendingId);
         }
-    }, [contributions, user, lang, mapProj, verifyFeatData, addAlertMessage, removeAlertMessage, pendingMessage, handleSuccess, handleError]);
+    }, [user, lang, mapProj, verifyFeatData, addAlertMessage, removeAlertMessage, pendingMessage, missingConfigurationMessage, handleSuccess, handleError]);
 
     const onClickReset = useCallback(() => {
         contrToCancel.forEach((contr) => resetContributionToMap(map!, contr));

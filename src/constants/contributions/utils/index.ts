@@ -132,3 +132,18 @@ export const getRules = (root: Group): GroupSearch => {
     };
     return rules;
 };
+
+export const areEqual = (current: unknown, initial: unknown) => {
+    if ((current === null || current === undefined || current === "") && (initial === null || initial === undefined || initial === "")) {
+        return true;
+    }
+
+    return (
+        Object.is(current, initial) ||
+        (typeof current === "object" &&
+            current !== null &&
+            typeof initial === "object" &&
+            initial !== null &&
+            JSON.stringify(current) === JSON.stringify(initial))
+    );
+};
