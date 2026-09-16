@@ -13,13 +13,7 @@ import {
     FEATURE_TYPE_PENDING_FORM_PROPERTY,
     FEATURE_TYPE_SELECTED_PROPERTY,
 } from "@/constants";
-import {
-    FEATURE_TYPE_DATA_PROPERTY,
-    FEATURE_TYPE_GEOSERVICE_PROPERTY,
-    FEATURE_TYPE_NEW_PROPERTY,
-    FEATURE_TYPE_PENDING_FORM_PROPERTY,
-    FEATURE_TYPE_SELECTED_PROPERTY,
-} from "@/constants";
+
 import { FeatureTypeMode } from "@/constants/contributions/types";
 
 import { CommunityGeoservice, FeatureTypeColumn } from "@/constants/communities/types";
