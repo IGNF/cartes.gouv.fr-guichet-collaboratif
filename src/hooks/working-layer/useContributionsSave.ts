@@ -15,9 +15,10 @@ interface UseContributionsSaveOptions {
     pendingMessage: string;
     successMessage: string;
     errorMessage: string;
+    missingConfigurationMessage: string;
 }
 
-export function useContributionsSave({ pendingMessage, successMessage, errorMessage }: UseContributionsSaveOptions) {
+export function useContributionsSave({ pendingMessage, successMessage, errorMessage, missingConfigurationMessage }: UseContributionsSaveOptions) {
     const { map, setWorkingLayerDrawerOpened, setClickedMapFeature, setClickedControl } = useMapStore();
     const { contributions, contrToCancel, setReviewContribution, setContributions, setContrToCancel } = useContributionStore();
     const { addAlertMessage, removeAlertMessage } = useCommunityStore();
@@ -78,21 +79,29 @@ export function useContributionsSave({ pendingMessage, successMessage, errorMess
     );
 
     const onSave = useCallback(async () => {
-        setIsLoading(true);
+        const validator = useContributionStore.getState().pendingFeatureFormValidator;
+        if (validator?.() === false) return;
+
+        const { contributions } = useContributionStore.getState();
         const apis: TransactionApi[] = [];
         const today = new Date();
         const geomContr: { contr: Contribution; geom: string }[] = [];
 
-        contributions.forEach((contr) => {
+        for (const contr of contributions) {
             const feat = contr.feature;
             const featData = feat.get(FEATURE_TYPE_DATA_PROPERTY) as Record<string, unknown>;
             const initialFeatData = contr.initialFeature?.get(FEATURE_TYPE_DATA_PROPERTY) as Record<string, unknown> | undefined;
             const geoservice: CommunityGeoservice = feat.get(FEATURE_TYPE_GEOSERVICE_PROPERTY);
+            const { database, table } = geoservice;
+            if (database === undefined || table === undefined) {
+                addAlertMessage(StatusMessage.error, missingConfigurationMessage);
+                return;
+            }
+
             verifyFeatData(featData, geoservice);
             const geometryNameColumn = geoservice.columns.find((c) => c.name === geoservice.geometryName);
             const featProj = geometryNameColumn?.crs;
-            if (!geoservice.database || geoservice.table === undefined) return;
-            const apiExist = apis.find((api) => api.database === geoservice.database);
+            const apiExist = apis.find((api) => api.database === database);
             const geometryWKT = getFeatureGeometryWKT(feat, mapProj, featProj);
             const featGeometry =
                 geometryNameColumn?.is3d && !geometryWKT.match(/^[A-Z]+ Z(?:M)?\b/) ? geometryWKT.replace(/^([A-Z]+)(?=\s*\()/, "$1 Z") : geometryWKT;
@@ -116,7 +125,7 @@ export function useContributionsSave({ pendingMessage, successMessage, errorMess
                 filteredFeatData[`${geoservice.geometryName}`] = featGeometry;
             }
             const action = {
-                table: geoservice.table,
+                table,
                 state: contr.type,
                 data: filteredFeatData,
             };
@@ -125,15 +134,16 @@ export function useContributionsSave({ pendingMessage, successMessage, errorMess
                 apiExist.body.actions.push(action);
             } else {
                 apis.push({
-                    database: geoservice.database,
+                    database,
                     body: {
                         comment: `Transaction ajoutée par l'utilisateur ${user?.username} ; date et heure : ${today.toLocaleDateString(lang, { formatMatcher: "best fit" })} ${today.toLocaleTimeString(lang)} (code : wfsTransactions)`,
                         actions: [action],
                     },
                 });
             }
-        });
+        }
 
+        setIsLoading(true);
         const pendingId = addAlertMessage(StatusMessage.info, pendingMessage);
         try {
             const postResAll = await postTransactions(apis);
@@ -152,7 +162,7 @@ export function useContributionsSave({ pendingMessage, successMessage, errorMess
             setIsLoading(false);
             removeAlertMessage(pendingId);
         }
-    }, [contributions, user, lang, mapProj, verifyFeatData, addAlertMessage, removeAlertMessage, pendingMessage, handleSuccess, handleError]);
+    }, [user, lang, mapProj, verifyFeatData, addAlertMessage, removeAlertMessage, pendingMessage, missingConfigurationMessage, handleSuccess, handleError]);
 
     const onClickReset = useCallback(() => {
         contrToCancel.forEach((contr) => resetContributionToMap(map!, contr));
