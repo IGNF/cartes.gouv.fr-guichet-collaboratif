@@ -1,5 +1,4 @@
-import { BETWEEN_OPERATORS, FeatureTypeColumn, MAX_ENUM_CHOICES, MAX_ENUM_SUGGESTIONS, OperatorType } from "@/constants/communities/types";
-import Checkbox from "@codegouvfr/react-dsfr/Checkbox";
+import { BETWEEN_OPERATORS, FeatureTypeColumn, MAX_ENUM_SUGGESTIONS, OperatorType } from "@/constants/communities/types";
 import Input from "@codegouvfr/react-dsfr/Input";
 import RadioButtons from "@codegouvfr/react-dsfr/RadioButtons";
 import { normalizeColumnEnum } from "@/constants/communities/utils";
@@ -39,12 +38,8 @@ const ChoiceValueComponent: React.FC<ChoiceTypeProps> = ({
 }) => {
     const isBetween = BETWEEN_OPERATORS.has(operator);
     const enumValues = normalizeColumnEnum(currentColumn?.enum);
-    const hasSelectableEnum = enumValues.length > 0 && enumValues.length <= MAX_ENUM_CHOICES;
-    const suggestionValues = enumValues.length > 0 ? enumValues : fallbackSuggestions;
-    const suggestionListId =
-        !hasSelectableEnum && suggestionValues.length > 0 && suggestionValues.length <= MAX_ENUM_SUGGESTIONS && currentColumn
-            ? `choice-value-suggestions-${currentColumn.name}`
-            : undefined;
+    const suggestionValues = (enumValues.length > 0 ? enumValues : fallbackSuggestions).slice(0, MAX_ENUM_SUGGESTIONS);
+    const suggestionListId = suggestionValues.length > 0 && currentColumn ? `choice-value-suggestions-${currentColumn.name}` : undefined;
 
     const renderTextInput = (index: FieldIndex) => (
         <Input
@@ -90,24 +85,6 @@ const ChoiceValueComponent: React.FC<ChoiceTypeProps> = ({
 
     switch (currentColumn?.type) {
         case "String":
-            if (hasSelectableEnum) {
-                return (
-                    <Checkbox
-                        className="choice-value-enum"
-                        legend=""
-                        small
-                        disabled={disabled}
-                        options={enumValues.map((val) => ({
-                            label: String(val ?? "null"),
-                            nativeInputProps: {
-                                value: val ?? "",
-                                checked: choiceValue.includes(String(val ?? "")),
-                                onChange: (e) => handleChoiceValueChange(e.target.value),
-                            },
-                        }))}
-                    />
-                );
-            }
             return (
                 <>
                     {renderField(renderTextInput)}

@@ -6,7 +6,7 @@ import { transform } from "ol/proj";
 import { AutomaticFieldType, AutomaticFieldContext } from "../types";
 
 import { getMunicipalityFromCoords, getAddressFromCoords, getCadastreFromCoords, getAltitudeFromCoords, getFeatureCoordinates } from "@/api/geocodageData";
-import { FeatureTypeColumn, MAX_ENUM_CHOICES, OperatorType } from "@/constants/communities/types";
+import { FeatureTypeColumn, OperatorType } from "@/constants/communities/types";
 import { BuildFilterResponse, GroupSearch, RuleSearch } from "@/constants/savedSearches/types";
 
 export const calculateAutomaticField = async (fieldType: AutomaticFieldType, context: AutomaticFieldContext): Promise<string | number | null> => {
@@ -264,10 +264,6 @@ export const getOperators = (
 
     switch (currentColumn.type) {
         case "String":
-            if (currentColumn.enum && currentColumn.enum.length > 0 && currentColumn.enum.length <= MAX_ENUM_CHOICES) {
-                operators = [OperatorType.in, OperatorType.not_in, OperatorType.is_empty, OperatorType.is_not_empty];
-                break;
-            }
             operators = [
                 OperatorType.equal,
                 OperatorType.not_equal,

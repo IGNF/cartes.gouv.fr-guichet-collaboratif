@@ -331,7 +331,6 @@ export const BETWEEN_OPERATORS = new Set<OperatorType>([OperatorType.between, Op
 
 export const MULTI_VALUE_OPERATORS = new Set<OperatorType>([OperatorType.in, OperatorType.not_in]);
 
-export const MAX_ENUM_CHOICES = 10;
 export const MAX_ENUM_SUGGESTIONS = 200;
 
 export const OVERVIEW_MAP_WMTS_LAYER = "GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2";
