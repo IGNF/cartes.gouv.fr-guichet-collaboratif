@@ -31,21 +31,31 @@ const EditReport: React.FC<Props> = ({ handleCloseDrawer }) => {
     const canEditReport = isAdmin || isCreator;
 
     const updateReport = useCallback(
-        async (reportPatch: PostReport, filesUploaded: File[] = []) => {
-            if (!community || !selectedReport || !canEditReport) return;
+        async (reportPatch: PostReport, filesUploaded: File[] = []): Promise<boolean> => {
+            if (!community || !selectedReport || !canEditReport) return false;
 
             try {
                 const reportUpdated = await updateCommunityReport(reportPatch, selectedReport.id);
 
                 if (!reportUpdated) {
                     addAlertMessage(StatusMessage.error, t("report_updated_error"));
-                    return;
+                    return false;
                 }
 
                 if (filesUploaded.length) {
-                    const attachmentsUploaded = await postCommunityReportAttachments({ ...reportUpdated, id: selectedReport.id }, filesUploaded);
-                    if (!attachmentsUploaded || !attachmentsUploaded.length) {
+                    let attachmentsUploaded;
+                    try {
+                        attachmentsUploaded = await postCommunityReportAttachments({ ...reportUpdated, id: selectedReport.id }, filesUploaded);
+                    } catch (error) {
+                        const data = isAxiosError(error) ? error.response?.data : undefined;
+                        const apiMessage = typeof data === "string" ? data : (data?.message ?? data?.detail);
+                        addAlertMessage(StatusMessage.error, apiMessage || t("report_document_uploaded_error"), 4000);
+                        return false;
+                    }
+
+                    if (!attachmentsUploaded) {
                         addAlertMessage(StatusMessage.error, t("report_document_uploaded_error"));
+                        return false;
                     } else {
                         reportUpdated.attachments = attachmentsUploaded;
                     }
@@ -57,6 +67,7 @@ const EditReport: React.FC<Props> = ({ handleCloseDrawer }) => {
                 const original = reports.find((r) => r.id === selectedReport.id) || {};
                 const mergedReport = { ...original, ...reportUpdated };
                 setReports([...filtered, mergedReport], true);
+                return true;
             } catch (error) {
                 let errorMessage = t("report_updated_error");
                 if (isAxiosError(error)) {
@@ -69,7 +80,7 @@ const EditReport: React.FC<Props> = ({ handleCloseDrawer }) => {
                     }
                 }
                 addAlertMessage(StatusMessage.error, errorMessage, 4000);
-                throw error;
+                return false;
             }
         },
         [community, selectedReport, canEditReport, reports, addAlertMessage, t, setReports]
@@ -86,10 +97,13 @@ const EditReport: React.FC<Props> = ({ handleCloseDrawer }) => {
         filesUploaded: File[],
         features: Feature[]
     ) => {
-        if (!community || !map) return;
+        if (!community || !map) return false;
 
         const mainFeature = features.find((f) => f.get("reportData") && f.get("main"));
-        if (!mainFeature) return;
+        if (!mainFeature) {
+            addAlertMessage(StatusMessage.error, t("report_updated_error"));
+            return false;
+        }
 
         const patch: PostReport = {
             community: community.id,

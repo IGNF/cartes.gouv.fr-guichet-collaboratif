@@ -3,6 +3,7 @@ import RadioButtons from "@codegouvfr/react-dsfr/RadioButtons";
 import { CommunityTheme } from "@/constants/communities/types";
 import ThemeForm from "./ThemeForm";
 import { PostThemeReport } from "@/constants/reports/types";
+import { getThemeAttributes } from "@/constants/utils";
 import { useTranslation } from "@/i18n";
 
 interface Props {
@@ -39,7 +40,7 @@ const ThemeComponent: React.FC<Props> = ({
                         checked: selectedTheme?.theme === theme.theme,
                         onChange: () => {
                             setSelectedTheme(theme);
-                            onChangeThemeAttributes({});
+                            onChangeThemeAttributes(getThemeAttributes(theme));
                         },
                         required: true,
                     },
