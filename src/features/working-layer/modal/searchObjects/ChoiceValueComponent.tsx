@@ -1,5 +1,4 @@
-import { BETWEEN_OPERATORS, FeatureTypeColumn, OperatorType } from "@/constants/communities/types";
-import Checkbox from "@codegouvfr/react-dsfr/Checkbox";
+import { BETWEEN_OPERATORS, FeatureTypeColumn, MAX_ENUM_SUGGESTIONS, OperatorType } from "@/constants/communities/types";
 import Input from "@codegouvfr/react-dsfr/Input";
 import RadioButtons from "@codegouvfr/react-dsfr/RadioButtons";
 import { normalizeColumnEnum } from "@/constants/communities/utils";
@@ -10,6 +9,7 @@ interface ChoiceTypeProps {
     operator: OperatorType;
     handleChoiceValueChange: (val: string, index?: number) => void;
     disabled?: boolean;
+    fallbackSuggestions?: string[];
 }
 
 type FieldIndex = 0 | 1;
@@ -28,9 +28,18 @@ const BetweenFields = ({ renderField }: { renderField: (index: FieldIndex) => Re
     </div>
 );
 
-const ChoiceValueComponent: React.FC<ChoiceTypeProps> = ({ choiceValue, currentColumn, operator, handleChoiceValueChange, disabled = false }) => {
+const ChoiceValueComponent: React.FC<ChoiceTypeProps> = ({
+    choiceValue,
+    currentColumn,
+    operator,
+    handleChoiceValueChange,
+    disabled = false,
+    fallbackSuggestions = [],
+}) => {
     const isBetween = BETWEEN_OPERATORS.has(operator);
     const enumValues = normalizeColumnEnum(currentColumn?.enum);
+    const suggestionValues = (enumValues.length > 0 ? enumValues : fallbackSuggestions).slice(0, MAX_ENUM_SUGGESTIONS);
+    const suggestionListId = suggestionValues.length > 0 && currentColumn ? `choice-value-suggestions-${currentColumn.name}` : undefined;
 
     const renderTextInput = (index: FieldIndex) => (
         <Input
@@ -39,6 +48,7 @@ const ChoiceValueComponent: React.FC<ChoiceTypeProps> = ({ choiceValue, currentC
             nativeInputProps={{
                 value: choiceValue[index] ?? "",
                 onChange: (e) => handleChoiceValueChange(e.target.value, index),
+                list: suggestionListId,
             }}
         />
     );
@@ -75,25 +85,18 @@ const ChoiceValueComponent: React.FC<ChoiceTypeProps> = ({ choiceValue, currentC
 
     switch (currentColumn?.type) {
         case "String":
-            if (enumValues.length > 0) {
-                return (
-                    <Checkbox
-                        className="choice-value-enum"
-                        legend=""
-                        small
-                        disabled={disabled}
-                        options={enumValues.map((val) => ({
-                            label: String(val ?? "null"),
-                            nativeInputProps: {
-                                value: val ?? "",
-                                checked: choiceValue.includes(String(val ?? "")),
-                                onChange: (e) => handleChoiceValueChange(e.target.value),
-                            },
-                        }))}
-                    />
-                );
-            }
-            return renderField(renderTextInput);
+            return (
+                <>
+                    {renderField(renderTextInput)}
+                    {suggestionListId && (
+                        <datalist id={suggestionListId}>
+                            {suggestionValues.map((val, idx) => (
+                                <option key={idx} value={String(val ?? "")} />
+                            ))}
+                        </datalist>
+                    )}
+                </>
+            );
 
         case "Integer":
             return renderField(renderIntegerInput);
