@@ -10,11 +10,12 @@ interface FeatureTypeFormHeaderProps {
     title: string;
     featureId: string | number;
     mode: FeatureTypeMode;
+    isEditAuthorised?: boolean;
     onModeChange: (mode: FeatureTypeMode) => void;
     onClose: () => void;
 }
 
-export const FeatureTypeFormHeader: React.FC<FeatureTypeFormHeaderProps> = ({ title, featureId, mode, onModeChange, onClose }) => {
+export const FeatureTypeFormHeader: React.FC<FeatureTypeFormHeaderProps> = ({ title, featureId, mode, isEditAuthorised, onModeChange, onClose }) => {
     const { t } = useTranslation({ FeatureTypeFormHeader });
 
     const { featureTypeMode, selectedObjects } = useContributionStore();
@@ -29,14 +30,16 @@ export const FeatureTypeFormHeader: React.FC<FeatureTypeFormHeaderProps> = ({ ti
     }, [communityLayers, title]);
 
     useEffect(() => {
-        if (isVisuOnly && mode !== FeatureTypeMode.VIEW) {
+        if ((isVisuOnly || isEditAuthorised === false) && mode !== FeatureTypeMode.VIEW) {
             onModeChange(FeatureTypeMode.VIEW);
         }
-    }, [isVisuOnly, mode, onModeChange]);
+    }, [isEditAuthorised, isVisuOnly, mode, onModeChange]);
 
     const isEditMode = mode === FeatureTypeMode.EDIT;
+    const isEditDisabled = isEditAuthorised === false;
 
     const isMultipleObjects = selectedObjects.length > 1;
+    const editDisabledTitle = isMultipleObjects ? t("edit_disabled_multiple") : t("edit_disabled");
     const featureIdDisplay = isMultipleObjects ? t("objects_count", { count: selectedObjects.length }) : featureId;
 
     return (
@@ -49,6 +52,8 @@ export const FeatureTypeFormHeader: React.FC<FeatureTypeFormHeaderProps> = ({ ti
                     iconId={isEditMode ? "ri-eye-fill" : "ri-edit-box-fill"}
                     className="feature-type-form-edit-button"
                     priority="tertiary no outline"
+                    disabled={isEditDisabled}
+                    title={isEditDisabled ? editDisabledTitle : undefined}
                     onClick={() => onModeChange(isEditMode ? FeatureTypeMode.VIEW : FeatureTypeMode.EDIT)}
                 >
                     {isEditMode ? t("back") : t("edit")}{" "}

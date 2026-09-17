@@ -30,7 +30,12 @@ interface PointDataProps {
     [key: string]: string | number | null;
 }
 
-const EditFeatureTypeForm = ({ onClose }: { onClose?: () => void }) => {
+interface EditFeatureTypeFormProps {
+    isEditAuthorised?: boolean;
+    onClose?: () => void;
+}
+
+const EditFeatureTypeForm = ({ isEditAuthorised, onClose }: EditFeatureTypeFormProps) => {
     const { map, mapSwitcher, clickedMapFeature, mapWorkingLayer, setClickedMapFeature, setWorkingLayerDrawerOpened } = useMapStore();
     const { selectedObjects, setSelectedObjects, setFeatureTypeMode, columnsToModify, setColumnsToModify, setPendingFeatureFormValidator } =
         useContributionStore();
@@ -171,6 +176,7 @@ const EditFeatureTypeForm = ({ onClose }: { onClose?: () => void }) => {
                 title={`${isNewFeature ? t("state") + " " : ""}${geoserviceData?.title || ""}`}
                 featureId={pointData?.[geoserviceData?.idName || "id"] || ""}
                 mode={FeatureTypeMode.EDIT}
+                isEditAuthorised={isEditAuthorised}
                 onModeChange={handleModeChange}
                 onClose={guardedClose}
             />

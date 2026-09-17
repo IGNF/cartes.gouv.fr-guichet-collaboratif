@@ -72,6 +72,15 @@ export const resetContributionToMap = (map: Map, contr: Contribution) => {
     }
 };
 
+export const restoreFeature = (feature: Feature, initialFeature: Feature) => {
+    const initialProperties = initialFeature.getProperties();
+    feature.getKeys().forEach((key) => {
+        if (!(key in initialProperties)) feature.unset(key, true);
+    });
+    feature.setProperties(initialProperties);
+    feature.changed();
+};
+
 export const setFeatNewCoords = (feat: Feature) => {
     const geometry = feat.getGeometry() as GeometryFeatueParams;
     const featCoords = geometry?.getCoordinates() as CoordinateType;

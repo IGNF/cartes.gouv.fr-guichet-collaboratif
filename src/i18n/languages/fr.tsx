@@ -33,6 +33,7 @@ import { useGetWMSLayerFrTranslations } from "@/hooks/navigation/layers/locale/u
 import { useGetWMTSLayerFrTranslations } from "@/hooks/navigation/layers/locale/useGetWMTSLayer.locale";
 import { useGetInteractionsFuncsFrTranslations } from "@/hooks/navigation/controls/locale/useGetInteractionsFuncs.locale";
 import { useFeatureTypeValidationFrTranslations } from "@/hooks/working-layer/locale/useFeatureTypeValidation.locale";
+import { useContributionAuthorisationFrTranslations } from "@/hooks/working-layer/locale/useContributionAuthorisation.locale";
 import { useFeatureFormGuardFrTranslations } from "@/hooks/working-layer/locale/useFeatureFormGuard.locale";
 import { DrawerComponentFrTranslations } from "@/components/locale/DrawerComponent.locale";
 import { FilterAndSortReportFrTranslations } from "@/components/locale/FilterAndSortReport.locale";
@@ -109,6 +110,7 @@ export const translations: Translations<"fr"> = {
     useGetWMTSLayer: useGetWMTSLayerFrTranslations,
     useGetInteractionsFuncs: useGetInteractionsFuncsFrTranslations,
     useFeatureTypeValidation: useFeatureTypeValidationFrTranslations,
+    useContributionAuthorisation: useContributionAuthorisationFrTranslations,
     useFeatureFormGuard: useFeatureFormGuardFrTranslations,
     DrawingControl: DrawingControlFrTranslations,
     ToolsControl: ToolsControlFrTranslations,

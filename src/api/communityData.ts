@@ -1,5 +1,5 @@
 import { useCommunityStore } from "@/store/useCommunityStore";
-import { COMMUNITIES_API_URL, GRIDS_API_URL, LIST_COMMUNITIES_URL } from "@/constants/urls";
+import { COMMUNITIES_API_URL, LIST_COMMUNITIES_URL } from "@/constants/urls";
 import { QueryClient, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useUserStore } from "@/store/useUserStore";
 import { getGeoserviceAll } from "./geoservicesData";
@@ -8,27 +8,11 @@ import { getAxiosApi } from ".";
 import { getFeatureTypesAll } from "./featureTypesData";
 import { parseContentRange } from "@/constants/utils";
 import { LAYER_FEATURE_TYPE, DEFAULT_COMMUNITY_MIN_ZOOM, DEFAULT_COMMUNITY_MAX_ZOOM } from "@/constants";
-import { User } from "@/constants/user/types";
 
 export const isDigital = (value: string): boolean => {
     const regex = /^[1-9]\d*$/;
     return regex.test(value);
 };
-
-async function getCommunityGrids(grids: string[]): Promise<CommunityGrids[]> {
-    const api = await getAxiosApi();
-    const resAll = await Promise.all(
-        grids.map((gridName) => api.get(`${GRIDS_API_URL}/${gridName}?fields[]=name` + `&fields[]=title` + `&fields[]=type` + `&fields[]=extent`))
-    );
-    return resAll.map((res) => {
-        return {
-            name: res.data.name,
-            title: res.data.title,
-            type: res.data.type,
-            extent: res.data.extent,
-        };
-    });
-}
 
 async function getCommunityLayers(communityId: string, queryClient: QueryClient): Promise<CommunityLayer[]> {
     const api = await getAxiosApi();
@@ -60,7 +44,7 @@ async function getCommunityLayers(communityId: string, queryClient: QueryClient)
     if (cachedGeoservices) {
         geoRes = cachedGeoservices as CommunityGeoservice[];
     } else {
-        geoRes = await queryClient.fetchQuery({
+        geoRes = await queryClient.query({
             queryKey: communityGeoservicesKey,
             queryFn: () => getGeoserviceAll(geoservicesIds),
         });
@@ -68,7 +52,7 @@ async function getCommunityLayers(communityId: string, queryClient: QueryClient)
     if (cachedFeatureTypes) {
         featureTypeRes = cachedFeatureTypes as CommunityGeoservice[];
     } else {
-        featureTypeRes = await queryClient.fetchQuery({
+        featureTypeRes = await queryClient.query({
             queryKey: communityFeatureTypesKey,
             queryFn: () => getFeatureTypesAll(featureTypesIds),
         });
@@ -140,7 +124,7 @@ const defineZoomlvl = (layers: CommunityLayer[], providedMinZoom?: number | null
     };
 };
 
-async function getCommunityById(communityId: string, user: User, queryClient: QueryClient): Promise<[Community, CommunityLayer[]] | null> {
+async function getCommunityById(communityId: string, queryClient: QueryClient): Promise<[Community, CommunityLayer[], CommunityGrids[]] | null> {
     const api = await getAxiosApi();
     const res = await api.get(`${COMMUNITIES_API_URL}/${communityId}`);
 
@@ -156,7 +140,7 @@ async function getCommunityById(communityId: string, user: User, queryClient: Qu
     if (cached) {
         layers = cached as CommunityLayer[];
     } else {
-        layers = await queryClient?.fetchQuery({
+        layers = await queryClient?.query({
             queryKey: communityLayersKey,
             queryFn: () => getCommunityLayers(communityId, queryClient),
         });
@@ -183,15 +167,22 @@ async function getCommunityById(communityId: string, user: User, queryClient: Qu
         maxZoom,
         grids: [],
     };
-    if (user) {
-        const grids = user.communitiesMember.find((cm) => cm.communityId === communityId)?.grids;
-        const communityGrids = await queryClient?.fetchQuery({
-            queryKey: [`COMMUNITY_GRIDS_DATA_${communityId}`],
-            queryFn: () => getCommunityGrids(grids!),
-        });
-        community.grids = communityGrids;
-    }
-    return [community, layers];
+    const communityGrids = Array.isArray(res.data.grids)
+        ? res.data.grids.filter((grid: unknown): grid is CommunityGrids =>
+              Boolean(
+                  grid &&
+                  typeof grid === "object" &&
+                  "name" in grid &&
+                  typeof grid.name === "string" &&
+                  "title" in grid &&
+                  typeof grid.title === "string" &&
+                  "type" in grid &&
+                  "extent" in grid
+              )
+          )
+        : [];
+
+    return [community, layers, communityGrids];
 }
 export const useGetCommunityByIdAPI = (communityId: string) => {
     const { community } = useCommunityStore();
@@ -199,7 +190,7 @@ export const useGetCommunityByIdAPI = (communityId: string) => {
     const queryClient = useQueryClient();
     return useQuery({
         queryKey: ["COMMUNITY_DATA_" + communityId],
-        queryFn: () => getCommunityById(communityId, user, queryClient),
+        queryFn: () => getCommunityById(communityId, queryClient),
         retry: 2,
         enabled: !community && isDigital(communityId) && !!user,
     });

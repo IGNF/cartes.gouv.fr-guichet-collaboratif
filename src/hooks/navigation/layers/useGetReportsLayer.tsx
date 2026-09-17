@@ -31,7 +31,7 @@ function useGetReportsLayer(communityId: number) {
                     const boxExtent = transformExtent(extent, "EPSG:3857", "EPSG:4326");
                     if (!isFinite(boxExtent[0]) || isEmpty(boxExtent)) return [];
                     const queryKey = `GET_REPORTS_communities=${communityId}` + `_limit=20` + `_box=${boxExtent}`;
-                    const reports = await queryClient.fetchQuery({
+                    const reports = await queryClient.query({
                         queryKey: [queryKey],
                         queryFn: () => getCommunityReports(communityId, extent),
                         retry: !isFinite(boxExtent[0]) || isEmpty(boxExtent) ? 0 : 1,
