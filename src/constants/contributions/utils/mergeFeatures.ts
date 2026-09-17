@@ -20,7 +20,7 @@ export function mergeAdjacentPolygonRings(ring1: Coordinate[], ring2: Coordinate
 function mergePolygonCoordinates(coordinates1: Coordinate[][], coordinates2: Coordinate[][]): Coordinate[][] | null {
     const merged = union(featureCollection([polygon(coordinates1), polygon(coordinates2)]));
 
-    // A disconnected result is dismissed (Multygeom)
+    // A disconnected result is dismissed (Multi-geom)
     if (!merged || merged.geometry.type !== "Polygon") return null;
 
     return merged.geometry.coordinates;

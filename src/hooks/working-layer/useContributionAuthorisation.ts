@@ -26,13 +26,19 @@ export function useFeatureAuthorisation() {
 
     const parsedGrids = useMemo<ParsedGrid[]>(
         () =>
-            communityGrids?.map((grid) => {
-                const geometry = wktFormat.readGeometry(grid.geometry);
-                return {
-                    data: grid,
-                    geometry: geoJSONFormat.writeGeometryObject(geometry) as GeoJSONGeometry,
-                };
-            }) ?? [],
+            communityGrids
+                ?.map((grid): ParsedGrid | null => {
+                    try {
+                        const geometry = wktFormat.readGeometry(grid.geometry);
+                        return {
+                            data: grid,
+                            geometry: geoJSONFormat.writeGeometryObject(geometry) as GeoJSONGeometry,
+                        };
+                    } catch {
+                        return null;
+                    }
+                })
+                .filter((parsedGrid): parsedGrid is ParsedGrid => parsedGrid !== null) ?? [],
         [communityGrids]
     );
 
