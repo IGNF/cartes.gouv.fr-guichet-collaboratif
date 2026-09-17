@@ -222,7 +222,11 @@ export async function getCommunityReportById(reportId: number): Promise<Communit
         geometry: report.geometry,
         comment: report.comment,
         themes: report.attributes,
+        attributes: report.attributes,
         status: report.status as StatusKey,
+        opening_date: report.opening_date,
+        commune: report.commune,
+        departement: report.departement,
         attachments: report.attachments.map((attachment) => {
             return {
                 id: attachment.id,

@@ -8,7 +8,6 @@ export const PROFILE_URL = HOME_URL + "/profile";
 export const PAGE_404_URL = HOME_URL + "/page-404";
 
 export const LIST_COMMUNITIES_URL = SERVER_URL + "/front-office";
-export const DOWNLOAD_DOCUMENT_URL = SERVER_URL + "/document/download";
 
 export const USER_PROFILE_API_URL = API_URL + "/users/me";
 export const USERS_API_URL = API_URL + "/users";

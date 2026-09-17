@@ -70,6 +70,7 @@ import { SearchTableEnTranslations } from "@/features/working-layer/modal/search
 import { SearchObjectsModalEnTranslations } from "@/features/working-layer/modal/searchObjects/locale/SearchObjectsModal.locale";
 import { GroupComponentEnTranslations } from "@/features/working-layer/modal/searchObjects/locale/GroupComponent.locale";
 import { ConfirmDeleteObjectModalEnTranslations } from "@/features/working-layer/modal/searchObjects/locale/ConfirmDeleteObjectModal.locale";
+import { SelectionExportModalEnTranslations } from "@/features/reports/table/locale/SelectionExportModal.locale";
 
 export const translations: Translations<"en"> = {
     AppFooter: AppFooterEnTranslations,
@@ -143,4 +144,5 @@ export const translations: Translations<"en"> = {
     SearchObjectsModal: SearchObjectsModalEnTranslations,
     GroupComponent: GroupComponentEnTranslations,
     ConfirmDeleteObjectModal: ConfirmDeleteObjectModalEnTranslations,
+    SelectionExportModal: SelectionExportModalEnTranslations,
 };
