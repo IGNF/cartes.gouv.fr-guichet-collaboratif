@@ -23,7 +23,7 @@ export const calculateAutomaticField = async (fieldType: AutomaticFieldType, con
             return new Date().toISOString().split("T")[0];
 
         case AutomaticFieldType.CURRENT_DATETIME:
-            return new Date().toISOString();
+            return new Date().toISOString().slice(0, 19).replace("T", " ");
 
         case AutomaticFieldType.LONGITUDE:
             return getLongitude(feature);

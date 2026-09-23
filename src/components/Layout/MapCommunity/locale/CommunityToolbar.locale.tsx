@@ -6,6 +6,7 @@ export const CommunityToolbarFrTranslations: Translations<"fr">["CommunityToolba
     save_pending: "Vérification du statut en cours",
     save_success: "Les contributions ont été sauvegardées",
     save_error: "Les contributions n'ont pas pu être sauvegardées",
+    save_missing_configuration: "Certaines contributions ne peuvent pas être sauvegardées car leur base de données ou leur table est manquante",
     history: "Passer en revue les contributions",
     share: "Partager",
     settings: "Paramètres du guichet",
@@ -18,6 +19,7 @@ export const CommunityToolbarEnTranslations: Translations<"en">["CommunityToolba
     save_pending: "Checking contributions status",
     save_success: "Contributions have been successfully saved",
     save_error: "Unable to save contributions",
+    save_missing_configuration: "Some contributions cannot be saved because their database or table is missing",
     history: "Review contributions",
     share: "Share",
     settings: "Community settings",
@@ -26,6 +28,6 @@ export const CommunityToolbarEnTranslations: Translations<"en">["CommunityToolba
 };
 
 const { i18n } = declareComponentKeys<
-    "save" | "save_pending" | "save_success" | "save_error" | "history" | "share" | "settings" | "share_success" | "share_error"
+    "save" | "save_pending" | "save_success" | "save_error" | "save_missing_configuration" | "history" | "share" | "settings" | "share_success" | "share_error"
 >()("CommunityToolbar");
 export type I18n = typeof i18n;
