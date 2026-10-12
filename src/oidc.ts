@@ -1,5 +1,7 @@
 import { oidcSpa } from "oidc-spa/react-spa";
 
+import { env } from "@/env";
+
 export const { bootstrapOidc, useOidc, getOidc, OidcInitializationGate } = oidcSpa
     // pour le type checking du token décodé, pour le moment pas nécessaire
     // .withExpectedDecodedIdTokenShape({
@@ -30,8 +32,8 @@ bootstrapOidc(
           }
         : {
               implementation: "real",
-              issuerUri: `${import.meta.env.VITE_IAM_URL}/realms/${import.meta.env.VITE_IAM_REALM}`,
-              clientId: import.meta.env.VITE_IAM_CLIENT_ID,
+              issuerUri: `${env.APP_IAM_URL}/realms/${env.APP_IAM_REALM}`,
+              clientId: env.APP_IAM_CLIENT_ID,
               debugLogs: import.meta.env.MODE === "development",
           }
 );
