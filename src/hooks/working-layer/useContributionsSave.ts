@@ -18,6 +18,17 @@ interface UseContributionsSaveOptions {
     missingConfigurationMessage: string;
 }
 
+const matchGeometryColumnType = (wkt: string, columnType?: string) => {
+    const normalizedColumnType = columnType?.toLowerCase();
+    if (normalizedColumnType?.includes("multipolygon") && /^POLYGON\s*\(/i.test(wkt)) {
+        return wkt.replace(/^POLYGON\s*(\(.*\))$/i, "MULTIPOLYGON($1)");
+    }
+    if (normalizedColumnType?.includes("multilinestring") && /^LINESTRING\s*\(/i.test(wkt)) {
+        return wkt.replace(/^LINESTRING\s*(\(.*\))$/i, "MULTILINESTRING($1)");
+    }
+    return wkt;
+};
+
 export function useContributionsSave({ pendingMessage, successMessage, errorMessage, missingConfigurationMessage }: UseContributionsSaveOptions) {
     const { map, setWorkingLayerDrawerOpened, setClickedMapFeature, setClickedControl } = useMapStore();
     const { contributions, contrToCancel, setReviewContribution, setContributions, setContrToCancel } = useContributionStore();
@@ -102,8 +113,10 @@ export function useContributionsSave({ pendingMessage, successMessage, errorMess
             const geometryNameColumn = geoservice.columns.find((c) => c.name === geoservice.geometryName);
             const featProj = geometryNameColumn?.crs;
             const apiExist = apis.find((api) => api.database === database);
-            const featGeometry = getFeatureGeometryWKT(feat, mapProj, featProj, true);
-            const initialGeometry = contr.initialFeature ? getFeatureGeometryWKT(contr.initialFeature, mapProj, featProj, true) : undefined;
+            const featGeometry = matchGeometryColumnType(getFeatureGeometryWKT(feat, mapProj, featProj, true), geometryNameColumn?.type);
+            const initialGeometry = contr.initialFeature
+                ? matchGeometryColumnType(getFeatureGeometryWKT(contr.initialFeature, mapProj, featProj, true), geometryNameColumn?.type)
+                : undefined;
             const columnsByName = new Map(geoservice.columns.map((column) => [column.name, column]));
             const filteredFeatData: Record<string, unknown> = {};
             Object.entries(featData).forEach(([key, value]) => {
