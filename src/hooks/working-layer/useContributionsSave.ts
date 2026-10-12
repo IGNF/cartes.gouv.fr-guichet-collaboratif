@@ -102,10 +102,8 @@ export function useContributionsSave({ pendingMessage, successMessage, errorMess
             const geometryNameColumn = geoservice.columns.find((c) => c.name === geoservice.geometryName);
             const featProj = geometryNameColumn?.crs;
             const apiExist = apis.find((api) => api.database === database);
-            const geometryWKT = getFeatureGeometryWKT(feat, mapProj, featProj);
-            const featGeometry =
-                geometryNameColumn?.is3d && !geometryWKT.match(/^[A-Z]+ Z(?:M)?\b/) ? geometryWKT.replace(/^([A-Z]+)(?=\s*\()/, "$1 Z") : geometryWKT;
-            const initialGeometry = contr.initialFeature ? getFeatureGeometryWKT(contr.initialFeature, mapProj, featProj) : undefined;
+            const featGeometry = getFeatureGeometryWKT(feat, mapProj, featProj, true);
+            const initialGeometry = contr.initialFeature ? getFeatureGeometryWKT(contr.initialFeature, mapProj, featProj, true) : undefined;
             const columnsByName = new Map(geoservice.columns.map((column) => [column.name, column]));
             const filteredFeatData: Record<string, unknown> = {};
             Object.entries(featData).forEach(([key, value]) => {
@@ -118,8 +116,10 @@ export function useContributionsSave({ pendingMessage, successMessage, errorMess
                 const isIdentifier = key === geoservice.idName;
                 const isChanged = !areEqual(value, initialFeatData?.[key]);
                 if (contr.type !== ContributionType.CREATE && !isIdentifier && !isChanged) return;
+                if (contr.type === ContributionType.CREATE && value === "" && !column.required) return;
 
-                filteredFeatData[key] = column.type.toLowerCase() === "datetime" && typeof value === "string" ? value.slice(0, 19).replace("T", " ") : value;
+                const columnType = column.type.toLowerCase();
+                filteredFeatData[key] = columnType === "datetime" && typeof value === "string" ? value.slice(0, 19).replace("T", " ") : value;
             });
             if (contr.type === ContributionType.CREATE || featGeometry !== initialGeometry) {
                 filteredFeatData[`${geoservice.geometryName}`] = featGeometry;
