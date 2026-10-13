@@ -22,5 +22,6 @@ dist-ssr
 *.sw?
 
 /.history
+src/api/MockJson/swagger-merged_09_10.json
 
 /compose*.yml

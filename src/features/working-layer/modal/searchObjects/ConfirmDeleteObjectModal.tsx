@@ -7,11 +7,13 @@ import VectorLayer from "ol/layer/Vector";
 import WebGLVectorLayer from "ol/layer/WebGLVector";
 import VectorSource from "ol/source/Vector";
 import { useCallback } from "react";
+import { useContributionAuthorisation } from "@/hooks/working-layer/useContributionAuthorisation";
 
 const ConfirmDeleteObjectModal = () => {
     const { map, mapWorkingLayer } = useMapStore();
     const { confirmDeleteObjectSearchModal, searchModal } = useModalStore();
     const { searchItemToDelete, setSearchItemToDelete, saveContribution } = useContributionStore();
+    const authoriseContribution = useContributionAuthorisation();
 
     const { t } = useTranslation({ ConfirmDeleteObjectModal });
 
@@ -27,9 +29,10 @@ const ConfirmDeleteObjectModal = () => {
 
     const handleConfirmModal = useCallback(() => {
         if (!searchItemToDelete) return;
-        clickableSource.removeFeature(searchItemToDelete);
+        if (!authoriseContribution(searchItemToDelete, ContributionType.DELETE, searchItemToDelete)) return;
         saveContribution(searchItemToDelete, ContributionType.DELETE, searchItemToDelete, mapWorkingLayer);
-    }, [mapWorkingLayer, searchItemToDelete, clickableSource, saveContribution]);
+        clickableSource.removeFeature(searchItemToDelete);
+    }, [authoriseContribution, mapWorkingLayer, searchItemToDelete, clickableSource, saveContribution]);
 
     return (
         <ModaleComponent
