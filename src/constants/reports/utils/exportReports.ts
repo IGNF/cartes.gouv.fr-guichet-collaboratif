@@ -2,7 +2,7 @@ import GeoJSON from "ol/format/GeoJSON";
 import WKT from "ol/format/WKT";
 
 import { CommunityReport } from "@/constants/reports/types";
-import { SERVER_URL } from "@/constants/urls";
+import { ESPACECO_URL } from "@/constants/urls";
 
 export type ReportExportFormat = "csv" | "geojson";
 
@@ -85,7 +85,7 @@ export const toGeoJSON = (reports: CommunityReport[]) => {
                 commune_code: report.commune?.name ?? null,
                 departement: report.departement?.title ?? null,
                 departement_code: report.departement?.name ?? null,
-                documents: report.attachments.map((attachment) => `${SERVER_URL}/document/download/${attachment.id}`),
+                documents: report.attachments.map((attachment) => `${ESPACECO_URL}/document/download/${attachment.id}`),
                 replies: report.replies ?? [],
                 sketch: parseSketch(report.sketch),
             };
