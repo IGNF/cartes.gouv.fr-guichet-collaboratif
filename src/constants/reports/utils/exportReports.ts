@@ -14,15 +14,15 @@ export interface ExportColumn {
 type ExportRow = Record<string, unknown>;
 type GeoJSONGeometry = ReturnType<GeoJSON["writeGeometryObject"]>;
 
-interface GeoJSONFeature {
-    type: "Feature";
+interface GeoJSONReport {
+    type: "Report";
     geometry: GeoJSONGeometry;
     properties: ExportRow;
 }
 
 interface GeoJSONFeatureCollection {
-    type: "FeatureCollection";
-    features: GeoJSONFeature[];
+    type: "ReportCollection";
+    reports: GeoJSONReport[];
 }
 
 interface ReportTheme {
@@ -66,8 +66,8 @@ export const toGeoJSON = (reports: CommunityReport[]) => {
     const geoJSONFormat = new GeoJSON();
 
     const featureCollection: GeoJSONFeatureCollection = {
-        type: "FeatureCollection",
-        features: reports.map((report) => {
+        type: "ReportCollection",
+        reports: reports.map((report) => {
             const geometry = wktFormat.readGeometry(report.geometry, {
                 dataProjection: "EPSG:4326",
                 featureProjection: "EPSG:4326",
@@ -93,7 +93,7 @@ export const toGeoJSON = (reports: CommunityReport[]) => {
             addFlattenedThemeProperties(properties, report);
 
             return {
-                type: "Feature",
+                type: "Report",
                 geometry: geoJSONFormat.writeGeometryObject(geometry, {
                     dataProjection: "EPSG:4326",
                     featureProjection: "EPSG:4326",

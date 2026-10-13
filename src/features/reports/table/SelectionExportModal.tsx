@@ -30,7 +30,6 @@ export default function SelectionExportModal({ onExport }: SelectionExportModalP
                 options={[
                     {
                         label: t("csv"),
-                        hintText: t("csv_hint"),
                         nativeInputProps: {
                             value: "csv",
                             checked: format === "csv",
@@ -39,7 +38,6 @@ export default function SelectionExportModal({ onExport }: SelectionExportModalP
                     },
                     {
                         label: t("geojson"),
-                        hintText: t("geojson_hint"),
                         nativeInputProps: {
                             value: "geojson",
                             checked: format === "geojson",
