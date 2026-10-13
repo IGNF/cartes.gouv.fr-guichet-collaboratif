@@ -100,11 +100,14 @@ export const FeatureTypeFormFields: React.FC<FeatureTypeFormFieldsProps> = ({ co
                                                 required: col.required && isColumnSelected,
                                             }}
                                         >
-                                            {enumValues.map((opt, idx) => (
-                                                <option key={idx} value={opt ?? ""}>
-                                                    {opt ?? t("select_placeholder")}
-                                                </option>
-                                            ))}
+                                            <option value="">{t("select_placeholder")}</option>
+                                            {enumValues
+                                                .filter((opt) => opt !== null)
+                                                .map((opt, idx) => (
+                                                    <option key={idx} value={opt ?? ""}>
+                                                        {opt}
+                                                    </option>
+                                                ))}
                                         </Select>
                                     ) : (
                                         <Input
@@ -137,11 +140,13 @@ export const FeatureTypeFormFields: React.FC<FeatureTypeFormFieldsProps> = ({ co
                                             }}
                                         >
                                             <option value="">{t("select_placeholder")}</option>
-                                            {enumValues.map((opt, idx) => (
-                                                <option key={idx} value={opt ?? ""}>
-                                                    {opt}
-                                                </option>
-                                            ))}
+                                            {enumValues
+                                                .filter((opt) => opt !== null)
+                                                .map((opt, idx) => (
+                                                    <option key={idx} value={opt ?? ""}>
+                                                        {opt}
+                                                    </option>
+                                                ))}
                                         </Select>
                                     ) : (
                                         <Input
@@ -167,7 +172,7 @@ export const FeatureTypeFormFields: React.FC<FeatureTypeFormFieldsProps> = ({ co
                                         state={error ? "error" : "default"}
                                         stateRelatedMessage={error || undefined}
                                         nativeSelectProps={{
-                                            value: v === null ? "" : String(v),
+                                            value: v === null || v === undefined ? "" : String(v),
                                             onChange: (e) => {
                                                 const val = e.target.value;
                                                 updateField(col.name, val === "" ? null : val === "true", col);
@@ -175,7 +180,7 @@ export const FeatureTypeFormFields: React.FC<FeatureTypeFormFieldsProps> = ({ co
                                             required: col.required && isColumnSelected,
                                         }}
                                     >
-                                        {col.nullable && !col.required && <option value=""></option>}
+                                        <option value="">{t("select_placeholder")}</option>
                                         <option value="true">{t("yes") || "Oui"}</option>
                                         <option value="false">{t("no") || "Non"}</option>
                                     </Select>

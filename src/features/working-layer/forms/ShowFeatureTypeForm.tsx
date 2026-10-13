@@ -10,13 +10,18 @@ import { FeatureTypeFormHeader } from "./FeatureTypeFormHeader";
 import VectorLayer from "ol/layer/Vector";
 import WebGLVectorLayer from "ol/layer/WebGLVector";
 import { EventTypes } from "ol/Observable";
-import { memo, useCallback, useEffect, useMemo, useRef } from "react";
+import { memo, ReactNode, useCallback, useEffect, useMemo, useRef } from "react";
 
 interface PointDataProps {
-    [key: string]: string | number | null;
+    [key: string]: unknown;
 }
 
-const ShowFeatureTypeForm = ({ onClose }: { onClose?: () => void }) => {
+interface ShowFeatureTypeFormProps {
+    isEditAuthorised?: boolean;
+    onClose?: () => void;
+}
+
+const ShowFeatureTypeForm = ({ isEditAuthorised, onClose }: ShowFeatureTypeFormProps) => {
     const { map, mapSwitcher, mapWorkingLayer, clickedMapFeature, setWorkingLayerDrawerOpened, setClickedMapFeature } = useMapStore();
     const { setFeatureTypeMode } = useContributionStore();
     const isSwitchingToEdit = useRef(false);
@@ -78,25 +83,25 @@ const ShowFeatureTypeForm = ({ onClose }: { onClose?: () => void }) => {
         () =>
             columns.map((col) => {
                 const title = col.title;
-                let value = pointData[col.name] || col.default_value;
-                switch (value) {
-                    case null:
-                        value = t("value_empty");
-                        break;
-                    case false:
-                        value = t("value_no");
-                        break;
-                    case true:
-                        value = t("value_yes");
-                        break;
+                let value: ReactNode = (pointData?.[col.name] ?? col.default_value) as ReactNode;
+
+                if (value === null || value === undefined) {
+                    value = t("value_empty");
+                } else if (typeof value === "boolean") {
+                    value = value ? t("value_yes") : t("value_no");
+                } else if (typeof value === "object") {
+                    value = jsonToHtmlList(value);
+                } else if (typeof value === "string") {
+                    try {
+                        const json = JSON.parse(value);
+                        value = jsonToHtmlList(json);
+                    } catch {
+                        // Ignore JSON parse errors
+                    }
                 }
+
                 if (col.crs) return [];
-                try {
-                    const json = JSON.parse(value as string);
-                    value = jsonToHtmlList(json);
-                } catch {
-                    // Ignore JSON parse errors
-                }
+
                 return [
                     col.description ? (
                         <Tooltip kind="hover" title={<span>{col.description}</span>}>
@@ -118,8 +123,9 @@ const ShowFeatureTypeForm = ({ onClose }: { onClose?: () => void }) => {
         <div className="feature-type-form-container">
             <FeatureTypeFormHeader
                 title={`${isNewFeature ? t("state") + " " : ""}${geoserviceData?.title || ""}`}
-                featureId={pointData?.[geoserviceData?.idName || "id"] || ""}
+                featureId={(pointData?.[geoserviceData?.idName || "id"] as string | number) || ""}
                 mode={FeatureTypeMode.VIEW}
+                isEditAuthorised={isEditAuthorised}
                 onModeChange={handleModeChange}
                 onClose={onClose ?? handleCancel}
             />
