@@ -12,11 +12,7 @@ import { Coordinate } from "ol/coordinate";
 export const addFeatureProperties = (feat: Feature, geoservice: CommunityGeoservice | undefined, contributions: Contribution[]) => {
     const featureTypeData: ObjectProps = {};
     geoservice?.columns.forEach((col) => {
-        if (col.nullable || col.default_value) {
-            featureTypeData[col.name] = col.default_value;
-        } else {
-            featureTypeData[col.name] = contributions.length + 1;
-        }
+        featureTypeData[col.name] = col.default_value;
     });
     featureTypeData[`${geoservice?.idName}`] = contributions.length + 1;
     const validProperties: ObjectProps = getWebGLValidProperties(featureTypeData);
@@ -140,4 +136,19 @@ export const getRules = (root: Group): GroupSearch => {
         }),
     };
     return rules;
+};
+
+export const areEqual = (current: unknown, initial: unknown) => {
+    if ((current === null || current === undefined || current === "") && (initial === null || initial === undefined || initial === "")) {
+        return true;
+    }
+
+    return (
+        Object.is(current, initial) ||
+        (typeof current === "object" &&
+            current !== null &&
+            typeof initial === "object" &&
+            initial !== null &&
+            JSON.stringify(current) === JSON.stringify(initial))
+    );
 };

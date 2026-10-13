@@ -19,6 +19,13 @@ services:
             - HTTPS_PROXY=${HTTPS_PROXY}
             - http_proxy=${HTTP_PROXY}
             - https_proxy=${HTTPS_PROXY}
+            - APP_IAM_URL=${APP_IAM_URL}
+            - APP_IAM_REALM=${APP_IAM_REALM}
+            - APP_IAM_CLIENT_ID=${APP_IAM_CLIENT_ID}
+            - APP_ESPACECO_URL=${APP_ESPACECO_URL}
+        read_only: true
+        tmpfs:
+            - /tmp
         restart: unless-stopped
         networks:
             - web_dev

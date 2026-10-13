@@ -33,6 +33,10 @@ npm install
 npm run dev
 ```
 
+## Configuration à l’exécution
+
+L’image Docker est unique et tourne avec un système de fichiers en lecture seule, seul `/tmp` doit être inscriptible. Les paramètres IAM et l’URL de l’API collaborative se définissent au démarrage du conteneur par les variables d’environnement `APP_*` (voir `compose.yml`). Ces variables sont servies au navigateur : elles ne doivent jamais contenir de secret. Pour les surcharger en local : avec Docker, un fichier `compose.override.yml` ; sans Docker (`npm run dev`), les valeurs viennent de `public/env.js` et une variable `VITE_APP_*` dans un fichier `.env.local` prend le pas. Ces deux fichiers sont ignorés par git.
+
 ## Documentation développeurs
 
 Consultez [CONTRIBUTING.md](./CONTRIBUTING.md)

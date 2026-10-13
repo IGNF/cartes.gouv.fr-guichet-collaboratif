@@ -23,6 +23,7 @@ export default function CommunityToolbar() {
         pendingMessage: t("save_pending"),
         successMessage: t("save_success"),
         errorMessage: t("save_error"),
+        missingConfigurationMessage: t("save_missing_configuration"),
     });
 
     const isAdmin = user?.administrator || role === CommunityRole.ADMIN;

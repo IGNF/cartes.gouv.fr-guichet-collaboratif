@@ -11,6 +11,8 @@ export const FEATURE_TYPE_NEW_PROPERTY = "new";
 export const FEATURE_TYPE_PENDING_FORM_PROPERTY = "pendingForm";
 export const FEATURE_TYPE_NEW_Z_COOD = -1000;
 
+export const FEATURE_TYPE_FINGERPRINT_COLUMN = "gcms_fingerprint";
+
 export const HIT_DETECTION_TOLERENCE = 1;
 export const POINTER_HIT_DETECTION_TOLERENCE = 10;
 export const COORD_EPSILON = 0.01;
