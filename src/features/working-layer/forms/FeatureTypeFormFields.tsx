@@ -9,6 +9,7 @@ import { FeatureTypeColumn } from "@/constants/communities/types";
 import { useTranslation } from "@/i18n";
 import { useContributionStore } from "@/store";
 import { FeatureTypeMode } from "@/constants/contributions/types";
+import { normalizeColumnEnum } from "@/constants/communities/utils";
 
 interface FeatureTypeFormFieldsProps {
     columns: FeatureTypeColumn[];
@@ -27,7 +28,9 @@ export const FeatureTypeFormFields: React.FC<FeatureTypeFormFieldsProps> = ({ co
     const handleCheckboxChange = useCallback(
         (column: FeatureTypeColumn, checked: boolean) => {
             if (checked) {
-                setColumnsToModify([...columnsToModify, column]);
+                if (!columnsToModify.some((col) => col.name === column.name)) {
+                    setColumnsToModify([...columnsToModify, column]);
+                }
             } else {
                 setColumnsToModify(columnsToModify.filter((col) => col.name !== column.name));
             }
@@ -41,20 +44,23 @@ export const FeatureTypeFormFields: React.FC<FeatureTypeFormFieldsProps> = ({ co
                 .filter((col) => !col.crs)
                 .map((col) => {
                     const v = formData[col.name];
-                    const error = validationErrors[col.name];
+                    const isColumnSelected = !showTitleCellCheckbox || columnsToModify.some((column) => column.name === col.name);
+                    const error = isColumnSelected ? validationErrors[col.name] : null;
+                    const enumValues = normalizeColumnEnum(col.enum);
 
                     const isIdColumn = idName && col.name === idName;
                     const isReadOnly = col.read_only || isIdColumn;
 
                     const titleName = (
                         <span>
-                            {showTitleCellCheckbox && col.nullable && !isIdColumn ? (
+                            {showTitleCellCheckbox && !isReadOnly ? (
                                 <Checkbox
                                     options={[
                                         {
                                             label: col.title,
                                             nativeInputProps: {
                                                 name: `${col.name}`,
+                                                checked: isColumnSelected,
                                                 onChange: (e) => handleCheckboxChange(col, e.target.checked),
                                             },
                                         },
@@ -82,74 +88,81 @@ export const FeatureTypeFormFields: React.FC<FeatureTypeFormFieldsProps> = ({ co
                     } else {
                         switch (col.type.toLowerCase()) {
                             case "string":
-                                valueCell = col.enum ? (
-                                    <Select
-                                        label=""
-                                        state={error ? "error" : "default"}
-                                        stateRelatedMessage={error || undefined}
-                                        nativeSelectProps={{
-                                            value: String(v ?? ""),
-                                            onChange: (e) => updateField(col.name, e.target.value || null, col),
-                                            required: col.required,
-                                        }}
-                                    >
-                                        {col.enum.map((opt, idx) => (
-                                            <option key={idx} value={opt ?? ""}>
-                                                {opt ?? t("select_placeholder")}
-                                            </option>
-                                        ))}
-                                    </Select>
-                                ) : (
-                                    <Input
-                                        label=""
-                                        state={error ? "error" : "default"}
-                                        stateRelatedMessage={error || undefined}
-                                        nativeInputProps={{
-                                            value: (v as string) ?? "",
-                                            onChange: (e) => updateField(col.name, e.target.value, col),
-                                            required: col.required,
-                                            minLength: col.min_length ?? undefined,
-                                            maxLength: col.max_length ?? undefined,
-                                            pattern: col.pattern ?? undefined,
-                                        }}
-                                    />
-                                );
+                                valueCell =
+                                    enumValues.length > 0 ? (
+                                        <Select
+                                            label=""
+                                            state={error ? "error" : "default"}
+                                            stateRelatedMessage={error || undefined}
+                                            nativeSelectProps={{
+                                                value: String(v ?? ""),
+                                                onChange: (e) => updateField(col.name, e.target.value || null, col),
+                                                required: col.required && isColumnSelected,
+                                            }}
+                                        >
+                                            <option value="">{t("select_placeholder")}</option>
+                                            {enumValues
+                                                .filter((opt) => opt !== null)
+                                                .map((opt, idx) => (
+                                                    <option key={idx} value={opt ?? ""}>
+                                                        {opt}
+                                                    </option>
+                                                ))}
+                                        </Select>
+                                    ) : (
+                                        <Input
+                                            label=""
+                                            state={error ? "error" : "default"}
+                                            stateRelatedMessage={error || undefined}
+                                            nativeInputProps={{
+                                                value: (v as string) ?? "",
+                                                onChange: (e) => updateField(col.name, e.target.value, col),
+                                                required: col.required && isColumnSelected,
+                                                minLength: col.min_length ?? undefined,
+                                                maxLength: col.max_length ?? undefined,
+                                                pattern: col.pattern ?? undefined,
+                                            }}
+                                        />
+                                    );
                                 break;
 
                             case "integer":
-                                valueCell = col.enum ? (
-                                    <Select
-                                        label=""
-                                        state={error ? "error" : "default"}
-                                        stateRelatedMessage={error || undefined}
-                                        nativeSelectProps={{
-                                            value: String(v ?? ""),
-                                            onChange: (e) => updateField(col.name, e.target.value ? Number(e.target.value) : null, col),
-                                            required: col.required,
-                                        }}
-                                    >
-                                        <option value="">{t("select_placeholder")}</option>
-                                        {col.enum.map((opt, idx) => (
-                                            <option key={idx} value={opt}>
-                                                {opt}
-                                            </option>
-                                        ))}
-                                    </Select>
-                                ) : (
-                                    <Input
-                                        label=""
-                                        state={error ? "error" : "default"}
-                                        stateRelatedMessage={error || undefined}
-                                        nativeInputProps={{
-                                            type: "number",
-                                            value: (v as number | string) ?? "",
-                                            onChange: (e) => updateField(col.name, Number(e.target.value), col),
-                                            required: col.required,
-                                            min: col.min_value ?? undefined,
-                                            max: col.max_value ?? undefined,
-                                        }}
-                                    />
-                                );
+                                valueCell =
+                                    enumValues.length > 0 ? (
+                                        <Select
+                                            label=""
+                                            state={error ? "error" : "default"}
+                                            stateRelatedMessage={error || undefined}
+                                            nativeSelectProps={{
+                                                value: String(v ?? ""),
+                                                onChange: (e) => updateField(col.name, e.target.value ? Number(e.target.value) : null, col),
+                                                required: col.required && isColumnSelected,
+                                            }}
+                                        >
+                                            <option value="">{t("select_placeholder")}</option>
+                                            {enumValues
+                                                .filter((opt) => opt !== null)
+                                                .map((opt, idx) => (
+                                                    <option key={idx} value={opt ?? ""}>
+                                                        {opt}
+                                                    </option>
+                                                ))}
+                                        </Select>
+                                    ) : (
+                                        <Input
+                                            label=""
+                                            state={error ? "error" : "default"}
+                                            stateRelatedMessage={error || undefined}
+                                            nativeInputProps={{
+                                                type: "number",
+                                                value: (v as number | string) ?? "",
+                                                onChange: (e) => updateField(col.name, Number(e.target.value), col),
+                                                required: col.required && isColumnSelected,
+                                                min: col.min_value ?? undefined,
+                                                max: col.max_value ?? undefined,
+                                            }}
+                                        />
+                                    );
                                 break;
 
                             case "boolean":
@@ -159,15 +172,15 @@ export const FeatureTypeFormFields: React.FC<FeatureTypeFormFieldsProps> = ({ co
                                         state={error ? "error" : "default"}
                                         stateRelatedMessage={error || undefined}
                                         nativeSelectProps={{
-                                            value: v === null ? "" : String(v),
+                                            value: v === null || v === undefined ? "" : String(v),
                                             onChange: (e) => {
                                                 const val = e.target.value;
                                                 updateField(col.name, val === "" ? null : val === "true", col);
                                             },
-                                            required: col.required,
+                                            required: col.required && isColumnSelected,
                                         }}
                                     >
-                                        {col.nullable && !col.required && <option value=""></option>}
+                                        <option value="">{t("select_placeholder")}</option>
                                         <option value="true">{t("yes") || "Oui"}</option>
                                         <option value="false">{t("no") || "Non"}</option>
                                     </Select>
@@ -184,7 +197,7 @@ export const FeatureTypeFormFields: React.FC<FeatureTypeFormFieldsProps> = ({ co
                                             type: "date",
                                             value: (v as string) ?? "",
                                             onChange: (e) => updateField(col.name, e.target.value, col),
-                                            required: col.required,
+                                            required: col.required && isColumnSelected,
                                         }}
                                     />
                                 );
@@ -200,7 +213,7 @@ export const FeatureTypeFormFields: React.FC<FeatureTypeFormFieldsProps> = ({ co
                                         stateRelatedMessage={error || undefined}
                                         nativeInputProps={{
                                             onChange: (e) => updateField(col.name, Array.from(e.target.files ?? []), col),
-                                            required: col.required,
+                                            required: col.required && isColumnSelected,
                                         }}
                                     />
                                 );
@@ -218,7 +231,7 @@ export const FeatureTypeFormFields: React.FC<FeatureTypeFormFieldsProps> = ({ co
                         </div>,
                     ];
                 }),
-        [columns, formData, validationErrors, showTitleCellCheckbox, updateField, handleCheckboxChange, t, idName]
+        [columns, formData, validationErrors, showTitleCellCheckbox, columnsToModify, updateField, handleCheckboxChange, t, idName]
     );
 
     return <Table bordered fixed className="feature-type-form-table" data={dataColumns} />;

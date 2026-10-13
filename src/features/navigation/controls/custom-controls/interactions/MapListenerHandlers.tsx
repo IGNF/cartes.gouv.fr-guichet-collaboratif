@@ -173,6 +173,7 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
         };
 
         const viewport = map.getViewport();
+        if (!viewport) return;
         viewport.addEventListener("mouseleave", handlePointerLeave);
 
         return () => {

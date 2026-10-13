@@ -101,7 +101,7 @@ export type FeatureTypeColumn = {
     description: string;
     type: string;
     nullable: boolean;
-    enum?: string[];
+    enum?: (string | number | null)[];
     crs: string;
     default_value: boolean | string | number | null;
     required: boolean;
@@ -196,6 +196,10 @@ export interface CommunityGrids {
     extent: Extent;
 }
 
+export interface GridData extends CommunityGrids {
+    geometry: string;
+}
+
 export interface Community {
     id: number;
     listed: boolean;
@@ -209,7 +213,7 @@ export interface Community {
     zoom: number;
     minZoom: number;
     maxZoom: number;
-    grids: CommunityGrids[];
+    grids: GridData[];
 }
 
 export const enum StatusMessage {
@@ -264,6 +268,7 @@ export enum CommunityLayerFunctionalityType {
     COPY_REF = "copyRef",
     TOOLTIP = "tooltip",
     OVERVIEW = "overview_map_control",
+    MERGE = "merge",
 }
 
 export enum CommunityLayerRoleType {
@@ -285,6 +290,7 @@ export enum InteractionType {
     SPLIT_LINE = "split_line",
     SHORTEST_PATH = "shortest_path",
     EXPORT_IMAGE = "export_image",
+    MERGE_OBJECTS = "merge_objects",
 }
 
 export type CustomControlItem = {

@@ -47,9 +47,8 @@ export const useDeleteReport = ({ handleCloseDrawer }: UseDeleteReportProps) => 
                 setDrawerOpened(false);
                 clearDrawingLayer(map);
                 return true;
-            } catch (error) {
+            } catch {
                 addAlertMessage(StatusMessage.error, t("report_document_deleted_error"));
-                console.error("Delete report error:", error);
                 return false;
             }
         },

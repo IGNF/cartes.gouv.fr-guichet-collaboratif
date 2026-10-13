@@ -6,11 +6,23 @@
     padding-right: 14px;
     max-height: calc(100vh - 19rem);
     overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+}
+
+.custom-controls::-webkit-scrollbar {
+    width: 6px;
+}
+
+.custom-controls::-webkit-scrollbar-thumb {
+    background-color: var(--border-default-grey);
+    border-radius: 3px;
 }
 
 .custom-controls div {
     display: flex;
     flex-direction: column;
+    width: fit-content;
     background-color: var(--background-default-grey);
     border: 1px solid var(--border-default-grey);
     border-radius: 4px;
@@ -22,6 +34,7 @@
 
 .custom-controls button {
     color: var(--text-action-high-blue-france);
+    background-color: var(--background-default-grey);
     /*Icon does not change along interaction*/
 }
 

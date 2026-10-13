@@ -4,19 +4,33 @@ import { lazy, Suspense, useEffect } from "react";
 import { useCommunityStore, useLocalStorageStore, useUserStore } from "@/store";
 import { isDigital, useGetCommunityByIdAPI } from "@/api/communityData";
 import { useGetUserProfileAPI } from "@/api/userData";
+import { useGetCommunityGridsAPI } from "@/api/gridsData";
+import { useGetCommunityMemberGridsAPI } from "@/api/memberData";
 import AlertComponent from "@/components/AlertComponent";
 import { StatusMessage } from "@/constants/communities/types";
 import { useTranslation } from "@/i18n";
 import LoaderComponent from "@/components/LoaderComponent";
 import ClickableFeaturesModal from "@/features/working-layer/modal/ClickableFeaturesModal";
 import GetFeatureInfoPopup from "@/features/working-layer/popUp/GetFeatureInfoPopUp";
+import { useBeforeUnload } from "@/hooks/working-layer/useBeforeUnload";
 
 const MainMap = lazy(() => import("@/features/navigation/MainMap"));
 
 const Carte: React.FC = () => {
+    useBeforeUnload();
     const params = useParams();
 
-    const { community, communityLayers, isLoadingCommunity, setCommunity, setCommunityLayers, setIsLoadingCommunity, addAlertMessage } = useCommunityStore();
+    const {
+        community,
+        communityLayers,
+        isLoadingCommunity,
+        setCommunity,
+        setCommunityGrids,
+        setCommunityGridsError,
+        setCommunityLayers,
+        setIsLoadingCommunity,
+        addAlertMessage,
+    } = useCommunityStore();
     const { isLoadingUser, setUser, setIsLoadingUser } = useUserStore();
     const { initLocalStorage } = useLocalStorageStore();
 
@@ -25,23 +39,25 @@ const Carte: React.FC = () => {
     const { data: userData, error: userError, isLoading: userIsLoading } = useGetUserProfileAPI();
 
     const { data: communityData, error: communityError, isLoading: communityIsLoading } = useGetCommunityByIdAPI(communityId);
+    const { data: communityMemberData, error: communityMemberError } = useGetCommunityMemberGridsAPI(communityId, userData?.id);
+    const { data: gridsData, error: gridsError } = useGetCommunityGridsAPI(communityId, communityData?.[2], communityMemberData?.grids);
     const communityNotFound = Boolean(communityError);
 
     const { t } = useTranslation({ Carte });
 
     useEffect(() => {
         if (userData) {
-            setUser(userData);
+            setUser(userData, communityId);
         }
         if (userError) {
-            setUser(null);
+            setUser(null, communityId);
             setCommunity(null);
             addAlertMessage(StatusMessage.error, userError.message);
         }
         setIsLoadingUser(userIsLoading);
 
-        return () => setUser(null);
-    }, [userData, userError, userIsLoading, setCommunity, setUser, setIsLoadingUser, addAlertMessage]);
+        return () => setUser(null, communityId);
+    }, [userData, userError, userIsLoading, communityId, setCommunity, setUser, setIsLoadingUser, addAlertMessage]);
 
     useEffect(() => {
         if (communityData) {
@@ -59,6 +75,15 @@ const Carte: React.FC = () => {
 
         return () => setCommunity(null);
     }, [communityData, communityError, communityIsLoading, setCommunity, setCommunityLayers, setIsLoadingCommunity, initLocalStorage, addAlertMessage]);
+
+    useEffect(() => {
+        if (gridsData) {
+            setCommunityGrids(communityId, gridsData);
+        }
+        if (communityMemberError || gridsError) {
+            setCommunityGridsError(communityId);
+        }
+    }, [community?.id, communityId, communityMemberError, gridsData, gridsError, setCommunityGrids, setCommunityGridsError]);
 
     if (!isDigital(communityId) || communityNotFound) {
         return <NotFound />;

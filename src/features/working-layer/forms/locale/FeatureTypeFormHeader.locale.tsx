@@ -5,6 +5,8 @@ export const FeatureTypeFormHeaderFrTranslations: Translations<"fr">["FeatureTyp
     back: "Retour",
     edit: "Éditer",
     close: "Fermer",
+    edit_disabled: "Cet objet est en dehors de vos emprises autorisées.",
+    edit_disabled_multiple: "Au moins un des objets sélectionnés est en dehors de vos emprises autorisées.",
     objects_count: ({ count }: { count: number }) => `${count} objets`,
 };
 
@@ -12,8 +14,12 @@ export const FeatureTypeFormHeaderEnTranslations: Translations<"en">["FeatureTyp
     back: "Back",
     edit: "Edit",
     close: "Close",
+    edit_disabled: "This feature is outside your authorised areas.",
+    edit_disabled_multiple: "At least one of the selected features is outside your authorised areas.",
     objects_count: ({ count }: { count: number }) => `${count} objects`,
 };
 
-const { i18n } = declareComponentKeys<"back" | "edit" | "close" | { K: "objects_count"; P: { count: number }; R: string }>()("FeatureTypeFormHeader");
+const { i18n } = declareComponentKeys<
+    "back" | "edit" | "close" | "edit_disabled" | "edit_disabled_multiple" | { K: "objects_count"; P: { count: number }; R: string }
+>()("FeatureTypeFormHeader");
 export type I18n = typeof i18n;

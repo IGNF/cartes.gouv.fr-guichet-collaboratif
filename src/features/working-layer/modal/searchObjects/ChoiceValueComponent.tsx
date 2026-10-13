@@ -2,6 +2,7 @@ import { BETWEEN_OPERATORS, FeatureTypeColumn, OperatorType } from "@/constants/
 import Checkbox from "@codegouvfr/react-dsfr/Checkbox";
 import Input from "@codegouvfr/react-dsfr/Input";
 import RadioButtons from "@codegouvfr/react-dsfr/RadioButtons";
+import { normalizeColumnEnum } from "@/constants/communities/utils";
 
 interface ChoiceTypeProps {
     choiceValue: string[];
@@ -29,6 +30,7 @@ const BetweenFields = ({ renderField }: { renderField: (index: FieldIndex) => Re
 
 const ChoiceValueComponent: React.FC<ChoiceTypeProps> = ({ choiceValue, currentColumn, operator, handleChoiceValueChange, disabled = false }) => {
     const isBetween = BETWEEN_OPERATORS.has(operator);
+    const enumValues = normalizeColumnEnum(currentColumn?.enum);
 
     const renderTextInput = (index: FieldIndex) => (
         <Input
@@ -73,18 +75,18 @@ const ChoiceValueComponent: React.FC<ChoiceTypeProps> = ({ choiceValue, currentC
 
     switch (currentColumn?.type) {
         case "String":
-            if (currentColumn.enum) {
+            if (enumValues.length > 0) {
                 return (
                     <Checkbox
                         className="choice-value-enum"
                         legend=""
                         small
                         disabled={disabled}
-                        options={currentColumn.enum.map((val) => ({
-                            label: val ?? "null",
+                        options={enumValues.map((val) => ({
+                            label: String(val ?? "null"),
                             nativeInputProps: {
                                 value: val ?? "",
-                                checked: choiceValue.includes(val),
+                                checked: choiceValue.includes(String(val ?? "")),
                                 onChange: (e) => handleChoiceValueChange(e.target.value),
                             },
                         }))}

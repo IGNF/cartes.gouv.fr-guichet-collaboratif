@@ -1,7 +1,7 @@
 import { useContributionStore, useMapStore } from "@/store";
 import Button from "@codegouvfr/react-dsfr/Button";
 import type { FrIconClassName, RiIconClassName } from "@codegouvfr/react-dsfr";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { handleCenterToFeature } from "@/constants/utils";
 import { useTranslation } from "@/i18n";
 
@@ -26,17 +26,6 @@ const ReviewContributions = () => {
     const total = contrToReview.length;
     const hasContributions = total > 0;
 
-    const setCurrentContribution = useCallback(
-        (position: number) => {
-            if (contrToReview.length === 0) return;
-
-            const pos = position > contrToReview.length - 1 ? 0 : position < 0 ? contrToReview.length - 1 : position;
-
-            setClickedMapFeature(contrToReview[pos].feature);
-        },
-        [contrToReview, setClickedMapFeature]
-    );
-
     const currentIndex = useMemo(() => {
         if (!hasContributions) return 0;
 
@@ -47,24 +36,30 @@ const ReviewContributions = () => {
         return total - 1;
     }, [clickedMapFeature, contrToReview, hasContributions, total]);
 
-    useEffect(() => {
-        if (!hasContributions) return;
+    const setCurrentContribution = useCallback(
+        (position: number) => {
+            if (contrToReview.length === 0) return;
 
-        const feature = contrToReview[currentIndex]?.feature;
-        if (feature) handleCenterToFeature(map, feature);
-    }, [currentIndex, contrToReview, map, hasContributions]);
+            const pos = position > contrToReview.length - 1 ? 0 : position < 0 ? contrToReview.length - 1 : position;
+            const feature = contrToReview[pos].feature;
+
+            setClickedMapFeature(feature);
+            handleCenterToFeature(map, feature);
+        },
+        [contrToReview, map, setClickedMapFeature]
+    );
 
     const displayedPosition = hasContributions ? currentIndex + 1 : 0;
 
     return (
-        <div className="review-contributions">
+        <div className="review-contributions review-navigation">
             <ContributionButton
                 icon="ri-arrow-left-line"
                 title={t("previous")}
                 onClick={() => setCurrentContribution(currentIndex - 1)}
                 disabled={!hasContributions}
             />
-            <span>
+            <span className="review-navigation__counter">
                 Contribution {displayedPosition} / {total}
             </span>
             <ContributionButton

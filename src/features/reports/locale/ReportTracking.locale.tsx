@@ -5,7 +5,7 @@ export const ReportTrackingFrTranslations: Translations<"fr">["ReportTracking"] 
     report_status: "Statut",
     report_content: "Votre message",
     report_send: "Envoyer",
-    select_status: "Séléctionner un statut",
+    select_status: "Sélectionner un statut",
     status_submit: "Reçu dans nos services",
     status_pending0: "En demande de qualification",
     status_pending: "En cours de traitement",

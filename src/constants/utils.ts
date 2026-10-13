@@ -340,9 +340,24 @@ export const getThemeAttributes = (theme: CommunityTheme) => {
         : theme?.attributes || {};
 };
 
-export const getFeatureGeometryWKT = (feature: Feature, mapProj: string = "EPSG:3857", featProj: string = "EPSG:4326") => {
-    const geom4326 = feature.getGeometry()?.clone().transform(mapProj, featProj) as Geometry;
-    return wktFormat.writeGeometry(geom4326);
+export const getFeatureGeometryWKT = (feature: Feature, mapProj: string = "EPSG:3857", featProj: string = "EPSG:4326", force2d = false) => {
+    const geometry = feature.getGeometry()?.clone().transform(mapProj, featProj) as Geometry;
+
+    if (force2d && "getCoordinates" in geometry && "setCoordinates" in geometry) {
+        const removeAltitude = (coordinates: unknown): unknown => {
+            if (!Array.isArray(coordinates)) return coordinates;
+            if (coordinates.length === 0 || typeof coordinates[0] !== "number") return coordinates.map(removeAltitude);
+            return coordinates.slice(0, 2);
+        };
+
+        const geometryWithCoordinates = geometry as Geometry & {
+            getCoordinates: () => unknown;
+            setCoordinates: (coordinates: unknown, layout: "XY") => void;
+        };
+        geometryWithCoordinates.setCoordinates(removeAltitude(geometryWithCoordinates.getCoordinates()), "XY");
+    }
+
+    return wktFormat.writeGeometry(geometry);
 };
 
 export const getSketchFeatureType = (feature: Feature): SketchFeatureType => {
@@ -478,7 +493,7 @@ export const handleCenterToFeature = (map: Map | null, feature: Feature) => {
 
     view?.animate({
         center: featureCenter,
-        zoom: featureZoom ?? view.getZoom() ?? 18,
+        zoom: Math.min(featureZoom ?? view.getZoom() ?? 19, 19),
         duration: 400,
     });
 };

@@ -8,6 +8,7 @@ export const useReportToolsFrTranslations: Translations<"fr">["useReportTools"] 
     text_title: "Ecrire sur la carte",
     import_title: "Importer un fichier gpx, kml ou geojson",
     edit_title: "Modifier la géométrie ou déplacer le texte",
+    edit_style: "Modifier le style de l'objet",
     display_title: "Editer le style",
     tooltip_title: "Editer le texte",
     remove_title: "Supprimer des objets",
@@ -20,12 +21,22 @@ export const useReportToolsEnTranslations: Translations<"en">["useReportTools"] 
     text_title: "Write on the map",
     import_title: "Import a gpx, kml or geojson file",
     edit_title: "Change geometry or move text",
+    edit_style: "Edit object style",
     display_title: "Edit style",
     tooltip_title: "Edit text",
     remove_title: "Delete objects",
 };
 
 const { i18n } = declareComponentKeys<
-    "point_title" | "line_title" | "polygon_title" | "text_title" | "import_title" | "edit_title" | "display_title" | "tooltip_title" | "remove_title"
+    | "point_title"
+    | "line_title"
+    | "polygon_title"
+    | "text_title"
+    | "import_title"
+    | "edit_title"
+    | "edit_style"
+    | "display_title"
+    | "tooltip_title"
+    | "remove_title"
 >()("useReportTools");
 export type I18n = typeof i18n;

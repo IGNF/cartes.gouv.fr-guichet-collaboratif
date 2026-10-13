@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "@/i18n";
 import VectorSource from "ol/source/Vector";
 import { getCommunityReportById, getAllReportsForExport, getTableReports } from "@/api/reportsData";
-import { useReportStore, useModalStore, useMapStore, useLocalStorageStore } from "@/store";
+import { useReportStore, useModalStore, useMapStore, useLocalStorageStore, useUserStore } from "@/store";
 import { useCommunityStore } from "@/store/useCommunityStore";
 import { handleShowOnMap, STATUS_NOT_ALLOWED } from "@/constants/utils";
 import { REPORT_TABLE_LIMIT_OPTIONS, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
@@ -20,6 +20,7 @@ import { SelectComponent } from "@/components/FilterAndSortReport";
 import PaginationReport from "./PaginationReport";
 import ConfirmDeleteReportModal from "../forms/ConfirmDeleteReportModal";
 import CreateTableData from "./CreateTableData";
+import { CommunityRole } from "@/constants/user/types";
 
 type FilterHeaderKey =
     | "x"
@@ -69,6 +70,10 @@ const TableReport = () => {
         syncUrlFromState,
         getSelectedLineCount,
     } = useReportStore();
+
+    const { user, role } = useUserStore();
+
+    const canDelete = user?.administrator || role === CommunityRole.ADMIN;
 
     const selectedLineCount = getSelectedLineCount();
     const { replyReportModal, deleteReportModal } = useModalStore();
@@ -326,15 +331,17 @@ const TableReport = () => {
                                 disabled={isPreparingExport}
                                 onClick={onDownloadCsv}
                             />
-                            <Button
-                                type="button"
-                                nativeButtonProps={deleteReportModal.buttonProps}
-                                iconId="fr-icon-delete-line"
-                                className="fr-icon--sm"
-                                title={t("delete_button")}
-                                priority="secondary"
-                                disabled={!isChecked || !Object.values(isChecked).some(Boolean)}
-                            />
+                            {canDelete && (
+                                <Button
+                                    type="button"
+                                    nativeButtonProps={deleteReportModal.buttonProps}
+                                    iconId="fr-icon-delete-line"
+                                    className="fr-icon--sm"
+                                    title={t("delete_button")}
+                                    priority="secondary"
+                                    disabled={!isChecked || !Object.values(isChecked).some(Boolean)}
+                                />
+                            )}
                             <Button
                                 nativeButtonProps={replyReportModal.buttonProps}
                                 type="button"

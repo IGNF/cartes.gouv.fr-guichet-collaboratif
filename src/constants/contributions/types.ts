@@ -34,7 +34,18 @@ export interface Contribution {
 
 export interface TransactionApi {
     database: number;
-    body: { comment: string; actions: object[] };
+    body: TransactionRequestBody;
+}
+
+export interface TransactionRequestBody {
+    comment: string;
+    actions: TransactionRequestAction[];
+}
+
+export interface TransactionRequestAction {
+    table: number;
+    state: ContributionType;
+    data: Record<string, unknown>;
 }
 
 export type CustomInteraction = Select | Modify | Draw | Translate | null;
@@ -52,6 +63,7 @@ export interface InteractionsFuncsProps {
     splitLineInteractionFuncPointer: (e: MapBrowserEvent) => void;
     getInteractionByType: (type: string | null, target: string) => CustomInteraction;
     handleClick: (control: CustomControlItem) => void;
+    mergeInteractionFunc: (customData: Record<string, unknown>) => void;
 }
 
 export interface InteractionsProps {

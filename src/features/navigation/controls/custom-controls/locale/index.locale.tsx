@@ -16,6 +16,7 @@ export const CustomControlsFrTranslations: Translations<"fr">["CustomControls"] 
     copy_object: "Copier un objet",
     paste_object: "Coller un objet",
     shortest_path: "Créer un plus court chemin",
+    merge_objects: "Fusionner 2 objets en contact",
 };
 
 export const CustomControlsEnTranslations: Translations<"en">["CustomControls"] = {
@@ -33,6 +34,7 @@ export const CustomControlsEnTranslations: Translations<"en">["CustomControls"] 
     copy_object: "Copy an object",
     paste_object: "Paste an object",
     shortest_path: "Create a shortest path",
+    merge_objects: "Merge 2 touching objects",
 };
 
 const { i18n } = declareComponentKeys<
@@ -50,5 +52,6 @@ const { i18n } = declareComponentKeys<
     | "copy_object"
     | "paste_object"
     | "shortest_path"
+    | "merge_objects"
 >()("CustomControls");
 export type I18n = typeof i18n;

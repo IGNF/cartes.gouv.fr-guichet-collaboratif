@@ -33,6 +33,8 @@ import { useGetWMSLayerEnTranslations } from "@/hooks/navigation/layers/locale/u
 import { useGetWMTSLayerEnTranslations } from "@/hooks/navigation/layers/locale/useGetWMTSLayer.locale";
 import { useGetInteractionsFuncsEnTranslations } from "@/hooks/navigation/controls/locale/useGetInteractionsFuncs.locale";
 import { useFeatureTypeValidationEnTranslations } from "@/hooks/working-layer/locale/useFeatureTypeValidation.locale";
+import { useContributionAuthorisationEnTranslations } from "@/hooks/working-layer/locale/useContributionAuthorisation.locale";
+import { useFeatureFormGuardEnTranslations } from "@/hooks/working-layer/locale/useFeatureFormGuard.locale";
 import { DrawerComponentEnTranslations } from "@/components/locale/DrawerComponent.locale";
 import { FilterAndSortReportEnTranslations } from "@/components/locale/FilterAndSortReport.locale";
 import { ReportFiltersComponentEnTranslations } from "@/components/locale/ReportFiltersComponent.locale";
@@ -58,8 +60,10 @@ import { CustomControlsEnTranslations } from "@/features/navigation/controls/cus
 import { ContributionListEnTranslations } from "@/features/contributions/locale/ContributionList.locale";
 import { ContributionsConfirmResetEnTranslations } from "@/features/contributions/locale/ContributionsConfirmReset.locale";
 import { ReviewContributionsEnTranslations } from "@/features/contributions/locale/ReviewContributions.locale";
+import { ReviewSelectedObjectsEnTranslations } from "@/features/working-layer/multiple-selection/locale/ReviewSelectedObjects.locale";
 import { ConfirmSaveContributionsEnTranslations } from "@/features/contributions/locale/ConfirmSaveContributions.locale";
 import { ConfirmMultipleObjectsActionModalEnTranslations } from "@/features/working-layer/forms/locale/ConfirmMultipleObjectsActionModal.locale";
+import { MergeFeatureAttributesModalEnTranslations } from "@/features/working-layer/forms/locale/MergeFeatureAttributesModal.locale";
 import { ConfirmMultipleDeselectionEnTranslations } from "@/features/navigation/controls/custom-controls/locale/ConfirmMultipleDeselection.locale";
 import { ExportMapModalEnTranslations } from "@/features/navigation/controls/custom-controls/locale/ExportMapModal.locale";
 import { useOperatorListEnTranslations } from "@/hooks/working-layer/locale/useOperatorList.locale";
@@ -106,6 +110,8 @@ export const translations: Translations<"en"> = {
     useGetWMTSLayer: useGetWMTSLayerEnTranslations,
     useGetInteractionsFuncs: useGetInteractionsFuncsEnTranslations,
     useFeatureTypeValidation: useFeatureTypeValidationEnTranslations,
+    useContributionAuthorisation: useContributionAuthorisationEnTranslations,
+    useFeatureFormGuard: useFeatureFormGuardEnTranslations,
     DrawingControl: DrawingControlEnTranslations,
     ToolsControl: ToolsControlEnTranslations,
     CatalogControl: CatalogControlEnTranslations,
@@ -128,8 +134,10 @@ export const translations: Translations<"en"> = {
     ContributionList: ContributionListEnTranslations,
     ContributionsConfirmReset: ContributionsConfirmResetEnTranslations,
     ReviewContributions: ReviewContributionsEnTranslations,
+    ReviewSelectedObjects: ReviewSelectedObjectsEnTranslations,
     ConfirmSaveContributions: ConfirmSaveContributionsEnTranslations,
     ConfirmMultipleObjectsActionModal: ConfirmMultipleObjectsActionModalEnTranslations,
+    MergeFeatureAttributesModal: MergeFeatureAttributesModalEnTranslations,
     ConfirmMultipleDeselection: ConfirmMultipleDeselectionEnTranslations,
     ExportMapModal: ExportMapModalEnTranslations,
     useOperatorList: useOperatorListEnTranslations,
