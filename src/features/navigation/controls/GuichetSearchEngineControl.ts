@@ -147,7 +147,7 @@ export default class NamedPositionSearchEngineControl extends SearchEngineAdvanc
         }
 
         const activeElement = document.activeElement;
-        if (activeElement instanceof HTMLElement && this.element.contains(activeElement)) {
+        if (activeElement instanceof HTMLElement && this.element?.contains(activeElement)) {
             activeElement.blur();
         }
 
