@@ -62,7 +62,7 @@ export const ToolsControlEnTranslations: Translations<"en">["ToolsControl"] = {
     save_success: "Starred position saved.",
     control_zoom_in: "Zoom In",
     control_zoom_out: "Zoom Out",
-    remove_vertex: "Delete summit",
+    remove_vertex: "Delete vertex",
 };
 
 const { i18n } = declareComponentKeys<

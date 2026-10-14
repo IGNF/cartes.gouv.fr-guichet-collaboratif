@@ -20,12 +20,18 @@ interface UseContributionsSaveOptions {
 
 const matchGeometryColumnType = (wkt: string, columnType?: string) => {
     const normalizedColumnType = columnType?.toLowerCase();
-    if (normalizedColumnType?.includes("multipolygon") && /^POLYGON\s*\(/i.test(wkt)) {
-        return wkt.replace(/^POLYGON\s*(\(.*\))$/i, "MULTIPOLYGON($1)");
+    const polygonMatch = /^POLYGON(?:\s+(ZM|Z|M))?\s*(\(.*\))$/i.exec(wkt);
+    if (normalizedColumnType?.includes("multipolygon") && polygonMatch) {
+        const dimension = polygonMatch[1] ? ` ${polygonMatch[1].toUpperCase()}` : "";
+        return `MULTIPOLYGON${dimension}(${polygonMatch[2]})`;
     }
-    if (normalizedColumnType?.includes("multilinestring") && /^LINESTRING\s*\(/i.test(wkt)) {
-        return wkt.replace(/^LINESTRING\s*(\(.*\))$/i, "MULTILINESTRING($1)");
+
+    const lineMatch = /^LINESTRING(?:\s+(ZM|Z|M))?\s*(\(.*\))$/i.exec(wkt);
+    if (normalizedColumnType?.includes("multilinestring") && lineMatch) {
+        const dimension = lineMatch[1] ? ` ${lineMatch[1].toUpperCase()}` : "";
+        return `MULTILINESTRING${dimension}(${lineMatch[2]})`;
     }
+
     return wkt;
 };
 

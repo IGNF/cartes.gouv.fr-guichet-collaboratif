@@ -80,21 +80,29 @@ const useGetInteractions = () => {
         if (!map || clickedControl?.interaction !== InteractionType.MODIFY) return;
 
         const editingSource = editingLayer.getSource();
-        const syncEditingFeatures = () => {
+        let trackedFeatures: Feature[] = [];
+
+        const syncEditingSource = () => {
             editingSource?.clear();
-            editingSource?.addFeatures(
-                modifyFeatures
-                    .getArray()
-                    .filter((feature) => ["LineString", "MultiLineString", "Polygon", "MultiPolygon"].includes(feature.getGeometry()?.getType() ?? ""))
-            );
+            editingSource?.addFeatures(trackedFeatures.map((feature) => feature.clone()));
         };
 
-        syncEditingFeatures();
-        modifyFeatures.on(["add", "remove"], syncEditingFeatures);
+        const syncTrackedFeatures = () => {
+            trackedFeatures.forEach((feature) => feature.un("change", syncEditingSource));
+            trackedFeatures = modifyFeatures
+                .getArray()
+                .filter((feature) => ["LineString", "MultiLineString", "Polygon", "MultiPolygon"].includes(feature.getGeometry()?.getType() ?? ""));
+            trackedFeatures.forEach((feature) => feature.on("change", syncEditingSource));
+            syncEditingSource();
+        };
+
+        syncTrackedFeatures();
+        modifyFeatures.on(["add", "remove"], syncTrackedFeatures);
         map.addLayer(editingLayer);
 
         return () => {
-            modifyFeatures.un(["add", "remove"], syncEditingFeatures);
+            modifyFeatures.un(["add", "remove"], syncTrackedFeatures);
+            trackedFeatures.forEach((feature) => feature.un("change", syncEditingSource));
             map.removeLayer(editingLayer);
             editingSource?.clear();
         };

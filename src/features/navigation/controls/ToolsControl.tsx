@@ -74,7 +74,7 @@ const useToolsControl = (): Control[] => {
     const controlsList = useCustomControlsList(tCustomControls);
     const copyControl = useMemo(() => controlsList.find((control) => control.interaction === InteractionType.COPY_OBJECT), [controlsList]);
     const editableFeatures = useMemo(
-        () => (clickedMapFeature && !selectedObjects.includes(clickedMapFeature) ? [...selectedObjects, clickedMapFeature] : selectedObjects),
+        () => (selectedObjects.length > 0 ? selectedObjects : clickedMapFeature ? [clickedMapFeature] : []),
         [clickedMapFeature, selectedObjects]
     );
 
@@ -134,16 +134,15 @@ const useToolsControl = (): Control[] => {
 
         const updateVertexContextMenuItem = (event: MouseEvent) => {
             const coordinate = map.getEventCoordinate(event);
-            const vertexCoordinate =
-                clickedControl?.interaction === InteractionType.MODIFY ? findVertexAtCoordinate(map, editableFeatures, coordinate) : undefined;
+            const vertexTarget = clickedControl?.interaction === InteractionType.MODIFY ? findVertexAtCoordinate(map, editableFeatures, coordinate) : undefined;
 
             contextMenu.updateContextMenuItems?.([
-                ...(vertexCoordinate
+                ...(vertexTarget
                     ? [
                           {
                               text: t("remove_vertex"),
                               callback: () => {
-                                  map.dispatchEvent(new CustomRemoveVertexEvent(vertexCoordinate));
+                                  map.dispatchEvent(new CustomRemoveVertexEvent(vertexTarget.coordinate, vertexTarget.feature));
                               },
                           },
                       ]

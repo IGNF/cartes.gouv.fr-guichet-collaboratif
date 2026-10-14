@@ -1,12 +1,12 @@
 import VectorSource from "ol/source/Vector";
 import { SelectEvent } from "ol/interaction/Select";
-import { Feature, MapBrowserEvent } from "ol";
+import { Collection, Feature, MapBrowserEvent } from "ol";
 import VectorLayer from "ol/layer/Vector";
 import WebGLVectorLayer from "ol/layer/WebGLVector";
 import { ContributionType, CustomInteraction, InteractionsProps } from "@/constants/contributions/types";
 import { ModifyEvent } from "ol/interaction/Modify";
 import { DrawEvent } from "ol/interaction/Draw";
-import { DragPan, Draw } from "ol/interaction";
+import { DragPan, Draw, Modify } from "ol/interaction";
 import {
     FEATURE_TYPE_DATA_PROPERTY,
     FEATURE_TYPE_NEW_PROPERTY,
@@ -210,19 +210,22 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
 
     const dragInteractionFunc = useCallback(() => {
         const extent = dragInteraction.getGeometry().getExtent();
-        if (!extent) return;
-        const featuresAtExtent = clickableSource?.getFeaturesInExtent(extent);
+        if (!extent || !clickableSource) return;
 
-        featuresAtExtent.forEach((feat) => {
-            if (!selectInteraction.getFeatures().getArray().includes(feat)) {
-                selectInteraction.selectFeature(feat);
+        const selectedFeatures = selectInteraction.getFeatures();
+        clickableSource.getFeaturesInExtent(extent).forEach((feature) => {
+            if (selectedFeatures.getArray().includes(feature)) return;
+
+            if (!selectInteraction.selectFeature(feature)) {
+                selectedFeatures.push(feature);
             }
+            feature.set(FEATURE_TYPE_SELECTED_PROPERTY, 1);
+            feature.changed();
         });
-        const newSelectedObjects = selectInteraction.getFeatures().getArray();
+
+        const newSelectedObjects = selectedFeatures.getArray();
         setSelectedObjects([...newSelectedObjects]);
-        if (newSelectedObjects.length > 0) {
-            setClickedMapFeature(newSelectedObjects[0]);
-        }
+        setClickedMapFeature(newSelectedObjects[0] ?? null);
     }, [clickableSource, dragInteraction, selectInteraction, setClickedMapFeature, setSelectedObjects]);
 
     const handleRemoveInteraction = useCallback(
@@ -1100,9 +1103,20 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
         };
 
         const removeVertexHandler = (event: Event | BaseEvent) => {
-            const coordinate = (event as BaseEvent & { coordinate?: Coordinate }).coordinate;
-            if (!coordinate || clickedControl?.interaction !== InteractionType.MODIFY) return;
-            modifyInteraction.removePoint(coordinate);
+            const { coordinate, feature } = event as BaseEvent & { coordinate?: Coordinate; feature?: Feature };
+            if (!coordinate || !feature || clickedControl?.interaction !== InteractionType.MODIFY || !modifyFeatures.getArray().includes(feature)) return;
+
+            const targetModifyInteraction = new Modify({ features: new Collection([feature]) });
+            targetModifyInteraction.on("modifystart", modifyInteractionFuncStart);
+            targetModifyInteraction.on("modifyend", modifyInteractionFunc);
+            map.addInteraction(targetModifyInteraction);
+            try {
+                targetModifyInteraction.removePoint(coordinate);
+            } finally {
+                map.removeInteraction(targetModifyInteraction);
+                targetModifyInteraction.un("modifystart", modifyInteractionFuncStart);
+                targetModifyInteraction.un("modifyend", modifyInteractionFunc);
+            }
         };
 
         map.addEventListener("custom-paste", pasteHandler);
@@ -1114,7 +1128,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             map.removeEventListener("custom-copy", copyHandler);
             map.removeEventListener("custom-remove-vertex", removeVertexHandler);
         };
-    }, [clickedControl?.interaction, map, modifyInteraction, pasteAtCoordinate]);
+    }, [clickedControl?.interaction, map, modifyFeatures, modifyInteractionFunc, modifyInteractionFuncStart, pasteAtCoordinate]);
 
     useEffect(() => {
         selectedObjects.forEach((feat) => {

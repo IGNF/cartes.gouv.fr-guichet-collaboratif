@@ -9,6 +9,11 @@ export interface ContextMenuItem {
     callback: (payload: { coordinate?: number[] }) => void;
 }
 
+export interface VertexTarget {
+    feature: Feature;
+    coordinate: Coordinate;
+}
+
 const getRemovableVertices = (feature: Feature): Coordinate[] => {
     const geometry = feature.getGeometry();
 
@@ -42,9 +47,9 @@ const getRemovableVertices = (feature: Feature): Coordinate[] => {
     return [];
 };
 
-export const findVertexAtCoordinate = (map: OlMap, features: Feature[], coordinate: Coordinate): Coordinate | undefined => {
+export const findVertexAtCoordinate = (map: OlMap, features: Feature[], coordinate: Coordinate): VertexTarget | undefined => {
     const clickedPixel = map.getPixelFromCoordinate(coordinate);
-    let closestVertex: Coordinate | undefined;
+    let closestTarget: VertexTarget | undefined;
     let closestDistance = POINTER_HIT_DETECTION_TOLERENCE;
 
     features.forEach((feature) => {
@@ -52,12 +57,12 @@ export const findVertexAtCoordinate = (map: OlMap, features: Feature[], coordina
             const vertexPixel = map.getPixelFromCoordinate(vertex);
             const distance = Math.hypot(vertexPixel[0] - clickedPixel[0], vertexPixel[1] - clickedPixel[1]);
 
-            if (distance <= closestDistance) {
+            if (distance <= POINTER_HIT_DETECTION_TOLERENCE && (!closestTarget || distance < closestDistance)) {
                 closestDistance = distance;
-                closestVertex = vertex;
+                closestTarget = { feature, coordinate: vertex };
             }
         });
     });
 
-    return closestVertex;
+    return closestTarget;
 };
