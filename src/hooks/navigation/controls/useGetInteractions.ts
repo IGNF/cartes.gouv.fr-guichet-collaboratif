@@ -1,14 +1,16 @@
 import { useCommunityStore, useMapStore } from "@/store";
+import { editingGeometryStyle, editingVerticesStyle } from "@/constants/styles";
+import { InteractionType } from "@/constants/communities/types";
 import { Collection, Feature } from "ol";
 import { platformModifierKeyOnly, click, shiftKeyOnly } from "ol/events/condition";
 import { Draw, Modify, Select, Snap, Translate, DragBox } from "ol/interaction";
 import VectorLayer from "ol/layer/Vector";
 import WebGLVectorLayer from "ol/layer/WebGLVector";
 import VectorSource from "ol/source/Vector";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 
 const useGetInteractions = () => {
-    const { map, mapWorkingLayer, clickedMapFeature } = useMapStore();
+    const { map, mapWorkingLayer, clickedMapFeature, clickedControl } = useMapStore();
     const { communityLayers } = useCommunityStore();
 
     const clickableLayer = map
@@ -64,6 +66,40 @@ const useGetInteractions = () => {
 
     const modifyFeatures = useMemo(() => selectInteraction.getFeatures(), [selectInteraction]);
 
+    const editingLayer = useMemo(() => {
+        const layer = new VectorLayer({
+            source: new VectorSource({ wrapX: false }),
+            style: editingVerticesStyle,
+        });
+        layer.setZIndex(1000);
+        layer.set("name", "editing-geometry-overlay");
+        return layer;
+    }, []);
+
+    useEffect(() => {
+        if (!map || clickedControl?.interaction !== InteractionType.MODIFY) return;
+
+        const editingSource = editingLayer.getSource();
+        const syncEditingFeatures = () => {
+            editingSource?.clear();
+            editingSource?.addFeatures(
+                modifyFeatures
+                    .getArray()
+                    .filter((feature) => ["LineString", "MultiLineString", "Polygon", "MultiPolygon"].includes(feature.getGeometry()?.getType() ?? ""))
+            );
+        };
+
+        syncEditingFeatures();
+        modifyFeatures.on(["add", "remove"], syncEditingFeatures);
+        map.addLayer(editingLayer);
+
+        return () => {
+            modifyFeatures.un(["add", "remove"], syncEditingFeatures);
+            map.removeLayer(editingLayer);
+            editingSource?.clear();
+        };
+    }, [clickedControl?.interaction, editingLayer, map, modifyFeatures]);
+
     const modifyInteraction = useMemo(() => {
         const modify = new Modify({ features: modifyFeatures });
         modify.set("disablesTooltip", true);
@@ -88,13 +124,23 @@ const useGetInteractions = () => {
     }, [isEventInsideMapViewport]);
 
     const drawLineInteraction = useMemo(() => {
-        const draw = new Draw({ type: "LineString", condition: isEventInsideMapViewport, freehandCondition: () => false });
+        const draw = new Draw({
+            type: "LineString",
+            condition: isEventInsideMapViewport,
+            freehandCondition: () => false,
+            style: editingGeometryStyle,
+        });
         draw.set("disablesTooltip", true);
         return draw;
     }, [isEventInsideMapViewport]);
 
     const drawPolygonInteraction = useMemo(() => {
-        const draw = new Draw({ type: "Polygon", condition: isEventInsideMapViewport, freehandCondition: () => false });
+        const draw = new Draw({
+            type: "Polygon",
+            condition: isEventInsideMapViewport,
+            freehandCondition: () => false,
+            style: editingGeometryStyle,
+        });
         draw.set("disablesTooltip", true);
         return draw;
     }, [isEventInsideMapViewport]);

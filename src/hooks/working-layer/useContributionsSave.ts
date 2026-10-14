@@ -7,7 +7,7 @@ import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_FINGERPRINT_COLUMN, FEATURE_TY
 import { CommunityGeoservice, StatusMessage } from "@/constants/communities/types";
 import { Contribution, ContributionType, TransactionApi, TransactionStatus, TransactionAction, TransactionType } from "@/constants/contributions/types";
 import { getFeatureGeometryWKT } from "@/constants/utils";
-import { resetContributionToMap, areEqual } from "@/constants/contributions/utils";
+import { resetContributionToMap, areEqual, setFeatNewCoords } from "@/constants/contributions/utils";
 import { postTransactions } from "@/api/transactionData";
 import { normalizeColumnEnum } from "@/constants/communities/utils";
 
@@ -113,9 +113,12 @@ export function useContributionsSave({ pendingMessage, successMessage, errorMess
             const geometryNameColumn = geoservice.columns.find((c) => c.name === geoservice.geometryName);
             const featProj = geometryNameColumn?.crs;
             const apiExist = apis.find((api) => api.database === database);
-            const featGeometry = matchGeometryColumnType(getFeatureGeometryWKT(feat, mapProj, featProj, true), geometryNameColumn?.type);
+            const force2d = geometryNameColumn?.is3d !== true;
+            if (!force2d) setFeatNewCoords(feat, contr.initialFeature ?? undefined);
+
+            const featGeometry = matchGeometryColumnType(getFeatureGeometryWKT(feat, mapProj, featProj, force2d), geometryNameColumn?.type);
             const initialGeometry = contr.initialFeature
-                ? matchGeometryColumnType(getFeatureGeometryWKT(contr.initialFeature, mapProj, featProj, true), geometryNameColumn?.type)
+                ? matchGeometryColumnType(getFeatureGeometryWKT(contr.initialFeature, mapProj, featProj, force2d), geometryNameColumn?.type)
                 : undefined;
             const columnsByName = new Map(geoservice.columns.map((column) => [column.name, column]));
             const filteredFeatData: Record<string, unknown> = {};

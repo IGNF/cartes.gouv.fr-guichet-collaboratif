@@ -18,3 +18,11 @@ export class CustomCopyEvent extends BaseEvent {
         this.feature = feature;
     }
 }
+
+export class CustomRemoveVertexEvent extends BaseEvent {
+    coordinate?: number[];
+    constructor(coordinate?: number[]) {
+        super("custom-remove-vertex");
+        this.coordinate = coordinate;
+    }
+}

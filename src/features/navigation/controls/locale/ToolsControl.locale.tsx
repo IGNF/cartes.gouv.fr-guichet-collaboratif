@@ -30,6 +30,7 @@ export const ToolsControlFrTranslations: Translations<"fr">["ToolsControl"] = {
     save_success: "Position favorite enregistrée.",
     control_zoom_in: "Zoomer",
     control_zoom_out: "Dézoomer",
+    remove_vertex: "Supprimer le sommet",
 };
 
 export const ToolsControlEnTranslations: Translations<"en">["ToolsControl"] = {
@@ -61,6 +62,7 @@ export const ToolsControlEnTranslations: Translations<"en">["ToolsControl"] = {
     save_success: "Starred position saved.",
     control_zoom_in: "Zoom In",
     control_zoom_out: "Zoom Out",
+    remove_vertex: "Delete summit",
 };
 
 const { i18n } = declareComponentKeys<
@@ -92,5 +94,6 @@ const { i18n } = declareComponentKeys<
     | "save_success"
     | "control_zoom_in"
     | "control_zoom_out"
+    | "remove_vertex"
 >()("ToolsControl");
 export type I18n = typeof i18n;

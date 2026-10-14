@@ -265,6 +265,10 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
 
             const currentGeom = feat.getGeometry();
             const initialGeom = initialFeat.getGeometry();
+            const geoservice = currentCommunityLayer?.geoservice;
+            const geometryNameColumn = geoservice?.columns.find((column) => column.name === geoservice.geometryName);
+            if (geometryNameColumn?.is3d) setFeatNewCoords(feat, initialFeat);
+
             const currentCoords = (currentGeom as GeometryFeatueParams | null)?.getCoordinates?.();
             const initialCoords = (initialGeom as GeometryFeatueParams | null)?.getCoordinates?.();
             const hasGeometryChanged =
@@ -291,7 +295,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                 }
             }
         },
-        [authoriseContribution, mapWorkingLayer, saveContribution, setIsModifying, selectInteraction, clickedControl, map]
+        [authoriseContribution, currentCommunityLayer?.geoservice, mapWorkingLayer, saveContribution, setIsModifying, selectInteraction, clickedControl, map]
     );
 
     const handleModifyInteractionStart = useCallback(
@@ -1095,16 +1099,22 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             registeredPasteHandlerRef.current = stablePasteHandler;
         };
 
-        // Add listeners to map for custom copy/paste
-        // First param is type
+        const removeVertexHandler = (event: Event | BaseEvent) => {
+            const coordinate = (event as BaseEvent & { coordinate?: Coordinate }).coordinate;
+            if (!coordinate || clickedControl?.interaction !== InteractionType.MODIFY) return;
+            modifyInteraction.removePoint(coordinate);
+        };
+
         map.addEventListener("custom-paste", pasteHandler);
         map.addEventListener("custom-copy", copyHandler);
+        map.addEventListener("custom-remove-vertex", removeVertexHandler);
 
         return () => {
             map.removeEventListener("custom-paste", pasteHandler);
             map.removeEventListener("custom-copy", copyHandler);
+            map.removeEventListener("custom-remove-vertex", removeVertexHandler);
         };
-    }, [map, pasteAtCoordinate]);
+    }, [clickedControl?.interaction, map, modifyInteraction, pasteAtCoordinate]);
 
     useEffect(() => {
         selectedObjects.forEach((feat) => {
