@@ -148,9 +148,12 @@ export type reportData = {
     attachments: attachmentData[];
     sketch: string | null;
     opening_date?: string;
+    updating_date?: string;
+    closing_date?: string;
     author?: AuthorData;
     commune?: CommuneData;
     departement?: DepartementData;
+    replies?: Reply[];
 };
 
 export type ErrorFile = {
