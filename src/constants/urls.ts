@@ -45,4 +45,4 @@ export const DISCOVER_URL = BASE_URL + "/decouvrir";
 export const SITEMAP_URL = BASE_URL + "/plan-du-site";
 export const ACCESSIBILITY_URL = BASE_URL + "/accessibilite";
 export const LEGAL_NOTICES_URL = BASE_URL + "/mentions-legales";
-export const TERMS_OF_USE_URL = BASE_URL + "/conditions-generales-d-utilisation";
+export const TERMS_OF_USE_URL = BASE_URL + "/cgu";
