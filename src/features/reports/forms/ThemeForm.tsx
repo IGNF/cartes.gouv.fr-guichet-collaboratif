@@ -1,9 +1,9 @@
-import { useState } from "react";
 import { Fragment } from "react/jsx-runtime";
 import { useTranslation } from "@/i18n";
 import { useCommunityStore, useReportStore } from "@/store";
 import { PostThemeReport } from "@/constants/reports/types";
 import { CommunityTheme } from "@/constants/communities/types";
+import { getThemeAttributeError } from "@/constants/reports/utils";
 import { Checkbox } from "@codegouvfr/react-dsfr/Checkbox";
 import Input from "@codegouvfr/react-dsfr/Input";
 import Select from "@codegouvfr/react-dsfr/Select";
@@ -12,12 +12,13 @@ interface ThemeProps {
     theme: CommunityTheme;
     themeAttributes: PostThemeReport;
     onChangeThemeAttributes?: (attributes: PostThemeReport) => void;
+    readOnly?: boolean;
 }
 
-const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeThemeAttributes }) => {
-    const [inputState, setinputState] = useState<boolean>(false);
+const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeThemeAttributes, readOnly: readOnlyProp }) => {
     const { community } = useCommunityStore();
     const { isShowReport } = useReportStore();
+    const readOnly = readOnlyProp ?? isShowReport();
 
     const { t } = useTranslation({ ThemeForm });
 
@@ -36,20 +37,27 @@ const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeTheme
     return (
         <div className="report-theme-form">
             {communityTheme?.attributes?.map((item, index) => {
+                const value = themeAttributes[item.name] ?? item.default;
+                const validationError = readOnly ? null : getThemeAttributeError(item, value);
+                const isMissing = validationError === "mandatory";
+                const isInvalidInteger = validationError === "integer";
+                const isInvalidNumber = validationError === "number";
+                const isInvalidList = validationError === "list";
+
                 switch (item.type) {
                     case "text":
                         return (
                             <Input
                                 key={item.type + index}
                                 textArea
-                                label={item.name + (item.mandatory && !isShowReport() ? " *" : "")}
-                                state={item.mandatory && !themeAttributes[item.name] && !isShowReport() ? "error" : "default"}
-                                stateRelatedMessage={item.mandatory && !themeAttributes[item.name] && !isShowReport() ? t("mandatory_field") : ""}
-                                hintText={isShowReport() ? "" : item.help}
-                                disabled={isShowReport()}
+                                label={item.name + (item.mandatory && !readOnly ? " *" : "")}
+                                state={isMissing ? "error" : "default"}
+                                stateRelatedMessage={isMissing ? t("mandatory_field") : ""}
+                                hintText={readOnly ? "" : item.help}
+                                disabled={readOnly}
                                 nativeTextAreaProps={{
-                                    required: !!item.mandatory,
-                                    defaultValue: themeAttributes ? themeAttributes[item.name] : item.default,
+                                    required: !!item.mandatory && !readOnly,
+                                    defaultValue: value,
                                     onChange: (e) => {
                                         handleChange(item.name, e.target.value);
                                     },
@@ -61,28 +69,20 @@ const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeTheme
                         return (
                             <Input
                                 key={item.type + index}
-                                label={item.name + (item.mandatory ? " *" : "")}
-                                state={(item.mandatory && !themeAttributes[item.name] && !isShowReport()) || !inputState ? "error" : "default"}
-                                stateRelatedMessage={
-                                    item.mandatory && !themeAttributes[item.name] && !isShowReport()
-                                        ? t("mandatory_field")
-                                        : !inputState
-                                          ? t("integer_status")
-                                          : ""
-                                }
-                                hintText={isShowReport() ? "" : item.help}
-                                disabled={isShowReport()}
+                                label={item.name + (item.mandatory && !readOnly ? " *" : "")}
+                                state={isMissing || isInvalidInteger ? "error" : "default"}
+                                stateRelatedMessage={isMissing ? t("mandatory_field") : isInvalidInteger ? t("integer_status") : ""}
+                                hintText={readOnly ? "" : item.help}
+                                disabled={readOnly}
                                 nativeInputProps={{
-                                    required: !!item.mandatory,
+                                    required: !!item.mandatory && !readOnly,
                                     inputMode: "numeric",
                                     pattern: "[0-9]*",
                                     type: "number",
                                     step: "1",
-                                    defaultValue: themeAttributes ? themeAttributes[item.name] : item.default,
+                                    defaultValue: value,
                                     onChange: (e) => {
-                                        const numValue = Number(e.target.value);
                                         handleChange(item.name, e.target.value);
-                                        setinputState(e.target.value === "" || Number.isInteger(numValue));
                                     },
                                 }}
                             />
@@ -95,13 +95,13 @@ const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeTheme
                                 options={[
                                     {
                                         label: item.name,
-                                        hintText: isShowReport() ? "" : item.help,
+                                        hintText: readOnly ? "" : item.help,
                                         nativeInputProps: {
-                                            checked: themeAttributes ? themeAttributes[item.name] === "1" : item.default === "1",
+                                            checked: value === "1",
                                             onChange: (e) => {
                                                 handleChange(item.name, e.target.checked ? "1" : "0");
                                             },
-                                            disabled: isShowReport(),
+                                            disabled: readOnly,
                                         },
                                     },
                                 ]}
@@ -112,15 +112,17 @@ const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeTheme
                         return (
                             <Select
                                 key={item.type + index}
-                                label={item.name + (item.mandatory ? " *" : "")}
-                                hint={isShowReport() ? "" : item.help}
-                                disabled={isShowReport()}
+                                label={item.name + (item.mandatory && !readOnly ? " *" : "")}
+                                state={isMissing || isInvalidList ? "error" : "default"}
+                                stateRelatedMessage={isMissing ? t("mandatory_field") : isInvalidList ? t("list_status") : ""}
+                                hint={readOnly ? "" : item.help}
+                                disabled={readOnly}
                                 nativeSelectProps={{
-                                    required: !!item.mandatory,
+                                    required: !!item.mandatory && !readOnly,
                                     onChange: (e) => {
                                         handleChange(item.name, e.target.value);
                                     },
-                                    defaultValue: themeAttributes ? themeAttributes[item.name] : item.default,
+                                    defaultValue: value,
                                 }}
                             >
                                 <Fragment>
@@ -140,15 +142,15 @@ const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeTheme
                         return (
                             <Input
                                 key={item.type + index}
-                                label={item.name + (item.mandatory ? " *" : "")}
-                                state={item.mandatory && !themeAttributes[item.name] && !isShowReport() ? "error" : "default"}
-                                stateRelatedMessage={item.mandatory && !themeAttributes[item.name] && !isShowReport() ? t("mandatory_field") : ""}
-                                hintText={isShowReport() ? "" : item.help}
-                                disabled={isShowReport()}
+                                label={item.name + (item.mandatory && !readOnly ? " *" : "")}
+                                state={isMissing ? "error" : "default"}
+                                stateRelatedMessage={isMissing ? t("mandatory_field") : ""}
+                                hintText={readOnly ? "" : item.help}
+                                disabled={readOnly}
                                 nativeInputProps={{
-                                    required: !!item.mandatory,
+                                    required: !!item.mandatory && !readOnly,
                                     type: "date",
-                                    defaultValue: themeAttributes ? themeAttributes[item.name] : item.default,
+                                    defaultValue: value,
                                     onChange: (e) => {
                                         handleChange(item.name, e.target.value);
                                     },
@@ -160,18 +162,18 @@ const ThemeForm: React.FC<ThemeProps> = ({ theme, themeAttributes, onChangeTheme
                         return (
                             <Input
                                 key={item.type + index}
-                                label={item.name + (item.mandatory ? " *" : "")}
-                                state={item.mandatory && !themeAttributes[item.name] && !isShowReport() ? "error" : "default"}
-                                stateRelatedMessage={item.mandatory && !themeAttributes[item.name] && !isShowReport() ? t("mandatory_field") : ""}
-                                hintText={isShowReport() ? "" : item.help}
-                                disabled={isShowReport()}
+                                label={item.name + (item.mandatory && !readOnly ? " *" : "")}
+                                state={isMissing || isInvalidNumber ? "error" : "default"}
+                                stateRelatedMessage={isMissing ? t("mandatory_field") : isInvalidNumber ? t("number_status") : ""}
+                                hintText={readOnly ? "" : item.help}
+                                disabled={readOnly}
                                 nativeInputProps={{
-                                    required: !!item.mandatory,
+                                    required: !!item.mandatory && !readOnly,
                                     inputMode: "numeric",
                                     pattern: "[0-9]*",
                                     type: "number",
                                     step: "0.001",
-                                    defaultValue: themeAttributes ? themeAttributes[item.name] : item.default,
+                                    defaultValue: value,
                                     onChange: (e) => {
                                         handleChange(item.name, e.target.value);
                                     },
