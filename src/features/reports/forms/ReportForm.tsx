@@ -248,6 +248,7 @@ const ReportForm: React.FC<Props> = ({
     };
 
     const onSubmitDocument = async () => {
+        if (filesUploaded.length === 0) return;
         if (!validateTheme() || !validateFiles(filesUploaded)) return;
         if (!community || !selectedTheme || !handleSubmitDocument) return;
 
@@ -498,7 +499,11 @@ const ReportForm: React.FC<Props> = ({
                             {showDocument && (
                                 <>
                                     <div className="report__actions">
-                                        {editReport && <Button onClick={onSubmitDocument}>{t("submit_report")}</Button>}
+                                        {editReport && (
+                                            <Button disabled={filesUploaded.length === 0 || errorFiles.length > 0 || loading} onClick={onSubmitDocument}>
+                                                {t("submit_report")}
+                                            </Button>
+                                        )}
                                         <Button priority="secondary" onClick={() => onToggleDocument()}>
                                             {showDocument ? t("hide_toEdit") : editReport ? t("show_toEdit") : t("show_toCreate")}
                                         </Button>

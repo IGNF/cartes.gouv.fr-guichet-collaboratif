@@ -9,6 +9,7 @@ import { Contribution, ContributionType, TransactionApi, TransactionStatus, Tran
 import { getFeatureGeometryWKT } from "@/constants/utils";
 import { resetContributionToMap, areEqual } from "@/constants/contributions/utils";
 import { postTransactions } from "@/api/transactionData";
+import { createCommunityDocument, deleteCommunityDocument } from "@/api/documentData";
 import { normalizeColumnEnum } from "@/constants/communities/utils";
 
 interface UseContributionsSaveOptions {
@@ -29,10 +30,44 @@ const matchGeometryColumnType = (wkt: string, columnType?: string) => {
     return wkt;
 };
 
+const getDocumentId = (value: unknown): number | null => {
+    if (typeof value === "number" && Number.isFinite(value)) return value;
+    if (typeof value === "string") {
+        if (/^\d+$/.test(value)) return Number(value);
+        try {
+            return getDocumentId(JSON.parse(value));
+        } catch {
+            return null;
+        }
+    }
+    if (typeof value === "object" && value !== null && "id" in value) {
+        const id = Number(value.id);
+        return Number.isFinite(id) ? id : null;
+    }
+    return null;
+};
+
+const getLocalDocumentFile = (value: unknown): File | null => {
+    if (value instanceof File) return value;
+    if (Array.isArray(value) && value[0] instanceof File) return value[0];
+    return null;
+};
+
+interface UploadedDocument {
+    database: number;
+    newDocumentId: number;
+    oldDocumentId: number | null;
+}
+
+interface PendingDocumentDeletion {
+    database: number;
+    documentId: number;
+}
+
 export function useContributionsSave({ pendingMessage, successMessage, errorMessage, missingConfigurationMessage }: UseContributionsSaveOptions) {
     const { map, setWorkingLayerDrawerOpened, setClickedMapFeature, setClickedControl } = useMapStore();
     const { contributions, contrToCancel, setReviewContribution, setContributions, setContrToCancel } = useContributionStore();
-    const { addAlertMessage, removeAlertMessage } = useCommunityStore();
+    const { community, addAlertMessage, removeAlertMessage } = useCommunityStore();
     const { user } = useUserStore();
     const { lang } = useLang();
     const [isLoading, setIsLoading] = useState(false);
@@ -97,75 +132,136 @@ export function useContributionsSave({ pendingMessage, successMessage, errorMess
         const apis: TransactionApi[] = [];
         const today = new Date();
         const geomContr: { contr: Contribution; geom: string }[] = [];
-
-        for (const contr of contributions) {
-            const feat = contr.feature;
-            const featData = feat.get(FEATURE_TYPE_DATA_PROPERTY) as Record<string, unknown>;
-            const initialFeatData = contr.initialFeature?.get(FEATURE_TYPE_DATA_PROPERTY) as Record<string, unknown> | undefined;
-            const geoservice: CommunityGeoservice = feat.get(FEATURE_TYPE_GEOSERVICE_PROPERTY);
-            const { database, table } = geoservice;
-            if (database === undefined || table === undefined) {
-                addAlertMessage(StatusMessage.error, missingConfigurationMessage);
-                return;
-            }
-
-            verifyFeatData(featData, geoservice);
-            const geometryNameColumn = geoservice.columns.find((c) => c.name === geoservice.geometryName);
-            const featProj = geometryNameColumn?.crs;
-            const apiExist = apis.find((api) => api.database === database);
-            const featGeometry = matchGeometryColumnType(getFeatureGeometryWKT(feat, mapProj, featProj, true), geometryNameColumn?.type);
-            const initialGeometry = contr.initialFeature
-                ? matchGeometryColumnType(getFeatureGeometryWKT(contr.initialFeature, mapProj, featProj, true), geometryNameColumn?.type)
-                : undefined;
-            const columnsByName = new Map(geoservice.columns.map((column) => [column.name, column]));
-            const filteredFeatData: Record<string, unknown> = {};
-            Object.entries(featData).forEach(([key, value]) => {
-                const column = columnsByName.get(key);
-                if (!column) {
-                    if (key === FEATURE_TYPE_FINGERPRINT_COLUMN) filteredFeatData[key] = value;
-                    return;
-                }
-
-                const isIdentifier = key === geoservice.idName;
-                const isChanged = !areEqual(value, initialFeatData?.[key]);
-                if (contr.type !== ContributionType.CREATE && !isIdentifier && !isChanged) return;
-                if (contr.type === ContributionType.CREATE && value === "" && !column.required) return;
-
-                const columnType = column.type.toLowerCase();
-                filteredFeatData[key] = columnType === "datetime" && typeof value === "string" ? value.slice(0, 19).replace("T", " ") : value;
-            });
-            if (contr.type === ContributionType.CREATE || featGeometry !== initialGeometry) {
-                filteredFeatData[`${geoservice.geometryName}`] = featGeometry;
-            }
-            const action = {
-                table,
-                state: contr.type,
-                data: filteredFeatData,
-            };
-            geomContr.push({ contr, geom: featGeometry });
-            if (apiExist) {
-                apiExist.body.actions.push(action);
-            } else {
-                apis.push({
-                    database,
-                    body: {
-                        comment: `Transaction ajoutée par l'utilisateur ${user?.username} ; date et heure : ${today.toLocaleDateString(lang, { formatMatcher: "best fit" })} ${today.toLocaleTimeString(lang)} (code : wfsTransactions)`,
-                        actions: [action],
-                    },
-                });
-            }
-        }
+        const uploadedDocuments: UploadedDocument[] = [];
+        const pendingDocumentDeletions: PendingDocumentDeletion[] = [];
+        let transactionsStarted = false;
 
         setIsLoading(true);
         const pendingId = addAlertMessage(StatusMessage.info, pendingMessage);
         try {
+            for (const contr of contributions) {
+                const feat = contr.feature;
+                const featData = feat.get(FEATURE_TYPE_DATA_PROPERTY) as Record<string, unknown>;
+                const initialFeatData = contr.initialFeature?.get(FEATURE_TYPE_DATA_PROPERTY) as Record<string, unknown> | undefined;
+                const geoservice: CommunityGeoservice = feat.get(FEATURE_TYPE_GEOSERVICE_PROPERTY);
+                const { database, table } = geoservice;
+                if (database === undefined || table === undefined) {
+                    throw new Error(missingConfigurationMessage);
+                }
+
+                const transactionFeatData = { ...featData };
+                for (const column of geoservice.columns.filter((currentColumn) => currentColumn.type.toLowerCase() === "document")) {
+                    const currentValue = transactionFeatData[column.name];
+                    const localFile = getLocalDocumentFile(currentValue);
+                    const oldDocumentId = getDocumentId(initialFeatData?.[column.name]);
+
+                    if (localFile) {
+                        if (!community) throw new Error(missingConfigurationMessage);
+                        const uploadedDocument = await createCommunityDocument(community.id, localFile);
+                        transactionFeatData[column.name] = uploadedDocument.id;
+                        uploadedDocuments.push({
+                            database,
+                            newDocumentId: uploadedDocument.id,
+                            oldDocumentId,
+                        });
+                    } else if ((currentValue === null || currentValue === "") && oldDocumentId !== null) {
+                        pendingDocumentDeletions.push({ database, documentId: oldDocumentId });
+                    }
+                }
+
+                verifyFeatData(transactionFeatData, geoservice);
+                const geometryNameColumn = geoservice.columns.find((c) => c.name === geoservice.geometryName);
+                const featProj = geometryNameColumn?.crs;
+                const apiExist = apis.find((api) => api.database === database);
+                const featGeometry = matchGeometryColumnType(getFeatureGeometryWKT(feat, mapProj, featProj, true), geometryNameColumn?.type);
+                const initialGeometry = contr.initialFeature
+                    ? matchGeometryColumnType(getFeatureGeometryWKT(contr.initialFeature, mapProj, featProj, true), geometryNameColumn?.type)
+                    : undefined;
+                const columnsByName = new Map(geoservice.columns.map((column) => [column.name, column]));
+                const filteredFeatData: Record<string, unknown> = {};
+                Object.entries(transactionFeatData).forEach(([key, value]) => {
+                    const column = columnsByName.get(key);
+                    if (!column) {
+                        if (key === FEATURE_TYPE_FINGERPRINT_COLUMN) filteredFeatData[key] = value;
+                        return;
+                    }
+
+                    const isIdentifier = key === geoservice.idName;
+                    const isChanged = !areEqual(value, initialFeatData?.[key]);
+                    if (contr.type !== ContributionType.CREATE && !isIdentifier && !isChanged) return;
+                    if (contr.type === ContributionType.CREATE && value === "" && !column.required) return;
+
+                    const columnType = column.type.toLowerCase();
+                    filteredFeatData[key] = columnType === "datetime" && typeof value === "string" ? value.slice(0, 19).replace("T", " ") : value;
+                });
+                if (contr.type === ContributionType.CREATE || featGeometry !== initialGeometry) {
+                    filteredFeatData[`${geoservice.geometryName}`] = featGeometry;
+                }
+                const action = {
+                    table,
+                    state: contr.type,
+                    data: filteredFeatData,
+                };
+                geomContr.push({ contr, geom: featGeometry });
+                if (apiExist) {
+                    apiExist.body.actions.push(action);
+                } else {
+                    apis.push({
+                        database,
+                        body: {
+                            comment: `Transaction ajoutée par l'utilisateur ${user?.username} ; date et heure : ${today.toLocaleDateString(lang, { formatMatcher: "best fit" })} ${today.toLocaleTimeString(lang)} (code : wfsTransactions)`,
+                            actions: [action],
+                        },
+                    });
+                }
+            }
+
+            transactionsStarted = true;
             const postResAll = await postTransactions(apis);
             const transactionStatuses: TransactionStatus[] = postResAll.map((res) => res.data);
+            const committedDatabases = new Set(
+                postResAll.flatMap((response, index) => (response.data.status === TransactionType.COMMITTED ? [apis[index].database] : []))
+            );
+            const documentIdsToDelete = new Set<number>();
+            uploadedDocuments.forEach(({ database, newDocumentId, oldDocumentId }) => {
+                if (committedDatabases.has(database)) {
+                    if (oldDocumentId !== null) documentIdsToDelete.add(oldDocumentId);
+                } else {
+                    documentIdsToDelete.add(newDocumentId);
+                }
+            });
+            pendingDocumentDeletions.forEach(({ database, documentId }) => {
+                if (committedDatabases.has(database)) documentIdsToDelete.add(documentId);
+            });
+
+            if (community) {
+                const deletionErrors: unknown[] = [];
+                for (const documentId of documentIdsToDelete) {
+                    try {
+                        await deleteCommunityDocument(community.id, documentId);
+                    } catch (error) {
+                        deletionErrors.push(error);
+                    }
+                }
+                if (deletionErrors.length > 0) {
+                    addAlertMessage(StatusMessage.error, `${errorMessage}: ${deletionErrors.map(String).join("; ")}`, 5000);
+                }
+            }
+
             const allSuccess = transactionStatuses.every((s) => s.status === TransactionType.COMMITTED);
             const failedStatuses = transactionStatuses.filter((s) => s.status !== TransactionType.COMMITTED);
             if (allSuccess) handleSuccess(transactionStatuses, geomContr);
             else handleError(failedStatuses, geomContr);
         } catch (error) {
+            if (community && !transactionsStarted) {
+                for (const { newDocumentId } of uploadedDocuments) {
+                    try {
+                        await deleteCommunityDocument(community.id, newDocumentId);
+                    } catch (cleanupError) {
+                        addAlertMessage(StatusMessage.error, `${errorMessage}: ${String(cleanupError)}`, 5000);
+                    }
+                }
+            }
             if (error instanceof AxiosError) {
                 addAlertMessage(StatusMessage.error, error.response?.data?.message || error.message, 5000);
             } else {
@@ -175,7 +271,20 @@ export function useContributionsSave({ pendingMessage, successMessage, errorMess
             setIsLoading(false);
             removeAlertMessage(pendingId);
         }
-    }, [user, lang, mapProj, verifyFeatData, addAlertMessage, removeAlertMessage, pendingMessage, missingConfigurationMessage, handleSuccess, handleError]);
+    }, [
+        user,
+        lang,
+        mapProj,
+        verifyFeatData,
+        addAlertMessage,
+        removeAlertMessage,
+        pendingMessage,
+        missingConfigurationMessage,
+        handleSuccess,
+        handleError,
+        community,
+        errorMessage,
+    ]);
 
     const onClickReset = useCallback(() => {
         contrToCancel.forEach((contr) => resetContributionToMap(map!, contr));

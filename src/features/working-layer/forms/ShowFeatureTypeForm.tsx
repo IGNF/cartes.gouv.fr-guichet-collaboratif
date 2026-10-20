@@ -11,6 +11,7 @@ import VectorLayer from "ol/layer/Vector";
 import WebGLVectorLayer from "ol/layer/WebGLVector";
 import { EventTypes } from "ol/Observable";
 import { memo, ReactNode, useCallback, useEffect, useMemo, useRef } from "react";
+import FeatureDocumentField from "./FeatureDocumentField";
 
 interface PointDataProps {
     [key: string]: unknown;
@@ -85,7 +86,9 @@ const ShowFeatureTypeForm = ({ isEditAuthorised, onClose }: ShowFeatureTypeFormP
                 const title = col.title;
                 let value: ReactNode = (pointData?.[col.name] ?? col.default_value) as ReactNode;
 
-                if (value === null || value === undefined) {
+                if (col.type.toLowerCase() === "document") {
+                    value = <FeatureDocumentField value={pointData?.[col.name] ?? col.default_value} label={col.title} />;
+                } else if (value === null || value === undefined) {
                     value = t("value_empty");
                 } else if (typeof value === "boolean") {
                     value = value ? t("value_yes") : t("value_no");

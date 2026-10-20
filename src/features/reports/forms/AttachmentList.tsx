@@ -1,7 +1,7 @@
 import { Fragment, useMemo, useState } from "react";
 import { useTranslation } from "@/i18n";
 import { deleteCommunityReportAttachment } from "@/api/attachmentData";
-import { useCommunityStore, useReportStore } from "@/store";
+import { useCommunityStore, useDocumentModalStore, useModalStore, useReportStore } from "@/store";
 import { ErrorFile, attachmentData } from "@/constants/reports/types";
 import { StatusMessage } from "@/constants/communities/types";
 import Button from "@codegouvfr/react-dsfr/Button";
@@ -18,14 +18,29 @@ interface Props {
 const AttachmentList: React.FC<Props> = ({ newFiles, errorFiles, removeFile, showDocument }) => {
     const { addAlertMessage } = useCommunityStore();
     const { reports, selectedReport, setReports, editReport } = useReportStore();
+    const { documentModal } = useModalStore();
+    const { setContext } = useDocumentModalStore();
 
     const [loading, setLoading] = useState(false);
 
-    const report = useMemo(() => reports.find((r) => r.id === selectedReport?.id), [reports, selectedReport]);
+    const report = useMemo(() => reports.find((r) => r.id === selectedReport?.id) ?? selectedReport, [reports, selectedReport]);
 
     const { t } = useTranslation({ AttachmentList });
 
     if (!report && !newFiles) return null;
+    const viewAttachment = (attachment: attachmentData) => {
+        setContext({
+            canEdit: false,
+            document: {
+                id: attachment.id,
+                name: attachment.short_fileName,
+                mimeType: attachment.mime_type,
+                uri: attachment.uri,
+            },
+        });
+        documentModal.open();
+    };
+
     const deleteAttachment = async (attachment: attachmentData) => {
         if (!report) return;
         setLoading(true);
@@ -56,6 +71,14 @@ const AttachmentList: React.FC<Props> = ({ newFiles, errorFiles, removeFile, sho
                     <a href={attachment.uri} target="_blank">
                         {attachment.short_fileName}
                     </a>
+                    <Button
+                        iconId="fr-icon-eye-line"
+                        title={t("view_file", { fileName: attachment.short_fileName })}
+                        priority="tertiary"
+                        onClick={() => viewAttachment(attachment)}
+                    >
+                        {t("view")}
+                    </Button>
 
                     {editReport && showDocument && (
                         <Button
