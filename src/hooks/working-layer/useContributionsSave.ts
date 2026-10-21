@@ -5,7 +5,7 @@ import { useCommunityStore, useContributionStore, useMapStore, useUserStore } fr
 import { useLang } from "@/i18n";
 import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_FINGERPRINT_COLUMN, FEATURE_TYPE_GEOSERVICE_PROPERTY, FEATURE_TYPE_NEW_PROPERTY } from "@/constants";
 import { CommunityGeoservice, StatusMessage } from "@/constants/communities/types";
-import { Contribution, ContributionType, TransactionApi, TransactionStatus, TransactionAction, TransactionType } from "@/constants/contributions/types";
+import { Contribution, ContributionType, TransactionApi, TransactionStatus, TransactionType } from "@/constants/contributions/types";
 import { getFeatureGeometryWKT } from "@/constants/utils";
 import { resetContributionToMap, areEqual } from "@/constants/contributions/utils";
 import { postTransactions } from "@/api/transactionData";
@@ -57,6 +57,8 @@ interface UploadedDocument {
     database: number;
     newDocumentId: number;
     oldDocumentId: number | null;
+    contribution: Contribution;
+    columnName: string;
 }
 
 interface PendingDocumentDeletion {
@@ -84,45 +86,13 @@ export function useContributionsSave({ pendingMessage, successMessage, errorMess
         });
     }, []);
 
-    const handleSuccess = useCallback(
-        (transactionStatuses: TransactionStatus[], geomContr: { contr: Contribution; geom: string }[]) => {
-            transactionStatuses.forEach((status: TransactionStatus) => {
-                status.actions.forEach((action: TransactionAction) => {
-                    const contr = geomContr.find((gc) => {
-                        const feat = gc.contr.feature;
-                        const geoservice: CommunityGeoservice = feat.get(FEATURE_TYPE_GEOSERVICE_PROPERTY);
-                        if (!geoservice?.geometryName) return false;
-                        return gc.geom === action.data[geoservice.geometryName];
-                    })?.contr;
-                    if (contr) {
-                        contr.feature.set(FEATURE_TYPE_DATA_PROPERTY, action.data);
-                        contr.feature.unset(FEATURE_TYPE_NEW_PROPERTY);
-                    }
-                });
-            });
-            setContributions([]);
-            setWorkingLayerDrawerOpened(false);
-            setClickedMapFeature(null);
-            setClickedControl(null);
-            addAlertMessage(StatusMessage.success, successMessage, 2000);
-        },
-        [setContributions, setWorkingLayerDrawerOpened, setClickedMapFeature, setClickedControl, addAlertMessage, successMessage]
-    );
-
-    const handleError = useCallback(
-        (failedStatuses: TransactionStatus[], geomContr: { contr: Contribution; geom: string }[]) => {
-            const errorMessages = failedStatuses.map((s) => s.message || "Unknown error").join("; ");
-            addAlertMessage(StatusMessage.error, errorMessage + ": " + errorMessages);
-            const failedGeoms = failedStatuses
-                .flatMap((s) => s.actions.map((a: TransactionAction) => a.data))
-                .map((data) =>
-                    Object.values(data).find((v) => typeof v === "string" && (v.startsWith("POINT") || v.startsWith("LINESTRING") || v.startsWith("POLYGON")))
-                );
-            const failedContributions = geomContr.filter((gc) => failedGeoms.includes(gc.geom)).map((gc) => gc.contr);
-            setContributions(failedContributions);
-        },
-        [setContributions, addAlertMessage, errorMessage]
-    );
+    const finishSuccessfulSave = useCallback(() => {
+        setContributions([]);
+        setWorkingLayerDrawerOpened(false);
+        setClickedMapFeature(null);
+        setClickedControl(null);
+        addAlertMessage(StatusMessage.success, successMessage, 2000);
+    }, [setContributions, setWorkingLayerDrawerOpened, setClickedMapFeature, setClickedControl, addAlertMessage, successMessage]);
 
     const onSave = useCallback(async () => {
         const validator = useContributionStore.getState().pendingFeatureFormValidator;
@@ -134,7 +104,7 @@ export function useContributionsSave({ pendingMessage, successMessage, errorMess
         const geomContr: { contr: Contribution; geom: string }[] = [];
         const uploadedDocuments: UploadedDocument[] = [];
         const pendingDocumentDeletions: PendingDocumentDeletion[] = [];
-        let transactionsStarted = false;
+        let transactionsSettled = false;
 
         setIsLoading(true);
         const pendingId = addAlertMessage(StatusMessage.info, pendingMessage);
@@ -163,6 +133,8 @@ export function useContributionsSave({ pendingMessage, successMessage, errorMess
                             database,
                             newDocumentId: uploadedDocument.id,
                             oldDocumentId,
+                            contribution: contr,
+                            columnName: column.name,
                         });
                     } else if ((currentValue === null || currentValue === "") && oldDocumentId !== null) {
                         pendingDocumentDeletions.push({ database, documentId: oldDocumentId });
@@ -216,17 +188,61 @@ export function useContributionsSave({ pendingMessage, successMessage, errorMess
                 }
             }
 
-            transactionsStarted = true;
             const postResAll = await postTransactions(apis);
-            const transactionStatuses: TransactionStatus[] = postResAll.map((res) => res.data);
-            const committedDatabases = new Set(
-                postResAll.flatMap((response, index) => (response.data.status === TransactionType.COMMITTED ? [apis[index].database] : []))
-            );
+            transactionsSettled = true;
+            const settledTransactions: { database: number; status: TransactionStatus }[] = [];
+            const committedDatabases = new Set<number>();
+            const failedDatabases = new Set<number>();
+            const uncertainDatabases = new Set<number>();
+            const requestErrors: unknown[] = [];
+            postResAll.forEach((result, index) => {
+                const { database } = apis[index];
+                if (result.status === "fulfilled") {
+                    settledTransactions.push({ database, status: result.value.data });
+                    if (result.value.data.status === TransactionType.COMMITTED) {
+                        committedDatabases.add(database);
+                    } else {
+                        failedDatabases.add(database);
+                    }
+                } else {
+                    requestErrors.push(result.reason);
+                    uncertainDatabases.add(database);
+                }
+            });
+
+            settledTransactions
+                .filter(({ status }) => status.status === TransactionType.COMMITTED)
+                .forEach(({ database, status }) => {
+                    status.actions.forEach((action) => {
+                        const contr = geomContr.find((gc) => {
+                            const feat = gc.contr.feature;
+                            const geoservice: CommunityGeoservice = feat.get(FEATURE_TYPE_GEOSERVICE_PROPERTY);
+                            if (!geoservice?.geometryName) return false;
+                            return geoservice.database === database && gc.geom === action.data[geoservice.geometryName];
+                        })?.contr;
+                        if (contr) {
+                            contr.feature.set(FEATURE_TYPE_DATA_PROPERTY, action.data);
+                            contr.feature.setProperties(action.data);
+                            contr.feature.unset(FEATURE_TYPE_NEW_PROPERTY);
+                        }
+                    });
+                });
+
+            uploadedDocuments
+                .filter(({ database }) => uncertainDatabases.has(database))
+                .forEach(({ contribution, columnName, newDocumentId }) => {
+                    const featureData = contribution.feature.get(FEATURE_TYPE_DATA_PROPERTY) as Record<string, unknown>;
+                    const updatedFeatureData = { ...featureData, [columnName]: newDocumentId };
+                    contribution.feature.set(FEATURE_TYPE_DATA_PROPERTY, updatedFeatureData);
+                    contribution.feature.set(columnName, newDocumentId);
+                    contribution.feature.changed();
+                });
+
             const documentIdsToDelete = new Set<number>();
             uploadedDocuments.forEach(({ database, newDocumentId, oldDocumentId }) => {
                 if (committedDatabases.has(database)) {
                     if (oldDocumentId !== null) documentIdsToDelete.add(oldDocumentId);
-                } else {
+                } else if (failedDatabases.has(database)) {
                     documentIdsToDelete.add(newDocumentId);
                 }
             });
@@ -248,12 +264,29 @@ export function useContributionsSave({ pendingMessage, successMessage, errorMess
                 }
             }
 
-            const allSuccess = transactionStatuses.every((s) => s.status === TransactionType.COMMITTED);
+            if (requestErrors.length > 0) {
+                const message = requestErrors.map((e) => (e instanceof AxiosError ? e.response?.data?.message || e.message : String(e))).join("; ");
+                addAlertMessage(StatusMessage.error, `${errorMessage}: ${message}`, 5000);
+            }
+            const transactionStatuses = settledTransactions.map(({ status }) => status);
+            const allSuccess = requestErrors.length === 0 && transactionStatuses.every((s) => s.status === TransactionType.COMMITTED);
             const failedStatuses = transactionStatuses.filter((s) => s.status !== TransactionType.COMMITTED);
-            if (allSuccess) handleSuccess(transactionStatuses, geomContr);
-            else handleError(failedStatuses, geomContr);
+            if (allSuccess) {
+                finishSuccessfulSave();
+            } else {
+                const remainingContributions = contributions.filter((contribution) => {
+                    const geoservice = contribution.feature.get(FEATURE_TYPE_GEOSERVICE_PROPERTY) as CommunityGeoservice;
+                    return geoservice.database === undefined || !committedDatabases.has(geoservice.database);
+                });
+                setContributions(remainingContributions);
+
+                if (failedStatuses.length > 0) {
+                    const statusErrors = failedStatuses.map((status) => status.message || "Unknown error").join("; ");
+                    addAlertMessage(StatusMessage.error, `${errorMessage}: ${statusErrors}`, 5000);
+                }
+            }
         } catch (error) {
-            if (community && !transactionsStarted) {
+            if (community && !transactionsSettled) {
                 for (const { newDocumentId } of uploadedDocuments) {
                     try {
                         await deleteCommunityDocument(community.id, newDocumentId);
@@ -280,10 +313,10 @@ export function useContributionsSave({ pendingMessage, successMessage, errorMess
         removeAlertMessage,
         pendingMessage,
         missingConfigurationMessage,
-        handleSuccess,
-        handleError,
+        finishSuccessfulSave,
         community,
         errorMessage,
+        setContributions,
     ]);
 
     const onClickReset = useCallback(() => {
