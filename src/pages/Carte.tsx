@@ -13,6 +13,7 @@ import LoaderComponent from "@/components/LoaderComponent";
 import ClickableFeaturesModal from "@/features/working-layer/modal/ClickableFeaturesModal";
 import GetFeatureInfoPopup from "@/features/working-layer/popUp/GetFeatureInfoPopUp";
 import { useBeforeUnload } from "@/hooks/working-layer/useBeforeUnload";
+import DocumentModal from "@/components/DocumentModal";
 
 const MainMap = lazy(() => import("@/features/navigation/MainMap"));
 
@@ -97,6 +98,7 @@ const Carte: React.FC = () => {
         <>
             <ClickableFeaturesModal />
             <GetFeatureInfoPopup />
+            <DocumentModal />
             <AlertComponent />
             {community && communityLayers && (
                 <Suspense fallback={<LoaderComponent />}>
