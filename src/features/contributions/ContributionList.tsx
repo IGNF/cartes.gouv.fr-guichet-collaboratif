@@ -1,13 +1,14 @@
 import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_GEOSERVICE_PROPERTY } from "@/constants";
 import { CommunityGeoservice } from "@/constants/communities/types";
 import { Contribution, ContributionType } from "@/constants/contributions/types";
+import { handleCenterToFeature } from "@/constants/utils";
 import { useTranslation } from "@/i18n";
 import { useContributionStore, useMapStore, useModalStore } from "@/store";
 import Button from "@codegouvfr/react-dsfr/Button";
 import Checkbox from "@codegouvfr/react-dsfr/Checkbox";
 import { createModal } from "@codegouvfr/react-dsfr/Modal";
 import { useIsModalOpen } from "@codegouvfr/react-dsfr/Modal/useIsModalOpen";
-import { ChangeEvent, useCallback, useEffect, useMemo } from "react";
+import { ChangeEvent, useCallback, useEffect, useMemo, useRef } from "react";
 
 const modal = createModal({
     id: "contribution-list-modal",
@@ -16,7 +17,7 @@ const modal = createModal({
 
 const ContributionList = () => {
     const { contributions, isReviewContribution, contrToCancel, setContrToCancel, setReviewContribution } = useContributionStore();
-    const { clickedMapFeature, setClickedMapFeature } = useMapStore();
+    const { map, clickedMapFeature, setClickedMapFeature } = useMapStore();
     const { confirmResetContributionModal } = useModalStore();
 
     const { t } = useTranslation({ ContributionList });
@@ -80,9 +81,25 @@ const ContributionList = () => {
         (contr: Contribution) => {
             if (!contr?.feature) return;
             setClickedMapFeature(contr.feature);
+            try {
+                handleCenterToFeature(map, contr.feature);
+            } catch {
+                // Just in case geom is broken
+            }
         },
-        [setClickedMapFeature]
+        [map, setClickedMapFeature]
     );
+
+    const wasReviewing = useRef(false);
+    useEffect(() => {
+        if (isReviewContribution && !wasReviewing.current && validContributions.length > 0) {
+            const alreadySelected = validContributions.some((c) => c.feature === clickedMapFeature);
+            if (!alreadySelected) {
+                showContribution(validContributions[0]);
+            }
+        }
+        wasReviewing.current = isReviewContribution;
+    }, [isReviewContribution, validContributions, clickedMapFeature, showContribution]);
 
     useEffect(() => {
         if (isReviewContribution && !isOpen) {

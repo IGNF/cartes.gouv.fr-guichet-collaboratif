@@ -21,8 +21,10 @@ const WorkingLayerDrawer = () => {
     }, [clickedMapFeature, isFeatureAuthorised, selectedObjects]);
 
     useEffect(() => {
-        if (clickedMapFeature && !workingLayerDrawerOpened && !isReviewContribution) {
-            if (clickedMapFeature.get(FEATURE_TYPE_NEW_PROPERTY) && isEditAuthorised) {
+        if (clickedMapFeature && !workingLayerDrawerOpened) {
+            if (isReviewContribution) {
+                setFeatureTypeMode(FeatureTypeMode.VIEW);
+            } else if (clickedMapFeature.get(FEATURE_TYPE_NEW_PROPERTY) && isEditAuthorised) {
                 setFeatureTypeMode(FeatureTypeMode.EDIT);
             }
             setWorkingLayerDrawerOpened(true);
@@ -30,10 +32,10 @@ const WorkingLayerDrawer = () => {
     }, [clickedMapFeature, isEditAuthorised, workingLayerDrawerOpened, isReviewContribution, setWorkingLayerDrawerOpened, setFeatureTypeMode]);
 
     useEffect(() => {
-        if (isEditAuthorised === false) {
+        if (isEditAuthorised === false || (isReviewContribution && clickedMapFeature)) {
             setFeatureTypeMode(FeatureTypeMode.VIEW);
         }
-    }, [isEditAuthorised, setFeatureTypeMode]);
+    }, [isEditAuthorised, isReviewContribution, clickedMapFeature, setFeatureTypeMode]);
 
     const closeDrawer = useCallback(() => {
         selectedObjects.forEach((feat) => {
