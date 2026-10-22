@@ -77,24 +77,41 @@ export const restoreFeature = (feature: Feature, initialFeature: Feature) => {
     feature.changed();
 };
 
-export const setFeatNewCoords = (feat: Feature) => {
+export const setFeatNewCoords = (feat: Feature, initialFeature?: Feature) => {
+    type NestedCoordinates = number[] | NestedCoordinates[];
+
     const geometry = feat.getGeometry() as GeometryFeatueParams;
-    const featCoords = geometry?.getCoordinates() as CoordinateType;
-    const getNewCoord = (coords: CoordinateType): CoordinateType => {
-        if (Array.isArray(coords) && coords.length > 0) {
-            return coords.map((coord) => {
-                if (Array.isArray(coord) && Array.isArray(coord[0])) {
-                    return getNewCoord(coord);
-                } else if (Array.isArray(coord)) {
-                    return [...(coord as number[]), FEATURE_TYPE_NEW_Z_COOD];
-                }
-                return coord;
-            }) as CoordinateType;
+    const initialGeometry = initialFeature?.getGeometry() as GeometryFeatueParams;
+    if (!geometry) return;
+
+    const initialZByPosition = new globalThis.Map<string, number>();
+    const collectInitialZ = (coordinates: NestedCoordinates) => {
+        if (coordinates.length === 0) return;
+        if (typeof coordinates[0] === "number") {
+            const coordinate = coordinates as number[];
+            if (coordinate.length >= 3) initialZByPosition.set(`${coordinate[0]}:${coordinate[1]}`, coordinate[2]);
+            return;
         }
-        return coords;
+        (coordinates as NestedCoordinates[]).forEach(collectInitialZ);
     };
 
-    geometry?.setCoordinates(getNewCoord(featCoords));
+    if (initialGeometry) collectInitialZ(initialGeometry.getCoordinates() as NestedCoordinates);
+
+    let hasMissingZ = false;
+    const addMissingZ = (coordinates: NestedCoordinates): NestedCoordinates => {
+        if (coordinates.length === 0) return coordinates;
+        if (typeof coordinates[0] === "number") {
+            const coordinate = coordinates as number[];
+            if (coordinate.length >= 3) return coordinate;
+
+            hasMissingZ = true;
+            return [...coordinate, initialZByPosition.get(`${coordinate[0]}:${coordinate[1]}`) ?? FEATURE_TYPE_NEW_Z_COOD];
+        }
+        return (coordinates as NestedCoordinates[]).map(addMissingZ);
+    };
+
+    const coordinates = addMissingZ(geometry.getCoordinates() as NestedCoordinates);
+    if (hasMissingZ) geometry.setCoordinates(coordinates as CoordinateType);
 };
 
 export const isPointOnSegment = (A: Coordinate, B: Coordinate, P: Coordinate) => {
