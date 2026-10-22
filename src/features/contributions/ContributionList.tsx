@@ -93,13 +93,10 @@ const ContributionList = () => {
     const wasReviewing = useRef(false);
     useEffect(() => {
         if (isReviewContribution && !wasReviewing.current && validContributions.length > 0) {
-            const alreadySelected = validContributions.some((c) => c.feature === clickedMapFeature);
-            if (!alreadySelected) {
-                showContribution(validContributions[0]);
-            }
+            showContribution(validContributions[0]);
         }
         wasReviewing.current = isReviewContribution;
-    }, [isReviewContribution, validContributions, clickedMapFeature, showContribution]);
+    }, [isReviewContribution, validContributions, showContribution]);
 
     useEffect(() => {
         if (isReviewContribution && !isOpen) {

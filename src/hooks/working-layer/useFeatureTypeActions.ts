@@ -68,9 +68,9 @@ export const useFeatureTypeActions = ({
 
     const hasAttributesChanged = useCallback((feat: Feature, newFormData: FormData) => {
         const current = (feat.get(FEATURE_TYPE_DATA_PROPERTY) ?? {}) as Record<string, unknown>;
-        const normalize = (v: unknown) => (v === undefined || v === null || v === "" ? null : v);
+        const normalize = (v: unknown) => (v === undefined || v === null || v === "" || (Array.isArray(v) && v.length === 0) ? null : v);
         return Object.entries(newFormData).some(([key, value]) => {
-            if (Array.isArray(value)) return value.length > 0 || normalize(current[key]) !== null;
+            if (Array.isArray(value) && value.length > 0) return true;
             return normalize(current[key]) !== normalize(value);
         });
     }, []);
