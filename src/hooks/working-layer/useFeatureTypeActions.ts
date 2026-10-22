@@ -66,8 +66,23 @@ export const useFeatureTypeActions = ({
         [authoriseContribution, mapWorkingLayer, saveContribution]
     );
 
+    const hasAttributesChanged = useCallback((feat: Feature, newFormData: FormData) => {
+        const current = (feat.get(FEATURE_TYPE_DATA_PROPERTY) ?? {}) as Record<string, unknown>;
+        const normalize = (v: unknown) => (v === undefined || v === null || v === "" ? null : v);
+        return Object.entries(newFormData).some(([key, value]) => {
+            if (Array.isArray(value)) return value.length > 0 || normalize(current[key]) !== null;
+            return normalize(current[key]) !== normalize(value);
+        });
+    }, []);
+
     const saveFeature = useCallback(
         (feat: Feature, newFormData: FormData) => {
+            const isNew = feat.get(FEATURE_TYPE_NEW_PROPERTY) === true;
+            if (!isNew && !hasAttributesChanged(feat, newFormData)) {
+                feat.unset(FEATURE_TYPE_PENDING_FORM_PROPERTY);
+                return true;
+            }
+
             const initialFeat = feat.clone();
 
             setFeatureData(feat, newFormData);
@@ -79,7 +94,7 @@ export const useFeatureTypeActions = ({
             feat.unset(FEATURE_TYPE_PENDING_FORM_PROPERTY);
             return true;
         },
-        [setFeatureData, addFeatureToContributions]
+        [setFeatureData, addFeatureToContributions, hasAttributesChanged]
     );
 
     const deleteFeature = useCallback(
