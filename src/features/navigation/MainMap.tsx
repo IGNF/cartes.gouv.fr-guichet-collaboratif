@@ -33,6 +33,9 @@ import ReviewSelectedObjects from "../working-layer/multiple-selection/ReviewSel
 import BetaBadge from "@/components/Layout/MapCommunity/BetaBadge";
 import CommunityTitle from "@/components/Layout/MapCommunity/CommunityTitle";
 import CommunityToolbar from "@/components/Layout/MapCommunity/CommunityToolbar";
+import { useTranslation } from "@/i18n";
+import LayerSymbologyPanel from "./layers/legends/LayerSymbologyPanel";
+import FeatureTypeLayerLegends from "./layers/legends/FeatureTypeLayerLegends";
 
 export default function MainMap() {
     const mapTargetRef = useRef<HTMLDivElement>(null);
@@ -46,6 +49,7 @@ export default function MainMap() {
     const { contributions, isReviewContribution, selectedObjects } = useContributionStore();
 
     const mapControls = useGetMapControls();
+    const { t } = useTranslation({ FeatureTypeLayerLegends });
 
     const addReportLayer = useCallback((layer: VectorLayer) => {
         const reportCluster = new Cluster({
@@ -111,7 +115,7 @@ export default function MainMap() {
             maxZoom: community?.maxZoom,
         });
 
-        const switcher = layerSwitcherControl(mapLayers);
+        const switcher = layerSwitcherControl(mapLayers, t("symbology"));
 
         mapRef.current = new Map({
             target: mapTargetRef.current as HTMLElement,
@@ -161,6 +165,7 @@ export default function MainMap() {
 
             <SaveViewHandler />
             <GetAllLayers />
+            <LayerSymbologyPanel />
 
             <ReportDrawer />
             <WorkingLayerDrawer />
