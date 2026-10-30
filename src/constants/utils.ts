@@ -7,6 +7,8 @@ import { fromLonLat } from "ol/proj";
 import { AlertMessageType, CommunityGeoservice, CommunityTheme, FeatureTypeSelectedStyle, FeatureTypeStyle } from "./communities/types";
 import Feature from "ol/Feature";
 import { Map } from "ol";
+import { Control } from "ol/control";
+import Draw from "ol/interaction/Draw";
 import { CommunityReport, GeometryFeatueParams, PostThemeReport, SketchFeatureType, SketchObject, Severity } from "./reports/types";
 import { Fill, Icon, Stroke, Style, Text } from "ol/style";
 import { Geometry, LineString, MultiLineString, MultiPoint, MultiPolygon, Point, Polygon } from "ol/geom";
@@ -71,6 +73,46 @@ export const otherMarkers = markersStyles.map((style) => {
         preload: true,
     };
 });
+
+type DrawingMarker = typeof mainMarker;
+type DrawingControlLike = Control & { options: { markersList: DrawingMarker[] }; interactionCurrent?: unknown };
+
+const getDrawingControl = (map: Map | null | undefined) =>
+    map
+        ?.getControls()
+        .getArray()
+        .find((control): control is DrawingControlLike => "layer" in control && Array.isArray((control as Partial<DrawingControlLike>).options?.markersList));
+
+const getSketchPointStyle = () =>
+    new Style({
+        image: new Icon({ src: otherMarkers[0].src, anchor: otherMarkers[0].anchor, scale: otherMarkers[0].scale }),
+        zIndex: 1,
+    });
+
+// Once the report main point exists, every new point drawn should be sketch point (style consideration)
+export const setDrawingSketchMarkers = (map: Map | null | undefined, sketchOnly: boolean) => {
+    const drawingControl = getDrawingControl(map);
+    if (!drawingControl) return;
+
+    drawingControl.options.markersList = sketchOnly ? otherMarkers.map((m) => ({ ...m })) : [{ ...mainMarker }, ...otherMarkers.map((m) => ({ ...m }))];
+
+    const interaction = drawingControl.interactionCurrent;
+    if (!(interaction instanceof Draw)) return;
+    const overlayStyle = interaction.getOverlay().getStyle();
+    if (overlayStyle instanceof Style && overlayStyle.getImage() instanceof Icon) {
+        const marker = drawingControl.options.markersList[0];
+        interaction.getOverlay().setStyle(new Style({ image: new Icon({ src: marker.src, anchor: marker.anchor, scale: marker.scale }) }));
+    }
+};
+
+export const ensureSketchPointStyle = (feature: Feature) => {
+    if (feature.get("main") || feature.getGeometry()?.getType() !== "Point") return;
+    const style = feature.getStyle();
+    const image = style instanceof Style ? style.getImage() : null;
+    if (image instanceof Icon && image.getSrc() === mainMarker.src) {
+        feature.setStyle(getSketchPointStyle());
+    }
+};
 
 type ReportImgStatusType = {
     [key: string]: { img: string; text: string; colorType: Severity };
@@ -392,10 +434,10 @@ export const getFeaturePoint = (report: CommunityReport, featData: SketchObject,
 
     let style = new Style({
         image: new Icon({
-            src: reportImgStatus[report.status]?.img ?? reportImgStatus.submit.img,
-            scale: 1,
+            src: main ? (reportImgStatus[report.status]?.img ?? reportImgStatus.submit.img) : otherMarkers[0].src,
+            scale: main ? 1 : otherMarkers[0].scale,
         }),
-        zIndex: 2,
+        zIndex: main ? 2 : 1,
     });
 
     if (featData.attributes) {
@@ -476,25 +518,54 @@ export const getFeatureLine = (report: CommunityReport, featData: SketchObject) 
     return feature;
 };
 
-export const handleCenterToFeature = (map: Map | null, feature: Feature) => {
+const MAP_FIT_PADDING = 20;
+const MAP_MAX_ZOOM = 19;
+const MAP_ANIMATION_DURATION = 400;
+
+// Width of the open left side panel that covers the map (0 when closed).
+export const getSidePanelWidth = () => {
+    const panel = document.querySelector<HTMLElement>(".drawer-component .MuiDrawer-paper");
+    return panel ? Math.max(0, panel.getBoundingClientRect().right) : 0;
+};
+
+export const getSidePanelFitOptions = (map: Map | null | undefined, leftOffset: number) => ({
+    size: map?.getSize(),
+    padding: [MAP_FIT_PADDING, MAP_FIT_PADDING, MAP_FIT_PADDING, leftOffset + MAP_FIT_PADDING],
+    maxZoom: MAP_MAX_ZOOM,
+    duration: MAP_ANIMATION_DURATION,
+});
+
+// View center that shows `coordinate` in the middle of the map area left visible by the side panel.
+export const getSidePanelOffsetCenter = (map: Map | null | undefined, coordinate: Coordinate, leftOffset: number = getSidePanelWidth()): Coordinate => {
+    const resolution = map?.getView().getResolution();
+    if (!resolution || leftOffset <= 0) return coordinate;
+    return [coordinate[0] - (leftOffset / 2) * resolution, coordinate[1]];
+};
+
+export const handleCenterToFeature = (map: Map | null, feature: Feature, leftOffset: number = 0) => {
     const geometry: GeometryFeatueParams = feature?.getGeometry() as GeometryFeatueParams;
 
     const featureExtent = geometry?.getExtent() || [];
     if (!isFinite(featureExtent[0]) || isEmpty(featureExtent)) {
         throw Error();
     }
-    const featureCenter = getCenter(featureExtent);
 
     const view = map?.getView();
 
+    if (leftOffset > 0) {
+        view?.fit(featureExtent, getSidePanelFitOptions(map, leftOffset));
+        return;
+    }
+
+    const featureCenter = getCenter(featureExtent);
     const size = map?.getSize();
     const resolution = view?.getResolutionForExtent(featureExtent, size);
     const featureZoom = view?.getZoomForResolution(resolution!);
 
     view?.animate({
         center: featureCenter,
-        zoom: Math.min(featureZoom ?? view.getZoom() ?? 19, 19),
-        duration: 400,
+        zoom: Math.min(featureZoom ?? view.getZoom() ?? MAP_MAX_ZOOM, MAP_MAX_ZOOM),
+        duration: MAP_ANIMATION_DURATION,
     });
 };
 
