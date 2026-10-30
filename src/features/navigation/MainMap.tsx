@@ -4,6 +4,8 @@ import { View } from "ol";
 import { defaults as defaultInteractions } from "ol/interaction";
 import Map from "ol/Map";
 import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
+import { useTranslation } from "@/i18n";
+import FeatureTypeLayerLegends from "./layers/legends/FeatureTypeLayerLegends";
 import olDefaults from "@/api/ol-defaults.json";
 import "ol/ol.css";
 import "geopf-extensions-openlayers/css/Dsfr.css";
@@ -33,9 +35,6 @@ import ReviewSelectedObjects from "../working-layer/multiple-selection/ReviewSel
 import BetaBadge from "@/components/Layout/MapCommunity/BetaBadge";
 import CommunityTitle from "@/components/Layout/MapCommunity/CommunityTitle";
 import CommunityToolbar from "@/components/Layout/MapCommunity/CommunityToolbar";
-import { useTranslation } from "@/i18n";
-import LayerSymbologyPanel from "./layers/legends/LayerSymbologyPanel";
-import FeatureTypeLayerLegends from "./layers/legends/FeatureTypeLayerLegends";
 
 export default function MainMap() {
     const mapTargetRef = useRef<HTMLDivElement>(null);
@@ -48,8 +47,8 @@ export default function MainMap() {
     const { map, mapSwitcher, setMap } = useMapStore();
     const { contributions, isReviewContribution, selectedObjects } = useContributionStore();
 
+    const { t: tLegend } = useTranslation({ FeatureTypeLayerLegends });
     const mapControls = useGetMapControls();
-    const { t } = useTranslation({ FeatureTypeLayerLegends });
 
     const addReportLayer = useCallback((layer: VectorLayer) => {
         const reportCluster = new Cluster({
@@ -98,6 +97,21 @@ export default function MainMap() {
         [addReportLayer]
     );
 
+    // To bypass asyncrhonus load, and preserve order from storage
+    const applySavedOrder = useCallback(() => {
+        const map = mapRef.current;
+        if (!map) return;
+        // Max_safe_integer is a bit overkill, try to find max from guichet setup
+        const sorted = [...map.getLayers().getArray()].sort(
+            (l1, l2) => (l1.get("savedOrder") ?? Number.MAX_SAFE_INTEGER) - (l2.get("savedOrder") ?? Number.MAX_SAFE_INTEGER)
+        );
+        sorted.forEach((l, index) => {
+            if (l.getZIndex() !== index + 1) l.setZIndex(index + 1);
+        });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (switcherRef.current as any)?._updateLayersOrder?.();
+    }, []);
+
     const { data: cfg } = useGpConfig();
     useEffect(() => {
         if (cfg && typeof cfg.call === "function") cfg.call();
@@ -115,7 +129,7 @@ export default function MainMap() {
             maxZoom: community?.maxZoom,
         });
 
-        const switcher = layerSwitcherControl(mapLayers, t("symbology"));
+        const switcher = layerSwitcherControl(mapLayers, tLegend("symbology"));
 
         mapRef.current = new Map({
             target: mapTargetRef.current as HTMLElement,
@@ -139,6 +153,9 @@ export default function MainMap() {
             if (!mapRef.current || !switcherRef.current) return;
             const currentLayers = mapRef.current?.getAllLayers();
             mapLayers.forEach((layer: MapLayer) => {
+                layer.source.set("savedOrder", layer.order);
+            });
+            mapLayers.forEach((layer: MapLayer) => {
                 let layerExist = currentLayers.find((l) => l.get("name") === layer.source.get("name"));
                 if (layer.name === REPORTS_LAYER_TYPE) {
                     layerExist = currentLayers.find((l) => l.get("type") === REPORTS_LAYER_TYPE);
@@ -148,11 +165,11 @@ export default function MainMap() {
                 }
 
                 addLayer(layer.source);
-                layer.source.setZIndex(layer.order);
                 layer.source.changed();
             });
+            applySavedOrder();
         })();
-    }, [mapLayers, addLayer]);
+    }, [mapLayers, addLayer, applySavedOrder]);
 
     return (
         <div className={cx(fr.cx("fr-grid-row"), "grid-map-container")}>
@@ -165,7 +182,6 @@ export default function MainMap() {
 
             <SaveViewHandler />
             <GetAllLayers />
-            <LayerSymbologyPanel />
 
             <ReportDrawer />
             <WorkingLayerDrawer />
