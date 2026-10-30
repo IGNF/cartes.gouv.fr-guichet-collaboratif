@@ -3,7 +3,7 @@ import Layer from "ol/layer/Layer";
 import VectorSource from "ol/source/Vector";
 import { useCommunityStore, useLocalStorageStore, useMapStore, useReportStore, useUserStore } from "@/store";
 import { hasReportParams, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
-import { getCenterReportMessage, handleShowOnMap, showCenterReportButtons, STATUS_NOT_ALLOWED } from "@/constants/utils";
+import { getCenterReportMessage, handleShowOnMap, setDrawingSketchMarkers, showCenterReportButtons, STATUS_NOT_ALLOWED } from "@/constants/utils";
 import { clearClusterStyles } from "@/constants/reports/utils/cluster";
 import { CommunityReport, ParamsReport, toolNames } from "@/constants/reports/types";
 import DrawerComponent from "@/components/DrawerComponent";
@@ -81,6 +81,7 @@ const ReportDrawer = () => {
         }
 
         showCenterReportButtons(false);
+        setDrawingSketchMarkers(map, false);
         setDrawerOpened(false);
         setEditReport(false);
         setTableDrawerOpened(false);
@@ -107,6 +108,7 @@ const ReportDrawer = () => {
             customEvent.detail.feature.set("new", true);
             if (customEvent.detail.geomType === "Point" && !drawerOpened) {
                 customEvent.detail.feature.set("main", true);
+                setDrawingSketchMarkers(map, true);
                 const toolButton = document.querySelector(`button[id*="${toolNames.point}"]`) as HTMLButtonElement | null;
                 const creatButton = document.querySelector(`button[id^="GPshowDrawingPicto-"]`) as HTMLButtonElement | null;
                 if (creatButton && creatButton.classList.contains("active")) {
@@ -119,7 +121,7 @@ const ReportDrawer = () => {
                 setDrawerOpened(true);
             }
         },
-        [drawerOpened, reportClusterSource, setDrawerOpened, setClickedControl]
+        [drawerOpened, map, reportClusterSource, setDrawerOpened, setClickedControl]
     );
 
     useEffect(() => {

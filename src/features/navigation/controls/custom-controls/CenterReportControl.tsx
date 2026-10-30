@@ -1,6 +1,6 @@
 import { StatusMessage } from "@/constants/communities/types";
 import { GeometryFeatueParams } from "@/constants/reports/types";
-import { getCenterReportMessage } from "@/constants/utils";
+import { getCenterReportMessage, getSidePanelOffsetCenter } from "@/constants/utils";
 import useDebounce from "@/hooks/useDebounce";
 import { useCommunityStore, useMapStore, useReportStore } from "@/store";
 import { getCenter, intersects } from "ol/extent";
@@ -26,9 +26,8 @@ const CenterReportControl = () => {
 
         if (!extent || extent.length !== 4) return;
 
-        const featureCenter = getCenter(extent);
         mapView.animate({
-            center: featureCenter,
+            center: getSidePanelOffsetCenter(map, getCenter(extent)),
             duration: 450,
         });
     }, [map, mainPointFeature]);
