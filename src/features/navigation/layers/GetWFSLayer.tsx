@@ -4,7 +4,6 @@ import { useLocalStorageStore } from "@/store/useLocalStorageStore";
 import useGetWFSLayer from "@/hooks/navigation/layers/useGetWFSLayer";
 import { CommunityLayer } from "@/constants/communities/types";
 import { LocalLayer } from "@/constants/localStorage/types";
-import { LAYER_FEATURE_TYPE, LAYER_SWITCHER_INFO_DIV } from "@/constants";
 
 interface Props {
     layer: CommunityLayer;
@@ -26,9 +25,7 @@ const GetWFSLayer: React.FC<Props> = ({ layer }) => {
         wfsLayerSource?.set("database", layer.database);
         wfsLayerSource?.set("table", layer.table);
 
-        if (layer.type === LAYER_FEATURE_TYPE) {
-            wfsLayerSource?.set("description", LAYER_SWITCHER_INFO_DIV);
-        }
+        wfsLayerSource?.set("description", geoservice.description);
         if (wfsLayerSource) {
             const wfsLayer = { source: wfsLayerSource, name: geoservice.layer, title: geoservice.title, order: localLayer ? localLayer.order : layer.order };
             addMapLayer(wfsLayer);
