@@ -524,8 +524,8 @@ const MAP_ANIMATION_DURATION = 400;
 
 // Width of the open left side panel that covers the map (0 when closed).
 export const getSidePanelWidth = () => {
-    const panel = document.querySelector<HTMLElement>(".drawer-component .MuiDrawer-paper");
-    return panel ? Math.max(0, panel.getBoundingClientRect().right) : 0;
+    const panels = Array.from(document.querySelectorAll<HTMLElement>(".drawer-component .MuiDrawer-paper"));
+    return panels.reduce((max, panel) => Math.max(max, panel.getBoundingClientRect().right), 0);
 };
 
 export const getSidePanelFitOptions = (map: Map | null | undefined, leftOffset: number) => ({
@@ -542,7 +542,7 @@ export const getSidePanelOffsetCenter = (map: Map | null | undefined, coordinate
     return [coordinate[0] - (leftOffset / 2) * resolution, coordinate[1]];
 };
 
-export const handleCenterToFeature = (map: Map | null, feature: Feature, leftOffset: number = 0) => {
+export const handleCenterToFeature = (map: Map | null, feature: Feature, leftOffset: number = getSidePanelWidth()) => {
     const geometry: GeometryFeatueParams = feature?.getGeometry() as GeometryFeatueParams;
 
     const featureExtent = geometry?.getExtent() || [];
