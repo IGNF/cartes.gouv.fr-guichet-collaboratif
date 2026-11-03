@@ -16,6 +16,7 @@ import useGpConfig from "@/hooks/navigation/useGpConfig";
 import GetAllLayers from "./layers";
 import { MapLayer, MapLayerSource } from "@/constants/communities/types";
 import { getLonLatFromPoint } from "@/constants/utils";
+import LayerSymbologyPanel from "./layers/legends/LayerSymbologyPanel";
 import SaveViewHandler from "./ViewHandler";
 import ReportDrawer from "../reports/ReportDrawer";
 import { Cluster } from "ol/source";
@@ -67,6 +68,7 @@ export default function MainMap() {
         reportLayer.set("description", layer.get("description"));
         reportLayer.set("type", layer.get("type"));
         reportLayer.set("name", layer.get("name"));
+        reportLayer.set("savedOrder", layer.get("savedOrder"));
 
         mapRef.current?.addLayer(reportLayer);
 
@@ -181,6 +183,7 @@ export default function MainMap() {
             ></div>
 
             <SaveViewHandler />
+            <LayerSymbologyPanel />
             <GetAllLayers />
 
             <ReportDrawer />
