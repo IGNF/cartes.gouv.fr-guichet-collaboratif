@@ -7,7 +7,7 @@ import { fromLonLat } from "ol/proj";
 import { AlertMessageType, CommunityGeoservice, CommunityTheme, FeatureTypeSelectedStyle, FeatureTypeStyle } from "./communities/types";
 import Feature from "ol/Feature";
 import { Map } from "ol";
-import { CommunityReport, GeometryFeatueParams, PostThemeReport, SketchFeatureType, SketchObject, Severity } from "./reports/types";
+import { CommunityReport, GeometryFeatueParams, PostThemeReport, ReportTheme, SketchFeatureType, SketchObject, Severity } from "./reports/types";
 import { Fill, Icon, Stroke, Style, Text } from "ol/style";
 import { Geometry, LineString, MultiLineString, MultiPoint, MultiPolygon, Point, Polygon } from "ol/geom";
 import Layer from "ol/layer/Layer";
@@ -331,7 +331,7 @@ export const clearDrawingLayer = (map: Map | null) => {
     }
 };
 
-export const getThemeAttributes = (theme: CommunityTheme) => {
+export const getThemeAttributes = (theme: CommunityTheme | ReportTheme) => {
     return Array.isArray(theme?.attributes)
         ? theme?.attributes.reduce((acc: PostThemeReport, attribute) => {
               acc[attribute.name] = attribute.default;
