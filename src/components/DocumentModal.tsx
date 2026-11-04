@@ -39,9 +39,7 @@ export default function DocumentModal() {
             setIsDownloading(false);
         },
         onConceal: () => {
-            setPreviewFile(null);
             setError("");
-            setContext(null);
         },
     });
 
@@ -53,7 +51,6 @@ export default function DocumentModal() {
         try {
             const document = await context.onSave(selectedFile);
             if (document) setContext({ ...context, document });
-            setPreviewFile(null);
             documentModal.close();
         } catch {
             setError(t("operation_error"));
@@ -82,8 +79,6 @@ export default function DocumentModal() {
         setError("");
         try {
             await context.onDelete();
-            setContext({ ...context, document: null });
-            setPreviewFile(null);
             documentModal.close();
         } catch {
             setError(t("operation_error"));
