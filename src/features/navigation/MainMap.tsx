@@ -169,7 +169,6 @@ export default function MainMap() {
             <BetaBadge />
             <CommunityTitle />
             <CommunityToolbar />
-
             {map?.getAllLayers().length && <CustomControls />}
             {contributions.length > 0 && isReviewContribution && <ReviewContributions />}
             {selectedObjects.length > 1 && !isReviewContribution && <ReviewSelectedObjects />}

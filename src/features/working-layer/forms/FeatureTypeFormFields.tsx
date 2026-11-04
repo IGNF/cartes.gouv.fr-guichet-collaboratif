@@ -4,12 +4,12 @@ import Tooltip from "@codegouvfr/react-dsfr/Tooltip";
 import Input from "@codegouvfr/react-dsfr/Input";
 import Select from "@codegouvfr/react-dsfr/Select";
 import Checkbox from "@codegouvfr/react-dsfr/Checkbox";
-import { Upload } from "@codegouvfr/react-dsfr/Upload";
 import { FeatureTypeColumn } from "@/constants/communities/types";
 import { useTranslation } from "@/i18n";
 import { useContributionStore } from "@/store";
 import { FeatureTypeMode } from "@/constants/contributions/types";
 import { normalizeColumnEnum } from "@/constants/communities/utils";
+import FeatureDocumentField from "./FeatureDocumentField";
 
 interface FeatureTypeFormFieldsProps {
     columns: FeatureTypeColumn[];
@@ -83,7 +83,16 @@ export const FeatureTypeFormFields: React.FC<FeatureTypeFormFieldsProps> = ({ co
                     );
                     let valueCell: React.ReactNode;
 
-                    if (isReadOnly) {
+                    if (col.type.toLowerCase() === "document") {
+                        valueCell = (
+                            <FeatureDocumentField
+                                value={v}
+                                label={col.title}
+                                editable={!isReadOnly && isColumnSelected}
+                                onChange={(value) => updateField(col.name, value, col)}
+                            />
+                        );
+                    } else if (isReadOnly) {
                         valueCell = <span>{String(v ?? "")}</span>;
                     } else {
                         switch (col.type.toLowerCase()) {
@@ -197,22 +206,6 @@ export const FeatureTypeFormFields: React.FC<FeatureTypeFormFieldsProps> = ({ co
                                             type: "date",
                                             value: (v as string) ?? "",
                                             onChange: (e) => updateField(col.name, e.target.value, col),
-                                            required: col.required && isColumnSelected,
-                                        }}
-                                    />
-                                );
-                                break;
-
-                            case "document":
-                                valueCell = (
-                                    <Upload
-                                        label=""
-                                        multiple
-                                        className="upload-file"
-                                        state={error ? "error" : "default"}
-                                        stateRelatedMessage={error || undefined}
-                                        nativeInputProps={{
-                                            onChange: (e) => updateField(col.name, Array.from(e.target.files ?? []), col),
                                             required: col.required && isColumnSelected,
                                         }}
                                     />

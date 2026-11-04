@@ -7,6 +7,8 @@ export const AttachmentListFrTranslations: Translations<"fr">["AttachmentList"] 
     delete_file: ({ fileName }: { fileName: string }) => `Supprimer ${fileName}`,
     attchment_deleted_error: ({ fileName }: { fileName: string }) => `Erreur dans la suppression du document ${fileName}`,
     attchment_deleted_success: ({ fileName }: { fileName: string }) => `Suppression du document ${fileName} avec succès`,
+    view_file: ({ fileName }: { fileName: string }) => `Voir ${fileName}`,
+    view: "Voir",
 };
 
 export const AttachmentListEnTranslations: Translations<"en">["AttachmentList"] = {
@@ -15,6 +17,8 @@ export const AttachmentListEnTranslations: Translations<"en">["AttachmentList"] 
     delete_file: ({ fileName }: { fileName: string }) => `Delete ${fileName}`,
     attchment_deleted_error: ({ fileName }: { fileName: string }) => `Error deleting attachment ${fileName}`,
     attchment_deleted_success: ({ fileName }: { fileName: string }) => `Successfully deleted attachment ${fileName}`,
+    view_file: ({ fileName }: { fileName: string }) => `View ${fileName}`,
+    view: "View",
 };
 
 const { i18n } = declareComponentKeys<
@@ -23,5 +27,7 @@ const { i18n } = declareComponentKeys<
     | { K: "delete_file"; P: { fileName: string }; R: string }
     | { K: "attchment_deleted_error"; P: { fileName: string }; R: string }
     | { K: "attchment_deleted_success"; P: { fileName: string }; R: string }
+    | { K: "view_file"; P: { fileName: string }; R: string }
+    | "view"
 >()("AttachmentList");
 export type I18n = typeof i18n;
