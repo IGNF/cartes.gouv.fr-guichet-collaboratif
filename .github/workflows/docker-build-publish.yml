@@ -6,6 +6,7 @@ on:
         # Publish semver tags as releases.
         tags: ["v*"]
     pull_request:
+        types: [ready_for_review]
 
 env:
     # Use docker.io for Docker Hub if empty

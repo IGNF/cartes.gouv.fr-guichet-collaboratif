@@ -7,7 +7,7 @@ import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_FINGERPRINT_COLUMN, FEATURE_TY
 import { CommunityGeoservice, StatusMessage } from "@/constants/communities/types";
 import { Contribution, ContributionType, TransactionApi, TransactionStatus, TransactionType } from "@/constants/contributions/types";
 import { getFeatureGeometryWKT } from "@/constants/utils";
-import { resetContributionToMap, areEqual } from "@/constants/contributions/utils";
+import { resetContributionToMap, areEqual, setFeatNewCoords } from "@/constants/contributions/utils";
 import { postTransactions } from "@/api/transactionData";
 import { createCommunityDocument, deleteCommunityDocument } from "@/api/documentData";
 import { normalizeColumnEnum } from "@/constants/communities/utils";
@@ -21,12 +21,18 @@ interface UseContributionsSaveOptions {
 
 const matchGeometryColumnType = (wkt: string, columnType?: string) => {
     const normalizedColumnType = columnType?.toLowerCase();
-    if (normalizedColumnType?.includes("multipolygon") && /^POLYGON\s*\(/i.test(wkt)) {
-        return wkt.replace(/^POLYGON\s*(\(.*\))$/i, "MULTIPOLYGON($1)");
+    const polygonMatch = /^POLYGON(?:\s+(ZM|Z|M))?\s*(\(.*\))$/i.exec(wkt);
+    if (normalizedColumnType?.includes("multipolygon") && polygonMatch) {
+        const dimension = polygonMatch[1] ? ` ${polygonMatch[1].toUpperCase()}` : "";
+        return `MULTIPOLYGON${dimension}(${polygonMatch[2]})`;
     }
-    if (normalizedColumnType?.includes("multilinestring") && /^LINESTRING\s*\(/i.test(wkt)) {
-        return wkt.replace(/^LINESTRING\s*(\(.*\))$/i, "MULTILINESTRING($1)");
+
+    const lineMatch = /^LINESTRING(?:\s+(ZM|Z|M))?\s*(\(.*\))$/i.exec(wkt);
+    if (normalizedColumnType?.includes("multilinestring") && lineMatch) {
+        const dimension = lineMatch[1] ? ` ${lineMatch[1].toUpperCase()}` : "";
+        return `MULTILINESTRING${dimension}(${lineMatch[2]})`;
     }
+
     return wkt;
 };
 
@@ -116,7 +122,8 @@ export function useContributionsSave({ pendingMessage, successMessage, errorMess
                 const geoservice: CommunityGeoservice = feat.get(FEATURE_TYPE_GEOSERVICE_PROPERTY);
                 const { database, table } = geoservice;
                 if (database === undefined || table === undefined) {
-                    throw new Error(missingConfigurationMessage);
+                    addAlertMessage(StatusMessage.error, missingConfigurationMessage);
+                    continue;
                 }
 
                 const transactionFeatData = { ...featData };
@@ -145,9 +152,12 @@ export function useContributionsSave({ pendingMessage, successMessage, errorMess
                 const geometryNameColumn = geoservice.columns.find((c) => c.name === geoservice.geometryName);
                 const featProj = geometryNameColumn?.crs;
                 const apiExist = apis.find((api) => api.database === database);
-                const featGeometry = matchGeometryColumnType(getFeatureGeometryWKT(feat, mapProj, featProj, true), geometryNameColumn?.type);
+                const force2d = geometryNameColumn?.is3d !== true;
+                if (!force2d) setFeatNewCoords(feat, contr.initialFeature ?? undefined);
+
+                const featGeometry = matchGeometryColumnType(getFeatureGeometryWKT(feat, mapProj, featProj, force2d), geometryNameColumn?.type);
                 const initialGeometry = contr.initialFeature
-                    ? matchGeometryColumnType(getFeatureGeometryWKT(contr.initialFeature, mapProj, featProj, true), geometryNameColumn?.type)
+                    ? matchGeometryColumnType(getFeatureGeometryWKT(contr.initialFeature, mapProj, featProj, force2d), geometryNameColumn?.type)
                     : undefined;
                 const columnsByName = new Map(geoservice.columns.map((column) => [column.name, column]));
                 const filteredFeatData: Record<string, unknown> = {};
