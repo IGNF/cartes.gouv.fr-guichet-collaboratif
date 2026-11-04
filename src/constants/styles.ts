@@ -1,6 +1,6 @@
 import { Circle as CircleStyle, Fill, Icon, RegularShape, Stroke, Style, Text } from "ol/style";
 import { reportImgStatus } from "./utils";
-import { Circle, Geometry, LineString, Point } from "ol/geom";
+import { Circle, Geometry, LineString, MultiPoint, Point, SimpleGeometry } from "ol/geom";
 import { Coordinate } from "ol/coordinate";
 import {
     CLUSTER_CIRCLE_COLOR,
@@ -100,6 +100,45 @@ export const selectionCircleStyle = (map: Map) =>
         fill: new Fill({ color: SELECTION_CIRCLE_COLOR }),
         zIndex: 2,
     });
+
+const editingVertexStyle = new Style({
+    geometry: (feature) => {
+        const geometry = feature.getGeometry();
+        if (!(geometry instanceof SimpleGeometry)) return undefined;
+
+        const type = geometry.getType();
+        if (!["LineString", "MultiLineString", "Polygon", "MultiPolygon"].includes(type)) return geometry;
+
+        return new MultiPoint(geometry.getFlatCoordinates().slice(), geometry.getLayout());
+    },
+    image: new CircleStyle({
+        radius: 5,
+        fill: new Fill({ color: HIGHLIGHT_COLOR }),
+        stroke: new Stroke({ color: CLUSTER_CIRCLE_COLOR, width: 2 }),
+    }),
+    zIndex: 4,
+});
+
+export const editingVerticesStyle = (feature: FeatureLike): Style[] => {
+    const geometryType = feature.getGeometry()?.getType();
+    if (!["LineString", "MultiLineString", "Polygon", "MultiPolygon"].includes(geometryType ?? "")) return [];
+
+    return [editingVertexStyle];
+};
+
+export const editingGeometryStyle = (feature: FeatureLike): Style[] => {
+    const geometryType = feature.getGeometry()?.getType();
+
+    if (geometryType === "Polygon" || geometryType === "MultiPolygon") {
+        return [...featureTypeSelectedPolygonStyle(), ...editingVerticesStyle(feature)];
+    }
+
+    if (geometryType === "LineString" || geometryType === "MultiLineString") {
+        return [...featureTypeSelectedLineStyle(), ...editingVerticesStyle(feature)];
+    }
+
+    return [editingVertexStyle];
+};
 
 export const clusterStyle = (feature: FeatureLike): Style => {
     const features = feature.get("features");

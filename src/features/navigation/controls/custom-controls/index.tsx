@@ -22,7 +22,8 @@ import NamedPositionModal from "../NamedPositionModal";
 import useKeyEvent from "@/hooks/useKeyEvent";
 
 const CustomControls = () => {
-    const { clickedControl, setClickedControl, setWorkingLayerDrawerOpened, setClickedMapFeature, workingLayerDrawerOpened } = useMapStore();
+    const { map, mapWorkingLayer, clickedControl, setClickedControl, setWorkingLayerDrawerOpened, setClickedMapFeature, workingLayerDrawerOpened } =
+        useMapStore();
     const { selectedObjects, setSelectedObjects } = useContributionStore();
     const { confirmMultipleDeselectionModal, confirmMultipleObjectsActionModal } = useModalStore();
 
@@ -40,6 +41,16 @@ const CustomControls = () => {
             setClickedControl(null);
         }
     }, [controlsList, clickedControl, setClickedControl]);
+
+    // Activate the select tool once on landing, as soon as the toolbar is ready
+    const hasAutoActivatedSelect = useRef(false);
+    useEffect(() => {
+        if (hasAutoActivatedSelect.current || !map || !mapWorkingLayer) return;
+        const selectControl = controlsList.find((c) => c.interaction === InteractionType.SELECT);
+        if (!selectControl || selectControl.disabled) return;
+        hasAutoActivatedSelect.current = true;
+        if (!clickedControl) setClickedControl(selectControl);
+    }, [controlsList, clickedControl, map, mapWorkingLayer, setClickedControl]);
 
     useEffect(() => {
         if (selectedObjects.length === 0) {

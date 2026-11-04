@@ -13,11 +13,12 @@ import { useTranslation } from "@/i18n";
 import { translateSearchEngineControl, translateZoomControl } from "@/constants/communities/utils";
 import { useCommunityStore, useContributionStore, useMapStore } from "@/store";
 import { CommunityLayerFunctionalityType, InteractionType } from "@/constants/communities/types";
-import { CustomPasteEvent, CustomCopyEvent } from "@/classes/CustomControl";
+import { CustomPasteEvent, CustomCopyEvent, CustomRemoveVertexEvent } from "@/classes/CustomControl";
 import useGetOverviewMapLayer from "@/hooks/navigation/layers/useGetOverviewMapLayer";
 import NamedPositionSearchEngineControl from "@/features/navigation/controls/GuichetSearchEngineControl";
 import AbstractAdvancedSearch from "geopf-extensions-openlayers/src/packages/Controls/SearchEngine/AbstractAdvancedSearch";
 import useCustomControlsList from "@/hooks/navigation/controls/useCustomControlsList";
+import { ContextMenuItem, findVertexAtCoordinate } from "./contextMenuUtils";
 
 const useToolsControl = (): Control[] => {
     const { t } = useTranslation({ ToolsControl: {} });
@@ -72,21 +73,25 @@ const useToolsControl = (): Control[] => {
 
     const controlsList = useCustomControlsList(tCustomControls);
     const copyControl = useMemo(() => controlsList.find((control) => control.interaction === InteractionType.COPY_OBJECT), [controlsList]);
+    const editableFeatures = useMemo(
+        () => (selectedObjects.length > 0 ? selectedObjects : clickedMapFeature ? [clickedMapFeature] : []),
+        [clickedMapFeature, selectedObjects]
+    );
 
     const contextMenuItemsOptions = useMemo(() => {
         // Don't show if control is disabled in community functionalities or not found
-        if (!copyControl || copyControl.disabled) return [];
+        const items: ContextMenuItem[] = [];
+
+        if (!copyControl || copyControl.disabled) return items;
 
         const isPasteMode = clickedControl?.interaction === InteractionType.COPY_OBJECT;
 
         // In copy mode: only show if there is a feature selected
         // In paste mode: always show
-        if (!isPasteMode && !clickedMapFeature && selectedObjects.length === 0) {
-            return [];
-        }
+        const canCopyOrPaste = isPasteMode || clickedMapFeature || selectedObjects.length > 0;
 
-        return [
-            {
+        if (canCopyOrPaste) {
+            items.push({
                 text: isPasteMode ? tCustomControls("paste_object") : copyControl.title,
                 callback: (payload: { coordinate?: number[] }) => {
                     // Dispatch custom events to the map to handle copy/paste feature or coordinates
@@ -102,8 +107,10 @@ const useToolsControl = (): Control[] => {
                     setClickedControl(copyControl);
                     map.dispatchEvent(new CustomCopyEvent(feature));
                 },
-            },
-        ];
+            });
+        }
+
+        return items;
     }, [copyControl, clickedControl, clickedMapFeature, selectedObjects, map, setClickedControl, tCustomControls]);
 
     const contextMenu = useMemo(
@@ -118,6 +125,35 @@ const useToolsControl = (): Control[] => {
     useEffect(() => {
         contextMenu.updateContextMenuItems?.(contextMenuItemsOptions);
     }, [contextMenu, contextMenuItemsOptions]);
+
+    useEffect(() => {
+        if (!map) return;
+
+        const viewport = map.getViewport();
+        if (!viewport) return;
+
+        const updateVertexContextMenuItem = (event: MouseEvent) => {
+            const coordinate = map.getEventCoordinate(event);
+            const vertexTarget = clickedControl?.interaction === InteractionType.MODIFY ? findVertexAtCoordinate(map, editableFeatures, coordinate) : undefined;
+
+            contextMenu.updateContextMenuItems?.([
+                ...(vertexTarget
+                    ? [
+                          {
+                              text: t("remove_vertex"),
+                              callback: () => {
+                                  map.dispatchEvent(new CustomRemoveVertexEvent(vertexTarget.coordinate, vertexTarget.feature));
+                              },
+                          },
+                      ]
+                    : []),
+                ...contextMenuItemsOptions,
+            ]);
+        };
+
+        viewport.addEventListener("contextmenu", updateVertexContextMenuItem, true);
+        return () => viewport.removeEventListener("contextmenu", updateVertexContextMenuItem, true);
+    }, [clickedControl?.interaction, contextMenu, contextMenuItemsOptions, editableFeatures, map, t]);
 
     useEffect(() => {
         if (!hasMiniMap || !overviewMapLayer || !map) {
