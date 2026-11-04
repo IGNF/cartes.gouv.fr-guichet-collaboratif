@@ -15,7 +15,7 @@ import { transformExtent } from "ol/proj";
 import { Extent } from "ol/extent";
 import { arrayToGeoJSON, getGeoJSONProps } from "@/constants/communities/utils";
 import { getDirectionStyles, getWebGLStyle } from "@/constants/styles";
-import { FEATURE_TYPE_SELECTED_PROPERTY, LAYER_FEATURE_TYPE, LAYER_SWITCHER_INFO_DIV, TILE_MAX_FEATURES } from "@/constants";
+import { FEATURE_TYPE_SELECTED_PROPERTY, LAYER_FEATURE_TYPE, TILE_MAX_FEATURES } from "@/constants";
 import VectorLayer from "ol/layer/Vector";
 import { Stroke, Style } from "ol/style";
 import Text from "ol/style/Text";
@@ -129,7 +129,7 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
             properties: {
                 name: geoservice.layer,
                 title: geoservice.title,
-                description: LAYER_SWITCHER_INFO_DIV,
+                description: geoservice.description,
             },
             disableHitDetection: false,
         });
@@ -140,7 +140,7 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
             source: wfsSourceLabels,
             properties: {
                 title: `${geoservice.title} labels`,
-                description: LAYER_SWITCHER_INFO_DIV,
+                description: geoservice.description,
             },
         });
 
@@ -150,7 +150,7 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
     const layerGroup = useMemo(() => {
         return new LayerGroupSource({
             layers: [wfsLayer, wfsLayerLabels],
-            properties: { title: geoservice.title, type: LAYER_FEATURE_TYPE, description: LAYER_SWITCHER_INFO_DIV, source: wfsLayer.getSource() },
+            properties: { title: geoservice.title, type: LAYER_FEATURE_TYPE, description: geoservice.description ?? "", source: wfsLayer.getSource() },
         });
     }, [wfsLayer, wfsLayerLabels, geoservice]);
 

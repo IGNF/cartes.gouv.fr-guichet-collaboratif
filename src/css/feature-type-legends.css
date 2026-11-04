@@ -1,26 +1,21 @@
-.feature-type-legends {
-    padding: 0.625rem;
+div[id^="GPlayerStyleContent"].layer-symbology-content {
     display: flex;
     flex-direction: column;
-    gap: 0.625rem;
-    max-height: 100%;
-    min-height: 0;
+    width: 21.875rem;
+    max-width: calc(100vw - 2rem);
+    max-height: calc(100vh - 8rem);
     overflow: hidden;
 }
 
-.feature-type-legends > div:first-child {
+.feature-type-legends {
     display: flex;
+    flex-direction: column;
     gap: 0.625rem;
-    align-items: center;
-    flex-shrink: 0;
-}
-
-.feature-type-legends > div:first-child label,
-.feature-type-legends > div:first-child select {
-    flex: 1;
+    min-height: 0;
 }
 
 .feature-type-buttons {
+    flex-shrink: 0;
     display: flex;
     justify-content: end;
     border-top: 0.06rem solid var(--border-default-grey);
@@ -29,63 +24,33 @@
     gap: 0.625rem;
 }
 
-.gpf-panel__content .fr-modal__content {
-    height: auto;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
 .feature-type-list {
     display: flex;
+    flex: 1 1 auto;
     flex-direction: column;
     gap: 0.625rem;
-    justify-content: flex-start;
-    overflow-y: auto;
-    flex: 1;
     min-height: 0;
+    overflow-y: auto;
 }
 
-.feature-type-list div {
+.feature-type-list > div {
     display: flex;
     align-items: center;
+    gap: 0.625rem;
 }
 
 .feature-type-image {
+    flex-shrink: 0;
     width: 3.125rem;
     height: 3.125rem;
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-bottom: 0;
-    margin-right: 0.625rem;
 }
 
 .feature-type-description {
     flex: 1;
     overflow: auto;
-}
-
-div[id^="GPlayerInfoContent-"] {
-    max-height: calc(100vh - 16rem) !important;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-.gpf-panel__body_ls {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-div[id^="GPlayerInfoDescription-"],
-#feature-type-style {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    min-height: 0;
-    overflow: hidden;
 }
 
 .feature-type-form-header {
