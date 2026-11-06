@@ -84,26 +84,28 @@ const useGetInteractions = () => {
 
         const syncEditingSource = () => {
             editingSource?.clear();
-            editingSource?.addFeatures(trackedFeatures.map((feature) => feature.clone()));
+            // Shared geometry: the overlay follows edits without being re-cloned on every change
+            editingSource?.addFeatures(trackedFeatures.map((feature) => new Feature(feature.getGeometry())));
         };
 
         const syncTrackedFeatures = () => {
-            trackedFeatures.forEach((feature) => feature.un("change", syncEditingSource));
+            trackedFeatures.forEach((feature) => feature.un("change:geometry", syncEditingSource));
             trackedFeatures = modifyFeatures
                 .getArray()
                 .filter((feature) => ["LineString", "MultiLineString", "Polygon", "MultiPolygon"].includes(feature.getGeometry()?.getType() ?? ""));
-            trackedFeatures.forEach((feature) => feature.on("change", syncEditingSource));
+            trackedFeatures.forEach((feature) => feature.on("change:geometry", syncEditingSource));
             syncEditingSource();
         };
 
         syncTrackedFeatures();
         modifyFeatures.on(["add", "remove"], syncTrackedFeatures);
-        map.addLayer(editingLayer);
+        // Unmanaged layer: not listed in the layer switcher
+        editingLayer.setMap(map);
 
         return () => {
             modifyFeatures.un(["add", "remove"], syncTrackedFeatures);
-            trackedFeatures.forEach((feature) => feature.un("change", syncEditingSource));
-            map.removeLayer(editingLayer);
+            trackedFeatures.forEach((feature) => feature.un("change:geometry", syncEditingSource));
+            editingLayer.setMap(null);
             editingSource?.clear();
         };
     }, [clickedControl?.interaction, editingLayer, map, modifyFeatures]);
