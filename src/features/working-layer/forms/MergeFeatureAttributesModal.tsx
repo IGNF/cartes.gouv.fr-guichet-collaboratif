@@ -1,14 +1,15 @@
 import { RadioButtons } from "@codegouvfr/react-dsfr/RadioButtons";
 import { Select } from "@codegouvfr/react-dsfr/Select";
 import ModaleComponent from "@/components/ModaleComponent";
-import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_GEOSERVICE_PROPERTY } from "@/constants";
+import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_FINGERPRINT_COLUMN, FEATURE_TYPE_GEOSERVICE_PROPERTY } from "@/constants";
 import { CommunityGeoservice } from "@/constants/communities/types";
+import { MergeKeepIndex } from "@/constants/contributions/types";
 import { useTranslation } from "@/i18n";
 import { useContributionStore, useModalStore } from "@/store";
 import { useCallback, useMemo, useState } from "react";
 
 interface MergeFeatureAttributesModalProps {
-    onConfirm: (customData: Record<string, unknown>) => void;
+    onConfirm: (customData: Record<string, unknown>, keepIndex: MergeKeepIndex) => void;
 }
 
 type ChoiceMode = "first" | "second" | "custom";
@@ -42,19 +43,29 @@ export default function MergeFeatureAttributesModal({ onConfirm }: MergeFeatureA
     const feat1Label = `${t("object_1")}${friendly1 ? ` — ${friendly1}` : ""}${idSuffix1}`;
     const feat2Label = `${t("object_2")}${friendly2 ? ` — ${friendly2}` : ""}${idSuffix2}`;
 
+    // The fingerprint is never user-selectable: it follows the kept id. The id is listed first.
     const allKeys = useMemo(() => {
         const keys = new Set([...Object.keys(feat1Data ?? {}), ...Object.keys(feat2Data ?? {})]);
+        keys.delete(FEATURE_TYPE_FINGERPRINT_COLUMN);
         if (idName) keys.delete(idName);
-        return Array.from(keys);
+        return idName ? [idName, ...keys] : Array.from(keys);
     }, [feat1Data, feat2Data, idName]);
+
+    const keepIndex = useMemo((): MergeKeepIndex => {
+        if (choiceMode === "first") return 0;
+        if (choiceMode === "second") return 1;
+        return idName && perFieldChoice[idName] === "second" ? 1 : 0;
+    }, [choiceMode, idName, perFieldChoice]);
 
     const resolvedAttributes = useMemo((): Record<string, unknown> => {
         if (choiceMode === "first") return feat1Data ?? {};
         if (choiceMode === "second") return feat2Data ?? {};
 
         //Let user choose per field value
-        const result: Record<string, unknown> = { ...(feat1Data ?? {}) };
+        const keptData = (keepIndex === 0 ? feat1Data : feat2Data) ?? {};
+        const result: Record<string, unknown> = { ...keptData };
         for (const key of allKeys) {
+            if (key === idName) continue;
             const val1 = (feat1Data ?? {})[key];
             const val2 = (feat2Data ?? {})[key];
             const smartDefault: "first" | "second" = val1 !== undefined && val1 !== "" && val1 !== null ? "first" : "second";
@@ -62,13 +73,13 @@ export default function MergeFeatureAttributesModal({ onConfirm }: MergeFeatureA
             result[key] = choice === "second" ? val2 : val1;
         }
         return result;
-    }, [choiceMode, feat1Data, feat2Data, allKeys, perFieldChoice]);
+    }, [choiceMode, feat1Data, feat2Data, allKeys, perFieldChoice, keepIndex, idName]);
 
     const handleConfirm = useCallback(() => {
-        onConfirm(resolvedAttributes);
+        onConfirm(resolvedAttributes, keepIndex);
         setChoiceMode("first");
         setPerFieldChoice({});
-    }, [resolvedAttributes, onConfirm]);
+    }, [resolvedAttributes, keepIndex, onConfirm]);
 
     const handleClose = useCallback(() => {
         mergeFeatureAttributesModal.close();
@@ -131,7 +142,7 @@ export default function MergeFeatureAttributesModal({ onConfirm }: MergeFeatureA
                                 </div>
                             );
                         }
-                        const smartDefault: "first" | "second" = val1 !== "" ? "first" : "second";
+                        const smartDefault: "first" | "second" = key === idName || val1 !== "" ? "first" : "second";
                         return (
                             <Select
                                 key={key}
