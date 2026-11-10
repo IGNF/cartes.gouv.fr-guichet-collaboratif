@@ -12,6 +12,8 @@ export const FEATURE_TYPE_PENDING_FORM_PROPERTY = "pendingForm";
 export const FEATURE_TYPE_NEW_Z_COOD = -1000;
 
 export const FEATURE_TYPE_FINGERPRINT_COLUMN = "gcms_fingerprint";
+export const SOURCE_REVISION_PROPERTY = "revision";
+export const SOURCE_PENDING_SWAP_PROPERTY = "pendingSwap";
 
 export const HIT_DETECTION_TOLERENCE = 1;
 export const POINTER_HIT_DETECTION_TOLERENCE = 10;

@@ -10,7 +10,7 @@ import { useContributionStore, useMapStore } from "@/store";
 import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_NEW_PROPERTY, FEATURE_TYPE_PENDING_FORM_PROPERTY } from "@/constants";
 import { FeatureTypeColumn } from "@/constants/communities/types";
 import BaseLayer from "ol/layer/Base";
-import { restoreFeature } from "@/constants/contributions/utils";
+import { hasFeatureDataChanged, restoreFeature } from "@/constants/contributions/utils";
 import { useContributionAuthorisation } from "./useContributionAuthorisation";
 
 type FormData = Record<string, string | number | boolean | File[] | null>;
@@ -68,6 +68,13 @@ export const useFeatureTypeActions = ({
 
     const saveFeature = useCallback(
         (feat: Feature, newFormData: FormData) => {
+            // Saving the form without any attribute change must not turn the feature into a contribution.
+            // A new feature already is one (Insert) and a geometry change creates its own contribution when it happens.
+            if (feat.get(FEATURE_TYPE_NEW_PROPERTY) !== true && !hasFeatureDataChanged(feat, newFormData)) {
+                feat.unset(FEATURE_TYPE_PENDING_FORM_PROPERTY);
+                return true;
+            }
+
             const initialFeat = feat.clone();
 
             setFeatureData(feat, newFormData);
