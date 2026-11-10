@@ -8,14 +8,15 @@ import GeoJSON from "ol/format/GeoJSON";
 import { bbox as bboxStrategy } from "ol/loadingstrategy";
 import { ArrayGeoJSONProps, CommunityGeoservice, GeoJSONProps, StatusMessage } from "@/constants/communities/types";
 import { useQueryClient } from "@tanstack/react-query";
-import { useMapStore } from "@/store";
+import { useContributionStore, useMapStore } from "@/store";
 import { declareComponentKeys, useTranslation } from "@/i18n";
 
 import { transformExtent } from "ol/proj";
 import { Extent } from "ol/extent";
 import { arrayToGeoJSON, getGeoJSONProps } from "@/constants/communities/utils";
 import { getDirectionStyles, getWebGLStyle } from "@/constants/styles";
-import { FEATURE_TYPE_SELECTED_PROPERTY, LAYER_FEATURE_TYPE, LAYER_SWITCHER_INFO_DIV, TILE_MAX_FEATURES } from "@/constants";
+import { FEATURE_TYPE_SELECTED_PROPERTY, LAYER_FEATURE_TYPE, LAYER_SWITCHER_INFO_DIV, SOURCE_PENDING_SWAP_PROPERTY, TILE_MAX_FEATURES } from "@/constants";
+import { getSourceRevision } from "@/constants/utils";
 import VectorLayer from "ol/layer/Vector";
 import { Stroke, Style } from "ol/style";
 import Text from "ol/style/Text";
@@ -23,8 +24,7 @@ import { LayerGroupSource } from "@/classes/LayerGroupSource";
 import { ObjectEvent } from "ol/Object";
 import { getAxiosApi } from "@/api";
 
-const SOURCE_REVISION_PROPERTY = "revision";
-const getSourceRevision = (source: VectorSource): number => source.get(SOURCE_REVISION_PROPERTY) ?? 0;
+type WFSData = GeoJSONProps | ArrayGeoJSONProps[];
 
 function useGetWFSLayer(geoservice: CommunityGeoservice) {
     const { addAlertMessage } = useCommunityStore();
@@ -68,7 +68,31 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
         },
         [geoProjCode, mapProjCode, geoservice]
     );
-    async function wfsLoader(extent: Extent, wfsSource: VectorSource, page: number = 0, revision: number = getSourceRevision(wfsSource)) {
+    /**
+     * After a transaction the source is reloaded without being cleared first (see reloadSourceKeepingFeatures), so that the
+     * layer does not flash: the features on screen are replaced, in one go, by the first complete response of the reload.
+     */
+    const swapSourceFeatures = useCallback((wfsSource: VectorSource) => {
+        const { selectedObjects, setSelectedObjects } = useContributionStore.getState();
+        const hasSelectedFeature = selectedObjects.some((feat) => wfsSource.hasFeature(feat));
+
+        wfsSource.unset(SOURCE_PENDING_SWAP_PROPERTY, true);
+        wfsSource.clear(true);
+
+        // A feature selected while the reload was in flight has just been replaced
+        if (hasSelectedFeature) {
+            setSelectedObjects([]);
+            useMapStore.getState().setClickedMapFeature(null);
+        }
+    }, []);
+
+    async function wfsLoader(
+        extent: Extent,
+        wfsSource: VectorSource,
+        page: number = 0,
+        revision: number = getSourceRevision(wfsSource),
+        pendingPages: WFSData[] = []
+    ) {
         try {
             const transformedExtent = transformExtent(extent, mapProjCode, geoProjCode);
             const isWFS2 = geoservice.version && String(geoservice.version).startsWith("2");
@@ -90,7 +114,7 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
             const queryKey = [
                 `GET_WFS_GET_FEATURES_${geoservice.url}_${geoservice.version}_${geoservice.layer}_${transformedExtent.join(",")}_${page}_${revision}`,
             ];
-            const data: GeoJSONProps | ArrayGeoJSONProps[] = await queryClient.query({
+            const data: WFSData = await queryClient.query({
                 queryKey,
                 queryFn: async () => {
                     const api = await getAxiosApi();
@@ -102,18 +126,27 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
                 gcTime: 0,
             });
 
-            // The source was refreshed while this request was in flight: its response may predate the refresh, drop it
+            // The source was reloaded while this request was in flight: its response may predate the reload, drop it
             if (revision !== getSourceRevision(wfsSource)) return;
 
-            addFeaturesToSource(wfsSource, data);
+            const hasNextPage = (Array.isArray(data) ? data.length : data.features.length) === TILE_MAX_FEATURES;
+            const isSwapPending = wfsSource.get(SOURCE_PENDING_SWAP_PROPERTY) === true;
 
-            if (Array.isArray(data)) {
-                if (data.length === TILE_MAX_FEATURES) await wfsLoader(extent, wfsSource, page + 1, revision);
-            } else if (data.features.length === TILE_MAX_FEATURES) {
-                await wfsLoader(extent, wfsSource, page + 1, revision);
+            // Wait for every page before swapping, otherwise the layer would only show the first one for a while
+            pendingPages.push(data);
+            if (!(isSwapPending && hasNextPage)) {
+                if (isSwapPending) swapSourceFeatures(wfsSource);
+                pendingPages.forEach((pageData) => addFeaturesToSource(wfsSource, pageData));
+                pendingPages = [];
             }
+
+            if (hasNextPage) await wfsLoader(extent, wfsSource, page + 1, revision, pendingPages);
         } catch {
             addAlertMessage(StatusMessage.error, t("loading_layer_error", { layerTitle: geoservice.title }), 3000);
+            // The reload failed: the features still on screen are outdated (stale fingerprint), do not keep them
+            if (revision === getSourceRevision(wfsSource) && wfsSource.get(SOURCE_PENDING_SWAP_PROPERTY) === true) {
+                swapSourceFeatures(wfsSource);
+            }
         }
     }
 
@@ -184,12 +217,8 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
         [wfsSourceLabels, changeFeatureProperty]
     );
 
-    // The source is cleared when it is refreshed (after a transaction): drop the label clones, they are re-created on reload,
-    // and start a new revision so that the loads still in flight are ignored
-    const onSourceClear = useCallback(() => {
-        wfsSourceLabels.clear();
-        wfsSource.set(SOURCE_REVISION_PROPERTY, getSourceRevision(wfsSource) + 1, true);
-    }, [wfsSource, wfsSourceLabels]);
+    // The source is cleared when its features are swapped (after a transaction): drop the label clones, they are re-created
+    const onSourceClear = useCallback(() => wfsSourceLabels.clear(), [wfsSourceLabels]);
 
     useEffect(() => {
         wfsSource.on("addfeature", addFeaturesToLabels);

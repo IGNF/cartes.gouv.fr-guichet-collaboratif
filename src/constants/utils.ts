@@ -30,7 +30,7 @@ import { getReportSketchFeatures, REPORTS_LAYER_TYPE } from "./reports/utils";
 import { ComparatorFunc, simpleComparators } from "./mongo_parser";
 import getWellKnownNames from "./wellKnownNames";
 import addProjectionsToProj4 from "./projectionsToDefine";
-import { FEATURE_TYPE_DATA_PROPERTY } from ".";
+import { FEATURE_TYPE_DATA_PROPERTY, SOURCE_PENDING_SWAP_PROPERTY, SOURCE_REVISION_PROPERTY } from ".";
 import { POLYGON_LINE_COLOR, FILL_COLOR, POINT_COLOR } from "./colors";
 
 const wktFormat = new WKT();
@@ -310,6 +310,20 @@ export const getLonLatFromPoint = (
     }
     if (!lonLatCoord) return coordinates;
     return getLonLatFormCoordinates(coordinates);
+};
+
+export const getSourceRevision = (source: VectorSource): number => source.get(SOURCE_REVISION_PROPERTY) ?? 0;
+
+/**
+ * Reloads a source without clearing it first, so that its layer does not flash: the current features stay on screen
+ * until the loader of the source swaps them with the reloaded ones.
+ * The new revision makes the loader ignore the loads that are still in flight.
+ */
+export const reloadSourceKeepingFeatures = (source: VectorSource) => {
+    source.set(SOURCE_REVISION_PROPERTY, getSourceRevision(source) + 1, true);
+    source.set(SOURCE_PENDING_SWAP_PROPERTY, true, true);
+    source.removeLoadedExtent([-Infinity, -Infinity, Infinity, Infinity]);
+    source.changed();
 };
 
 export const refreshReportLayer = (map: Map | null) => {

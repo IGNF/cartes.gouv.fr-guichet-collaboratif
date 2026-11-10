@@ -7,7 +7,7 @@ import { useLang } from "@/i18n";
 import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_FINGERPRINT_COLUMN, FEATURE_TYPE_GEOSERVICE_PROPERTY } from "@/constants";
 import { CommunityGeoservice, StatusMessage } from "@/constants/communities/types";
 import { Contribution, ContributionType, TransactionApi, TransactionStatus, TransactionType } from "@/constants/contributions/types";
-import { getFeatureGeometryWKT } from "@/constants/utils";
+import { getFeatureGeometryWKT, reloadSourceKeepingFeatures } from "@/constants/utils";
 import { resetContributionToMap, areEqual, setFeatNewCoords } from "@/constants/contributions/utils";
 import { postTransactions } from "@/api/transactionData";
 import { normalizeColumnEnum } from "@/constants/communities/utils";
@@ -60,6 +60,7 @@ export function useContributionsSave({ pendingMessage, successMessage, errorMess
      * The transaction response only echoes the data that was sent: it does not hold the gcms_fingerprint recomputed
      * by the server after the commit, nor the server state of an inserted feature. Keeping the local features would
      * make the next transaction on them fail (stale or missing fingerprint), so the saved layers are reloaded.
+     * The features stay on the map until the reloaded ones replace them.
      */
     const refreshSavedLayers = useCallback(
         (savedContributions: Contribution[]) => {
@@ -67,7 +68,7 @@ export function useContributionsSave({ pendingMessage, successMessage, errorMess
             map?.getAllLayers().forEach((layer) => {
                 if (!layerNames.has(layer.get("name"))) return;
                 const source = layer.getSource();
-                if (source instanceof VectorSource) source.refresh();
+                if (source instanceof VectorSource) reloadSourceKeepingFeatures(source);
             });
         },
         [map]
