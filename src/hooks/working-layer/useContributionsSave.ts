@@ -1,11 +1,12 @@
 import { useCallback, useMemo, useState } from "react";
 import { AxiosError } from "axios";
+import VectorSource from "ol/source/Vector";
 
 import { useCommunityStore, useContributionStore, useMapStore, useUserStore } from "@/store";
 import { useLang } from "@/i18n";
-import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_FINGERPRINT_COLUMN, FEATURE_TYPE_GEOSERVICE_PROPERTY, FEATURE_TYPE_NEW_PROPERTY } from "@/constants";
+import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_FINGERPRINT_COLUMN, FEATURE_TYPE_GEOSERVICE_PROPERTY } from "@/constants";
 import { CommunityGeoservice, StatusMessage } from "@/constants/communities/types";
-import { Contribution, ContributionType, TransactionApi, TransactionStatus, TransactionAction, TransactionType } from "@/constants/contributions/types";
+import { Contribution, ContributionType, TransactionApi, TransactionStatus, TransactionType } from "@/constants/contributions/types";
 import { getFeatureGeometryWKT } from "@/constants/utils";
 import { resetContributionToMap, areEqual, setFeatNewCoords } from "@/constants/contributions/utils";
 import { postTransactions } from "@/api/transactionData";
@@ -37,7 +38,7 @@ const matchGeometryColumnType = (wkt: string, columnType?: string) => {
 
 export function useContributionsSave({ pendingMessage, successMessage, errorMessage, missingConfigurationMessage }: UseContributionsSaveOptions) {
     const { map, setWorkingLayerDrawerOpened, setClickedMapFeature, setClickedControl } = useMapStore();
-    const { contributions, contrToCancel, setReviewContribution, setContributions, setContrToCancel } = useContributionStore();
+    const { contributions, contrToCancel, setReviewContribution, setContributions, setContrToCancel, setSelectedObjects } = useContributionStore();
     const { addAlertMessage, removeAlertMessage } = useCommunityStore();
     const { user } = useUserStore();
     const { lang } = useLang();
@@ -55,41 +56,36 @@ export function useContributionsSave({ pendingMessage, successMessage, errorMess
         });
     }, []);
 
-    const handleSuccess = useCallback(
-        (transactionStatuses: TransactionStatus[], geomContr: { contr: Contribution; geom: string }[]) => {
-            transactionStatuses.forEach((status: TransactionStatus) => {
-                status.actions.forEach((action: TransactionAction) => {
-                    const contr = geomContr.find((gc) => {
-                        const feat = gc.contr.feature;
-                        const geoservice: CommunityGeoservice = feat.get(FEATURE_TYPE_GEOSERVICE_PROPERTY);
-                        if (!geoservice?.geometryName) return false;
-                        return gc.geom === action.data[geoservice.geometryName];
-                    })?.contr;
-                    if (contr) {
-                        contr.feature.set(FEATURE_TYPE_DATA_PROPERTY, action.data);
-                        contr.feature.unset(FEATURE_TYPE_NEW_PROPERTY);
-                    }
-                });
+    /**
+     * The transaction response only echoes the data that was sent: it does not hold the gcms_fingerprint recomputed
+     * by the server after the commit, nor the server state of an inserted feature. Keeping the local features would
+     * make the next transaction on them fail (stale or missing fingerprint), so the saved layers are reloaded.
+     */
+    const refreshSavedLayers = useCallback(
+        (savedContributions: Contribution[]) => {
+            const layerNames = new Set(savedContributions.map((contr) => contr.layer));
+            map?.getAllLayers().forEach((layer) => {
+                if (!layerNames.has(layer.get("name"))) return;
+                const source = layer.getSource();
+                if (source instanceof VectorSource) source.refresh();
             });
-            setContributions([]);
-            setWorkingLayerDrawerOpened(false);
-            setClickedMapFeature(null);
-            setClickedControl(null);
-            addAlertMessage(StatusMessage.success, successMessage, 2000);
         },
-        [setContributions, setWorkingLayerDrawerOpened, setClickedMapFeature, setClickedControl, addAlertMessage, successMessage]
+        [map]
     );
 
+    const handleSuccess = useCallback(() => {
+        setContributions([]);
+        setSelectedObjects([]);
+        setWorkingLayerDrawerOpened(false);
+        setClickedMapFeature(null);
+        setClickedControl(null);
+        addAlertMessage(StatusMessage.success, successMessage, 2000);
+    }, [setContributions, setSelectedObjects, setWorkingLayerDrawerOpened, setClickedMapFeature, setClickedControl, addAlertMessage, successMessage]);
+
     const handleError = useCallback(
-        (failedStatuses: TransactionStatus[], geomContr: { contr: Contribution; geom: string }[]) => {
+        (failedStatuses: TransactionStatus[], failedContributions: Contribution[]) => {
             const errorMessages = failedStatuses.map((s) => s.message || "Unknown error").join("; ");
             addAlertMessage(StatusMessage.error, errorMessage + ": " + errorMessages);
-            const failedGeoms = failedStatuses
-                .flatMap((s) => s.actions.map((a: TransactionAction) => a.data))
-                .map((data) =>
-                    Object.values(data).find((v) => typeof v === "string" && (v.startsWith("POINT") || v.startsWith("LINESTRING") || v.startsWith("POLYGON")))
-                );
-            const failedContributions = geomContr.filter((gc) => failedGeoms.includes(gc.geom)).map((gc) => gc.contr);
             setContributions(failedContributions);
         },
         [setContributions, addAlertMessage, errorMessage]
@@ -102,7 +98,6 @@ export function useContributionsSave({ pendingMessage, successMessage, errorMess
         const { contributions } = useContributionStore.getState();
         const apis: TransactionApi[] = [];
         const today = new Date();
-        const geomContr: { contr: Contribution; geom: string }[] = [];
 
         for (const contr of contributions) {
             const feat = contr.feature;
@@ -151,7 +146,6 @@ export function useContributionsSave({ pendingMessage, successMessage, errorMess
                 state: contr.type,
                 data: filteredFeatData,
             };
-            geomContr.push({ contr, geom: featGeometry });
             if (apiExist) {
                 apiExist.body.actions.push(action);
             } else {
@@ -170,10 +164,17 @@ export function useContributionsSave({ pendingMessage, successMessage, errorMess
         try {
             const postResAll = await postTransactions(apis);
             const transactionStatuses: TransactionStatus[] = postResAll.map((res) => res.data);
-            const allSuccess = transactionStatuses.every((s) => s.status === TransactionType.COMMITTED);
             const failedStatuses = transactionStatuses.filter((s) => s.status !== TransactionType.COMMITTED);
-            if (allSuccess) handleSuccess(transactionStatuses, geomContr);
-            else handleError(failedStatuses, geomContr);
+            // One transaction per database, in the same order as apis. A transaction that is not committed is fully
+            // rolled back, so every contribution of its database is still to be saved.
+            const failedDatabases = new Set<number | undefined>(
+                apis.filter((_, index) => transactionStatuses[index]?.status !== TransactionType.COMMITTED).map((api) => api.database)
+            );
+            const isFailed = (contr: Contribution) => failedDatabases.has(contr.feature.get(FEATURE_TYPE_GEOSERVICE_PROPERTY)?.database);
+
+            refreshSavedLayers(contributions.filter((contr) => !isFailed(contr)));
+            if (failedStatuses.length === 0) handleSuccess();
+            else handleError(failedStatuses, contributions.filter(isFailed));
         } catch (error) {
             if (error instanceof AxiosError) {
                 addAlertMessage(StatusMessage.error, error.response?.data?.message || error.message, 5000);
@@ -184,7 +185,19 @@ export function useContributionsSave({ pendingMessage, successMessage, errorMess
             setIsLoading(false);
             removeAlertMessage(pendingId);
         }
-    }, [user, lang, mapProj, verifyFeatData, addAlertMessage, removeAlertMessage, pendingMessage, missingConfigurationMessage, handleSuccess, handleError]);
+    }, [
+        user,
+        lang,
+        mapProj,
+        verifyFeatData,
+        addAlertMessage,
+        removeAlertMessage,
+        pendingMessage,
+        missingConfigurationMessage,
+        refreshSavedLayers,
+        handleSuccess,
+        handleError,
+    ]);
 
     const onClickReset = useCallback(() => {
         contrToCancel.forEach((contr) => resetContributionToMap(map!, contr));

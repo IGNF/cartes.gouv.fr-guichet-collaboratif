@@ -175,14 +175,19 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
         [wfsSourceLabels, changeFeatureProperty]
     );
 
+    // The source is cleared when it is refreshed (after a transaction): drop the label clones, they are re-created on reload
+    const clearLabels = useCallback(() => wfsSourceLabels.clear(), [wfsSourceLabels]);
+
     useEffect(() => {
         wfsSource.on("addfeature", addFeaturesToLabels);
+        wfsSource.on("clear", clearLabels);
 
         return () => {
             wfsSource.un("addfeature", addFeaturesToLabels);
+            wfsSource.un("clear", clearLabels);
             wfsSourceLabels.clear();
         };
-    }, [wfsSource, addFeaturesToLabels, wfsSourceLabels]);
+    }, [wfsSource, addFeaturesToLabels, clearLabels, wfsSourceLabels]);
 
     useEffect(() => {
         if (!geoservice.featureType) return;
