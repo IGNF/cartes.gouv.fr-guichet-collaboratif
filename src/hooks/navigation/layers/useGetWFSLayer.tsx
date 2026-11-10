@@ -23,6 +23,9 @@ import { LayerGroupSource } from "@/classes/LayerGroupSource";
 import { ObjectEvent } from "ol/Object";
 import { getAxiosApi } from "@/api";
 
+const SOURCE_REVISION_PROPERTY = "revision";
+const getSourceRevision = (source: VectorSource): number => source.get(SOURCE_REVISION_PROPERTY) ?? 0;
+
 function useGetWFSLayer(geoservice: CommunityGeoservice) {
     const { addAlertMessage } = useCommunityStore();
     const { map, featureTypeSelectedStyle, setFeatureTypeSelectedStyle } = useMapStore();
@@ -65,7 +68,7 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
         },
         [geoProjCode, mapProjCode, geoservice]
     );
-    async function wfsLoader(extent: Extent, wfsSource: VectorSource, page: number = 0) {
+    async function wfsLoader(extent: Extent, wfsSource: VectorSource, page: number = 0, revision: number = getSourceRevision(wfsSource)) {
         try {
             const transformedExtent = transformExtent(extent, mapProjCode, geoProjCode);
             const isWFS2 = geoservice.version && String(geoservice.version).startsWith("2");
@@ -83,7 +86,10 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
                 urlsFilters +
                 `&bbox=${transformedExtent.join(",")},${geoProjCode}`;
 
-            const queryKey = [`GET_WFS_GET_FEATURES_${geoservice.url}_${geoservice.version}_${geoservice.layer}_${transformedExtent.join(",")}_${page}`];
+            // The revision keeps a load started after a refresh from joining a request that is still in flight from before it
+            const queryKey = [
+                `GET_WFS_GET_FEATURES_${geoservice.url}_${geoservice.version}_${geoservice.layer}_${transformedExtent.join(",")}_${page}_${revision}`,
+            ];
             const data: GeoJSONProps | ArrayGeoJSONProps[] = await queryClient.query({
                 queryKey,
                 queryFn: async () => {
@@ -96,12 +102,15 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
                 gcTime: 0,
             });
 
+            // The source was refreshed while this request was in flight: its response may predate the refresh, drop it
+            if (revision !== getSourceRevision(wfsSource)) return;
+
             addFeaturesToSource(wfsSource, data);
 
             if (Array.isArray(data)) {
-                if (data.length === TILE_MAX_FEATURES) await wfsLoader(extent, wfsSource, page + 1);
+                if (data.length === TILE_MAX_FEATURES) await wfsLoader(extent, wfsSource, page + 1, revision);
             } else if (data.features.length === TILE_MAX_FEATURES) {
-                await wfsLoader(extent, wfsSource, page + 1);
+                await wfsLoader(extent, wfsSource, page + 1, revision);
             }
         } catch {
             addAlertMessage(StatusMessage.error, t("loading_layer_error", { layerTitle: geoservice.title }), 3000);
@@ -175,19 +184,23 @@ function useGetWFSLayer(geoservice: CommunityGeoservice) {
         [wfsSourceLabels, changeFeatureProperty]
     );
 
-    // The source is cleared when it is refreshed (after a transaction): drop the label clones, they are re-created on reload
-    const clearLabels = useCallback(() => wfsSourceLabels.clear(), [wfsSourceLabels]);
+    // The source is cleared when it is refreshed (after a transaction): drop the label clones, they are re-created on reload,
+    // and start a new revision so that the loads still in flight are ignored
+    const onSourceClear = useCallback(() => {
+        wfsSourceLabels.clear();
+        wfsSource.set(SOURCE_REVISION_PROPERTY, getSourceRevision(wfsSource) + 1, true);
+    }, [wfsSource, wfsSourceLabels]);
 
     useEffect(() => {
         wfsSource.on("addfeature", addFeaturesToLabels);
-        wfsSource.on("clear", clearLabels);
+        wfsSource.on("clear", onSourceClear);
 
         return () => {
             wfsSource.un("addfeature", addFeaturesToLabels);
-            wfsSource.un("clear", clearLabels);
+            wfsSource.un("clear", onSourceClear);
             wfsSourceLabels.clear();
         };
-    }, [wfsSource, addFeaturesToLabels, clearLabels, wfsSourceLabels]);
+    }, [wfsSource, addFeaturesToLabels, onSourceClear, wfsSourceLabels]);
 
     useEffect(() => {
         if (!geoservice.featureType) return;

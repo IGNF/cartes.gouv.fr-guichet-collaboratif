@@ -83,12 +83,17 @@ export function useContributionsSave({ pendingMessage, successMessage, errorMess
     }, [setContributions, setSelectedObjects, setWorkingLayerDrawerOpened, setClickedMapFeature, setClickedControl, addAlertMessage, successMessage]);
 
     const handleError = useCallback(
-        (failedStatuses: TransactionStatus[], failedContributions: Contribution[]) => {
+        (failedStatuses: TransactionStatus[], failedContributions: Contribution[], hasRefreshedLayers: boolean) => {
             const errorMessages = failedStatuses.map((s) => s.message || "Unknown error").join("; ");
             addAlertMessage(StatusMessage.error, errorMessage + ": " + errorMessages);
             setContributions(failedContributions);
+            // The features of the refreshed layers were replaced: the selection may hold features that are no longer on the map
+            if (hasRefreshedLayers) {
+                setSelectedObjects([]);
+                setClickedMapFeature(null);
+            }
         },
-        [setContributions, addAlertMessage, errorMessage]
+        [setContributions, setSelectedObjects, setClickedMapFeature, addAlertMessage, errorMessage]
     );
 
     const onSave = useCallback(async () => {
@@ -172,9 +177,10 @@ export function useContributionsSave({ pendingMessage, successMessage, errorMess
             );
             const isFailed = (contr: Contribution) => failedDatabases.has(contr.feature.get(FEATURE_TYPE_GEOSERVICE_PROPERTY)?.database);
 
-            refreshSavedLayers(contributions.filter((contr) => !isFailed(contr)));
+            const savedContributions = contributions.filter((contr) => !isFailed(contr));
+            refreshSavedLayers(savedContributions);
             if (failedStatuses.length === 0) handleSuccess();
-            else handleError(failedStatuses, contributions.filter(isFailed));
+            else handleError(failedStatuses, contributions.filter(isFailed), savedContributions.length > 0);
         } catch (error) {
             if (error instanceof AxiosError) {
                 addAlertMessage(StatusMessage.error, error.response?.data?.message || error.message, 5000);
