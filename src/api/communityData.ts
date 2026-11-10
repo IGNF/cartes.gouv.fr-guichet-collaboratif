@@ -167,7 +167,7 @@ async function getCommunityById(communityId: string, queryClient: QueryClient): 
         maxZoom,
         grids: [],
     };
-    const communityGrids = Array.isArray(res.data.grids)
+    const communityGrids: CommunityGrids[] = Array.isArray(res.data.grids)
         ? res.data.grids.filter((grid: unknown): grid is CommunityGrids =>
               Boolean(
                   grid &&
