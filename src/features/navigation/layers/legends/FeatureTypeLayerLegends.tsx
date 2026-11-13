@@ -1,56 +1,46 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Fragment } from "react/jsx-runtime";
 import VectorLayer from "ol/layer/Vector";
-import { useCommunityStore, useMapStore } from "@/store";
+import { useMapStore } from "@/store";
 import getWellKnownNames from "@/constants/wellKnownNames";
 import Button from "@codegouvfr/react-dsfr/Button";
 import Select from "@codegouvfr/react-dsfr/Select";
 import { changeFeatureTypeStyle } from "@/constants/utils";
 import { useTranslation } from "@/i18n";
-import { LAYER_FEATURE_TYPE } from "@/constants";
 import WebGLVectorLayer from "ol/layer/WebGLVector";
-import { FeatureTypeStyleItem } from "@/constants/communities/types";
+import { CommunityLayer, FeatureTypeStyleItem } from "@/constants/communities/types";
 import { POLYGON_LINE_COLOR } from "@/constants/colors";
 
-const FeatureTypeLayerLegends = () => {
-    const { communityLayers } = useCommunityStore();
+interface FeatureTypeLayerLegendsProps {
+    communityLayer: CommunityLayer;
+    onClose: () => void;
+}
+
+export default function FeatureTypeLayerLegends({ communityLayer, onClose }: FeatureTypeLayerLegendsProps) {
     const { map, featureTypeSelectedStyle, setFeatureTypeSelectedStyle } = useMapStore();
 
     const { t } = useTranslation({ FeatureTypeLayerLegends });
 
-    const divLegendTitle = document.querySelectorAll('div[id^="GPlayerInfoTitle-"]')[0];
-    const legendTitle = divLegendTitle?.innerHTML;
-    const currentLayer = communityLayers?.find((layer) => layer.type === LAYER_FEATURE_TYPE && layer.geoservice.title === legendTitle);
-
-    const currentLayerName = currentLayer?.geoservice.layer;
+    const currentLayerName = communityLayer.geoservice.layer;
     const currentLayerStyle = featureTypeSelectedStyle.find((style) => style.layer === currentLayerName);
-    const styles = currentLayer?.geoservice.styles;
+    const styles = communityLayer.geoservice.styles;
 
-    const [selectedStyle, setSelectedStyle] = useState(currentLayerStyle?.selectedStyle.name || styles![0]?.name || "1");
+    const [selectedStyle, setSelectedStyle] = useState(currentLayerStyle?.selectedStyle.name || styles?.[0]?.name || "1");
 
     const currentStyle = styles?.find((style) => style.name === selectedStyle);
 
-    const layer = useMemo(() => map?.getAllLayers().find((l) => l.get("title") === legendTitle) as WebGLVectorLayer | VectorLayer, [map, legendTitle]);
+    const layer = useMemo(
+        () => map?.getAllLayers().find((candidate) => candidate.get("name") === currentLayerName) as WebGLVectorLayer | VectorLayer,
+        [currentLayerName, map]
+    );
     const layerFeatures = useMemo(() => layer?.getSource()?.getFeatures() || [], [layer]);
-
-    useEffect(() => {
-        const closeButton = divLegendTitle?.nextElementSibling;
-        if (closeButton) {
-            closeButton.setAttribute("title", t("close"));
-        }
-    }, [divLegendTitle, t]);
 
     const handleChange = () => {
         if (currentLayerName && currentStyle && map && currentLayerStyle?.selectedStyle.name !== currentStyle.name) {
-            setFeatureTypeSelectedStyle({ layer: currentLayer?.geoservice.layer, selectedStyle: currentStyle });
+            setFeatureTypeSelectedStyle({ layer: currentLayerName, selectedStyle: currentStyle });
             changeFeatureTypeStyle(layerFeatures, currentStyle);
         }
-        handleCancel();
-    };
-
-    const handleCancel = () => {
-        const closeButton = divLegendTitle?.nextElementSibling as HTMLButtonElement;
-        if (closeButton) closeButton.click();
+        onClose();
     };
 
     const createLineSVG = (type: FeatureTypeStyleItem): string => {
@@ -141,13 +131,11 @@ const FeatureTypeLayerLegends = () => {
                 })}
             </div>
             <div className="feature-type-buttons">
-                <Button onClick={handleChange}>{t("yes")}</Button>
-                <Button priority="secondary" onClick={handleCancel}>
+                <Button onClick={handleChange}>{t("apply")}</Button>
+                <Button priority="secondary" onClick={onClose}>
                     {t("cancel")}
                 </Button>
             </div>
         </div>
     );
-};
-
-export default FeatureTypeLayerLegends;
+}
