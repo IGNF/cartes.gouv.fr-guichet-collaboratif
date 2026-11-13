@@ -18,6 +18,7 @@ interface ModalState {
     exportMapModal: ReturnType<typeof createModal>;
     namedPositionModal: ReturnType<typeof createModal>;
     mergeFeatureAttributesModal: ReturnType<typeof createModal>;
+    documentModal: ReturnType<typeof createModal>;
 }
 
 const modalConfigs = [
@@ -38,6 +39,7 @@ const modalConfigs = [
     { key: "exportMapModal", id: "export-map-modal" },
     { key: "namedPositionModal", id: "named-position-modal" },
     { key: "mergeFeatureAttributesModal", id: "merge-feature-attributes-modal" },
+    { key: "documentModal", id: "document-modal" },
 ];
 
 const modals = modalConfigs.reduce((acc, { key, id }) => {

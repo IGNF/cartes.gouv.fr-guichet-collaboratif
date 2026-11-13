@@ -21,6 +21,7 @@ export type ComponentKey =
     | import("../components/locale/DrawerComponent.locale").I18n
     | import("../components/locale/FilterAndSortReport.locale").I18n
     | import("../components/locale/ReportFiltersComponent.locale").I18n
+    | import("../components/locale/DocumentModal.locale").I18n
     | import("../pages/locale/NotFound.locale").I18n
     | import("../pages/locale/Carte.locale").I18n
     | import("../features/contributions/locale/ContributionList.locale").I18n
@@ -63,6 +64,7 @@ export type ComponentKey =
     | import("../features/working-layer/forms/locale/EditFeatureTypeForm.locale").I18n
     | import("../features/working-layer/forms/locale/FeatureTypeFormActions.locale").I18n
     | import("../features/working-layer/forms/locale/FeatureTypeFormFields.locale").I18n
+    | import("../features/working-layer/forms/locale/FeatureDocumentField.locale").I18n
     | import("../features/working-layer/forms/locale/FeatureTypeFormHeader.locale").I18n
     | import("../features/working-layer/forms/locale/FeatureTypeFormAutomatic.locale").I18n
     | import("../features/working-layer/forms/locale/ConfirmMultipleObjectsActionModal.locale").I18n
