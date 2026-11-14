@@ -1,6 +1,6 @@
 import Button from "@codegouvfr/react-dsfr/Button";
 
-import { useCommunityStore, useContributionStore, useModalStore, useUserStore } from "@/store";
+import { useCommunityStore, useContributionStore, useMapStore, useModalStore, useUserStore } from "@/store";
 import { useTranslation } from "@/i18n";
 import { CommunityRole } from "@/constants/user/types";
 import { ADMIN_COMMUNITY_URL } from "@/constants/urls";
@@ -10,12 +10,15 @@ import ContributionsConfirmReset from "@/features/contributions/ContributionsCon
 import ConfirmSaveContributions from "@/features/contributions/ConfirmSaveContributions";
 import ContributionList from "@/features/contributions/ContributionList";
 import { useContributionsSave } from "@/hooks/working-layer/useContributionsSave";
+import { useFeatureFormGuard } from "@/hooks/working-layer/useFeatureFormGuard";
 
 export default function CommunityToolbar() {
     const { community, hasOneEditableLayer, addAlertMessage } = useCommunityStore();
     const { user, role } = useUserStore();
-    const { contributions, isReviewContribution, setReviewContribution } = useContributionStore();
+    const { contributions, isReviewContribution, pendingFeatureFormValidator, setReviewContribution } = useContributionStore();
+    const { setClickedControl } = useMapStore();
     const { confirmSaveContributionModal } = useModalStore();
+    const { guard } = useFeatureFormGuard();
 
     const { t } = useTranslation({ CommunityToolbar });
 
@@ -49,10 +52,13 @@ export default function CommunityToolbar() {
                                 <Button
                                     iconId="fr-icon-save-fill"
                                     priority="tertiary no outline"
-                                    title={t("save")}
+                                    title={pendingFeatureFormValidator ? t("save_disabled_pending_form") : t("save")}
                                     className="community-toolbar-save-btn"
-                                    disabled={!contributions.length || isLoading}
-                                    nativeButtonProps={{ ...confirmSaveContributionModal.buttonProps, "aria-label": t("save") }}
+                                    disabled={!contributions.length || isLoading || !!pendingFeatureFormValidator}
+                                    nativeButtonProps={{
+                                        ...confirmSaveContributionModal.buttonProps,
+                                        "aria-label": pendingFeatureFormValidator ? t("save_disabled_pending_form") : t("save"),
+                                    }}
                                 />
                                 {contributions.length > 0 && <span className="community-toolbar-badge">{contributions.length}</span>}
                                 {isLoading && (
@@ -67,7 +73,14 @@ export default function CommunityToolbar() {
                                 priority={isReviewContribution ? "secondary" : "tertiary no outline"}
                                 title={t("history")}
                                 disabled={!contributions.length}
-                                onClick={() => setReviewContribution(!isReviewContribution)}
+                                onClick={() =>
+                                    isReviewContribution
+                                        ? setReviewContribution(false)
+                                        : guard(() => {
+                                              setClickedControl(null);
+                                              setReviewContribution(true);
+                                          })
+                                }
                                 nativeButtonProps={{ "aria-label": t("history") }}
                             />
                             <span className="community-toolbar-separator" />

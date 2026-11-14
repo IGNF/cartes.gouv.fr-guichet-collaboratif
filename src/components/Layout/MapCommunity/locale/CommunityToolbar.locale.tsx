@@ -3,6 +3,7 @@ import { declareComponentKeys } from "i18nifty";
 
 export const CommunityToolbarFrTranslations: Translations<"fr">["CommunityToolbar"] = {
     save: "Enregistrer les contributions",
+    save_disabled_pending_form: "Terminez le formulaire de l'objet créé avant d'enregistrer les contributions",
     save_pending: "Vérification du statut en cours",
     save_success: "Les contributions ont été sauvegardées",
     save_error: "Les contributions n'ont pas pu être sauvegardées",
@@ -16,6 +17,7 @@ export const CommunityToolbarFrTranslations: Translations<"fr">["CommunityToolba
 
 export const CommunityToolbarEnTranslations: Translations<"en">["CommunityToolbar"] = {
     save: "Save contributions",
+    save_disabled_pending_form: "Complete the new object form before saving contributions",
     save_pending: "Checking contributions status",
     save_success: "Contributions have been successfully saved",
     save_error: "Unable to save contributions",
@@ -28,6 +30,16 @@ export const CommunityToolbarEnTranslations: Translations<"en">["CommunityToolba
 };
 
 const { i18n } = declareComponentKeys<
-    "save" | "save_pending" | "save_success" | "save_error" | "save_missing_configuration" | "history" | "share" | "settings" | "share_success" | "share_error"
+    | "save"
+    | "save_disabled_pending_form"
+    | "save_pending"
+    | "save_success"
+    | "save_error"
+    | "save_missing_configuration"
+    | "history"
+    | "share"
+    | "settings"
+    | "share_success"
+    | "share_error"
 >()("CommunityToolbar");
 export type I18n = typeof i18n;
