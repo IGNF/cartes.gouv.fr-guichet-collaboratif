@@ -1,11 +1,10 @@
 import { headerFooterDisplayItem } from "@codegouvfr/react-dsfr/Display";
 import Footer from "@codegouvfr/react-dsfr/Footer";
-import { ConsentBannerAndConsentManagement, FooterConsentManagementItem, FooterPersonalDataPolicyItem } from "@/components/ConsentManagement";
 import { useCommunityStore, useUserStore } from "@/store";
 import { useTranslation } from "@/i18n";
 import Button from "@codegouvfr/react-dsfr/Button";
 import { useState, useEffect } from "react";
-import { ACCESSIBILITY_URL, BASE_URL, LEGAL_NOTICES_URL, SITEMAP_URL, TERMS_OF_USE_URL } from "@/constants/urls";
+import { ACCESSIBILITY_URL, BASE_URL, LEGAL_NOTICES_URL, PERSONAL_DATA_URL, SITEMAP_URL, TERMS_OF_USE_URL } from "@/constants/urls";
 import Display from "@codegouvfr/react-dsfr/Display/Display";
 
 const AppFooter: React.FC = () => {
@@ -37,7 +36,6 @@ const AppFooter: React.FC = () => {
                     Fermer
                 </Button>
             )}
-            <ConsentBannerAndConsentManagement />
             <Footer
                 websiteMapLinkProps={{
                     href: SITEMAP_URL,
@@ -66,8 +64,12 @@ const AppFooter: React.FC = () => {
                         },
                         text: t("conditions_generales"),
                     },
-                    <FooterPersonalDataPolicyItem key="footer-personal-data-policy-item" />,
-                    <FooterConsentManagementItem key="footer-consent-management-item" />,
+                    {
+                        linkProps: {
+                            href: PERSONAL_DATA_URL,
+                        },
+                        text: t("donnees_personnelles"),
+                    },
                     headerFooterDisplayItem,
                 ]}
                 homeLinkProps={{

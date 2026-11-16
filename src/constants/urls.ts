@@ -46,3 +46,7 @@ export const SITEMAP_URL = BASE_URL + "/plan-du-site";
 export const ACCESSIBILITY_URL = BASE_URL + "/accessibilite";
 export const LEGAL_NOTICES_URL = BASE_URL + "/mentions-legales";
 export const TERMS_OF_USE_URL = BASE_URL + "/cgu";
+export const PERSONAL_DATA_URL = BASE_URL + "/donnees-personnelles";
+
+// Analytics
+export const MATOMO_URL = "https://matomo.ign.fr/";

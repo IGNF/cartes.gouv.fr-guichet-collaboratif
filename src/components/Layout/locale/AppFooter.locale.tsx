@@ -6,6 +6,7 @@ export const AppFooterFrTranslations: Translations<"fr">["AppFooter"] = {
     content_description:
         "Cartes.gouv.fr est le service public des cartes et données du territoire français. Porté par l’IGN et ses partenaires, il offre à tous un accès à la référence de la cartographie publique et permet à chacun de créer, d’héberger et de publier ses propres données et représentations.",
     conditions_generales: "Conditions générales d’utilisation",
+    donnees_personnelles: "Données personnelles",
     home_link: "Accueil - cartes.gouv.fr-guichet-collaboratif",
     partner_1: "IGN",
     partner_2: "MINISTÈRE DE LA TRANSFORMATION ET DE LA FONCTION PUBLIQUES",
@@ -31,6 +32,7 @@ export const AppFooterEnTranslations: Translations<"en">["AppFooter"] = {
     content_description:
         "Cartes.gouv.fr is the public service providing maps and data for France. Run by the IGN and its partners, it offers everyone access to the leading source of public cartography and enables anyone to create, host and publish their own data and visualisations.",
     conditions_generales: "General Conditions of Use",
+    donnees_personnelles: "Personal data",
     home_link: "Home - cartes.gouv.fr-guichet-collaboratif",
     partner_1: "IGN",
     partner_2: "MINISTRY OF TRANSFORMATION AND CIVIL SERVICE",
@@ -53,6 +55,14 @@ export const AppFooterEnTranslations: Translations<"en">["AppFooter"] = {
 };
 
 const { i18n } = declareComponentKeys<
-    "content_description" | "conditions_generales" | "home_link" | "partner_1" | "partner_2" | "partner_3" | "partner_4" | { K: "licence"; R: JSX.Element }
+    | "content_description"
+    | "conditions_generales"
+    | "donnees_personnelles"
+    | "home_link"
+    | "partner_1"
+    | "partner_2"
+    | "partner_3"
+    | "partner_4"
+    | { K: "licence"; R: JSX.Element }
 >()("AppFooter");
 export type I18n = typeof i18n;
