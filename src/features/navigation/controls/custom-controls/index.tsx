@@ -16,13 +16,15 @@ import { FEATURE_TYPE_SELECTED_PROPERTY } from "@/constants";
 import ConfirmMultipleDeselection from "./ConfirmMultipleDeselection";
 import ConfirmMultipleObjectsActionModal from "@/features/working-layer/forms/ConfirmMultipleObjectsActionModal";
 import MergeFeatureAttributesModal from "@/features/working-layer/forms/MergeFeatureAttributesModal";
+import { MergeKeepIndex } from "@/constants/contributions/types";
 import SearchObjectsModal from "@/features/working-layer/modal/searchObjects/SearchObjectsModal";
 import ExportMapModal from "./ExportMapModal";
 import NamedPositionModal from "../NamedPositionModal";
 import useKeyEvent from "@/hooks/useKeyEvent";
 
 const CustomControls = () => {
-    const { clickedControl, setClickedControl, setWorkingLayerDrawerOpened, setClickedMapFeature, workingLayerDrawerOpened } = useMapStore();
+    const { map, mapWorkingLayer, clickedControl, setClickedControl, setWorkingLayerDrawerOpened, setClickedMapFeature, workingLayerDrawerOpened } =
+        useMapStore();
     const { selectedObjects, setSelectedObjects } = useContributionStore();
     const { confirmMultipleDeselectionModal, confirmMultipleObjectsActionModal } = useModalStore();
 
@@ -40,6 +42,16 @@ const CustomControls = () => {
             setClickedControl(null);
         }
     }, [controlsList, clickedControl, setClickedControl]);
+
+    // Activate the select tool once on landing, as soon as the toolbar is ready
+    const hasAutoActivatedSelect = useRef(false);
+    useEffect(() => {
+        if (hasAutoActivatedSelect.current || !map || !mapWorkingLayer) return;
+        const selectControl = controlsList.find((c) => c.interaction === InteractionType.SELECT);
+        if (!selectControl || selectControl.disabled) return;
+        hasAutoActivatedSelect.current = true;
+        if (!clickedControl) setClickedControl(selectControl);
+    }, [controlsList, clickedControl, map, mapWorkingLayer, setClickedControl]);
 
     useEffect(() => {
         if (selectedObjects.length === 0) {
@@ -139,8 +151,8 @@ const CustomControls = () => {
     };
 
     const handleConfirmMerge = useCallback(
-        (customData: Record<string, unknown>) => {
-            interactionsFuncs.mergeInteractionFunc(customData);
+        (customData: Record<string, unknown>, keepIndex: MergeKeepIndex) => {
+            interactionsFuncs.mergeInteractionFunc(customData, keepIndex);
         },
         [interactionsFuncs]
     );

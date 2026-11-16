@@ -9,6 +9,7 @@ export const MergeFeatureAttributesModalFrTranslations: Translations<"fr">["Merg
     object_2: "Objet 2",
     custom: "Personnaliser attribut par attribut",
     custom_detail: "Choisissez pour chaque attribut la valeur à conserver",
+    custom_id_hint: "L'identifiant (gid) choisi détermine l'objet qui sera conservé et modifié. L'autre objet sera supprimé.",
     both_empty: "Vide pour les deux",
     confirm: "Fusionner",
     cancel: "Annuler",
@@ -22,13 +23,24 @@ export const MergeFeatureAttributesModalEnTranslations: Translations<"en">["Merg
     object_2: "Object 2",
     custom: "Customize attribute by attribute",
     custom_detail: "Choose which value to keep for each attribute",
+    custom_id_hint: "The chosen identifier (gid) determines which object is kept and edited. The other object will be deleted.",
     both_empty: "Empty for both",
     confirm: "Merge",
     cancel: "Cancel",
 };
 
 const { i18n } = declareComponentKeys<
-    "title" | "description" | "choose_attributes" | "object_1" | "object_2" | "custom" | "custom_detail" | "both_empty" | "confirm" | "cancel"
+    | "title"
+    | "description"
+    | "choose_attributes"
+    | "object_1"
+    | "object_2"
+    | "custom"
+    | "custom_detail"
+    | "custom_id_hint"
+    | "both_empty"
+    | "confirm"
+    | "cancel"
 >()("MergeFeatureAttributesModal");
 
 export type I18n = typeof i18n;

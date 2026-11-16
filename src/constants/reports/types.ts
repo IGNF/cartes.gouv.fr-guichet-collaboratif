@@ -1,5 +1,4 @@
 import { Feature, Map } from "ol";
-import { CommunityTheme } from "../communities/types";
 import { Geometry } from "ol/geom";
 import { Coordinate } from "ol/coordinate";
 import { Pixel } from "ol/pixel";
@@ -68,11 +67,19 @@ export interface ReportAttachment {
     url: string;
 }
 
+export type PostThemeReport = { [key: string]: string };
+
+export interface ReportTheme {
+    community: number;
+    theme: string;
+    attributes: PostThemeReport;
+}
+
 export interface CommunityReport {
     id: number;
     geometry: string;
     comment: string;
-    themes: CommunityTheme[];
+    themes: ReportTheme[];
     status: StatusKey;
     attachments: attachmentData[];
     sketch?: SketchReport | null;
@@ -82,7 +89,7 @@ export interface CommunityReport {
     commune?: CommuneData;
     departement?: DepartementData;
     author?: AuthorData;
-    attributes?: CommunityTheme[];
+    attributes?: ReportTheme[];
     replies?: Reply[];
 }
 
@@ -113,8 +120,6 @@ export interface FilterState {
     opening_date?: string;
 }
 
-export type PostThemeReport = { [key: string]: string };
-
 export interface PostReport {
     community: number;
     geometry?: string;
@@ -143,7 +148,7 @@ export type reportData = {
     id: number;
     geometry: string;
     comment: string;
-    attributes: CommunityTheme[];
+    attributes: ReportTheme[];
     status: StatusKey;
     attachments: attachmentData[];
     sketch: string | null;
