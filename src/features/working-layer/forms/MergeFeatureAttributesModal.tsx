@@ -36,20 +36,20 @@ export default function MergeFeatureAttributesModal({ onConfirm }: MergeFeatureA
     const feat1Data = feat1?.get(FEATURE_TYPE_DATA_PROPERTY) as Record<string, unknown> | undefined;
     const feat2Data = feat2?.get(FEATURE_TYPE_DATA_PROPERTY) as Record<string, unknown> | undefined;
 
-    const idSuffix1 = idName && feat1Data ? ` (id: ${feat1Data[idName]})` : "";
-    const idSuffix2 = idName && feat2Data ? ` (id: ${feat2Data[idName]})` : "";
+    const idSuffix1 = idName && feat1Data ? ` (${idName}: ${feat1Data[idName]})` : "";
+    const idSuffix2 = idName && feat2Data ? ` (${idName}: ${feat2Data[idName]})` : "";
     const friendly1 = getFriendlyName(feat1Data, "");
     const friendly2 = getFriendlyName(feat2Data, "");
     const feat1Label = `${t("object_1")}${friendly1 ? ` — ${friendly1}` : ""}${idSuffix1}`;
     const feat2Label = `${t("object_2")}${friendly2 ? ` — ${friendly2}` : ""}${idSuffix2}`;
 
     // The fingerprint is never user-selectable: it follows the kept id. The id is listed first.
-    const allKeys = useMemo(() => {
-        const keys = new Set([...Object.keys(feat1Data ?? {}), ...Object.keys(feat2Data ?? {})]);
-        keys.delete(FEATURE_TYPE_FINGERPRINT_COLUMN);
-        if (idName) keys.delete(idName);
-        return idName ? [idName, ...keys] : Array.from(keys);
-    }, [feat1Data, feat2Data, idName]);
+    const fields = useMemo(() => {
+        const columns = (geoservice?.columns ?? []).filter((col) => !col.crs && col.name !== FEATURE_TYPE_FINGERPRINT_COLUMN);
+        const idColumn = columns.find((col) => col.name === idName);
+        return idColumn ? [idColumn, ...columns.filter((col) => col !== idColumn)] : columns;
+    }, [geoservice, idName]);
+    const allKeys = useMemo(() => fields.map((col) => col.name), [fields]);
 
     const keepIndex = useMemo((): MergeKeepIndex => {
         if (choiceMode === "first") return 0;
@@ -90,6 +90,7 @@ export default function MergeFeatureAttributesModal({ onConfirm }: MergeFeatureA
     return (
         <ModaleComponent
             modal={mergeFeatureAttributesModal}
+            className="merge-feature-attributes-modal"
             title={t("title")}
             onConfirm={handleConfirm}
             onClose={handleClose}
@@ -130,14 +131,16 @@ export default function MergeFeatureAttributesModal({ onConfirm }: MergeFeatureA
             {choiceMode === "custom" && allKeys.length > 0 && (
                 <div>
                     <p className="fr-text--sm fr-mb-2w">{t("custom_detail")}</p>
-                    {allKeys.map((key) => {
+                    {fields.map((col) => {
+                        const key = col.name;
+                        const label = col.title || col.name;
                         const val1 = String(feat1Data?.[key] ?? "");
                         const val2 = String(feat2Data?.[key] ?? "");
                         const bothEmpty = val1 === "" && val2 === "";
                         if (bothEmpty) {
                             return (
                                 <div key={key} className="fr-mb-2w">
-                                    <span className="fr-text--sm fr-text--disabled">{key}</span>
+                                    <span className="fr-text--sm fr-text--disabled">{label}</span>
                                     <span className="fr-badge fr-badge--sm fr-badge--grey fr-ml-1w">{t("both_empty")}</span>
                                 </div>
                             );
@@ -146,7 +149,9 @@ export default function MergeFeatureAttributesModal({ onConfirm }: MergeFeatureA
                         return (
                             <Select
                                 key={key}
-                                label={key}
+                                label={label}
+                                state={key === idName ? "info" : "default"}
+                                stateRelatedMessage={key === idName ? t("custom_id_hint") : undefined}
                                 nativeSelectProps={{
                                     value: perFieldChoice[key] ?? smartDefault,
                                     onChange: (e) =>
