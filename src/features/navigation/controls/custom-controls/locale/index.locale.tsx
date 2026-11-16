@@ -12,11 +12,11 @@ export const CustomControlsFrTranslations: Translations<"fr">["CustomControls"] 
     measure_area: "Mesurer une surface",
     measure_azim: "Mesurer un azimut",
     please_select_object: "Veuillez sélectionner un objet",
-    export_image: "Exporter la carte en image",
+    print: "Exporter la carte en image",
     copy_object: "Copier un objet",
     paste_object: "Coller un objet",
     shortest_path: "Créer un plus court chemin",
-    merge_objects: "Fusionner 2 objets en contact",
+    fusion: "Fusionner 2 objets en contact",
 };
 
 export const CustomControlsEnTranslations: Translations<"en">["CustomControls"] = {
@@ -30,11 +30,11 @@ export const CustomControlsEnTranslations: Translations<"en">["CustomControls"] 
     measure_area: "Measure an area",
     measure_azim: "Measure an azimuth",
     please_select_object: "Please select an object",
-    export_image: "Export map as an image",
+    print: "Export map as an image",
     copy_object: "Copy an object",
     paste_object: "Paste an object",
     shortest_path: "Create a shortest path",
-    merge_objects: "Merge 2 touching objects",
+    fusion: "Merge 2 touching objects",
 };
 
 const { i18n } = declareComponentKeys<
@@ -48,10 +48,10 @@ const { i18n } = declareComponentKeys<
     | "measure_area"
     | "measure_azim"
     | "please_select_object"
-    | "export_image"
+    | "print"
     | "copy_object"
     | "paste_object"
     | "shortest_path"
-    | "merge_objects"
+    | "fusion"
 >()("CustomControls");
 export type I18n = typeof i18n;

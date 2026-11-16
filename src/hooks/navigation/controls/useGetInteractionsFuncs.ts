@@ -865,12 +865,12 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                 selectInteraction.clearSelection();
             }
 
-            if (control.interaction === InteractionType.EXPORT_IMAGE) {
+            if (control.interaction === InteractionType.PRINT) {
                 exportMapModal.open();
                 return;
             }
 
-            if (control.interaction === InteractionType.MERGE_OBJECTS) {
+            if (control.interaction === InteractionType.FUSION) {
                 if (control?.id === clickedControl?.id) {
                     mergeFeatureAttributesModal.close();
                 } else {

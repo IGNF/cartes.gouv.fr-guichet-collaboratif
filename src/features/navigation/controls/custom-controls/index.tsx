@@ -79,7 +79,7 @@ const CustomControls = () => {
                 control.interaction !== InteractionType.MODIFY &&
                 control.interaction !== InteractionType.TRANSLATE_OBJECT &&
                 control.interaction !== InteractionType.COPY_OBJECT &&
-                control.interaction !== InteractionType.MERGE_OBJECTS
+                control.interaction !== InteractionType.FUSION
             ) {
                 interactions.selectInteraction.clearSelection();
                 selectedObjects.forEach((feat) => {
@@ -109,7 +109,7 @@ const CustomControls = () => {
         (control: CustomControlItem) => {
             if (control.disabled) return;
 
-            if (clickedControl?.interaction === InteractionType.SELECT && selectedObjects.length > 1 && control.interaction !== InteractionType.MERGE_OBJECTS) {
+            if (clickedControl?.interaction === InteractionType.SELECT && selectedObjects.length > 1 && control.interaction !== InteractionType.FUSION) {
                 pendingControlChange.current = control;
                 confirmMultipleDeselectionModal.open();
                 return;

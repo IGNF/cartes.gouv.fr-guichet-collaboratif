@@ -289,8 +289,8 @@ export enum InteractionType {
     TRANSLATE_OBJECT = "translate_object",
     SPLIT_LINE = "split_line",
     SHORTEST_PATH = "shortest_path",
-    EXPORT_IMAGE = "export_image",
-    MERGE_OBJECTS = "merge_objects",
+    PRINT = "print",
+    FUSION = "fusion",
 }
 
 export type CustomControlItem = {

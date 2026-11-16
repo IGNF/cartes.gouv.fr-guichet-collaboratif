@@ -164,7 +164,7 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
             },
             {
                 id: 13,
-                title: t("merge_objects"),
+                title: t("fusion"),
                 target: "",
                 icon: "ri-merge-cells-horizontal",
                 disabled:
@@ -178,16 +178,16 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
                         // !!community?.functionalities?.includes(CommunityLayerFunctionalityType.MERGE) &&
                         currentCommunityLayer?.geoservice.featureType == GeoserviceFeatureTypeProp.LINE) ||
                     currentCommunityLayer?.geoservice.featureType == GeoserviceFeatureTypeProp.POLYGON,
-                interaction: InteractionType.MERGE_OBJECTS,
+                interaction: InteractionType.FUSION,
             },
             {
                 id: 14,
-                title: t("export_image"),
+                title: t("print"),
                 target: "",
                 icon: "ri-printer-line",
                 disabled: false,
                 enabled: true,
-                interaction: InteractionType.EXPORT_IMAGE,
+                interaction: InteractionType.PRINT,
             },
         ];
     }, [
