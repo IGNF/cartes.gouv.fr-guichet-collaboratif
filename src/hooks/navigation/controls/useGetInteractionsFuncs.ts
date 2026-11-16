@@ -3,12 +3,13 @@ import { SelectEvent } from "ol/interaction/Select";
 import { Collection, Feature, MapBrowserEvent } from "ol";
 import VectorLayer from "ol/layer/Vector";
 import WebGLVectorLayer from "ol/layer/WebGLVector";
-import { ContributionType, CustomInteraction, InteractionsProps } from "@/constants/contributions/types";
+import { ContributionType, CustomInteraction, InteractionsProps, MergeKeepIndex } from "@/constants/contributions/types";
 import { ModifyEvent } from "ol/interaction/Modify";
 import { DrawEvent } from "ol/interaction/Draw";
 import { DragPan, Draw, Modify } from "ol/interaction";
 import {
     FEATURE_TYPE_DATA_PROPERTY,
+    FEATURE_TYPE_FINGERPRINT_COLUMN,
     FEATURE_TYPE_NEW_PROPERTY,
     FEATURE_TYPE_PENDING_FORM_PROPERTY,
     FEATURE_TYPE_SELECTED_PROPERTY,
@@ -994,7 +995,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
     );
 
     const mergeInteractionFunc = useCallback(
-        (customData: Record<string, unknown>) => {
+        (customData: Record<string, unknown>, keepIndex: MergeKeepIndex) => {
             if (selectedObjects.length !== 2) {
                 mergeFeatureAttributesModal.close();
                 return;
@@ -1005,7 +1006,9 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                 return;
             }
 
-            const [featToKeep, featToDelete] = [selectedObjects[0], selectedObjects[1]];
+            // The feature whose id was chosen is modified, the other one is deleted
+            const featToKeep = selectedObjects[keepIndex];
+            const featToDelete = selectedObjects[keepIndex === 0 ? 1 : 0];
 
             const mergedGeometry = mergeFeatureGeometries(featToKeep, featToDelete, featureType);
             if (!mergedGeometry) {
@@ -1020,7 +1023,15 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
 
             const idName = currentCommunityLayer?.geoservice.idName;
             const originalKeepData = featToKeep.get(FEATURE_TYPE_DATA_PROPERTY) as Record<string, unknown> | undefined;
-            const dataToApply = idName && originalKeepData ? { ...customData, [idName]: originalKeepData[idName] } : customData;
+            const dataToApply: Record<string, unknown> = { ...customData };
+            if (originalKeepData) {
+                if (idName) dataToApply[idName] = originalKeepData[idName];
+                if (FEATURE_TYPE_FINGERPRINT_COLUMN in originalKeepData) {
+                    dataToApply[FEATURE_TYPE_FINGERPRINT_COLUMN] = originalKeepData[FEATURE_TYPE_FINGERPRINT_COLUMN];
+                } else {
+                    delete dataToApply[FEATURE_TYPE_FINGERPRINT_COLUMN];
+                }
+            }
 
             featToKeep.setGeometry(mergedGeometry);
             featToKeep.set(FEATURE_TYPE_DATA_PROPERTY, dataToApply);

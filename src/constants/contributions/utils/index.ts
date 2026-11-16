@@ -169,3 +169,24 @@ export const areEqual = (current: unknown, initial: unknown) => {
             JSON.stringify(current) === JSON.stringify(initial))
     );
 };
+
+/**
+ * Tells whether applying the attribute form values to the feature would actually change its attributes.
+ * - Automatic columns are ignored: the form recomputes them each time it is opened, this is not a user change.
+ * - The form displays an empty attribute with the column default value, so getting this default value back is not a change.
+ */
+export const hasFeatureDataChanged = (feat: Feature, newData: Record<string, unknown>) => {
+    const geoservice = feat.get(FEATURE_TYPE_GEOSERVICE_PROPERTY) as CommunityGeoservice | undefined;
+    const featData = (feat.get(FEATURE_TYPE_DATA_PROPERTY) ?? {}) as Record<string, unknown>;
+
+    return Object.entries(newData).some(([key, value]) => {
+        const column = geoservice?.columns.find((col) => col.name === key);
+        if (column?.read_only && column.automatic) return false;
+
+        const currentValue = featData[key];
+        if (areEqual(value, currentValue)) return false;
+
+        const isCurrentEmpty = currentValue === null || currentValue === undefined || currentValue === "";
+        return !(isCurrentEmpty && column && areEqual(value, column.default_value));
+    });
+};
