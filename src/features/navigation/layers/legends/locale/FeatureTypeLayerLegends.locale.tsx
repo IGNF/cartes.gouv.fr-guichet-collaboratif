@@ -2,18 +2,18 @@ import { Translations } from "@/i18n/types";
 import { declareComponentKeys } from "i18nifty";
 
 export const FeatureTypeLayerLegendsFrTranslations: Translations<"fr">["FeatureTypeLayerLegends"] = {
+    symbology: "Symbologie",
     select_label: "Style courant :",
-    yes: "Ok",
+    apply: "Appliquer",
     cancel: "Annuler",
-    close: "Fermer",
 };
 
 export const FeatureTypeLayerLegendsEnTranslations: Translations<"en">["FeatureTypeLayerLegends"] = {
+    symbology: "Symbology",
     select_label: "Current style:",
-    yes: "Ok",
+    apply: "Apply",
     cancel: "Cancel",
-    close: "Close",
 };
 
-const { i18n } = declareComponentKeys<"select_label" | "yes" | "cancel" | "close">()("FeatureTypeLayerLegends");
+const { i18n } = declareComponentKeys<"symbology" | "select_label" | "apply" | "cancel">()("FeatureTypeLayerLegends");
 export type I18n = typeof i18n;

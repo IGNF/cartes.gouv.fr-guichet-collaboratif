@@ -115,17 +115,6 @@
     }
 }
 
-.layer-switcher-legends {
-    padding: 10px;
-}
-
-.layer-switcher-legends div {
-    display: flex;
-    gap: 20px;
-    margin-bottom: 10px;
-    align-items: center;
-}
-
 .visuallyhidden {
     border: 0;
     clip: rect(0 0 0 0);

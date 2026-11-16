@@ -11,7 +11,7 @@ import { getReportAllFeatures, REPORTS_LAYER_TYPE } from "@/constants/reports/ut
 import Button from "@codegouvfr/react-dsfr/Button";
 import SketchList from "./SketchList";
 import ImportSketchFile from "./ImportSketchFile";
-import { STATUS_NOT_ALLOWED } from "@/constants/utils";
+import { ensureSketchPointStyle, setDrawingSketchMarkers, STATUS_NOT_ALLOWED } from "@/constants/utils";
 
 interface Props {
     clickedTool?: ClickedTool;
@@ -50,14 +50,18 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsD
                         e.feature.set("reportData", selectedReport);
                     } else {
                         e.feature.set("new", true);
-                        if (!selectedFeatures.length) {
+                        const hasMainFeature = drawingSource.getFeatures().some((feature) => feature !== e.feature && feature.get("main"));
+
+                        if (!hasMainFeature) {
                             e.feature.set("main", true);
+                            setDrawingSketchMarkers(map, true);
                         }
                     }
+                    ensureSketchPointStyle(e.feature);
                 }
             }
         },
-        [selectedFeatures, selectedReport]
+        [drawingSource, map, selectedReport]
     );
 
     const changeCallCountRef = useRef(0);

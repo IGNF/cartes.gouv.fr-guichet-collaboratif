@@ -4,7 +4,7 @@ import { declareComponentKeys } from "i18nifty";
 export const GetReportsLayerFrTranslations: Translations<"fr">["GetReportsLayer"] = {
     error: "Erreur lors du chargement des signalements",
     reports_title: "Signalements",
-    reports_legend: "Légende signalements",
+    reports_description: "Signalements déposés par les membres du guichet.",
     report_reply: "Répondre",
     selected_lines: "Nombre de lignes sélectionnée(s) :",
     no_lines: "Pas de lignes sélectionnées",
@@ -41,7 +41,7 @@ export const GetReportsLayerFrTranslations: Translations<"fr">["GetReportsLayer"
 export const GetReportsLayerEnTranslations: Translations<"en">["GetReportsLayer"] = {
     error: "Error while loading reports",
     reports_title: "Reports",
-    reports_legend: "Reports legend",
+    reports_description: "Reports submitted by the community members. Use “Symbology” to display the status legend.",
     report_reply: "Reply",
     selected_lines: "Number of lines selected:",
     no_lines: "No lines selected",
@@ -78,7 +78,7 @@ export const GetReportsLayerEnTranslations: Translations<"en">["GetReportsLayer"
 const { i18n } = declareComponentKeys<
     | "error"
     | "reports_title"
-    | "reports_legend"
+    | "reports_description"
     | "report_reply"
     | "selected_lines"
     | "no_lines"

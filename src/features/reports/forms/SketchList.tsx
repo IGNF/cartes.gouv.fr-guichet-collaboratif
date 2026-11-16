@@ -1,20 +1,18 @@
 import { useCallback, useEffect, useMemo } from "react";
 import { useTranslation } from "@/i18n";
 import { Feature } from "ol";
-import { Control } from "ol/control";
 import Layer from "ol/layer/Layer";
 import { Size } from "ol/size";
 import VectorSource from "ol/source/Vector";
 import { Style } from "ol/style";
 import ImageStyle from "ol/style/Image";
-import Drawing from "geopf-extensions-openlayers/src/packages/Controls/Drawing/Drawing";
 import useReportTools from "@/hooks/reports/useReportTools";
 import { useCommunityStore, useMapStore, useReportStore } from "@/store";
 import { StatusMessage } from "@/constants/communities/types";
 import { sketchFeatureTypeLabel, toolNames } from "@/constants/reports/types";
 import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import { selectionCircleStyle } from "@/constants/styles";
-import { getFeatureDiam, handleCenterToFeature, mainMarker, markersStyles, otherMarkers } from "@/constants/utils";
+import { getFeatureDiam, getSidePanelWidth, handleCenterToFeature, markersStyles, setDrawingSketchMarkers } from "@/constants/utils";
 import Button from "@codegouvfr/react-dsfr/Button";
 
 interface Props {
@@ -49,13 +47,9 @@ const SketchList = ({ showSketch, expendedDrawing }: Props) => {
 
     useEffect(() => {
         if (!map) return;
-        const drawingControl = map
-            ?.getControls()
-            .getArray()
-            .find((c: Control) => "layer" in c && c instanceof Drawing);
-
-        if (drawingControl && mainFeature) {
-            drawingControl.options.markersList = otherMarkers;
+        const hasMainFeature = !!mainFeature || !!drawingSource?.getFeatures().some((f) => f.get("main"));
+        if (hasMainFeature) {
+            setDrawingSketchMarkers(map, true);
         }
 
         const mainFeatureStyle = mainFeature?.getStyle() as Style;
@@ -74,11 +68,11 @@ const SketchList = ({ showSketch, expendedDrawing }: Props) => {
 
                 mainFeature?.changed();
             }
-            if (drawingControl) {
-                drawingControl.options.markersList = [mainMarker, ...otherMarkers];
+            if (!drawingSource?.getFeatures().some((f) => f.get("main"))) {
+                setDrawingSketchMarkers(map, false);
             }
         };
-    }, [mainFeature, drawingLayer, map, isMainFeatureClustered]);
+    }, [mainFeature, drawingSource, map, isMainFeatureClustered]);
 
     const handleRemoveFeature = (feature: Feature) => {
         clusterSource?.removeFeature(feature);
@@ -119,7 +113,7 @@ const SketchList = ({ showSketch, expendedDrawing }: Props) => {
     const handleClickFeature = useCallback(
         (feature: Feature) => {
             try {
-                handleCenterToFeature(map, feature);
+                handleCenterToFeature(map, feature, getSidePanelWidth());
             } catch {
                 addAlertMessage(StatusMessage.error, t("display_error"), 3000);
             }
