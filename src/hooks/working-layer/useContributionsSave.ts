@@ -1,12 +1,13 @@
 import { useCallback, useMemo, useState } from "react";
 import { AxiosError } from "axios";
+import VectorSource from "ol/source/Vector";
 
 import { useCommunityStore, useContributionStore, useMapStore, useUserStore } from "@/store";
 import { useLang } from "@/i18n";
-import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_FINGERPRINT_COLUMN, FEATURE_TYPE_GEOSERVICE_PROPERTY, FEATURE_TYPE_NEW_PROPERTY } from "@/constants";
+import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_FINGERPRINT_COLUMN, FEATURE_TYPE_GEOSERVICE_PROPERTY } from "@/constants";
 import { CommunityGeoservice, StatusMessage } from "@/constants/communities/types";
 import { Contribution, ContributionType, TransactionApi, TransactionStatus, TransactionType } from "@/constants/contributions/types";
-import { getFeatureGeometryWKT } from "@/constants/utils";
+import { getFeatureGeometryWKT, reloadSourceKeepingFeatures } from "@/constants/utils";
 import { resetContributionToMap, areEqual, setFeatNewCoords } from "@/constants/contributions/utils";
 import { postTransactions } from "@/api/transactionData";
 import { createCommunityDocument, deleteCommunityDocument } from "@/api/documentData";
@@ -74,7 +75,7 @@ interface PendingDocumentDeletion {
 
 export function useContributionsSave({ pendingMessage, successMessage, errorMessage, missingConfigurationMessage }: UseContributionsSaveOptions) {
     const { map, setWorkingLayerDrawerOpened, setClickedMapFeature, setClickedControl } = useMapStore();
-    const { contributions, contrToCancel, setReviewContribution, setContributions, setContrToCancel } = useContributionStore();
+    const { contributions, contrToCancel, setReviewContribution, setContributions, setContrToCancel, setSelectedObjects } = useContributionStore();
     const { community, addAlertMessage, removeAlertMessage } = useCommunityStore();
     const { user } = useUserStore();
     const { lang } = useLang();
@@ -92,13 +93,32 @@ export function useContributionsSave({ pendingMessage, successMessage, errorMess
         });
     }, []);
 
-    const finishSuccessfulSave = useCallback(() => {
+    /**
+     * The transaction response only echoes the data that was sent: it does not hold the gcms_fingerprint recomputed
+     * by the server after the commit, nor the server state of an inserted feature. Keeping the local features would
+     * make the next transaction on them fail (stale or missing fingerprint), so the saved layers are reloaded.
+     * The features stay on the map until the reloaded ones replace them.
+     */
+    const refreshSavedLayers = useCallback(
+        (savedContributions: Contribution[]) => {
+            const layerNames = new Set(savedContributions.map((contr) => contr.layer));
+            map?.getAllLayers().forEach((layer) => {
+                if (!layerNames.has(layer.get("name"))) return;
+                const source = layer.getSource();
+                if (source instanceof VectorSource) reloadSourceKeepingFeatures(source);
+            });
+        },
+        [map]
+    );
+
+    const handleSuccess = useCallback(() => {
         setContributions([]);
+        setSelectedObjects([]);
         setWorkingLayerDrawerOpened(false);
         setClickedMapFeature(null);
         setClickedControl(null);
         addAlertMessage(StatusMessage.success, successMessage, 2000);
-    }, [setContributions, setWorkingLayerDrawerOpened, setClickedMapFeature, setClickedControl, addAlertMessage, successMessage]);
+    }, [setContributions, setSelectedObjects, setWorkingLayerDrawerOpened, setClickedMapFeature, setClickedControl, addAlertMessage, successMessage]);
 
     const onSave = useCallback(async () => {
         const validator = useContributionStore.getState().pendingFeatureFormValidator;
@@ -107,7 +127,6 @@ export function useContributionsSave({ pendingMessage, successMessage, errorMess
         const { contributions } = useContributionStore.getState();
         const apis: TransactionApi[] = [];
         const today = new Date();
-        const geomContr: { contr: Contribution; geom: string }[] = [];
         const uploadedDocuments: UploadedDocument[] = [];
         const pendingDocumentDeletions: PendingDocumentDeletion[] = [];
         let transactionsSettled = false;
@@ -184,7 +203,6 @@ export function useContributionsSave({ pendingMessage, successMessage, errorMess
                     state: contr.type,
                     data: filteredFeatData,
                 };
-                geomContr.push({ contr, geom: featGeometry });
                 if (apiExist) {
                     apiExist.body.actions.push(action);
                 } else {
@@ -219,24 +237,6 @@ export function useContributionsSave({ pendingMessage, successMessage, errorMess
                     uncertainDatabases.add(database);
                 }
             });
-
-            settledTransactions
-                .filter(({ status }) => status.status === TransactionType.COMMITTED)
-                .forEach(({ database, status }) => {
-                    status.actions.forEach((action) => {
-                        const contr = geomContr.find((gc) => {
-                            const feat = gc.contr.feature;
-                            const geoservice: CommunityGeoservice = feat.get(FEATURE_TYPE_GEOSERVICE_PROPERTY);
-                            if (!geoservice?.geometryName) return false;
-                            return geoservice.database === database && gc.geom === action.data[geoservice.geometryName];
-                        })?.contr;
-                        if (contr) {
-                            contr.feature.set(FEATURE_TYPE_DATA_PROPERTY, action.data);
-                            contr.feature.setProperties(action.data);
-                            contr.feature.unset(FEATURE_TYPE_NEW_PROPERTY);
-                        }
-                    });
-                });
 
             uploadedDocuments
                 .filter(({ database }) => uncertainDatabases.has(database))
@@ -281,14 +281,21 @@ export function useContributionsSave({ pendingMessage, successMessage, errorMess
             const transactionStatuses = settledTransactions.map(({ status }) => status);
             const allSuccess = requestErrors.length === 0 && transactionStatuses.every((s) => s.status === TransactionType.COMMITTED);
             const failedStatuses = transactionStatuses.filter((s) => s.status !== TransactionType.COMMITTED);
+            const isCommitted = (contr: Contribution) => {
+                const geoservice = contr.feature.get(FEATURE_TYPE_GEOSERVICE_PROPERTY) as CommunityGeoservice;
+                return geoservice.database !== undefined && committedDatabases.has(geoservice.database);
+            };
+            const savedContributions = contributions.filter(isCommitted);
+            refreshSavedLayers(savedContributions);
             if (allSuccess) {
-                finishSuccessfulSave();
+                handleSuccess();
             } else {
-                const remainingContributions = contributions.filter((contribution) => {
-                    const geoservice = contribution.feature.get(FEATURE_TYPE_GEOSERVICE_PROPERTY) as CommunityGeoservice;
-                    return geoservice.database === undefined || !committedDatabases.has(geoservice.database);
-                });
-                setContributions(remainingContributions);
+                setContributions(contributions.filter((contr) => !isCommitted(contr)));
+                // The features of the refreshed layers were replaced: the selection may hold features that are no longer on the map
+                if (savedContributions.length > 0) {
+                    setSelectedObjects([]);
+                    setClickedMapFeature(null);
+                }
 
                 if (failedStatuses.length > 0) {
                     const statusErrors = failedStatuses.map((status) => status.message || "Unknown error").join("; ");
@@ -323,10 +330,13 @@ export function useContributionsSave({ pendingMessage, successMessage, errorMess
         removeAlertMessage,
         pendingMessage,
         missingConfigurationMessage,
-        finishSuccessfulSave,
+        refreshSavedLayers,
+        handleSuccess,
         community,
         errorMessage,
         setContributions,
+        setSelectedObjects,
+        setClickedMapFeature,
     ]);
 
     const onClickReset = useCallback(() => {

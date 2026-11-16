@@ -16,6 +16,7 @@ import { FEATURE_TYPE_SELECTED_PROPERTY } from "@/constants";
 import ConfirmMultipleDeselection from "./ConfirmMultipleDeselection";
 import ConfirmMultipleObjectsActionModal from "@/features/working-layer/forms/ConfirmMultipleObjectsActionModal";
 import MergeFeatureAttributesModal from "@/features/working-layer/forms/MergeFeatureAttributesModal";
+import { MergeKeepIndex } from "@/constants/contributions/types";
 import SearchObjectsModal from "@/features/working-layer/modal/searchObjects/SearchObjectsModal";
 import ExportMapModal from "./ExportMapModal";
 import NamedPositionModal from "../NamedPositionModal";
@@ -150,8 +151,8 @@ const CustomControls = () => {
     };
 
     const handleConfirmMerge = useCallback(
-        (customData: Record<string, unknown>) => {
-            interactionsFuncs.mergeInteractionFunc(customData);
+        (customData: Record<string, unknown>, keepIndex: MergeKeepIndex) => {
+            interactionsFuncs.mergeInteractionFunc(customData, keepIndex);
         },
         [interactionsFuncs]
     );

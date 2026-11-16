@@ -1,0 +1,30 @@
+.merge-feature-attributes-modal .fr-modal__body {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.merge-feature-attributes-modal .fr-modal__content {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin-bottom: 0;
+    padding-bottom: 1rem;
+}
+
+.merge-feature-attributes-modal .fr-modal__footer {
+    position: static;
+    margin-top: 0;
+}
+
+.merge-feature-attributes-modal .fr-select-group,
+.merge-feature-attributes-modal .fr-select-group .fr-message {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+}
+
+.merge-feature-attributes-modal .fr-select {
+    max-width: 100%;
+    text-overflow: ellipsis;
+}
