@@ -88,7 +88,7 @@ export default function HeaderMenu({ openButtonProps, actionButtonProps, items, 
                                         {iconId && <span className={`fr-icon--sm ${iconId}`} />}
                                         {children}
                                         {beta && (
-                                            <Badge small noIcon severity="success" className="fr-ml-2v">
+                                            <Badge small noIcon as="span" severity="success" className="fr-ml-2v">
                                                 {t("beta")}
                                             </Badge>
                                         )}
