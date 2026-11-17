@@ -1,12 +1,15 @@
 import { FrIconClassName, RiIconClassName } from "@codegouvfr/react-dsfr";
+import Badge from "@codegouvfr/react-dsfr/Badge";
 import Button, { ButtonProps } from "@codegouvfr/react-dsfr/Button";
 import { getLink, RegisteredLinkProps } from "@codegouvfr/react-dsfr/link";
 import { PropsWithChildren, ReactNode, useCallback, useEffect, useId, useRef, useState } from "react";
 import useKeyEvent from "@/hooks/useKeyEvent";
+import { useTranslation } from "@/i18n";
 
 type Item = PropsWithChildren<{
     iconId?: FrIconClassName | RiIconClassName;
     linkProps?: RegisteredLinkProps;
+    beta?: boolean;
 }>;
 
 type HeaderMenuProps = {
@@ -18,6 +21,7 @@ type HeaderMenuProps = {
 };
 
 export default function HeaderMenu({ openButtonProps, actionButtonProps, items, disabled, headerContent }: HeaderMenuProps) {
+    const { t } = useTranslation({ HeaderMenus: HeaderMenu });
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -78,11 +82,16 @@ export default function HeaderMenu({ openButtonProps, actionButtonProps, items, 
                     <div className="header-menu__paper" id={menuId}>
                         {headerContent && <div className="header-menu__header">{headerContent}</div>}
                         <ul className="fr-raw-list">
-                            {items?.map(({ linkProps, iconId, children }, i) => {
+                            {items?.map(({ linkProps, iconId, children, beta }, i) => {
                                 const content = (
                                     <>
                                         {iconId && <span className={`fr-icon--sm ${iconId}`} />}
                                         {children}
+                                        {beta && (
+                                            <Badge small noIcon severity="success" className="fr-ml-2v">
+                                                {t("beta")}
+                                            </Badge>
+                                        )}
                                     </>
                                 );
 

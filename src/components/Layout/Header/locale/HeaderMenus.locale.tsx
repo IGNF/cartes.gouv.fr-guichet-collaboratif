@@ -13,6 +13,9 @@ export const HeaderMenusFrTranslations: Translations<"fr">["HeaderMenus"] = {
     search: "Rechercher une donnée",
     publish: "Publier une donnée",
     create: "Créer une carte",
+    extract: "Extraire une donnée",
+    collaborative: "Guichet collaboratif",
+    beta: "BÊTA",
     discover: "Découvrir",
     board: "Tableau de bord",
     account: "Mon espace",
@@ -31,6 +34,9 @@ export const HeaderMenusEnTranslations: Translations<"en">["HeaderMenus"] = {
     search: "Search data",
     publish: "Publish data",
     create: "Create a map",
+    extract: "Extract data",
+    collaborative: "Community home",
+    beta: "BETA",
     discover: "Discover",
     board: "Dashboard",
     account: "My space",
@@ -49,6 +55,9 @@ const { i18n } = declareComponentKeys<
     | "search"
     | "publish"
     | "create"
+    | "extract"
+    | "collaborative"
+    | "beta"
     | "discover"
     | "board"
     | "account"

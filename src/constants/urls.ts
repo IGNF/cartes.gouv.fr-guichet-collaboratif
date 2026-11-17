@@ -6,6 +6,7 @@ export const ESPACECO_URL = env.APP_ESPACECO_URL;
 export const API_URL = ESPACECO_URL + "/gcms/api";
 
 export const HOME_URL = BASE_URL + FRONT_URL;
+export const COLLABORATIVE_URL = BASE_URL + "/contribuer-aux-donnees";
 export const PROFILE_URL = HOME_URL + "/profile";
 export const PAGE_404_URL = HOME_URL + "/page-404";
 
@@ -38,7 +39,8 @@ export const CONTACT_US_URL = BASE_URL + "/aide/fr/nous-ecrire";
 export const EXPLORE_MAPS_URL = BASE_URL + "/explorer-les-cartes";
 export const SEARCH_DATA_URL = BASE_URL + "/rechercher-une-donnee";
 export const PUBLISH_DATA_URL = BASE_URL + "/publier-une-donnee";
-export const CREATE_DATA_URL = BASE_URL + "/editeur-carto";
+export const CREATE_MAP_URL = BASE_URL + "/creer-une-carte";
+export const EXTRACT_DATA_URL = BASE_URL + "/extraire-une-donnee";
 export const DISCOVER_URL = BASE_URL + "/decouvrir";
 
 // Footer links
