@@ -12,6 +12,7 @@ import { FeatureTypeColumn } from "@/constants/communities/types";
 import BaseLayer from "ol/layer/Base";
 import { hasFeatureDataChanged, restoreFeature } from "@/constants/contributions/utils";
 import { useContributionAuthorisation } from "./useContributionAuthorisation";
+import { useRefreshAutomaticFields } from "./useRefreshAutomaticFields";
 
 type FormData = Record<string, string | number | boolean | File[] | null>;
 
@@ -36,6 +37,7 @@ export const useFeatureTypeActions = ({
     const { mapWorkingLayer } = useMapStore();
     const { columnsToModify, selectedObjects, saveContribution } = useContributionStore();
     const authoriseContribution = useContributionAuthorisation();
+    const refreshAutomaticFields = useRefreshAutomaticFields();
 
     const setFeatureData = useCallback((feat: Feature, newFormData: FormData) => {
         const geometry = feat.getGeometry();
@@ -84,9 +86,11 @@ export const useFeatureTypeActions = ({
                 return false;
             }
             feat.unset(FEATURE_TYPE_PENDING_FORM_PROPERTY);
+            // Features modified without being displayed in the form (multiple edition)
+            void refreshAutomaticFields([feat]);
             return true;
         },
-        [setFeatureData, addFeatureToContributions]
+        [setFeatureData, addFeatureToContributions, refreshAutomaticFields]
     );
 
     const deleteFeature = useCallback(

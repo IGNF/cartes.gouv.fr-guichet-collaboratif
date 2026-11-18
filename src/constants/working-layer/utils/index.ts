@@ -1,254 +1,221 @@
 import { Feature } from "ol";
 import { Geometry } from "ol/geom";
 import { getLength, getArea } from "ol/sphere";
-import { LineString, Polygon, Point } from "ol/geom";
-import { transform } from "ol/proj";
-import { AutomaticFieldType, AutomaticFieldContext } from "../types";
+import { LineString, Polygon, Point, MultiPoint, MultiLineString, MultiPolygon } from "ol/geom";
+import { get, transform } from "ol/proj";
+import { AutomaticFieldType, AutomaticFieldContext, AutomaticRemoteLookups } from "../types";
 
-import { getMunicipalityFromCoords, getAddressFromCoords, getCadastreFromCoords, getAltitudeFromCoords, getFeatureCoordinates } from "@/api/geocodageData";
-import { FeatureTypeColumn, OperatorType } from "@/constants/communities/types";
+import { getReverseGeocodeInfo, getCadastreFromCoords, getAltitudeFromCoords } from "@/api/geocodageData";
+import { FEATURE_TYPE_GEOSERVICE_PROPERTY } from "@/constants";
+import { CommunityGeoservice, FeatureTypeColumn, OperatorType } from "@/constants/communities/types";
 import { BuildFilterResponse, GroupSearch, RuleSearch } from "@/constants/savedSearches/types";
+
+const DEFAULT_MAP_PROJECTION = "EPSG:3857";
+const round = (value: number, factor: number) => Math.round(value * factor) / factor;
+
+export const isAutomaticFieldType = (value: unknown): value is AutomaticFieldType => Object.values(AutomaticFieldType).includes(value as AutomaticFieldType);
+
+const pad = (n: number) => String(n).padStart(2, "0");
+
+const getLocalDate = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+/** First coordinate of the feature geometry, in the geometry projection. */
+export const getFirstCoordinate = (feature: Feature<Geometry>): number[] | null => {
+    const geometry = feature.getGeometry();
+    if (!geometry) return null;
+
+    if (geometry instanceof Point) return geometry.getCoordinates();
+    if (geometry instanceof LineString) return geometry.getFirstCoordinate();
+    if (geometry instanceof Polygon) return geometry.getCoordinates()[0]?.[0] ?? null;
+    if (geometry instanceof MultiPoint) return geometry.getPoint(0)?.getCoordinates() ?? null;
+    if (geometry instanceof MultiLineString) return geometry.getLineString(0)?.getFirstCoordinate() ?? null;
+    if (geometry instanceof MultiPolygon) return geometry.getPolygon(0)?.getCoordinates()[0]?.[0] ?? null;
+    return null;
+};
+
+const getLonLat = (feature: Feature<Geometry>, mapProjection: string): { lon: number; lat: number } | null => {
+    const coord = getFirstCoordinate(feature);
+    if (!coord || !get(mapProjection)) return null;
+    const [lon, lat] = transform(coord, mapProjection, "EPSG:4326");
+    return { lon, lat };
+};
+
+const normalizeProjection = (projection?: string | number): string | null => {
+    if (projection === undefined || projection === null || projection === "") return null;
+    const code = /^\d+$/.test(String(projection)) ? `EPSG:${projection}` : String(projection);
+    return get(code) ? code : null;
+};
+
+const getProjectedCoordinate = (feature: Feature<Geometry>, index: 0 | 1, mapProjection: string, layerProjection?: string | number): number | null => {
+    const coord = getFirstCoordinate(feature);
+    const target = normalizeProjection(layerProjection);
+    if (!coord || !target || !get(mapProjection)) return null;
+    return round(transform(coord, mapProjection, target)[index], 100);
+};
+
+/** Projection of the layer data: the one of its geometry column, otherwise the one of its bounding box. */
+export const getLayerProjection = (geoservice?: CommunityGeoservice): string | undefined =>
+    geoservice?.columns.find((col) => col.name === geoservice.geometryName)?.crs || geoservice?.boxSrid || undefined;
+
+/** Automatic columns of a layer, with the keyword (stored in `formula`) of the value to compute. */
+export const getAutomaticColumns = (columns: FeatureTypeColumn[]): { name: string; fieldType: AutomaticFieldType }[] =>
+    columns.flatMap((col) => (col.automatic && isAutomaticFieldType(col.formula) ? [{ name: col.name, fieldType: col.formula }] : []));
+
+const calculateLength = (feature: Feature<Geometry>, projection: string): number | null => {
+    const geometry = feature.getGeometry();
+    if (!geometry) return null;
+    const opts = { projection };
+
+    if (geometry instanceof LineString) return Math.round(getLength(geometry, opts));
+    if (geometry instanceof MultiLineString) return Math.round(geometry.getLineStrings().reduce((sum, l) => sum + getLength(l, opts), 0));
+    if (geometry instanceof Polygon) {
+        const ring = geometry.getLinearRing(0);
+        return ring ? Math.round(getLength(ring, opts)) : null;
+    }
+    if (geometry instanceof MultiPolygon) {
+        return Math.round(geometry.getPolygons().reduce((sum, p) => sum + (p.getLinearRing(0) ? getLength(p.getLinearRing(0)!, opts) : 0), 0));
+    }
+    return null;
+};
+
+const calculateArea = (feature: Feature<Geometry>, projection: string): number | null => {
+    const geometry = feature.getGeometry();
+    if (!(geometry instanceof Polygon) && !(geometry instanceof MultiPolygon)) return null;
+    return Math.round(getArea(geometry, { projection }));
+};
+
+const createRemoteLookups = (feature: Feature<Geometry>, mapProjection: string): AutomaticRemoteLookups => {
+    const once = <T>(fn: (c: { lon: number; lat: number }) => Promise<T | null>) => {
+        let promise: Promise<T | null> | null = null;
+        return () =>
+            (promise ??= (async () => {
+                const coords = getLonLat(feature, mapProjection);
+                return coords ? fn(coords) : null;
+            })());
+    };
+
+    return {
+        reverse: once(({ lon, lat }) => getReverseGeocodeInfo(lon, lat)),
+        cadastre: once(async ({ lon, lat }) => (await getCadastreFromCoords(lon, lat))?.properties ?? null),
+        altitude: once(({ lon, lat }) => getAltitudeFromCoords(lon, lat)),
+    };
+};
+
+/**
+ * Computes the values of all the automatic columns of a feature (remote lookups are shared between columns).
+ * Columns whose value cannot be computed are left out, so that their current value is kept.
+ */
+export const computeAutomaticFields = async (
+    feature: Feature<Geometry>,
+    context: Pick<AutomaticFieldContext, "userId" | "username" | "mapProjection">
+): Promise<Record<string, string | number>> => {
+    const geoservice = feature.get(FEATURE_TYPE_GEOSERVICE_PROPERTY) as CommunityGeoservice | undefined;
+    const automaticColumns = getAutomaticColumns(geoservice?.columns ?? []);
+    if (automaticColumns.length === 0) return {};
+
+    const mapProjection = context.mapProjection ?? DEFAULT_MAP_PROJECTION;
+    const fieldContext: AutomaticFieldContext = {
+        ...context,
+        feature,
+        mapProjection,
+        layerProjection: getLayerProjection(geoservice),
+        remote: createRemoteLookups(feature, mapProjection),
+    };
+
+    const results = await Promise.all(
+        automaticColumns.map(async ({ name, fieldType }) => {
+            try {
+                return [name, await calculateAutomaticField(fieldType, fieldContext)] as const;
+            } catch {
+                return [name, null] as const;
+            }
+        })
+    );
+
+    const values: Record<string, string | number> = {};
+    results.forEach(([name, value]) => {
+        if (value !== null) values[name] = value;
+    });
+    return values;
+};
 
 export const calculateAutomaticField = async (fieldType: AutomaticFieldType, context: AutomaticFieldContext): Promise<string | number | null> => {
     const { feature, userId, username, layerProjection } = context;
+    const mapProjection = context.mapProjection ?? DEFAULT_MAP_PROJECTION;
+    const remote = context.remote ?? createRemoteLookups(feature, mapProjection);
+    const now = new Date();
 
     switch (fieldType) {
         case AutomaticFieldType.USER_ID:
             return userId ?? null;
-
         case AutomaticFieldType.USERNAME:
             return username ?? null;
-
         case AutomaticFieldType.CURRENT_DATE:
-            return new Date().toISOString().split("T")[0];
-
+            return getLocalDate(now);
         case AutomaticFieldType.CURRENT_DATETIME:
-            return new Date().toISOString().slice(0, 19).replace("T", " ");
+            return `${getLocalDate(now)} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
 
-        case AutomaticFieldType.LONGITUDE:
-            return getLongitude(feature);
-
-        case AutomaticFieldType.LATITUDE:
-            return getLatitude(feature);
-
+        case AutomaticFieldType.LONGITUDE: {
+            const coords = getLonLat(feature, mapProjection);
+            return coords ? round(coords.lon, 1000000) : null;
+        }
+        case AutomaticFieldType.LATITUDE: {
+            const coords = getLonLat(feature, mapProjection);
+            return coords ? round(coords.lat, 1000000) : null;
+        }
         case AutomaticFieldType.X:
-            return getX(feature, layerProjection);
-
+            return getProjectedCoordinate(feature, 0, mapProjection, layerProjection);
         case AutomaticFieldType.Y:
-            return getY(feature, layerProjection);
+            return getProjectedCoordinate(feature, 1, mapProjection, layerProjection);
 
         case AutomaticFieldType.LENGTH:
-            return calculateLength(feature);
-
+            return calculateLength(feature, mapProjection);
         case AutomaticFieldType.AREA:
-            return calculateArea(feature);
-
-        case AutomaticFieldType.AREA_KM2:
-            return calculateAreaKm2(feature);
-
-        case AutomaticFieldType.AREA_HA:
-            return calculateAreaHa(feature);
+            return calculateArea(feature, mapProjection);
+        case AutomaticFieldType.AREA_KM2: {
+            const area = calculateArea(feature, mapProjection);
+            return area !== null ? round(area / 1000000, 100) : null;
+        }
+        case AutomaticFieldType.AREA_HA: {
+            const area = calculateArea(feature, mapProjection);
+            return area !== null ? round(area / 10000, 100) : null;
+        }
 
         case AutomaticFieldType.MUNICIPALITY_NAME:
-            return await getMunicipalityName(feature);
-
+            return (await remote.reverse())?.municipality.name || null;
         case AutomaticFieldType.MUNICIPALITY_INSEE:
-            return await getMunicipalityInsee(feature);
-
+            return (await remote.reverse())?.municipality.insee || null;
         case AutomaticFieldType.MUNICIPALITY_POSTCODE:
-            return await getMunicipalityPostcode(feature);
-
+            return (await remote.reverse())?.municipality.postcode || null;
         case AutomaticFieldType.DEPARTMENT:
-            return await getDepartment(feature);
+            return (await remote.reverse())?.municipality.department || null;
 
         case AutomaticFieldType.FULL_ADDRESS:
-            return await getFullAddress(feature);
-
+            return (await remote.reverse())?.address.fullAddress || null;
         case AutomaticFieldType.HOUSENUMBER:
-            return await getHousenumber(feature);
-
+            return (await remote.reverse())?.address.housenumber || null;
         case AutomaticFieldType.STREET:
-            return await getStreet(feature);
-
+            return (await remote.reverse())?.address.street || null;
         case AutomaticFieldType.ADDRESS:
-            return await getAddress(feature);
+            return (await remote.reverse())?.address.address || null;
 
         case AutomaticFieldType.PARCEL_NUMBER:
-            return await getParcelNumber(feature);
-
-        case AutomaticFieldType.PARCEL_SHEET:
-            return await getParcelSheet(feature);
-
+            return (await remote.cadastre())?.numero || null;
+        case AutomaticFieldType.PARCEL_SHEET: {
+            const sheet = (await remote.cadastre())?.feuille;
+            return sheet != null ? String(sheet) : null;
+        }
         case AutomaticFieldType.PARCEL_SECTION:
-            return await getParcelSection(feature);
+            return (await remote.cadastre())?.section || null;
 
-        case AutomaticFieldType.ALTITUDE:
-            return await getAltitude(feature);
+        case AutomaticFieldType.ALTITUDE: {
+            const altitude = await remote.altitude();
+            return altitude !== null ? round(altitude, 10) : null;
+        }
 
         default:
             return null;
     }
-};
-
-const getFirstCoordinate = (feature: Feature<Geometry>): number[] | null => {
-    const geometry = feature.getGeometry();
-    if (!geometry) return null;
-
-    if (geometry instanceof Point) {
-        return geometry.getCoordinates();
-    } else if (geometry instanceof LineString) {
-        return geometry.getFirstCoordinate();
-    } else if (geometry instanceof Polygon) {
-        return geometry.getCoordinates()[0][0];
-    }
-    return null;
-};
-
-const getLongitude = (feature: Feature<Geometry>): number | null => {
-    const coord = getFirstCoordinate(feature);
-    if (!coord) return null;
-    const lonLat = transform(coord, "EPSG:3857", "EPSG:4326");
-    return Math.round(lonLat[0] * 1000000) / 1000000;
-};
-
-const getLatitude = (feature: Feature<Geometry>): number | null => {
-    const coord = getFirstCoordinate(feature);
-    if (!coord) return null;
-    const lonLat = transform(coord, "EPSG:3857", "EPSG:4326");
-    return Math.round(lonLat[1] * 1000000) / 1000000;
-};
-
-const getX = (feature: Feature<Geometry>, projection?: string): number | null => {
-    const coord = getFirstCoordinate(feature);
-    if (!coord) return null;
-    if (projection && projection !== "EPSG:3857") {
-        const transformed = transform(coord, "EPSG:3857", projection);
-        return Math.round(transformed[0] * 100) / 100;
-    }
-    return Math.round(coord[0] * 100) / 100;
-};
-
-const getY = (feature: Feature<Geometry>, projection?: string): number | null => {
-    const coord = getFirstCoordinate(feature);
-    if (!coord) return null;
-    if (projection && projection !== "EPSG:3857") {
-        const transformed = transform(coord, "EPSG:3857", projection);
-        return Math.round(transformed[1] * 100) / 100;
-    }
-    return Math.round(coord[1] * 100) / 100;
-};
-
-const calculateLength = (feature: Feature<Geometry>): number | null => {
-    const geometry = feature.getGeometry();
-    if (!geometry) return null;
-
-    if (geometry instanceof LineString) {
-        return Math.round(getLength(geometry));
-    } else if (geometry instanceof Polygon) {
-        const linearRing = geometry.getLinearRing(0);
-        return linearRing ? Math.round(getLength(linearRing)) : null;
-    }
-    return null;
-};
-
-const calculateArea = (feature: Feature<Geometry>): number | null => {
-    const geometry = feature.getGeometry();
-    if (!geometry || !(geometry instanceof Polygon)) return null;
-    return Math.round(getArea(geometry));
-};
-
-const calculateAreaKm2 = (feature: Feature<Geometry>): number | null => {
-    const area = calculateArea(feature);
-    return area ? Math.round((area / 1000000) * 100) / 100 : null;
-};
-
-const calculateAreaHa = (feature: Feature<Geometry>): number | null => {
-    const area = calculateArea(feature);
-    return area ? Math.round((area / 10000) * 100) / 100 : null;
-};
-
-const getMunicipalityName = async (feature: Feature<Geometry>): Promise<string | null> => {
-    const coords = getFeatureCoordinates(feature);
-    if (!coords) return null;
-    const municipality = await getMunicipalityFromCoords(coords.lon, coords.lat);
-    return municipality?.name || null;
-};
-
-const getMunicipalityInsee = async (feature: Feature<Geometry>): Promise<string | null> => {
-    const coords = getFeatureCoordinates(feature);
-    if (!coords) return null;
-    const municipality = await getMunicipalityFromCoords(coords.lon, coords.lat);
-    return municipality?.insee || null;
-};
-
-const getMunicipalityPostcode = async (feature: Feature<Geometry>): Promise<string | null> => {
-    const coords = getFeatureCoordinates(feature);
-    if (!coords) return null;
-    const municipality = await getMunicipalityFromCoords(coords.lon, coords.lat);
-    return municipality?.postcode || null;
-};
-
-const getDepartment = async (feature: Feature<Geometry>): Promise<string | null> => {
-    const coords = getFeatureCoordinates(feature);
-    if (!coords) return null;
-    const municipality = await getMunicipalityFromCoords(coords.lon, coords.lat);
-    return municipality?.department || null;
-};
-
-const getFullAddress = async (feature: Feature<Geometry>): Promise<string | null> => {
-    const coords = getFeatureCoordinates(feature);
-    if (!coords) return null;
-    const address = await getAddressFromCoords(coords.lon, coords.lat);
-    return address?.fullAddress || null;
-};
-
-const getHousenumber = async (feature: Feature<Geometry>): Promise<string | null> => {
-    const coords = getFeatureCoordinates(feature);
-    if (!coords) return null;
-    const address = await getAddressFromCoords(coords.lon, coords.lat);
-    return address?.housenumber || null;
-};
-
-const getStreet = async (feature: Feature<Geometry>): Promise<string | null> => {
-    const coords = getFeatureCoordinates(feature);
-    if (!coords) return null;
-    const address = await getAddressFromCoords(coords.lon, coords.lat);
-    return address?.street || null;
-};
-
-const getAddress = async (feature: Feature<Geometry>): Promise<string | null> => {
-    const coords = getFeatureCoordinates(feature);
-    if (!coords) return null;
-    const address = await getAddressFromCoords(coords.lon, coords.lat);
-    return address?.address || null;
-};
-
-const getParcelNumber = async (feature: Feature<Geometry>): Promise<string | null> => {
-    const coords = getFeatureCoordinates(feature);
-    if (!coords) return null;
-    const parcel = await getCadastreFromCoords(coords.lon, coords.lat);
-    return parcel?.properties?.numero || null;
-};
-
-const getParcelSheet = async (feature: Feature<Geometry>): Promise<string | null> => {
-    const coords = getFeatureCoordinates(feature);
-    if (!coords) return null;
-    const parcel = await getCadastreFromCoords(coords.lon, coords.lat);
-    return parcel?.properties?.feuille || null;
-};
-
-const getParcelSection = async (feature: Feature<Geometry>): Promise<string | null> => {
-    const coords = getFeatureCoordinates(feature);
-    if (!coords) return null;
-    const parcel = await getCadastreFromCoords(coords.lon, coords.lat);
-    return parcel?.properties?.section || null;
-};
-
-const getAltitude = async (feature: Feature<Geometry>): Promise<number | null> => {
-    const coords = getFeatureCoordinates(feature);
-    if (!coords) return null;
-    const altitude = await getAltitudeFromCoords(coords.lon, coords.lat);
-    return altitude ? Math.round(altitude * 10) / 10 : null;
 };
 
 export const getOperators = (

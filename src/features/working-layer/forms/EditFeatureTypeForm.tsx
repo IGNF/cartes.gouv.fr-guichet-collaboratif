@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useCallback, memo } from "react";
+import { useEffect, useMemo, useCallback, useState, memo } from "react";
 
 import { EventTypes } from "ol/Observable";
 import { useContributionStore, useMapStore } from "@/store";
@@ -69,8 +69,10 @@ const EditFeatureTypeForm = ({ isEditAuthorised, onClose }: EditFeatureTypeFormP
 
     const columnsToValidate = useMemo(() => (selectedObjects.length > 1 ? columnsToModify : columns), [selectedObjects.length, columnsToModify, columns]);
 
+    const [isCalculatingAutomatic, setIsCalculatingAutomatic] = useState(false);
+
     const handleAutomaticFieldsCalculated = useCallback(
-        (fields: Record<string, string | number | null>) => {
+        (fields: Record<string, string | number>) => {
             Object.entries(fields).forEach(([name, value]) => {
                 const col = columns.find((c) => c.name === name);
                 if (col) {
@@ -182,7 +184,11 @@ const EditFeatureTypeForm = ({ isEditAuthorised, onClose }: EditFeatureTypeFormP
                 onClose={guardedClose}
             />
             <div className="feature-type-form-scrollable">
-                <FeatureTypeFormAutomatic columns={columns} formData={formData} onAutomaticFieldsCalculated={handleAutomaticFieldsCalculated} />
+                <FeatureTypeFormAutomatic
+                    columns={columns}
+                    onAutomaticFieldsCalculated={handleAutomaticFieldsCalculated}
+                    onCalculatingChange={setIsCalculatingAutomatic}
+                />
                 <FeatureTypeFormFields
                     columns={columns}
                     formData={formData}
@@ -193,7 +199,12 @@ const EditFeatureTypeForm = ({ isEditAuthorised, onClose }: EditFeatureTypeFormP
             </div>
 
             <div className="feature-type-form-actions-fixed">
-                <FeatureTypeFormActions onSave={() => handleSave()} onDelete={() => handleDelete()} onCancel={guardedClose} />
+                <FeatureTypeFormActions
+                    onSave={() => handleSave()}
+                    onDelete={() => handleDelete()}
+                    onCancel={guardedClose}
+                    isSaveDisabled={isCalculatingAutomatic}
+                />
             </div>
         </div>
     );

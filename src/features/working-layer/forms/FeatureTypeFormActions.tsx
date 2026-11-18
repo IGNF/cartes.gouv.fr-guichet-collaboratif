@@ -8,9 +8,10 @@ interface FeatureTypeFormActionsProps {
     onSave: () => void;
     onDelete: () => void;
     onCancel: () => void;
+    isSaveDisabled?: boolean;
 }
 
-export const FeatureTypeFormActions: React.FC<FeatureTypeFormActionsProps> = ({ onSave, onDelete, onCancel }) => {
+export const FeatureTypeFormActions: React.FC<FeatureTypeFormActionsProps> = ({ onSave, onDelete, onCancel, isSaveDisabled }) => {
     const { selectedObjects, featureTypeMode, columnsToModify } = useContributionStore();
     const { t } = useTranslation({ FeatureTypeFormActions });
 
@@ -34,7 +35,7 @@ export const FeatureTypeFormActions: React.FC<FeatureTypeFormActionsProps> = ({ 
                     {t("cancel")}
                 </Button>
 
-                <Button priority="primary" onClick={onSave} iconId="ri-save-line" iconPosition="right" disabled={disableSave}>
+                <Button priority="primary" onClick={onSave} iconId="ri-save-line" iconPosition="right" disabled={disableSave || isSaveDisabled}>
                     {t("save")} {selectedObjectsText}
                 </Button>
             </div>
