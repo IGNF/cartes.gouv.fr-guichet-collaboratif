@@ -7,6 +7,7 @@ import { transformExtent } from "ol/proj";
 import { CommunityGeoservice, StatusMessage } from "@/constants/communities/types";
 import { useMapStore } from "@/store";
 import { useTranslation } from "@/i18n";
+import { RASTER_TILE_PRELOAD } from "@/constants/navigation/rasterTiles";
 
 type CapabilityLayer = {
     Name: string;
@@ -40,6 +41,7 @@ function useGetWMSLayer(geoservice: CommunityGeoservice) {
         const wmsLayer: TileLayer = new TileLayer({
             source: undefined,
             visible: false,
+            preload: RASTER_TILE_PRELOAD,
             properties: {
                 loading: true,
             },

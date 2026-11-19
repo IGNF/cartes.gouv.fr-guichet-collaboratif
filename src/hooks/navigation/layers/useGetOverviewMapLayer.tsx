@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { optionsFromCapabilities } from "ol/source/WMTS";
 import { OVERVIEW_MAP_WMTS_LAYER, OVERVIEW_MAP_WMTS_URL, OVERVIEW_MAP_WMTS_VERSION, CommunityGeoservice } from "@/constants/communities/types";
 import useGetCapabilitiesWMTS from "@/hooks/navigation/capabilities/useGetCapabilitiesWMTS";
+import { OVERVIEW_MAP_TILE_PRELOAD } from "@/constants/navigation/rasterTiles";
 
 function useGetOverviewMapLayer() {
     const geoservice: CommunityGeoservice = useMemo(
@@ -33,6 +34,7 @@ function useGetOverviewMapLayer() {
 
         const wmtsLayer: TileLayer = new TileLayer({
             source: undefined,
+            preload: OVERVIEW_MAP_TILE_PRELOAD,
         });
 
         const wmtsOptions = optionsFromCapabilities(capabilities, {
