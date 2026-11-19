@@ -1,4 +1,11 @@
-import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_GEOSERVICE_PROPERTY, FEATURE_TYPE_NEW_Z_COOD, FEATURE_TYPE_SELECTED_PROPERTY } from "@/constants";
+import {
+    EDITING_ORIGINAL_FEATURE_PROPERTY,
+    FEATURE_TYPE_DATA_PROPERTY,
+    FEATURE_TYPE_EDITING_PROPERTY,
+    FEATURE_TYPE_GEOSERVICE_PROPERTY,
+    FEATURE_TYPE_NEW_Z_COOD,
+    FEATURE_TYPE_SELECTED_PROPERTY,
+} from "@/constants";
 import { CommunityGeoservice, ObjectProps, OperatorType } from "@/constants/communities/types";
 import { getWebGLValidProperties } from "@/constants/communities/utils";
 import { Feature, Map } from "ol";
@@ -51,6 +58,8 @@ export const resetContributionToMap = (map: Map, contr: Contribution) => {
 
     contr.feature.unset(FEATURE_TYPE_SELECTED_PROPERTY);
     contr.initialFeature?.unset(FEATURE_TYPE_SELECTED_PROPERTY);
+    contr.feature.unset(FEATURE_TYPE_EDITING_PROPERTY);
+    contr.initialFeature?.unset(FEATURE_TYPE_EDITING_PROPERTY);
 
     if (featLayerSource) {
         switch (contr.type) {
@@ -67,6 +76,9 @@ export const resetContributionToMap = (map: Map, contr: Contribution) => {
         }
     }
 };
+
+/** Working layer feature behind a geometry editing proxy (or the feature itself when it is not a proxy) */
+export const getEditedFeature = (feature: Feature): Feature => (feature.get(EDITING_ORIGINAL_FEATURE_PROPERTY) as Feature | undefined) ?? feature;
 
 export const restoreFeature = (feature: Feature, initialFeature: Feature) => {
     const initialProperties = initialFeature.getProperties();
