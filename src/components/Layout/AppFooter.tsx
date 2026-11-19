@@ -30,7 +30,7 @@ const AppFooter: React.FC = () => {
                     iconPosition="right"
                     onClick={() => setIsExtended(!isExtended)}
                     priority="tertiary no outline"
-                    title="Fermer"
+                    title={t("close")}
                     className="app-footer-close"
                 >
                     Fermer
@@ -108,7 +108,13 @@ const AppFooter: React.FC = () => {
                     showFullFooter ? (
                         t("licence")
                     ) : (
-                        <Button iconId={"fr-icon-arrow-up-s-line"} onClick={() => setIsExtended(!isExtended)} priority="tertiary no outline" title="" />
+                        <Button
+                            iconId={"fr-icon-arrow-up-s-line"}
+                            onClick={() => setIsExtended(!isExtended)}
+                            priority="tertiary no outline"
+                            title={t("close")}
+                            className="app-footer-arrow"
+                        />
                     )
                 }
                 domains={showFullFooter ? undefined : []}
