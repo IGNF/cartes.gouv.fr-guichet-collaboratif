@@ -49,6 +49,7 @@ import { ShowFeatureTypeFormFrTranslations } from "@/features/working-layer/form
 import { EditFeatureTypeFormFrTranslations } from "@/features/working-layer/forms/locale/EditFeatureTypeForm.locale";
 import { FeatureTypeFormActionsFrTranslations } from "@/features/working-layer/forms/locale/FeatureTypeFormActions.locale";
 import { FeatureTypeFormFieldsFrTranslations } from "@/features/working-layer/forms/locale/FeatureTypeFormFields.locale";
+import { FeatureDocumentFieldFrTranslations } from "@/features/working-layer/forms/locale/FeatureDocumentField.locale";
 import { FeatureTypeFormHeaderFrTranslations } from "@/features/working-layer/forms/locale/FeatureTypeFormHeader.locale";
 import { FeatureTypeFormAutomaticFrTranslations } from "@/features/working-layer/forms/locale/FeatureTypeFormAutomatic.locale";
 import { ClickableFeaturesModalFrTranslations } from "@/features/working-layer/modal/locale/ClickableFeaturesModal.locale";
@@ -71,6 +72,7 @@ import { SearchTableFrTranslations } from "@/features/working-layer/modal/search
 import { SearchObjectsModalFrTranslations } from "@/features/working-layer/modal/searchObjects/locale/SearchObjectsModal.locale";
 import { GroupComponentFrTranslations } from "@/features/working-layer/modal/searchObjects/locale/GroupComponent.locale";
 import { ConfirmDeleteObjectModalFrTranslations } from "@/features/working-layer/modal/searchObjects/locale/ConfirmDeleteObjectModal.locale";
+import { DocumentModalFrTranslations } from "@/components/locale/DocumentModal.locale";
 
 export const translations: Translations<"fr"> = {
     AppFooter: AppFooterFrTranslations,
@@ -123,6 +125,7 @@ export const translations: Translations<"fr"> = {
     EditFeatureTypeForm: EditFeatureTypeFormFrTranslations,
     FeatureTypeFormActions: FeatureTypeFormActionsFrTranslations,
     FeatureTypeFormFields: FeatureTypeFormFieldsFrTranslations,
+    FeatureDocumentField: FeatureDocumentFieldFrTranslations,
     FeatureTypeFormHeader: FeatureTypeFormHeaderFrTranslations,
     FeatureTypeFormAutomatic: FeatureTypeFormAutomaticFrTranslations,
     ClickableFeaturesModal: ClickableFeaturesModalFrTranslations,
@@ -145,4 +148,5 @@ export const translations: Translations<"fr"> = {
     SearchObjectsModal: SearchObjectsModalFrTranslations,
     GroupComponent: GroupComponentFrTranslations,
     ConfirmDeleteObjectModal: ConfirmDeleteObjectModalFrTranslations,
+    DocumentModal: DocumentModalFrTranslations,
 };
