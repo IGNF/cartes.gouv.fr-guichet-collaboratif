@@ -14,7 +14,7 @@ import { useContributionsSave } from "@/hooks/working-layer/useContributionsSave
 export default function CommunityToolbar() {
     const { community, hasOneEditableLayer, addAlertMessage } = useCommunityStore();
     const { user, role } = useUserStore();
-    const { contributions, isReviewContribution, setReviewContribution } = useContributionStore();
+    const { contributions, isReviewContribution, setReviewContribution, pendingAutomaticComputations } = useContributionStore();
     const { confirmSaveContributionModal } = useModalStore();
 
     const { t } = useTranslation({ CommunityToolbar });
@@ -51,7 +51,7 @@ export default function CommunityToolbar() {
                                     priority="tertiary no outline"
                                     title={t("save")}
                                     className="community-toolbar-save-btn"
-                                    disabled={!contributions.length || isLoading}
+                                    disabled={!contributions.length || isLoading || pendingAutomaticComputations > 0}
                                     nativeButtonProps={{ ...confirmSaveContributionModal.buttonProps, "aria-label": t("save") }}
                                 />
                                 {contributions.length > 0 && <span className="community-toolbar-badge">{contributions.length}</span>}

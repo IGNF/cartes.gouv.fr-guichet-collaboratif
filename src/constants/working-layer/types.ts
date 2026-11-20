@@ -1,5 +1,6 @@
 import { Feature } from "ol";
 import { Geometry } from "ol/geom";
+import type { CadastreResponse, getReverseGeocodeInfo } from "@/api/geocodageData";
 
 export enum AutomaticFieldType {
     USER_ID = "userId",
@@ -39,5 +40,14 @@ export interface AutomaticFieldContext {
     feature: Feature<Geometry>;
     userId?: string;
     username?: string;
-    layerProjection: string;
+    layerProjection?: string | number;
+    mapProjection?: string;
+    remote?: AutomaticRemoteLookups;
+}
+
+/** Lazily memoized remote lookups, shared by all automatic fields of one calculation run. */
+export interface AutomaticRemoteLookups {
+    reverse: () => Promise<Awaited<ReturnType<typeof getReverseGeocodeInfo>>>;
+    cadastre: () => Promise<CadastreResponse["features"][0]["properties"] | null>;
+    altitude: () => Promise<number | null>;
 }

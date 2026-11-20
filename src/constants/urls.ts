@@ -20,6 +20,14 @@ export const GEOSERVICES_API_URL = API_URL + "/geoservices";
 export const DATABASE_API_URL = API_URL + "/databases";
 export const GRIDS_API_URL = API_URL + "/grids";
 
+// Geopf links
+
+export const GEOPF_URL = "https://data.geopf.fr";
+export const GEOPF_GEOCODING_COMPLETION_URL = GEOPF_URL + "/geocodage/completion";
+export const GEOPF_GEOCODING_REVERSE_URL = GEOPF_URL + "/geocodage/reverse";
+export const GEOPF_WFS_URL = GEOPF_URL + "/wfs/ows";
+export const GEOPF_ALTIMETRY_URL = GEOPF_URL + "/altimetrie/1.0/calcul/alti/rest/elevation.json";
+
 export const REPORTS_API_URL = API_URL + "/reports";
 export const REPORTS_WFS_API_URL = API_URL + "/reports/wfs";
 

@@ -18,6 +18,10 @@ interface ContributionStore {
     searchItemToDelete: Feature | null;
     pendingFeatureFormValidator: (() => boolean) | null;
     setPendingFeatureFormValidator: (validator: (() => boolean) | null) => void;
+    /** Number of automatic field computations in progress: the contributions must not be saved meanwhile */
+    pendingAutomaticComputations: number;
+    beginAutomaticComputation: () => void;
+    endAutomaticComputation: () => void;
     getCreateContributions: () => Contribution[];
     setContributions: (contributions: Contribution[]) => void;
     setReviewContribution: (isReview: boolean) => void;
@@ -45,6 +49,9 @@ export const useContributionStore = create<ContributionStore>((set, get) => ({
     searchItemToDelete: null,
     pendingFeatureFormValidator: null,
     setPendingFeatureFormValidator: (validator) => set({ pendingFeatureFormValidator: validator }),
+    pendingAutomaticComputations: 0,
+    beginAutomaticComputation: () => set((state) => ({ pendingAutomaticComputations: state.pendingAutomaticComputations + 1 })),
+    endAutomaticComputation: () => set((state) => ({ pendingAutomaticComputations: Math.max(0, state.pendingAutomaticComputations - 1) })),
     getCreateContributions: () => get().contributions.filter((contribution) => contribution.type === ContributionType.CREATE),
     setContributions: (contributions) => set({ contributions }),
     setReviewContribution: (isReview) => set({ isReviewContribution: isReview }),

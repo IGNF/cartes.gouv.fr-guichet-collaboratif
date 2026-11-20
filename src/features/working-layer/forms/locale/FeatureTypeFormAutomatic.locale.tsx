@@ -2,18 +2,12 @@ import { Translations } from "@/i18n/types";
 import { declareComponentKeys } from "i18nifty";
 
 export const FeatureTypeFormAutomaticFrTranslations: Translations<"fr">["FeatureTypeFormAutomatic"] = {
-    wait: "Calcul en cours...",
-    no: "Non",
-    yes: "Oui",
-    empty: "(Vide)",
+    wait: "Calcul des champs automatiques en cours...",
 };
 
 export const FeatureTypeFormAutomaticEnTranslations: Translations<"en">["FeatureTypeFormAutomatic"] = {
-    wait: "Still computing...",
-    no: "No",
-    yes: "Yes",
-    empty: "Empty",
+    wait: "Computing automatic fields...",
 };
 
-const { i18n } = declareComponentKeys<"wait" | "yes" | "no" | "empty">()("FeatureTypeFormAutomatic");
+const { i18n } = declareComponentKeys<"wait">()("FeatureTypeFormAutomatic");
 export type I18n = typeof i18n;
