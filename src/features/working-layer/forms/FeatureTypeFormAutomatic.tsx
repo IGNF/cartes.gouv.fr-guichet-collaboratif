@@ -98,11 +98,16 @@ export const FeatureTypeFormAutomatic: React.FC<FeatureTypeFormAutomaticProps> =
         };
     }, [clickedMapFeature, hasAutomaticColumns, userId, username, mapProjection]);
 
-    // When leaving a modified feature, its automatic fields are written in its data, even if the form was not saved
-    // (e.g. its geometry was modified while the form was opened)
+    // When leaving a modified feature whose geometry was modified while the form was opened,
+    // its automatic fields are written in its data, even if the form was not saved
     useEffect(() => {
         if (!clickedMapFeature || !hasAutomaticColumns) return;
+        const geometry = clickedMapFeature.getGeometry();
+        const revision = geometry?.getRevision();
         return () => {
+            const currentGeometry = clickedMapFeature.getGeometry();
+            if (currentGeometry === geometry && currentGeometry?.getRevision() === revision) return;
+
             const isModified = useContributionStore
                 .getState()
                 .contributions.some((contr) => contr.feature === clickedMapFeature && contr.type !== ContributionType.DELETE);
