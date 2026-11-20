@@ -268,7 +268,7 @@ export enum CommunityLayerFunctionalityType {
     COPY_REF = "copyRef",
     TOOLTIP = "tooltip",
     OVERVIEW = "overview_map_control",
-    MERGE = "merge",
+    FUSION = "fusion",
 }
 
 export enum CommunityLayerRoleType {
