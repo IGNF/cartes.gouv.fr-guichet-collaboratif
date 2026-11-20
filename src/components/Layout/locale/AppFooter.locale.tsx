@@ -8,6 +8,7 @@ export const AppFooterFrTranslations: Translations<"fr">["AppFooter"] = {
     conditions_generales: "Conditions générales d’utilisation",
     donnees_personnelles: "Données personnelles",
     home_link: "Accueil - cartes.gouv.fr-guichet-collaboratif",
+    close: "Fermer",
     partner_1: "IGN",
     partner_2: "MINISTÈRE DE LA TRANSFORMATION ET DE LA FONCTION PUBLIQUES",
     partner_3: "MINISTÈRE DE LA TRANSITION ÉCOLOGIQUE ET DE LA COHÉSION DES TERRITOIRES",
@@ -34,6 +35,7 @@ export const AppFooterEnTranslations: Translations<"en">["AppFooter"] = {
     conditions_generales: "General Conditions of Use",
     donnees_personnelles: "Personal data",
     home_link: "Home - cartes.gouv.fr-guichet-collaboratif",
+    close: "Close",
     partner_1: "IGN",
     partner_2: "MINISTRY OF TRANSFORMATION AND CIVIL SERVICE",
     partner_3: "MINISTRY OF ECOLOGICAL TRANSITION AND TERRITORIAL COHESION",
@@ -59,6 +61,7 @@ const { i18n } = declareComponentKeys<
     | "conditions_generales"
     | "donnees_personnelles"
     | "home_link"
+    | "close"
     | "partner_1"
     | "partner_2"
     | "partner_3"

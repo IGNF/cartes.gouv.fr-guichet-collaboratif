@@ -51,3 +51,7 @@
     width: 100%;
     z-index: 999;
 }
+
+.app-footer-arrow::before {
+    color: var(--text-action-high-blue-france);
+}
