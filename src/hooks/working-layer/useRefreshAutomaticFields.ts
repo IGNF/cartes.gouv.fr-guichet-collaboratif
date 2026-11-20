@@ -21,26 +21,34 @@ export const useRefreshAutomaticFields = () =>
         const { user } = useUserStore.getState();
         const mapProjection = useMapStore.getState().map?.getView().getProjection().getCode();
 
-        await Promise.all(
-            features.map(async (feature) => {
-                // Writing the data would reset the values being edited in the form
-                if (skipFeatureInEditForm && isFeatureInEditForm(feature)) return;
+        const { beginAutomaticComputation, endAutomaticComputation } = useContributionStore.getState();
 
-                const geometry = feature.getGeometry();
-                const revision = geometry?.getRevision();
-                const values = await computeAutomaticFields(feature, {
-                    userId: user?.id !== undefined ? String(user.id) : undefined,
-                    username: user?.username,
-                    mapProjection,
-                });
+        // The global save is blocked until the values are written in the features data
+        beginAutomaticComputation();
+        try {
+            await Promise.all(
+                features.map(async (feature) => {
+                    // Writing the data would reset the values being edited in the form
+                    if (skipFeatureInEditForm && isFeatureInEditForm(feature)) return;
 
-                // The geometry changed (or the contribution was cancelled) during the computation: the values are outdated
-                if (feature.getGeometry() !== geometry || geometry?.getRevision() !== revision) return;
-                if (skipFeatureInEditForm && isFeatureInEditForm(feature)) return;
-                if (Object.keys(values).length === 0) return;
+                    const geometry = feature.getGeometry();
+                    const revision = geometry?.getRevision();
+                    const values = await computeAutomaticFields(feature, {
+                        userId: user?.id !== undefined ? String(user.id) : undefined,
+                        username: user?.username,
+                        mapProjection,
+                    });
 
-                feature.setProperties({ ...values, [FEATURE_TYPE_DATA_PROPERTY]: { ...feature.get(FEATURE_TYPE_DATA_PROPERTY), ...values } });
-                feature.changed();
-            })
-        );
+                    // The geometry changed (or the contribution was cancelled) during the computation: the values are outdated
+                    if (feature.getGeometry() !== geometry || geometry?.getRevision() !== revision) return;
+                    if (skipFeatureInEditForm && isFeatureInEditForm(feature)) return;
+                    if (Object.keys(values).length === 0) return;
+
+                    feature.setProperties({ ...values, [FEATURE_TYPE_DATA_PROPERTY]: { ...feature.get(FEATURE_TYPE_DATA_PROPERTY), ...values } });
+                    feature.changed();
+                })
+            );
+        } finally {
+            endAutomaticComputation();
+        }
     }, []);

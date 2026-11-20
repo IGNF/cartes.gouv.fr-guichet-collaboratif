@@ -98,6 +98,9 @@ export function useContributionsSave({ pendingMessage, successMessage, errorMess
     );
 
     const onSave = useCallback(async () => {
+        // Automatic fields still being computed would be sent with their outdated values
+        if (useContributionStore.getState().pendingAutomaticComputations > 0) return;
+
         const validator = useContributionStore.getState().pendingFeatureFormValidator;
         if (validator?.() === false) return;
 

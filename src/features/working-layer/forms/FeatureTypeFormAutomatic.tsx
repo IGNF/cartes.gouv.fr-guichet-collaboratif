@@ -38,6 +38,11 @@ export const FeatureTypeFormAutomatic: React.FC<FeatureTypeFormAutomaticProps> =
 
     useEffect(() => {
         calculatingCallbackRef.current?.(isCalculating);
+        if (!isCalculating) return;
+        // The global save is blocked until the values are reported to the form
+        const { beginAutomaticComputation, endAutomaticComputation } = useContributionStore.getState();
+        beginAutomaticComputation();
+        return endAutomaticComputation;
     }, [isCalculating]);
 
     const hasAutomaticColumns = useMemo(() => getAutomaticColumns(columns).length > 0, [columns]);
@@ -70,6 +75,9 @@ export const FeatureTypeFormAutomatic: React.FC<FeatureTypeFormAutomaticProps> =
             if (currentGeometry === geometry && currentGeometry?.getRevision() === revision) return;
             geometry = currentGeometry;
             revision = currentGeometry?.getRevision();
+            // Invalidates the computation in progress and blocks the save until the new values are computed
+            run++;
+            setIsCalculating(true);
             clearTimeout(timer);
             timer = setTimeout(() => void calculateFields(), GEOMETRY_CHANGE_DEBOUNCE_MS);
         };
