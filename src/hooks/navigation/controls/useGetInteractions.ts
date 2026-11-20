@@ -1,16 +1,19 @@
 import { useCommunityStore, useMapStore } from "@/store";
-import { editingGeometryStyle, editingVerticesStyle } from "@/constants/styles";
+import { editingGeometryStyle, getEditingOverlayStyle, isDefaultLayerStyle } from "@/constants/styles";
+import { EDITING_ORIGINAL_FEATURE_PROPERTY, FEATURE_TYPE_EDITING_PROPERTY } from "@/constants";
+import { getEditedFeature } from "@/constants/contributions/utils";
 import { InteractionType } from "@/constants/communities/types";
 import { Collection, Feature } from "ol";
 import { platformModifierKeyOnly, click, shiftKeyOnly } from "ol/events/condition";
 import { Draw, Modify, Select, Snap, Translate, DragBox } from "ol/interaction";
+import { ModifyEvent } from "ol/interaction/Modify";
 import VectorLayer from "ol/layer/Vector";
 import WebGLVectorLayer from "ol/layer/WebGLVector";
 import VectorSource from "ol/source/Vector";
 import { useEffect, useMemo } from "react";
 
 const useGetInteractions = () => {
-    const { map, mapWorkingLayer, clickedMapFeature, clickedControl } = useMapStore();
+    const { map, mapWorkingLayer, clickedMapFeature, clickedControl, featureTypeSelectedStyle } = useMapStore();
     const { communityLayers } = useCommunityStore();
 
     const clickableLayer = map
@@ -66,53 +69,83 @@ const useGetInteractions = () => {
 
     const modifyFeatures = useMemo(() => selectInteraction.getFeatures(), [selectInteraction]);
 
+    const editingFeatures = useMemo(() => new Collection<Feature>(), []);
+
     const editingLayer = useMemo(() => {
         const layer = new VectorLayer({
-            source: new VectorSource({ wrapX: false }),
-            style: editingVerticesStyle,
+            source: new VectorSource({ features: editingFeatures, wrapX: false }),
+            updateWhileAnimating: true,
+            updateWhileInteracting: true,
         });
         layer.setZIndex(1000);
         layer.set("name", "editing-geometry-overlay");
         return layer;
-    }, []);
+    }, [editingFeatures]);
+
+    const isDefaultStyle = isDefaultLayerStyle(currentCommunityLayer?.geoservice, featureTypeSelectedStyle);
+
+    useEffect(() => {
+        editingLayer.setStyle(getEditingOverlayStyle(isDefaultStyle));
+    }, [editingLayer, isDefaultStyle]);
 
     useEffect(() => {
         if (!map || clickedControl?.interaction !== InteractionType.MODIFY) return;
 
-        const editingSource = editingLayer.getSource();
-        let trackedFeatures: Feature[] = [];
+        const proxies = new Map<Feature, Feature>();
 
-        const syncEditingSource = () => {
-            editingSource?.clear();
-            editingSource?.addFeatures(trackedFeatures.map((feature) => feature.clone()));
+        // Keep the original features in case of refused modifications (outside bbox for exemple)
+        const onOriginalChange = (e: { target: unknown }) => {
+            const original = e.target as Feature;
+            proxies.get(original)?.setGeometry(original.getGeometry()?.clone());
+            original.set(FEATURE_TYPE_EDITING_PROPERTY, 1);
         };
 
-        const syncTrackedFeatures = () => {
-            trackedFeatures.forEach((feature) => feature.un("change", syncEditingSource));
-            trackedFeatures = modifyFeatures
-                .getArray()
-                .filter((feature) => ["LineString", "MultiLineString", "Polygon", "MultiPolygon"].includes(feature.getGeometry()?.getType() ?? ""));
-            trackedFeatures.forEach((feature) => feature.on("change", syncEditingSource));
-            syncEditingSource();
+        const releaseOriginals = () => {
+            proxies.forEach((_, original) => {
+                original.un("change", onOriginalChange);
+                original.unset(FEATURE_TYPE_EDITING_PROPERTY);
+            });
+            proxies.clear();
         };
 
-        syncTrackedFeatures();
-        modifyFeatures.on(["add", "remove"], syncTrackedFeatures);
-        map.addLayer(editingLayer);
+        const syncProxies = () => {
+            releaseOriginals();
+            const newProxies = modifyFeatures.getArray().map((original) => {
+                const proxy = new Feature(original.getGeometry()?.clone());
+                proxy.set(EDITING_ORIGINAL_FEATURE_PROPERTY, original);
+                proxies.set(original, proxy);
+                original.set(FEATURE_TYPE_EDITING_PROPERTY, 1);
+                original.on("change", onOriginalChange);
+                return proxy;
+            });
+            editingFeatures.clear();
+            editingFeatures.extend(newProxies);
+        };
+
+        syncProxies();
+        modifyFeatures.on(["add", "remove"], syncProxies);
+        // Unmanaged layer: not listed in the layer switcher
+        editingLayer.setMap(map);
 
         return () => {
-            modifyFeatures.un(["add", "remove"], syncTrackedFeatures);
-            trackedFeatures.forEach((feature) => feature.un("change", syncEditingSource));
-            map.removeLayer(editingLayer);
-            editingSource?.clear();
+            modifyFeatures.un(["add", "remove"], syncProxies);
+            releaseOriginals();
+            editingFeatures.clear();
+            editingLayer.setMap(null);
         };
-    }, [clickedControl?.interaction, editingLayer, map, modifyFeatures]);
+    }, [clickedControl?.interaction, editingFeatures, editingLayer, map, modifyFeatures]);
 
     const modifyInteraction = useMemo(() => {
-        const modify = new Modify({ features: modifyFeatures });
+        const modify = new Modify({ features: editingFeatures });
         modify.set("disablesTooltip", true);
+        modify.on("modifyend", (e: ModifyEvent) => {
+            e.features.forEach((proxy) => {
+                const original = getEditedFeature(proxy as Feature);
+                if (original !== proxy) original.setGeometry((proxy as Feature).getGeometry()?.clone());
+            });
+        });
         return modify;
-    }, [modifyFeatures]);
+    }, [editingFeatures]);
 
     const isEventInsideMapViewport = useMemo(
         () => (evt: { originalEvent?: Event }) => {
