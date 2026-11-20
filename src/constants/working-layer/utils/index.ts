@@ -6,7 +6,7 @@ import { get, transform } from "ol/proj";
 import { AutomaticFieldType, AutomaticFieldContext, AutomaticRemoteLookups } from "../types";
 
 import { getReverseGeocodeInfo, getCadastreFromCoords, getAltitudeFromCoords } from "@/api/geocodageData";
-import { FEATURE_TYPE_GEOSERVICE_PROPERTY } from "@/constants";
+import { FEATURE_TYPE_DATA_PROPERTY, FEATURE_TYPE_GEOSERVICE_PROPERTY } from "@/constants";
 import { CommunityGeoservice, FeatureTypeColumn, OperatorType } from "@/constants/communities/types";
 import { BuildFilterResponse, GroupSearch, RuleSearch } from "@/constants/savedSearches/types";
 
@@ -102,15 +102,20 @@ const createRemoteLookups = (feature: Feature<Geometry>, mapProjection: string):
 };
 
 /**
- * Computes the values of all the automatic columns of a feature (remote lookups are shared between columns).
+ * Computes the values of the automatic columns of a feature (remote lookups are shared between columns).
+ * With `onlyEmpty`, the columns that already have a value are left untouched (no geometry change since they were filled).
  * Columns whose value cannot be computed are left out, so that their current value is kept.
  */
 export const computeAutomaticFields = async (
     feature: Feature<Geometry>,
-    context: Pick<AutomaticFieldContext, "userId" | "username" | "mapProjection">
+    context: Pick<AutomaticFieldContext, "userId" | "username" | "mapProjection">,
+    { onlyEmpty = false }: { onlyEmpty?: boolean } = {}
 ): Promise<Record<string, string | number>> => {
     const geoservice = feature.get(FEATURE_TYPE_GEOSERVICE_PROPERTY) as CommunityGeoservice | undefined;
-    const automaticColumns = getAutomaticColumns(geoservice?.columns ?? []);
+    const featData = (feature.get(FEATURE_TYPE_DATA_PROPERTY) ?? {}) as Record<string, unknown>;
+    const automaticColumns = getAutomaticColumns(geoservice?.columns ?? []).filter(
+        ({ name }) => !onlyEmpty || featData[name] === null || featData[name] === undefined || featData[name] === ""
+    );
     if (automaticColumns.length === 0) return {};
 
     const mapProjection = context.mapProjection ?? DEFAULT_MAP_PROJECTION;

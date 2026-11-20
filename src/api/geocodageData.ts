@@ -29,6 +29,7 @@ export interface LocationAutocompleteResult {
 export interface ReverseGeocodeResponse {
     features: Array<{
         properties: {
+            type?: string;
             name?: string;
             housenumber?: string;
             street?: string;
@@ -106,6 +107,8 @@ export async function getReverseGeocodeInfo(lon: number, lat: number) {
     if (!result) return null;
 
     const props = result.properties;
+    const street = props.street || (props.type === "street" || props.type === "locality" ? props.name : undefined) || null;
+    const housenumber = props.housenumber || null;
     return {
         municipality: {
             name: props.city || null,
@@ -115,9 +118,9 @@ export async function getReverseGeocodeInfo(lon: number, lat: number) {
         },
         address: {
             fullAddress: props.label || null,
-            housenumber: props.housenumber || null,
-            street: props.street || null,
-            address: props.housenumber && props.street ? `${props.housenumber} ${props.street}` : props.street || null,
+            housenumber,
+            street,
+            address: housenumber && street ? `${housenumber} ${street}` : street,
         },
     };
 }

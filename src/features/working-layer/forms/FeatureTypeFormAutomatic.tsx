@@ -56,14 +56,18 @@ export const FeatureTypeFormAutomatic: React.FC<FeatureTypeFormAutomaticProps> =
         let geometry = feature.getGeometry();
         let revision = geometry?.getRevision();
 
-        const calculateFields = async () => {
+        const calculateFields = async (onlyEmpty: boolean) => {
             const currentRun = ++run;
             setIsCalculating(true);
-            const values = await computeAutomaticFields(feature, {
-                userId: userId !== undefined ? String(userId) : undefined,
-                username,
-                mapProjection,
-            });
+            const values = await computeAutomaticFields(
+                feature,
+                {
+                    userId: userId !== undefined ? String(userId) : undefined,
+                    username,
+                    mapProjection,
+                },
+                { onlyEmpty }
+            );
             if (currentRun !== run) return;
             setIsCalculating(false);
             callbackRef.current?.(values);
@@ -79,10 +83,11 @@ export const FeatureTypeFormAutomatic: React.FC<FeatureTypeFormAutomaticProps> =
             run++;
             setIsCalculating(true);
             clearTimeout(timer);
-            timer = setTimeout(() => void calculateFields(), GEOMETRY_CHANGE_DEBOUNCE_MS);
+            timer = setTimeout(() => void calculateFields(false), GEOMETRY_CHANGE_DEBOUNCE_MS);
         };
 
-        void calculateFields();
+        // When opening the form, the existing values are kept: only the empty fields are filled
+        void calculateFields(true);
         feature.on("change", handleFeatureChange);
 
         return () => {

@@ -86,8 +86,8 @@ export const useFeatureTypeActions = ({
                 return false;
             }
             feat.unset(FEATURE_TYPE_PENDING_FORM_PROPERTY);
-            // Features modified without being displayed in the form (multiple edition)
-            void refreshAutomaticFields([feat]);
+            // Features modified without being displayed in the form (multiple edition): the geometry did not change, only empty fields are filled
+            void refreshAutomaticFields([feat], { onlyEmpty: true });
             return true;
         },
         [setFeatureData, addFeatureToContributions, refreshAutomaticFields]

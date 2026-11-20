@@ -17,38 +17,45 @@ const isFeatureInEditForm = (feature: Feature) => {
  * so that they are sent with the contribution.
  */
 export const useRefreshAutomaticFields = () =>
-    useCallback(async (features: Feature[], { skipFeatureInEditForm = true }: { skipFeatureInEditForm?: boolean } = {}) => {
-        const { user } = useUserStore.getState();
-        const mapProjection = useMapStore.getState().map?.getView().getProjection().getCode();
+    useCallback(
+        async (features: Feature[], { skipFeatureInEditForm = true, onlyEmpty = false }: { skipFeatureInEditForm?: boolean; onlyEmpty?: boolean } = {}) => {
+            const { user } = useUserStore.getState();
+            const mapProjection = useMapStore.getState().map?.getView().getProjection().getCode();
 
-        const { beginAutomaticComputation, endAutomaticComputation } = useContributionStore.getState();
+            const { beginAutomaticComputation, endAutomaticComputation } = useContributionStore.getState();
 
-        // The global save is blocked until the values are written in the features data
-        beginAutomaticComputation();
-        try {
-            await Promise.all(
-                features.map(async (feature) => {
-                    // Writing the data would reset the values being edited in the form
-                    if (skipFeatureInEditForm && isFeatureInEditForm(feature)) return;
+            // The global save is blocked until the values are written in the features data
+            beginAutomaticComputation();
+            try {
+                await Promise.all(
+                    features.map(async (feature) => {
+                        // Writing the data would reset the values being edited in the form
+                        if (skipFeatureInEditForm && isFeatureInEditForm(feature)) return;
 
-                    const geometry = feature.getGeometry();
-                    const revision = geometry?.getRevision();
-                    const values = await computeAutomaticFields(feature, {
-                        userId: user?.id !== undefined ? String(user.id) : undefined,
-                        username: user?.username,
-                        mapProjection,
-                    });
+                        const geometry = feature.getGeometry();
+                        const revision = geometry?.getRevision();
+                        const values = await computeAutomaticFields(
+                            feature,
+                            {
+                                userId: user?.id !== undefined ? String(user.id) : undefined,
+                                username: user?.username,
+                                mapProjection,
+                            },
+                            { onlyEmpty }
+                        );
 
-                    // The geometry changed (or the contribution was cancelled) during the computation: the values are outdated
-                    if (feature.getGeometry() !== geometry || geometry?.getRevision() !== revision) return;
-                    if (skipFeatureInEditForm && isFeatureInEditForm(feature)) return;
-                    if (Object.keys(values).length === 0) return;
+                        // The geometry changed (or the contribution was cancelled) during the computation: the values are outdated
+                        if (feature.getGeometry() !== geometry || geometry?.getRevision() !== revision) return;
+                        if (skipFeatureInEditForm && isFeatureInEditForm(feature)) return;
+                        if (Object.keys(values).length === 0) return;
 
-                    feature.setProperties({ ...values, [FEATURE_TYPE_DATA_PROPERTY]: { ...feature.get(FEATURE_TYPE_DATA_PROPERTY), ...values } });
-                    feature.changed();
-                })
-            );
-        } finally {
-            endAutomaticComputation();
-        }
-    }, []);
+                        feature.setProperties({ ...values, [FEATURE_TYPE_DATA_PROPERTY]: { ...feature.get(FEATURE_TYPE_DATA_PROPERTY), ...values } });
+                        feature.changed();
+                    })
+                );
+            } finally {
+                endAutomaticComputation();
+            }
+        },
+        []
+    );
