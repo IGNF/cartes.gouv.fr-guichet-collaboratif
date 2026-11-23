@@ -16,6 +16,7 @@ interface ModalState {
     confirmDeleteObjectSearchModal: ReturnType<typeof createModal>;
     confirmDeleteSavedSearchModal: ReturnType<typeof createModal>;
     exportMapModal: ReturnType<typeof createModal>;
+    selectionExportModal: ReturnType<typeof createModal>;
     namedPositionModal: ReturnType<typeof createModal>;
     mergeFeatureAttributesModal: ReturnType<typeof createModal>;
     documentModal: ReturnType<typeof createModal>;
@@ -37,6 +38,7 @@ const modalConfigs = [
     { key: "confirmDeleteObjectSearchModal", id: "confirm-delete-object-search-modal" },
     { key: "confirmDeleteSavedSearchModal", id: "confirm-delete-saved-search-modal" },
     { key: "exportMapModal", id: "export-map-modal" },
+    { key: "selectionExportModal", id: "selection-export-modal" },
     { key: "namedPositionModal", id: "named-position-modal" },
     { key: "mergeFeatureAttributesModal", id: "merge-feature-attributes-modal" },
     { key: "documentModal", id: "document-modal" },

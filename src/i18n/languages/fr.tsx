@@ -73,6 +73,7 @@ import { SearchObjectsModalFrTranslations } from "@/features/working-layer/modal
 import { GroupComponentFrTranslations } from "@/features/working-layer/modal/searchObjects/locale/GroupComponent.locale";
 import { ConfirmDeleteObjectModalFrTranslations } from "@/features/working-layer/modal/searchObjects/locale/ConfirmDeleteObjectModal.locale";
 import { DocumentModalFrTranslations } from "@/components/locale/DocumentModal.locale";
+import { SelectionExportModalFrTranslations } from "@/features/reports/table/locale/SelectionExportModal.locale";
 
 export const translations: Translations<"fr"> = {
     AppFooter: AppFooterFrTranslations,
@@ -149,4 +150,5 @@ export const translations: Translations<"fr"> = {
     GroupComponent: GroupComponentFrTranslations,
     ConfirmDeleteObjectModal: ConfirmDeleteObjectModalFrTranslations,
     DocumentModal: DocumentModalFrTranslations,
+    SelectionExportModal: SelectionExportModalFrTranslations,
 };
