@@ -6,7 +6,18 @@ import { ErrorFile, attachmentData } from "@/constants/reports/types";
 import { StatusMessage } from "@/constants/communities/types";
 import Button from "@codegouvfr/react-dsfr/Button";
 import LoaderComponent from "@/components/LoaderComponent";
-import fileUploadIcon from "../../../icons/file-upload-icon.jpg";
+
+const ZIP_EXTENSIONS = ["zip", "7z"];
+const IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "gif", "bmp", "tif", "tiff", "svg"];
+const TEXT_EXTENSIONS = ["pdf", "doc", "docx", "odt", "rtf", "txt"];
+
+const getFileIconClass = (fileName: string): string => {
+    const extension = fileName.split(".").pop()?.toLowerCase() ?? "";
+    if (ZIP_EXTENSIONS.includes(extension)) return "ri-file-zip-line";
+    if (IMAGE_EXTENSIONS.includes(extension)) return "ri-image-line";
+    if (TEXT_EXTENSIONS.includes(extension)) return "ri-file-text-line";
+    return "ri-file-line";
+};
 
 interface Props {
     newFiles?: File[] | null;
@@ -67,7 +78,7 @@ const AttachmentList: React.FC<Props> = ({ newFiles, errorFiles, removeFile, sho
             {!((report?.attachments?.length ?? 0) > 0 || (newFiles?.length ?? 0) > 0) && <p>{t("no_attachments")}</p>}
             {report?.attachments?.map((attachment) => (
                 <div key={`attachment_${attachment.id}`}>
-                    <img src={fileUploadIcon} alt={t("alt_img_uploaded_file")} />
+                    <span className={`${getFileIconClass(attachment.short_fileName)} report-attachment-icon`} aria-hidden="true" />
                     <a href={attachment.uri} target="_blank">
                         {attachment.short_fileName}
                     </a>
@@ -96,7 +107,7 @@ const AttachmentList: React.FC<Props> = ({ newFiles, errorFiles, removeFile, sho
                     return (
                         <Fragment key={`file_${index}`}>
                             <div>
-                                <img src={fileUploadIcon} alt={t("alt_img_uploaded_file")} />
+                                <span className={`${getFileIconClass(file.name)} report-attachment-icon`} aria-hidden="true" />
                                 <a href={URL.createObjectURL(file)} target="_blank">
                                     {file.name}
                                 </a>
