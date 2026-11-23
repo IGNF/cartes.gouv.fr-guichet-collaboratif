@@ -1,7 +1,7 @@
 import GeoJSON from "ol/format/GeoJSON";
 import WKT from "ol/format/WKT";
 
-import { CommunityReport } from "@/constants/reports/types";
+import { CommunityReport, SketchObject, SketchReport } from "@/constants/reports/types";
 import { ESPACECO_URL } from "@/constants/urls";
 
 export type ReportExportFormat = "csv" | "geojson";
@@ -32,6 +32,14 @@ interface ReportTheme {
 
 const escapeCsvValue = (value: unknown) => `"${String(value ?? "").replace(/"/g, '""')}"`;
 
+const toGeoJSONPropertyValue = (value: unknown) => {
+    if (value === null || value === undefined || ["string", "number", "boolean"].includes(typeof value)) return value ?? null;
+    if (Array.isArray(value) && value.every((item) => item === null || ["string", "number", "boolean"].includes(typeof item))) {
+        return value.join(";");
+    }
+    return JSON.stringify(value);
+};
+
 const getThemes = (report: CommunityReport): ReportTheme[] => {
     const themes = report.attributes ?? report.themes;
     return Array.isArray(themes) ? (themes as unknown as ReportTheme[]) : [];
@@ -39,21 +47,37 @@ const getThemes = (report: CommunityReport): ReportTheme[] => {
 
 const addFlattenedThemeProperties = (properties: ExportRow, report: CommunityReport) => {
     const themes = getThemes(report);
-    properties.themes = themes.map(({ theme }) => theme).filter(Boolean);
+    properties.themes = themes
+        .map(({ theme }) => theme)
+        .filter(Boolean)
+        .join(";");
 
     themes.forEach(({ theme, attributes }, themeIndex) => {
         const themeName = theme || `theme_${themeIndex + 1}`;
         if (!attributes || typeof attributes !== "object" || Array.isArray(attributes)) return;
 
         Object.entries(attributes).forEach(([attributeName, value]) => {
-            properties[`${themeName}.${attributeName}`] = value;
+            properties[`${themeName}.${attributeName}`] = toGeoJSONPropertyValue(value);
         });
     });
 };
 
-const parseSketch = (sketch: CommunityReport["sketch"]) => {
+const parseSketch = (sketch: CommunityReport["sketch"]): SketchReport | null => {
     if (typeof sketch !== "string") return sketch ?? null;
-    return JSON.parse(sketch) as unknown;
+    return JSON.parse(sketch) as SketchReport;
+};
+
+const addSketchProperties = (properties: ExportRow, sketchObject: SketchObject, sketchIndex: number) => {
+    properties.geometry_role = "sketch";
+    properties.sketch_index = sketchIndex;
+    properties.sketch_type = sketchObject.type;
+
+    Object.entries(sketchObject.style ?? {}).forEach(([name, value]) => {
+        properties[`sketch_style_${name}`] = toGeoJSONPropertyValue(value);
+    });
+    Object.entries(sketchObject.attributes ?? {}).forEach(([name, value]) => {
+        properties[`sketch_attribute_${name}`] = toGeoJSONPropertyValue(value);
+    });
 };
 
 export const toCSV = (rows: ExportRow[], columns: ExportColumn[]) =>
@@ -67,13 +91,16 @@ export const toGeoJSON = (reports: CommunityReport[]) => {
 
     const featureCollection: GeoJSONFeatureCollection = {
         type: "FeatureCollection",
-        features: reports.map((report) => {
-            const geometry = wktFormat.readGeometry(report.geometry, {
-                dataProjection: "EPSG:4326",
-                featureProjection: "EPSG:4326",
-            });
+        features: reports.flatMap((report) => {
+            const readGeometry = (wkt: string) =>
+                wktFormat.readGeometry(wkt, {
+                    dataProjection: "EPSG:4326",
+                    featureProjection: "EPSG:4326",
+                });
+            const sketch = parseSketch(report.sketch);
             const properties: ExportRow = {
                 id: report.id,
+                report_id: report.id,
                 status: report.status,
                 comment: report.comment,
                 author: report.author?.username ?? null,
@@ -85,21 +112,36 @@ export const toGeoJSON = (reports: CommunityReport[]) => {
                 commune_code: report.commune?.name ?? null,
                 departement: report.departement?.title ?? null,
                 departement_code: report.departement?.name ?? null,
-                documents: report.attachments.map((attachment) => `${ESPACECO_URL}/document/download/${attachment.id}`),
-                replies: report.replies ?? [],
-                sketch: parseSketch(report.sketch),
+                documents: report.attachments.map((attachment) => `${ESPACECO_URL}/document/download/${attachment.id}`).join(";"),
+                replies: JSON.stringify(report.replies ?? []),
+                geometry_role: "report",
             };
 
             addFlattenedThemeProperties(properties, report);
 
-            return {
-                type: "Feature",
-                geometry: geoJSONFormat.writeGeometryObject(geometry, {
+            const writeGeometry = (wkt: string) =>
+                geoJSONFormat.writeGeometryObject(readGeometry(wkt), {
                     dataProjection: "EPSG:4326",
                     featureProjection: "EPSG:4326",
-                }),
+                });
+            const reportFeature: GeoJSONReportFeature = {
+                type: "Feature",
+                geometry: writeGeometry(report.geometry),
                 properties,
             };
+            const sketchFeatures: GeoJSONReportFeature[] =
+                sketch?.objects.map((sketchObject, sketchIndex) => {
+                    const sketchProperties = { ...properties };
+                    addSketchProperties(sketchProperties, sketchObject, sketchIndex);
+
+                    return {
+                        type: "Feature",
+                        geometry: writeGeometry(sketchObject.geometry),
+                        properties: sketchProperties,
+                    };
+                }) ?? [];
+
+            return [reportFeature, ...sketchFeatures];
         }),
     };
 
