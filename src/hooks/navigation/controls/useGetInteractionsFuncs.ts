@@ -1,14 +1,15 @@
 import VectorSource from "ol/source/Vector";
 import { SelectEvent } from "ol/interaction/Select";
-import { Feature, MapBrowserEvent } from "ol";
+import { Collection, Feature, MapBrowserEvent } from "ol";
 import VectorLayer from "ol/layer/Vector";
 import WebGLVectorLayer from "ol/layer/WebGLVector";
-import { ContributionType, CustomInteraction, InteractionsProps } from "@/constants/contributions/types";
+import { ContributionType, CustomInteraction, InteractionsProps, MergeKeepIndex } from "@/constants/contributions/types";
 import { ModifyEvent } from "ol/interaction/Modify";
 import { DrawEvent } from "ol/interaction/Draw";
-import { DragPan, Draw } from "ol/interaction";
+import { DragPan, Draw, Modify } from "ol/interaction";
 import {
     FEATURE_TYPE_DATA_PROPERTY,
+    FEATURE_TYPE_FINGERPRINT_COLUMN,
     FEATURE_TYPE_NEW_PROPERTY,
     FEATURE_TYPE_PENDING_FORM_PROPERTY,
     FEATURE_TYPE_SELECTED_PROPERTY,
@@ -210,19 +211,22 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
 
     const dragInteractionFunc = useCallback(() => {
         const extent = dragInteraction.getGeometry().getExtent();
-        if (!extent) return;
-        const featuresAtExtent = clickableSource?.getFeaturesInExtent(extent);
+        if (!extent || !clickableSource) return;
 
-        featuresAtExtent.forEach((feat) => {
-            if (!selectInteraction.getFeatures().getArray().includes(feat)) {
-                selectInteraction.selectFeature(feat);
+        const selectedFeatures = selectInteraction.getFeatures();
+        clickableSource.getFeaturesInExtent(extent).forEach((feature) => {
+            if (selectedFeatures.getArray().includes(feature)) return;
+
+            if (!selectInteraction.selectFeature(feature)) {
+                selectedFeatures.push(feature);
             }
+            feature.set(FEATURE_TYPE_SELECTED_PROPERTY, 1);
+            feature.changed();
         });
-        const newSelectedObjects = selectInteraction.getFeatures().getArray();
+
+        const newSelectedObjects = selectedFeatures.getArray();
         setSelectedObjects([...newSelectedObjects]);
-        if (newSelectedObjects.length > 0) {
-            setClickedMapFeature(newSelectedObjects[0]);
-        }
+        setClickedMapFeature(newSelectedObjects[0] ?? null);
     }, [clickableSource, dragInteraction, selectInteraction, setClickedMapFeature, setSelectedObjects]);
 
     const handleRemoveInteraction = useCallback(
@@ -265,6 +269,10 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
 
             const currentGeom = feat.getGeometry();
             const initialGeom = initialFeat.getGeometry();
+            const geoservice = currentCommunityLayer?.geoservice;
+            const geometryNameColumn = geoservice?.columns.find((column) => column.name === geoservice.geometryName);
+            if (geometryNameColumn?.is3d) setFeatNewCoords(feat, initialFeat);
+
             const currentCoords = (currentGeom as GeometryFeatueParams | null)?.getCoordinates?.();
             const initialCoords = (initialGeom as GeometryFeatueParams | null)?.getCoordinates?.();
             const hasGeometryChanged =
@@ -291,7 +299,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                 }
             }
         },
-        [authoriseContribution, mapWorkingLayer, saveContribution, setIsModifying, selectInteraction, clickedControl, map]
+        [authoriseContribution, currentCommunityLayer?.geoservice, mapWorkingLayer, saveContribution, setIsModifying, selectInteraction, clickedControl, map]
     );
 
     const handleModifyInteractionStart = useCallback(
@@ -987,7 +995,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
     );
 
     const mergeInteractionFunc = useCallback(
-        (customData: Record<string, unknown>) => {
+        (customData: Record<string, unknown>, keepIndex: MergeKeepIndex) => {
             if (selectedObjects.length !== 2) {
                 mergeFeatureAttributesModal.close();
                 return;
@@ -998,7 +1006,9 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                 return;
             }
 
-            const [featToKeep, featToDelete] = [selectedObjects[0], selectedObjects[1]];
+            // The feature whose id was chosen is modified, the other one is deleted
+            const featToKeep = selectedObjects[keepIndex];
+            const featToDelete = selectedObjects[keepIndex === 0 ? 1 : 0];
 
             const mergedGeometry = mergeFeatureGeometries(featToKeep, featToDelete, featureType);
             if (!mergedGeometry) {
@@ -1013,7 +1023,15 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
 
             const idName = currentCommunityLayer?.geoservice.idName;
             const originalKeepData = featToKeep.get(FEATURE_TYPE_DATA_PROPERTY) as Record<string, unknown> | undefined;
-            const dataToApply = idName && originalKeepData ? { ...customData, [idName]: originalKeepData[idName] } : customData;
+            const dataToApply: Record<string, unknown> = { ...customData };
+            if (originalKeepData) {
+                if (idName) dataToApply[idName] = originalKeepData[idName];
+                if (FEATURE_TYPE_FINGERPRINT_COLUMN in originalKeepData) {
+                    dataToApply[FEATURE_TYPE_FINGERPRINT_COLUMN] = originalKeepData[FEATURE_TYPE_FINGERPRINT_COLUMN];
+                } else {
+                    delete dataToApply[FEATURE_TYPE_FINGERPRINT_COLUMN];
+                }
+            }
 
             featToKeep.setGeometry(mergedGeometry);
             featToKeep.set(FEATURE_TYPE_DATA_PROPERTY, dataToApply);
@@ -1095,16 +1113,33 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             registeredPasteHandlerRef.current = stablePasteHandler;
         };
 
-        // Add listeners to map for custom copy/paste
-        // First param is type
+        const removeVertexHandler = (event: Event | BaseEvent) => {
+            const { coordinate, feature } = event as BaseEvent & { coordinate?: Coordinate; feature?: Feature };
+            if (!coordinate || !feature || clickedControl?.interaction !== InteractionType.MODIFY || !modifyFeatures.getArray().includes(feature)) return;
+
+            const targetModifyInteraction = new Modify({ features: new Collection([feature]) });
+            targetModifyInteraction.on("modifystart", modifyInteractionFuncStart);
+            targetModifyInteraction.on("modifyend", modifyInteractionFunc);
+            map.addInteraction(targetModifyInteraction);
+            try {
+                targetModifyInteraction.removePoint(coordinate);
+            } finally {
+                map.removeInteraction(targetModifyInteraction);
+                targetModifyInteraction.un("modifystart", modifyInteractionFuncStart);
+                targetModifyInteraction.un("modifyend", modifyInteractionFunc);
+            }
+        };
+
         map.addEventListener("custom-paste", pasteHandler);
         map.addEventListener("custom-copy", copyHandler);
+        map.addEventListener("custom-remove-vertex", removeVertexHandler);
 
         return () => {
             map.removeEventListener("custom-paste", pasteHandler);
             map.removeEventListener("custom-copy", copyHandler);
+            map.removeEventListener("custom-remove-vertex", removeVertexHandler);
         };
-    }, [map, pasteAtCoordinate]);
+    }, [clickedControl?.interaction, map, modifyFeatures, modifyInteractionFunc, modifyInteractionFuncStart, pasteAtCoordinate]);
 
     useEffect(() => {
         selectedObjects.forEach((feat) => {

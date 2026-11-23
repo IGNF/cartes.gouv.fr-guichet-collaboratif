@@ -268,7 +268,7 @@ export enum CommunityLayerFunctionalityType {
     COPY_REF = "copyRef",
     TOOLTIP = "tooltip",
     OVERVIEW = "overview_map_control",
-    MERGE = "merge",
+    FUSION = "fusion",
 }
 
 export enum CommunityLayerRoleType {
@@ -334,6 +334,8 @@ export const NO_VALUE_OPERATORS = new Set<OperatorType>([OperatorType.is_empty, 
 export const BETWEEN_OPERATORS = new Set<OperatorType>([OperatorType.between, OperatorType.not_between]);
 
 export const MULTI_VALUE_OPERATORS = new Set<OperatorType>([OperatorType.in, OperatorType.not_in]);
+
+export const MAX_ENUM_SUGGESTIONS = 200;
 
 export const OVERVIEW_MAP_WMTS_LAYER = "GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2";
 export const OVERVIEW_MAP_WMTS_URL = "https://data.geopf.fr/wmts";

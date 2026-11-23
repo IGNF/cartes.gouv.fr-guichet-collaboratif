@@ -9,7 +9,9 @@ import {
     MY_ACCOUNT_URL,
     PUBLISH_DATA_URL,
     SEARCH_DATA_URL,
-    CREATE_DATA_URL,
+    CREATE_MAP_URL,
+    EXTRACT_DATA_URL,
+    COLLABORATIVE_URL,
 } from "@/constants/urls";
 import { useTranslation } from "@/i18n";
 import { useOidc } from "@/oidc";
@@ -65,7 +67,9 @@ export function HeaderMenuServices() {
                 { iconId: "fr-icon-road-map-line", children: t("explore"), linkProps: { href: EXPLORE_MAPS_URL } },
                 { iconId: "fr-icon-search-line", children: t("search"), linkProps: { href: SEARCH_DATA_URL } },
                 { iconId: "fr-icon-database-line", children: t("publish"), linkProps: { href: PUBLISH_DATA_URL } },
-                { iconId: "fr-icon-brush-line", children: t("create"), linkProps: { href: CREATE_DATA_URL } },
+                { iconId: "fr-icon-brush-line", children: t("create"), linkProps: { href: CREATE_MAP_URL }, beta: true },
+                { iconId: "ri-contacts-book-upload-line", children: t("extract"), linkProps: { href: EXTRACT_DATA_URL }, beta: true },
+                { iconId: "fr-icon-message-2-line", children: t("collaborative"), linkProps: { href: COLLABORATIVE_URL }, beta: true },
             ]}
             actionButtonProps={{
                 className: "discover-button",

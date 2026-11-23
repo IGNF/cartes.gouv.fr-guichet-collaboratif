@@ -6,6 +6,7 @@ on:
         # Publish semver tags as releases.
         tags: ["v*"]
     pull_request:
+        types: [ready_for_review]
 
 env:
     # Use docker.io for Docker Hub if empty
@@ -81,7 +82,7 @@ jobs:
                   output: "trivy-results.sarif"
 
             - name: Upload Trivy scan results to GitHub Security tab
-              uses: github/codeql-action/upload-sarif@v4.37.9
+              uses: github/codeql-action/upload-sarif@v4.39.3
               with:
                   sarif_file: "trivy-results.sarif"
                   category: image-scan-trivy
