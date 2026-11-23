@@ -321,7 +321,8 @@
     margin: unset !important;
 }
 
-.report-attachments a {
+.report-attachments a,
+.report-attachments .report-attachment-name {
     width: 100% !important;
     background: none;
 }
