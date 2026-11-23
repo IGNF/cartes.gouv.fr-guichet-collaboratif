@@ -52,3 +52,7 @@ export const PERSONAL_DATA_URL = BASE_URL + "/donnees-personnelles";
 
 // Analytics
 export const MATOMO_URL = "https://matomo.ign.fr/";
+
+// Feedback
+export const FEEDBACK_FORM_URL =
+    "https://analytics-eu.clickdimensions.com/ignfr-agj1s/pages/p1m65em2efge6nztjxgtq.html?PageId=e53a53a736e3f11184ea7ced8d783e4d";
