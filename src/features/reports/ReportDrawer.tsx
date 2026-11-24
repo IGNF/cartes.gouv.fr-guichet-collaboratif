@@ -1,7 +1,8 @@
 import { useCallback, useEffect } from "react";
+import { useIsModalOpen } from "@codegouvfr/react-dsfr/Modal/useIsModalOpen";
 import Layer from "ol/layer/Layer";
 import VectorSource from "ol/source/Vector";
-import { useCommunityStore, useLocalStorageStore, useMapStore, useReportStore, useUserStore } from "@/store";
+import { useCommunityStore, useLocalStorageStore, useMapStore, useModalStore, useReportStore, useUserStore } from "@/store";
 import { hasReportParams, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import { getCenterReportMessage, handleShowOnMap, setDrawingSketchMarkers, showCenterReportButtons, STATUS_NOT_ALLOWED } from "@/constants/utils";
 import { clearClusterStyles } from "@/constants/reports/utils/cluster";
@@ -11,6 +12,7 @@ import ShowReport from "./ShowReport";
 import CreateReport from "./CreateReport";
 import TableReportDrawer from "./table/TableReportDrawer";
 import EditReport from "./EditReport";
+import ConfirmDiscardSketchModal from "./forms/ConfirmDiscardSketchModal";
 import Button from "@codegouvfr/react-dsfr/Button";
 import { useTranslation } from "@/i18n";
 import MapListnerHandlers from "../navigation/controls/custom-controls/interactions/MapListenerHandlers";
@@ -18,6 +20,7 @@ import { getCommunityReportById } from "@/api/reportsData";
 import { useSearchParams, useNavigate } from "react-router";
 import useKeyEvent from "@/hooks/useKeyEvent";
 import { CommunityRole } from "@/constants/user/types";
+import useSketchDiscardGuard from "@/hooks/reports/useSketchDiscardGuard";
 
 const ReportDrawer = () => {
     const { user, role } = useUserStore();
@@ -93,6 +96,11 @@ const ReportDrawer = () => {
         setSelectedFeatures([]);
     }, [selectedReport, releaseReportTools, setDrawerOpened, setEditReport, setTableDrawerOpened, setSelectedReport, setSelectedFeatures, map]);
 
+    const guardSketchDiscard = useSketchDiscardGuard();
+    const requestCloseDrawer = useCallback(() => guardSketchDiscard(handleCloseDrawer), [guardSketchDiscard, handleCloseDrawer]);
+    const { confirmDiscardSketchModal } = useModalStore();
+    const isDiscardSketchModalOpen = useIsModalOpen(confirmDiscardSketchModal);
+
     const handleDrawingAdd = useCallback(
         (e: Event) => {
             clearClusterStyles(reportClusterSource);
@@ -160,11 +168,12 @@ const ReportDrawer = () => {
         "keydown",
         useCallback(
             (e: KeyboardEvent) => {
-                if (e.key === "Escape" && (drawerOpened || tableDrawerOpened)) {
-                    handleCloseDrawer();
+                // Escape on the confirmation modal only dismisses the modal
+                if (e.key === "Escape" && (drawerOpened || tableDrawerOpened) && !isDiscardSketchModalOpen) {
+                    requestCloseDrawer();
                 }
             },
-            [drawerOpened, tableDrawerOpened, handleCloseDrawer]
+            [drawerOpened, tableDrawerOpened, isDiscardSketchModalOpen, requestCloseDrawer]
         )
     );
 
@@ -222,7 +231,7 @@ const ReportDrawer = () => {
                 anchor="left"
                 isOpen={drawerOpened || tableDrawerOpened}
                 create={!selectedReport}
-                onClose={handleCloseDrawer}
+                onClose={requestCloseDrawer}
                 isListingReports={tableDrawerOpened}
             >
                 <>
@@ -232,7 +241,7 @@ const ReportDrawer = () => {
                                 <Button
                                     className="fr-icon--lg"
                                     iconId="ri-close-line"
-                                    onClick={handleCloseDrawer}
+                                    onClick={requestCloseDrawer}
                                     priority="tertiary no outline"
                                     title="Fermer"
                                     size="medium"
@@ -249,11 +258,12 @@ const ReportDrawer = () => {
                             )}
                         </>
                     ) : tableDrawerOpened ? (
-                        <TableReportDrawer handleCloseDrawer={handleCloseDrawer} />
+                        <TableReportDrawer handleCloseDrawer={requestCloseDrawer} />
                     ) : null}
                 </>
             </DrawerComponent>
-            <MapListnerHandlers handleCloseDrawer={handleCloseDrawer} />
+            <MapListnerHandlers handleCloseDrawer={requestCloseDrawer} />
+            <ConfirmDiscardSketchModal />
         </>
     );
 };

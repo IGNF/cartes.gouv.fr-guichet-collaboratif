@@ -13,6 +13,7 @@ import ReportForm from "./forms/ReportForm";
 import { useCallback } from "react";
 import Button from "@codegouvfr/react-dsfr/Button";
 import { useDeleteReport } from "@/hooks/reports/useDeleteReport";
+import useSketchDiscardGuard from "@/hooks/reports/useSketchDiscardGuard";
 
 interface Props {
     handleCloseDrawer: () => void;
@@ -21,7 +22,7 @@ interface Props {
 
 const EditReport: React.FC<Props> = ({ handleCloseDrawer, handleBack }) => {
     const { community, addAlertMessage } = useCommunityStore();
-    const { reports, selectedReport, setReports, setSelectedReport, setTableDrawerOpened, setDrawerOpened } = useReportStore();
+    const { selectedReport, setReports, setSelectedReport, setTableDrawerOpened, setDrawerOpened } = useReportStore();
     const { user, role } = useUserStore();
 
     const { map } = useMapStore();
@@ -64,11 +65,12 @@ const EditReport: React.FC<Props> = ({ handleCloseDrawer, handleBack }) => {
 
                 addAlertMessage(StatusMessage.success, t("report_updated_success", { reportId: selectedReport.id }));
 
-                const filtered = reports.filter((r) => r.id !== selectedReport.id);
-                const original = reports.find((r) => r.id === selectedReport.id) || {};
+                const { reports: currentReports, selectedReport: currentSelectedReport } = useReportStore.getState();
+                const filtered = currentReports.filter((r) => r.id !== selectedReport.id);
+                const original = currentReports.find((r) => r.id === selectedReport.id) || {};
                 const mergedReport = { ...original, ...selectedReport, ...reportUpdated };
                 setReports([...filtered, mergedReport], true);
-                setSelectedReport(mergedReport);
+                if (currentSelectedReport?.id === selectedReport.id) setSelectedReport(mergedReport);
                 return true;
             } catch (error) {
                 let errorMessage = t("report_updated_error");
@@ -85,10 +87,11 @@ const EditReport: React.FC<Props> = ({ handleCloseDrawer, handleBack }) => {
                 return false;
             }
         },
-        [community, selectedReport, canEditReport, reports, addAlertMessage, t, setReports, setSelectedReport]
+        [community, selectedReport, canEditReport, addAlertMessage, t, setReports, setSelectedReport]
     );
 
     const { deleteReport } = useDeleteReport({ handleCloseDrawer });
+    const guardSketchDiscard = useSketchDiscardGuard();
 
     if (!community || !map || !selectedReport || !canEditReport) return null;
 
@@ -178,11 +181,13 @@ const EditReport: React.FC<Props> = ({ handleCloseDrawer, handleBack }) => {
                 className="fr-icon--sm fr-mr-7v"
                 priority="tertiary no outline"
                 title="Afficher le signalement"
-                onClick={() => {
-                    handleBack();
-                    setTableDrawerOpened(true);
-                    setDrawerOpened(false);
-                }}
+                onClick={() =>
+                    guardSketchDiscard(() => {
+                        handleBack();
+                        setTableDrawerOpened(true);
+                        setDrawerOpened(false);
+                    })
+                }
             >
                 {t("report_back")}
             </Button>

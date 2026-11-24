@@ -14,7 +14,7 @@ import { CommunityReport } from "@/constants/reports/types";
 import { isDrawingClickToolActive } from "@/constants/utils";
 import { useContributionStore } from "@/store/useContributionStore";
 import { useModalStore } from "@/store/useModalStore";
-import { useReportStore } from "@/store/useReportStore";
+import useSketchDiscardGuard from "@/hooks/reports/useSketchDiscardGuard";
 
 interface UseSingleClickHandlerProps {
     map: Map | null;
@@ -60,9 +60,9 @@ export const useSingleClickHandler = (props: UseSingleClickHandlerProps) => {
     } = props;
 
     const { selectedObjects } = useContributionStore();
-    const { confirmMultipleDeselectionModal, confirmDiscardSketchModal } = useModalStore();
+    const { confirmMultipleDeselectionModal } = useModalStore();
+    const guardSketchDiscard = useSketchDiscardGuard();
     const pendingSingleClickEvent = useRef<MapBrowserEvent | null>(null);
-    const pendingReportSwitch = useRef<(() => void) | null>(null);
 
     const handleSingleClick = useCallback(
         async (evt: MapBrowserEvent) => {
@@ -221,12 +221,7 @@ export const useSingleClickHandler = (props: UseSingleClickHandlerProps) => {
                         }
                     };
 
-                    if (useReportStore.getState().sketchUnsaved) {
-                        pendingReportSwitch.current = switchReport;
-                        confirmDiscardSketchModal.open();
-                        return;
-                    }
-                    switchReport();
+                    guardSketchDiscard(switchReport);
                 } else {
                     if (features.length > 1) {
                         setClickableFeatures(features.map((f) => f.feature));
@@ -257,7 +252,7 @@ export const useSingleClickHandler = (props: UseSingleClickHandlerProps) => {
             clearHoverState,
             selectedObjects,
             confirmMultipleDeselectionModal,
-            confirmDiscardSketchModal,
+            guardSketchDiscard,
         ]
     );
 
@@ -276,11 +271,5 @@ export const useSingleClickHandler = (props: UseSingleClickHandlerProps) => {
         },
     });
 
-    const confirmReportSwitch = useCallback(() => {
-        const switchReport = pendingReportSwitch.current;
-        pendingReportSwitch.current = null;
-        switchReport?.();
-    }, []);
-
-    return { handleSingleClick, confirmReportSwitch };
+    return handleSingleClick;
 };

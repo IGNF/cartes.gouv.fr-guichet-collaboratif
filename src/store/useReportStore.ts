@@ -10,6 +10,8 @@ interface ReportStore {
     editReport: boolean;
     sketchUnsaved: boolean;
     setSketchUnsaved: (sketchUnsaved: boolean) => void;
+    pendingSketchDiscard: (() => void) | null;
+    setPendingSketchDiscard: (action: (() => void) | null) => void;
     tableDrawerOpened: boolean;
     setReports: (reports: CommunityReport[], shouldReset?: boolean) => void;
     setEditReport: (edit: boolean) => void;
@@ -66,6 +68,8 @@ export const useReportStore = create<ReportStore>((set, get) => ({
     editReport: false,
     sketchUnsaved: false,
     setSketchUnsaved: (sketchUnsaved) => set({ sketchUnsaved }),
+    pendingSketchDiscard: null,
+    setPendingSketchDiscard: (pendingSketchDiscard) => set({ pendingSketchDiscard }),
     tableDrawerOpened: false,
     setReports: (reports, shouldReset = false) => {
         if (shouldReset) {

@@ -1,23 +1,26 @@
+import { useIsModalOpen } from "@codegouvfr/react-dsfr/Modal/useIsModalOpen";
 import ModaleComponent from "@/components/ModaleComponent";
 import { useTranslation } from "@/i18n";
-import { useModalStore } from "@/store";
+import { useModalStore, useReportStore } from "@/store";
 
-interface ConfirmDiscardSketchModalProps {
-    onConfirm: () => void;
-}
-
-export default function ConfirmDiscardSketchModal(props: ConfirmDiscardSketchModalProps) {
-    const { onConfirm } = props;
+export default function ConfirmDiscardSketchModal() {
     const { confirmDiscardSketchModal } = useModalStore();
+    const setPendingSketchDiscard = useReportStore((state) => state.setPendingSketchDiscard);
     const { t } = useTranslation({ ConfirmDiscardSketchModal });
+
+    useIsModalOpen(confirmDiscardSketchModal, {
+        onConceal: () => setPendingSketchDiscard(null),
+    });
 
     return (
         <ModaleComponent
             modal={confirmDiscardSketchModal}
             title={t("title")}
             onConfirm={() => {
-                onConfirm();
+                const action = useReportStore.getState().pendingSketchDiscard;
+                setPendingSketchDiscard(null);
                 confirmDiscardSketchModal.close();
+                action?.();
             }}
             onClose={() => confirmDiscardSketchModal.close()}
             confirmText={t("confirm")}
