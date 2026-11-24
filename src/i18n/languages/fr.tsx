@@ -2,6 +2,7 @@ import type { Translations } from "../types";
 import { AppHeaderFrTranslations } from "@/components/Layout/locale/AppHeader.locale";
 import { HeaderMenusFrTranslations } from "@/components/Layout/Header/locale/HeaderMenus.locale";
 import { BetaBadgeFrTranslations } from "@/components/Layout/MapCommunity/locale/BetaBadge.locale";
+import { FeedbackLinkFrTranslations } from "@/components/Layout/MapCommunity/locale/FeedbackLink.locale";
 import { CommunityTitleFrTranslations } from "@/components/Layout/MapCommunity/locale/CommunityTitle.locale";
 import { CommunityToolbarFrTranslations } from "@/components/Layout/MapCommunity/locale/CommunityToolbar.locale";
 import { AppFooterFrTranslations } from "@/components/Layout/locale/AppFooter.locale";
@@ -78,6 +79,7 @@ export const translations: Translations<"fr"> = {
     AppHeader: AppHeaderFrTranslations,
     HeaderMenus: HeaderMenusFrTranslations,
     BetaBadge: BetaBadgeFrTranslations,
+    FeedbackLink: FeedbackLinkFrTranslations,
     CommunityTitle: CommunityTitleFrTranslations,
     CommunityToolbar: CommunityToolbarFrTranslations,
     DrawerComponent: DrawerComponentFrTranslations,
