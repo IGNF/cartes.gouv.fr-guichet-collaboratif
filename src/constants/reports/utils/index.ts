@@ -38,6 +38,10 @@ export const getThemeAttributeError = (attribute: ThemeItem, value: string | und
     return null;
 };
 
+// In edit mode the sketch is always sent: `null` clears it on the server when no object is left.
+export const getReportSketchForUpdate = (features: Feature[], map: Map): SketchReport | null =>
+    features.some((f) => !f.get("main")) ? getReportSketch(features, map, true) : null;
+
 export const getReportSketch = (features: Feature[], map: Map, edit: boolean = false): SketchReport => {
     const mainFeature = features.find((f) => {
         if (edit) return f.get("main");
@@ -62,10 +66,12 @@ export const getReportSketch = (features: Feature[], map: Map, edit: boolean = f
                 const markerStyle = markersStyles.find((m) => m.imgSrc === featureImage?.getSrc());
                 const featureText = "getText" in featureStyle && featureStyle?.getText();
 
+                // A text keeps its colors on its Text style, other objects on the style itself
+                const colorStyle = featureText || featureStyle;
                 sketch.style = {
-                    backcolor: "getFill" in featureStyle ? (featureStyle?.getFill()?.getColor() as string) : "",
+                    backcolor: "getFill" in colorStyle ? (colorStyle.getFill()?.getColor() as string) : "",
                     diam: getFeatureDiam(feature),
-                    frontcolor: "getStroke" in featureStyle ? (featureStyle.getStroke()?.getColor() as string) : "",
+                    frontcolor: "getStroke" in colorStyle ? (colorStyle.getStroke()?.getColor() as string) : "",
                 };
 
                 if (featureText) {

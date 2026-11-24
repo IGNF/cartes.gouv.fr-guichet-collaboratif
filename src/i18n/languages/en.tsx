@@ -11,6 +11,7 @@ import { CarteEnTranslations } from "@/pages/locale/Carte.locale";
 import { GetReportsLayerEnTranslations } from "@/features/navigation/layers/locale/GetReportsLayer.locale";
 import { AttachmentListEnTranslations } from "@/features/reports/forms/locale/AttachmentList.locale";
 import { ConfirmCancelModalEnTranslations } from "@/features/reports/forms/locale/ConfirmCancelModal.locale";
+import { ConfirmDiscardSketchModalEnTranslations } from "@/features/reports/forms/locale/ConfirmDiscardSketchModal.locale";
 import { ConfirmDeleteReportModalEnTranslations } from "@/features/reports/forms/locale/ConfirmDeleteReportModal.locale";
 import { ShareReportModalEnTranslations } from "@/features/reports/locale/ShareReportModal.locale";
 import { TableReportDrawerEnTranslations } from "@/features/reports/locale/TableReportDrawer.locale";
@@ -90,6 +91,7 @@ export const translations: Translations<"en"> = {
     GetReportsLayer: GetReportsLayerEnTranslations,
     AttachmentList: AttachmentListEnTranslations,
     ConfirmCancelModal: ConfirmCancelModalEnTranslations,
+    ConfirmDiscardSketchModal: ConfirmDiscardSketchModalEnTranslations,
     ConfirmDeleteReportModal: ConfirmDeleteReportModalEnTranslations,
     ShareReportModal: ShareReportModalEnTranslations,
     TableReportDrawer: TableReportDrawerEnTranslations,

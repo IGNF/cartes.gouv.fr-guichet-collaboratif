@@ -49,6 +49,19 @@ const ReportDrawer = () => {
     const { t } = useTranslation({ ReportDrawer });
     const [searchParams] = useSearchParams();
 
+    const releaseReportTools = useCallback(() => {
+        const activeToolBtn = document.querySelector(`button[id*="drawing-tool-"].drawing-tool-active`) as HTMLButtonElement | null;
+        activeToolBtn?.click();
+        if (clickedTool?.clicked && clickedTool.name) {
+            setClickedTool({ name: clickedTool.name, clicked: false });
+        }
+
+        const isNotified = getCenterReportMessage(alertMessages);
+        if (isNotified) {
+            removeAlertMessage(isNotified.id);
+        }
+    }, [alertMessages, clickedTool, setClickedTool, removeAlertMessage]);
+
     const handleCloseDrawer = useCallback(() => {
         if (!selectedReport) {
             const drawingLayer = map?.getAllLayers().find((layer: Layer & { gpResultLayerId?: string }) => layer.gpResultLayerId === "drawing");
@@ -69,16 +82,7 @@ const ReportDrawer = () => {
             reportSource?.removeFeatures(reportFeatures);
         }
 
-        if (clickedTool?.clicked && clickedTool.name) {
-            const activeToolBtn = document.querySelector(`button[id*="${clickedTool.name}"].drawing-tool-active`) as HTMLButtonElement | null;
-            activeToolBtn?.click();
-            setClickedTool({ name: clickedTool.name, clicked: false });
-        }
-
-        const isNotified = getCenterReportMessage(alertMessages);
-        if (isNotified) {
-            removeAlertMessage(isNotified.id);
-        }
+        releaseReportTools();
 
         showCenterReportButtons(false);
         setDrawingSketchMarkers(map, false);
@@ -87,19 +91,7 @@ const ReportDrawer = () => {
         setTableDrawerOpened(false);
         setSelectedReport(null);
         setSelectedFeatures([]);
-    }, [
-        selectedReport,
-        alertMessages,
-        clickedTool,
-        setClickedTool,
-        setDrawerOpened,
-        setEditReport,
-        setTableDrawerOpened,
-        setSelectedReport,
-        setSelectedFeatures,
-        map,
-        removeAlertMessage,
-    ]);
+    }, [selectedReport, releaseReportTools, setDrawerOpened, setEditReport, setTableDrawerOpened, setSelectedReport, setSelectedFeatures, map]);
 
     const handleDrawingAdd = useCallback(
         (e: Event) => {
@@ -251,9 +243,9 @@ const ReportDrawer = () => {
                             {!selectedReport ? (
                                 <CreateReport handleCloseDrawer={handleCloseDrawer} />
                             ) : !STATUS_NOT_ALLOWED.includes(selectedReport.status) && canEditReport ? (
-                                <EditReport handleCloseDrawer={handleCloseDrawer} />
+                                <EditReport handleCloseDrawer={handleCloseDrawer} handleBack={releaseReportTools} />
                             ) : (
-                                <ShowReport handleCloseDrawer={handleCloseDrawer} />
+                                <ShowReport handleCloseDrawer={handleCloseDrawer} handleBack={releaseReportTools} />
                             )}
                         </>
                     ) : tableDrawerOpened ? (

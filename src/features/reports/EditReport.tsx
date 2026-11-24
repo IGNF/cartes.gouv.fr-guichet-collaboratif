@@ -8,7 +8,7 @@ import { CommunityTheme, StatusMessage } from "@/constants/communities/types";
 import { PostReport, PostThemeReport } from "@/constants/reports/types";
 import { CommunityRole } from "@/constants/user/types";
 import { getFeatureGeometryWKT } from "@/constants/utils";
-import { getReportSketch } from "@/constants/reports/utils";
+import { getReportSketchForUpdate } from "@/constants/reports/utils";
 import ReportForm from "./forms/ReportForm";
 import { useCallback } from "react";
 import Button from "@codegouvfr/react-dsfr/Button";
@@ -16,11 +16,12 @@ import { useDeleteReport } from "@/hooks/reports/useDeleteReport";
 
 interface Props {
     handleCloseDrawer: () => void;
+    handleBack: () => void;
 }
 
-const EditReport: React.FC<Props> = ({ handleCloseDrawer }) => {
+const EditReport: React.FC<Props> = ({ handleCloseDrawer, handleBack }) => {
     const { community, addAlertMessage } = useCommunityStore();
-    const { reports, selectedReport, setReports, setTableDrawerOpened, setDrawerOpened } = useReportStore();
+    const { reports, selectedReport, setReports, setSelectedReport, setTableDrawerOpened, setDrawerOpened } = useReportStore();
     const { user, role } = useUserStore();
 
     const { map } = useMapStore();
@@ -65,8 +66,9 @@ const EditReport: React.FC<Props> = ({ handleCloseDrawer }) => {
 
                 const filtered = reports.filter((r) => r.id !== selectedReport.id);
                 const original = reports.find((r) => r.id === selectedReport.id) || {};
-                const mergedReport = { ...original, ...reportUpdated };
+                const mergedReport = { ...original, ...selectedReport, ...reportUpdated };
                 setReports([...filtered, mergedReport], true);
+                setSelectedReport(mergedReport);
                 return true;
             } catch (error) {
                 let errorMessage = t("report_updated_error");
@@ -83,7 +85,7 @@ const EditReport: React.FC<Props> = ({ handleCloseDrawer }) => {
                 return false;
             }
         },
-        [community, selectedReport, canEditReport, reports, addAlertMessage, t, setReports]
+        [community, selectedReport, canEditReport, reports, addAlertMessage, t, setReports, setSelectedReport]
     );
 
     const { deleteReport } = useDeleteReport({ handleCloseDrawer });
@@ -116,27 +118,25 @@ const EditReport: React.FC<Props> = ({ handleCloseDrawer }) => {
             geometry: getFeatureGeometryWKT(mainFeature),
         };
 
-        if (features.length > 1) {
-            patch.sketch = getReportSketch(features, map, true);
-        }
+        patch.sketch = getReportSketchForUpdate(features, map);
 
         return updateReport(patch, filesUploaded);
     };
 
-    const handleUpdateReportSketch = async (features: Feature[]) => {
-        if (!community || !map) return;
+    const handleUpdateReportSketch = async (features: Feature[]): Promise<boolean> => {
+        if (!community || !map) return false;
 
         const mainFeature = features.find((f) => f.get("reportData") && f.get("main"));
-        if (!mainFeature) return;
+        if (!mainFeature) {
+            addAlertMessage(StatusMessage.error, t("report_updated_error"));
+            return false;
+        }
 
         const patch: PostReport = {
             community: community.id,
             geometry: getFeatureGeometryWKT(mainFeature),
+            sketch: getReportSketchForUpdate(features, map),
         };
-
-        if (features.length > 1) {
-            patch.sketch = getReportSketch(features, map, true);
-        }
 
         return updateReport(patch);
     };
@@ -179,6 +179,7 @@ const EditReport: React.FC<Props> = ({ handleCloseDrawer }) => {
                 priority="tertiary no outline"
                 title="Afficher le signalement"
                 onClick={() => {
+                    handleBack();
                     setTableDrawerOpened(true);
                     setDrawerOpened(false);
                 }}

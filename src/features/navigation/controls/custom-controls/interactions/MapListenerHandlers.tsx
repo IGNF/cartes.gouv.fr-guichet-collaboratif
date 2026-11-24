@@ -9,6 +9,7 @@ import { useSingleClickHandler } from "./handlers/useSingleClickHandler";
 import { usePointerMoveHandler } from "./handlers/usePointerMoveHandler";
 import { useRasterWorkingLayer } from "@/hooks/working-layer/useRasterWorkingLayer";
 import { useClusterClickHandler } from "./handlers/useClusterClickHandler";
+import ConfirmDiscardSketchModal from "@/features/reports/forms/ConfirmDiscardSketchModal";
 
 interface Props {
     handleCloseDrawer: () => void;
@@ -112,7 +113,7 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
             .map((l) => l.geoservice);
     }, [communityLayers, mapWorkingLayer]);
 
-    const handleSingleClick = useSingleClickHandler({
+    const { handleSingleClick, confirmReportSwitch } = useSingleClickHandler({
         map,
         isNotClickable,
         isRasterLayer,
@@ -195,7 +196,7 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
         };
     }, [map, reports, selectedReport, drawerOpened, handleSingleClick, handlePointerMove, setSelectedReport, handleClusterChange, clearHoverState]);
 
-    return null;
+    return <ConfirmDiscardSketchModal onConfirm={confirmReportSwitch} />;
 };
 
 export default MapListnerHandlers;

@@ -20,9 +20,10 @@ import { CommunityRole } from "@/constants/user/types";
 
 interface Props {
     handleCloseDrawer: () => void;
+    handleBack: () => void;
 }
 
-const ShowReport: React.FC<Props> = ({ handleCloseDrawer }) => {
+const ShowReport: React.FC<Props> = ({ handleCloseDrawer, handleBack }) => {
     const [openSuivi, setOpenSuivi] = useState(false);
     const [committedStatus, setCommittedStatus] = useState("");
 
@@ -74,6 +75,7 @@ const ShowReport: React.FC<Props> = ({ handleCloseDrawer }) => {
                 priority="tertiary no outline"
                 title={t("report_back")}
                 onClick={() => {
+                    handleBack();
                     setTableDrawerOpened(true);
                     setDrawerOpened(false);
                 }}
@@ -123,7 +125,7 @@ const ShowReport: React.FC<Props> = ({ handleCloseDrawer }) => {
                         {reportTheme && <ThemeForm theme={reportTheme} themeAttributes={reportThemeAttributes} readOnly />}
                     </Accordion>
                     <Accordion label={t("report_sketch_list")} defaultExpanded={false}>
-                        <DrawingForm handleToolClick={handleToolClick} hideToolsDiv={true} />
+                        <DrawingForm handleToolClick={handleToolClick} hideToolsDiv={true} readOnly />
                     </Accordion>
                     {description && (
                         <Accordion label={t("report_description")} defaultExpanded={false}>

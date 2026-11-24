@@ -43,6 +43,7 @@ export type ComponentKey =
     | import("../features/navigation/controls/custom-controls/locale/index.locale").I18n
     | import("../features/reports/forms/locale/AttachmentList.locale").I18n
     | import("../features/reports/forms/locale/ConfirmCancelModal.locale").I18n
+    | import("../features/reports/forms/locale/ConfirmDiscardSketchModal.locale").I18n
     | import("../features/reports/forms/locale/ConfirmDeleteReportModal.locale").I18n
     | import("../features/reports/locale/ShareReportModal.locale").I18n
     | import("../features/reports/forms/locale/DrawingForm.locale").I18n
