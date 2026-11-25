@@ -36,6 +36,7 @@ import ReviewSelectedObjects from "../working-layer/multiple-selection/ReviewSel
 import BetaBadge from "@/components/Layout/MapCommunity/BetaBadge";
 import CommunityTitle from "@/components/Layout/MapCommunity/CommunityTitle";
 import CommunityToolbar from "@/components/Layout/MapCommunity/CommunityToolbar";
+import { MAP_MAX_TILES_LOADING } from "@/constants/navigation/rasterTiles";
 
 export default function MainMap() {
     const mapTargetRef = useRef<HTMLDivElement>(null);
@@ -139,6 +140,7 @@ export default function MainMap() {
             interactions: defaultInteractions(),
             controls: [...(mapControls as Control[]), switcher],
             view: mapView,
+            maxTilesLoading: MAP_MAX_TILES_LOADING,
         });
 
         viewRef.current = mapView;

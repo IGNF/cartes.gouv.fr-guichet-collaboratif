@@ -8,6 +8,7 @@ import { transformExtent } from "ol/proj";
 import { CommunityGeoservice, StatusMessage } from "@/constants/communities/types";
 import { useMapStore } from "@/store";
 import { useTranslation } from "@/i18n";
+import { RASTER_TILE_PRELOAD } from "@/constants/navigation/rasterTiles";
 
 function isLayerQueryable(rawXml: string, layerIdentifier: string): boolean {
     const doc = new DOMParser().parseFromString(rawXml, "text/xml");
@@ -41,6 +42,7 @@ function useGetWMTSLayer(geoservice: CommunityGeoservice) {
         const wmtsLayer: TileLayer = new TileLayer({
             source: undefined,
             visible: false,
+            preload: RASTER_TILE_PRELOAD,
             properties: { loading: true },
         });
 
