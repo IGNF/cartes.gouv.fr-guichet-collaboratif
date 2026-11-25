@@ -12,12 +12,14 @@ import {
     FEATURE_TYPE_FINGERPRINT_COLUMN,
     FEATURE_TYPE_NEW_PROPERTY,
     FEATURE_TYPE_PENDING_FORM_PROPERTY,
+    FEATURE_TYPE_EDITING_PROPERTY,
     FEATURE_TYPE_SELECTED_PROPERTY,
     POINTER_HIT_DETECTION_TOLERENCE,
 } from "@/constants";
 import {
     addFeatureProperties,
     addInteractionToMap,
+    getEditedFeature,
     isPointOnSegment,
     removeInteractionFromMap,
     restoreFeature,
@@ -248,8 +250,8 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             setIsModifying(false);
             const shouldKeepSelectDisabled =
                 clickedControl?.interaction === InteractionType.MODIFY || clickedControl?.interaction === InteractionType.TRANSLATE_OBJECT;
-            const features = e.features.getArray();
-            const feat = features[0];
+            const features = e.features.getArray() as Feature[];
+            const feat = features[0] ? getEditedFeature(features[0]) : undefined;
             if (!feat || !initialFeat) {
                 initialFeat = null;
                 if (!shouldKeepSelectDisabled) {
@@ -305,13 +307,14 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
     const handleModifyInteractionStart = useCallback(
         (e: ModifyEvent) => {
             setIsModifying(true);
-            const features = e.features.getArray();
-            const feat = features[0];
+            const features = e.features.getArray() as Feature[];
+            const feat = features[0] ? getEditedFeature(features[0]) : undefined;
             if (!feat) {
                 setIsModifying(false);
                 return;
             }
             initialFeat = feat.clone();
+            initialFeat.unset(FEATURE_TYPE_EDITING_PROPERTY);
 
             if (clickedControl?.interaction === InteractionType.TRANSLATE_OBJECT) {
                 const dragPan = map
@@ -386,6 +389,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             const geometryNameColumn = geoservice?.columns.find((col) => col.name === geoservice.geometryName);
 
             const pastedFeature = clipboardFeature.clone();
+            pastedFeature.unset(FEATURE_TYPE_EDITING_PROPERTY);
 
             const geometry = pastedFeature.getGeometry() as SimpleGeometry | undefined;
             if (geometry) {

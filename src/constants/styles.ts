@@ -16,6 +16,8 @@ import {
 import { GeometryFeatueParams } from "./reports/types";
 import { Map } from "ol";
 import { FeatureLike } from "ol/Feature";
+import { flatStylesToStyleFunction } from "ol/render/canvas/style";
+import { StyleFunction } from "ol/style/Style";
 import {
     CommunityGeoservice,
     FeatureTypeCondition,
@@ -32,7 +34,7 @@ import { FlatStyle } from "ol/style/flat";
 import chevronImg from "@/img/chevron.png";
 import { getRawWellKnownNames } from "./wellKnownNames";
 import { symbolComparator } from "./mongo_parser";
-import { DEFAULT_STYLE_NAME, FEATURE_TYPE_SELECTED_PROPERTY } from ".";
+import { DEFAULT_STYLE_NAME, FEATURE_TYPE_EDITING_PROPERTY, FEATURE_TYPE_SELECTED_PROPERTY } from ".";
 import { isDateFormat } from "./communities/utils";
 
 export const clusterReportCircleStyle = (coord: Coordinate) =>
@@ -749,7 +751,7 @@ export const getWebGLStyle = (geoservice: CommunityGeoservice, selectedStyle?: F
     const newStyle = layerStyle ? layerStyle.selectedStyle : geoservice.styles[0];
     const newTypes = newStyle.types;
     const filterStyleByCondition = getFilterStyleByCondition(newTypes!);
-    const isDefault = newStyle.name === DEFAULT_STYLE_NAME;
+    const isDefault = isDefaultLayerStyle(geoservice, selectedStyle);
 
     let filterSelected = [
         {
@@ -776,15 +778,46 @@ export const getWebGLStyle = (geoservice: CommunityGeoservice, selectedStyle?: F
         ];
     }
 
-    return [
+    const rules = [
         ...filterStyleByCondition,
         {
             else: true,
-            filter: ["!=", ["get", FEATURE_TYPE_SELECTED_PROPERTY], 1],
+            filter: ["!=", ["get", FEATURE_TYPE_SELECTED_PROPERTY], 1] as WebGLFilterType,
             style: getStyleWebGLDefault(newTypes![0]),
         },
         ...filterSelected,
     ];
+    const notEditing: WebGLFilterType = ["!=", ["get", FEATURE_TYPE_EDITING_PROPERTY], 1];
+    return rules.map((rule) => ({ ...rule, filter: ["all", notEditing, rule.filter] as WebGLFilterType }));
+};
+
+export const isDefaultLayerStyle = (geoservice: CommunityGeoservice | undefined, selectedStyle?: FeatureTypeSelectedStyle[]) => {
+    const layerStyle = selectedStyle?.find((type) => type.layer === geoservice?.layer)?.selectedStyle ?? geoservice?.styles?.[0];
+    return !layerStyle || layerStyle.name === DEFAULT_STYLE_NAME;
+};
+
+// Copy selcted style while editing feature's geometry
+export const getEditingOverlayStyle = (isDefault: boolean): StyleFunction => {
+    const pointFlatStyles = [getStyleWebGLPoint(isDefault)].flat().map((style) => ({ ...style, "z-index": undefined }));
+    const pointStyle = flatStylesToStyleFunction(pointFlatStyles);
+    const lineStyle = flatStylesToStyleFunction(getStyleWebGLLine(isDefault));
+    const polygonStyle = flatStylesToStyleFunction(getStyleWebGLPolygon(isDefault));
+
+    return (feature, resolution) => {
+        switch (feature.getGeometry()?.getType()) {
+            case "Point":
+            case "MultiPoint":
+                return pointStyle(feature, resolution);
+            case "LineString":
+            case "MultiLineString":
+                return [...((lineStyle(feature, resolution) as Style[] | undefined) ?? []), editingVertexStyle];
+            case "Polygon":
+            case "MultiPolygon":
+                return [...((polygonStyle(feature, resolution) as Style[] | undefined) ?? []), editingVertexStyle];
+            default:
+                return undefined;
+        }
+    };
 };
 
 export const getDirectionStyles = (feature: FeatureLike, directionField: DirectionField, resolution: number = 1): Style[] => {
