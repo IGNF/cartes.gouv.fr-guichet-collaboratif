@@ -174,8 +174,7 @@ const useCustomControlsList = (t: TranslationFunction<"CustomControls", Componen
                     selectedObjects.length !== 2,
                 enabled:
                     (!!communityEditableLayers?.length &&
-                        //Disable this test as it's not in the api right now
-                        // !!community?.functionalities?.includes(CommunityLayerFunctionalityType.MERGE) &&
+                        !!community?.functionalities?.includes(CommunityLayerFunctionalityType.FUSION) &&
                         currentCommunityLayer?.geoservice.featureType == GeoserviceFeatureTypeProp.LINE) ||
                     currentCommunityLayer?.geoservice.featureType == GeoserviceFeatureTypeProp.POLYGON,
                 interaction: InteractionType.MERGE_OBJECTS,

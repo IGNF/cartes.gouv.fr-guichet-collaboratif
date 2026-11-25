@@ -43,7 +43,7 @@ const CenterReportControl = () => {
 
         if (!isFeatureVisible) {
             if (!isNotified) {
-                addAlertMessage(StatusMessage.info, <CenterMessage onClick={handleCenterToReport} />);
+                addAlertMessage(StatusMessage.info, <CenterMessage onClick={handleCenterToReport} />, 10e6);
             }
         } else {
             if (isNotified) {

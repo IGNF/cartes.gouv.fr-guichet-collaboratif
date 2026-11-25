@@ -16,6 +16,7 @@ export type ComponentKey =
     | import("../components/Layout/locale/AppHeader.locale").I18n
     | import("../components/Layout/Header/locale/HeaderMenus.locale").I18n
     | import("../components/Layout/MapCommunity/locale/BetaBadge.locale").I18n
+    | import("../components/Layout/MapCommunity/locale/FeedbackLink.locale").I18n
     | import("../components/Layout/MapCommunity/locale/CommunityTitle.locale").I18n
     | import("../components/Layout/MapCommunity/locale/CommunityToolbar.locale").I18n
     | import("../components/locale/DrawerComponent.locale").I18n
@@ -59,6 +60,7 @@ export type ComponentKey =
     | import("../features/reports/locale/ReportDrawer.locale").I18n
     | import("../features/reports/locale/ConfirmDeleteShareReportModal.locale").I18n
     | import("../features/reports/locale/ReportTracking.locale").I18n
+    | import("../features/reports/table/locale/SelectionExportModal.locale").I18n
     | import("../features/working-layer/forms/locale/ShowFeatureTypeForm.locale").I18n
     | import("../features/working-layer/forms/locale/EditFeatureTypeForm.locale").I18n
     | import("../features/working-layer/forms/locale/FeatureTypeFormActions.locale").I18n

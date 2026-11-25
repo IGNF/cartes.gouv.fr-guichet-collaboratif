@@ -7,6 +7,7 @@ import { useReportStore, useModalStore, useMapStore, useLocalStorageStore, useUs
 import { useCommunityStore } from "@/store/useCommunityStore";
 import { handleShowOnMap, STATUS_NOT_ALLOWED } from "@/constants/utils";
 import { REPORT_TABLE_LIMIT_OPTIONS, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
+import { downloadReportExport, ReportExportFormat, toCSV, toGeoJSON } from "@/constants/reports/utils/exportReports";
 import GetReportsLayer from "@/features/navigation/layers/GetReportsLayer";
 import { StatusMessage } from "@/constants/communities/types";
 import { applyFiltersToReports, getReportIdFromSearch } from "@/constants/reports/utils/reportFilters";
@@ -21,6 +22,7 @@ import PaginationReport from "./PaginationReport";
 import ConfirmDeleteReportModal from "../forms/ConfirmDeleteReportModal";
 import CreateTableData from "./CreateTableData";
 import { CommunityRole } from "@/constants/user/types";
+import SelectionExportModal from "./SelectionExportModal";
 
 type FilterHeaderKey =
     | "x"
@@ -76,7 +78,7 @@ const TableReport = () => {
     const canDelete = user?.administrator || role === CommunityRole.ADMIN;
 
     const selectedLineCount = getSelectedLineCount();
-    const { replyReportModal, deleteReportModal } = useModalStore();
+    const { replyReportModal, deleteReportModal, selectionExportModal } = useModalStore();
 
     const filters = useMemo(
         () => ({
@@ -198,98 +200,92 @@ const TableReport = () => {
         label,
     }));
 
-    const onDownloadCsv = useCallback(async () => {
-        if (!community) return;
-        try {
-            setIsPreparingExport(true);
-            const selectedIds = new Set(
-                Object.entries(isChecked)
-                    .filter(([, checked]) => checked)
-                    .map(([id]) => Number(id))
-            );
+    const onExport = useCallback(
+        async (format: ReportExportFormat) => {
+            if (!community) return;
+            try {
+                setIsPreparingExport(true);
+                const selectedIds = new Set(
+                    Object.entries(isChecked)
+                        .filter(([, checked]) => checked)
+                        .map(([id]) => Number(id))
+                );
 
-            let reportsToExport: CommunityReport[] = [];
+                let reportsToExport: CommunityReport[] = [];
 
-            if (selectedIds.size > 0) {
-                const selectedIdList = Array.from(selectedIds);
-                const reportById = new Map<number, CommunityReport>();
+                if (selectedIds.size > 0) {
+                    const selectedIdList = Array.from(selectedIds);
+                    const reportById = new Map<number, CommunityReport>();
 
-                const addReports = (items: CommunityReport[] | undefined) => {
-                    if (!Array.isArray(items)) return;
-                    items.forEach((report) => {
-                        if (selectedIds.has(report.id) && !reportById.has(report.id)) {
-                            reportById.set(report.id, report);
-                        }
+                    const addReports = (items: CommunityReport[] | undefined) => {
+                        if (!Array.isArray(items)) return;
+                        items.forEach((report) => {
+                            if (selectedIds.has(report.id) && !reportById.has(report.id)) {
+                                reportById.set(report.id, report);
+                            }
+                        });
+                    };
+
+                    addReports(reportsToUse);
+                    addReports(storedReports);
+
+                    const cachedQueries = queryClient.getQueriesData<{ data: CommunityReport[] }>({
+                        queryKey: ["reports", community.id],
                     });
-                };
+                    cachedQueries.forEach(([, queryData]) => addReports(queryData?.data));
 
-                addReports(reportsToUse);
-                addReports(storedReports);
+                    const missingIds = selectedIdList.filter((id) => !reportById.has(id));
+                    if (missingIds.length > 0) {
+                        const missingReports = await Promise.all(missingIds.map((id) => getCommunityReportById(id)));
+                        missingReports.forEach((report) => {
+                            if (report) reportById.set(report.id, report);
+                        });
+                    }
 
-                const cachedQueries = queryClient.getQueriesData<{ data: CommunityReport[] }>({
-                    queryKey: ["reports", community.id],
-                });
-                cachedQueries.forEach(([, queryData]) => addReports(queryData?.data));
-
-                const missingIds = selectedIdList.filter((id) => !reportById.has(id));
-                if (missingIds.length > 0) {
-                    const missingReports = await Promise.all(missingIds.map((id) => getCommunityReportById(id)));
-                    missingReports.forEach((report) => {
-                        if (report) reportById.set(report.id, report);
-                    });
+                    reportsToExport = selectedIdList.map((id) => reportById.get(id)).filter((report): report is CommunityReport => !!report);
+                } else {
+                    const allReportsForExport = applyFiltersToReports(
+                        await getAllReportsForExport(community.id, filters, searchReport, sortBy),
+                        currentFilters,
+                        searchReport
+                    );
+                    reportsToExport = allReportsForExport;
                 }
 
-                reportsToExport = selectedIdList.map((id) => reportById.get(id)).filter((report): report is CommunityReport => !!report);
-            } else {
-                const allReportsForExport = applyFiltersToReports(
-                    await getAllReportsForExport(community.id, filters, searchReport, sortBy),
-                    currentFilters,
-                    searchReport
-                );
-                reportsToExport = allReportsForExport;
+                if (reportsToExport.length === 0) return;
+
+                const content =
+                    format === "csv"
+                        ? toCSV(
+                              CreateTableData(reportsToExport, isChecked, onCheckChange, onShowReportOnMap, onShowOnMap).map((line) => line.exportData),
+                              tableHeader
+                          )
+                        : toGeoJSON(reportsToExport);
+                downloadReportExport(content, format);
+            } catch {
+                addAlertMessage(StatusMessage.error, t("error"), 3000);
+            } finally {
+                setIsPreparingExport(false);
             }
-
-            if (reportsToExport.length === 0) return;
-
-            const downloadedTable = CreateTableData(reportsToExport, isChecked, onCheckChange, onShowReportOnMap, onShowOnMap).map((line) => line.exportData);
-
-            const escapeCsvValue = (value: unknown) => `"${String(value ?? "").replace(/"/g, '""')}"`;
-            const csv = [
-                tableHeader.map((h) => escapeCsvValue(h.label)).join(";"),
-                ...downloadedTable.map((line) => tableHeader.map((h) => escapeCsvValue(line[h.key])).join(";")),
-            ].join("\n");
-
-            const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8;" });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.href = url;
-            link.setAttribute("download", "export-reports.csv");
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-        } catch {
-            addAlertMessage(StatusMessage.error, t("error"), 3000);
-        } finally {
-            setIsPreparingExport(false);
-        }
-    }, [
-        community,
-        filters,
-        searchReport,
-        sortBy,
-        isChecked,
-        onCheckChange,
-        onShowReportOnMap,
-        onShowOnMap,
-        tableHeader,
-        addAlertMessage,
-        t,
-        reportsToUse,
-        currentFilters,
-        storedReports,
-        queryClient,
-    ]);
+        },
+        [
+            community,
+            filters,
+            searchReport,
+            sortBy,
+            isChecked,
+            onCheckChange,
+            onShowReportOnMap,
+            onShowOnMap,
+            tableHeader,
+            addAlertMessage,
+            t,
+            reportsToUse,
+            currentFilters,
+            storedReports,
+            queryClient,
+        ]
+    );
 
     const sortByStatus = () => {
         setSortOrder((prev) => {
@@ -329,7 +325,7 @@ const TableReport = () => {
                                 title={t("export_button")}
                                 priority="secondary"
                                 disabled={isPreparingExport}
-                                onClick={onDownloadCsv}
+                                nativeButtonProps={selectionExportModal.buttonProps}
                             />
                             {canDelete && (
                                 <Button
@@ -415,6 +411,7 @@ const TableReport = () => {
                 <div>{t("no_result")}</div>
             )}
             <ConfirmDeleteReportModal />
+            <SelectionExportModal onExport={onExport} />
         </>
     );
 };

@@ -2,6 +2,7 @@ import type { Translations } from "../types";
 import { AppHeaderEnTranslations } from "@/components/Layout/locale/AppHeader.locale";
 import { HeaderMenusEnTranslations } from "@/components/Layout/Header/locale/HeaderMenus.locale";
 import { BetaBadgeEnTranslations } from "@/components/Layout/MapCommunity/locale/BetaBadge.locale";
+import { FeedbackLinkEnTranslations } from "@/components/Layout/MapCommunity/locale/FeedbackLink.locale";
 import { CommunityTitleEnTranslations } from "@/components/Layout/MapCommunity/locale/CommunityTitle.locale";
 import { CommunityToolbarEnTranslations } from "@/components/Layout/MapCommunity/locale/CommunityToolbar.locale";
 import { AppFooterEnTranslations } from "@/components/Layout/locale/AppFooter.locale";
@@ -71,12 +72,14 @@ import { SearchTableEnTranslations } from "@/features/working-layer/modal/search
 import { SearchObjectsModalEnTranslations } from "@/features/working-layer/modal/searchObjects/locale/SearchObjectsModal.locale";
 import { GroupComponentEnTranslations } from "@/features/working-layer/modal/searchObjects/locale/GroupComponent.locale";
 import { ConfirmDeleteObjectModalEnTranslations } from "@/features/working-layer/modal/searchObjects/locale/ConfirmDeleteObjectModal.locale";
+import { SelectionExportModalEnTranslations } from "@/features/reports/table/locale/SelectionExportModal.locale";
 
 export const translations: Translations<"en"> = {
     AppFooter: AppFooterEnTranslations,
     AppHeader: AppHeaderEnTranslations,
     HeaderMenus: HeaderMenusEnTranslations,
     BetaBadge: BetaBadgeEnTranslations,
+    FeedbackLink: FeedbackLinkEnTranslations,
     CommunityTitle: CommunityTitleEnTranslations,
     CommunityToolbar: CommunityToolbarEnTranslations,
     DrawerComponent: DrawerComponentEnTranslations,
@@ -145,4 +148,5 @@ export const translations: Translations<"en"> = {
     SearchObjectsModal: SearchObjectsModalEnTranslations,
     GroupComponent: GroupComponentEnTranslations,
     ConfirmDeleteObjectModal: ConfirmDeleteObjectModalEnTranslations,
+    SelectionExportModal: SelectionExportModalEnTranslations,
 };
