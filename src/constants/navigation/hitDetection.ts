@@ -54,8 +54,8 @@ const hasFeatureNearby = (map: Map, layerFilter: (layer: Layer) => boolean, coor
     });
 };
 
-/* Finds the nearest rendered feature within `tolerance` pixels by probing outward;
-    ties are resolved by geometric distance to the pointer. */
+// Finds the nearest rendered feature within `tolerance` pixels by probing outward;
+// ties are resolved by geometric distance to the pointer.
 export const getNearestFeatureAtPixel = (
     map: Map | null | undefined,
     pixel: Pixel,
@@ -95,4 +95,26 @@ export const getNearestFeatureAtPixel = (
         }
     }
     return { feature: nearest.feature, layer: nearest.layer, pixel: nearest.pixel };
+};
+
+export const getClosestSourceFeature = (
+    map: Map | null | undefined,
+    source: VectorSource | null | undefined,
+    coordinate: Coordinate,
+    tolerance: number = POINTER_HIT_DETECTION_TOLERENCE
+): Feature | undefined => {
+    const resolution = map?.getView().getResolution();
+    if (!source || !resolution) return;
+
+    let closest: Feature | undefined;
+    let closestDistance = tolerance;
+    const extent = buffer(createOrUpdateFromCoordinate(coordinate), resolution * tolerance);
+    source.forEachFeatureInExtent(extent, (feature) => {
+        const distance = getGeometryPixelDistance(feature, coordinate, resolution);
+        if (distance <= closestDistance) {
+            closest = feature;
+            closestDistance = distance;
+        }
+    });
+    return closest;
 };

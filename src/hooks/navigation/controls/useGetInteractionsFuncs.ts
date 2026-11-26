@@ -19,20 +19,19 @@ import {
     addFeatureProperties,
     addInteractionToMap,
     getEditedFeature,
-    isPointOnSegment,
     removeInteractionFromMap,
     restoreFeature,
     setFeatNewCoords,
 } from "@/constants/contributions/utils";
 import { mergeFeatureGeometries } from "@/constants/contributions/utils/mergeFeatures";
 import { GeometryFeatueParams } from "@/constants/reports/types";
-import { Coordinate } from "ol/coordinate";
+import { Coordinate, closestOnSegment, squaredDistance } from "ol/coordinate";
 import BaseEvent from "ol/events/Event";
 import { useCommunityStore, useContributionStore, useMapStore, useModalStore } from "@/store";
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import { CustomControlItem, GeoserviceFeatureTypeProp, InteractionType, StatusMessage } from "@/constants/communities/types";
+import { CommunityLayerRoleType, CustomControlItem, GeoserviceFeatureTypeProp, InteractionType, StatusMessage } from "@/constants/communities/types";
 import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
-import { getNearestFeatureAtPixel } from "@/constants/navigation/hitDetection";
+import { getClosestSourceFeature, getNearestFeatureAtPixel } from "@/constants/navigation/hitDetection";
 import { LineString, SimpleGeometry } from "ol/geom";
 import { FeatureTypeMode } from "@/constants/contributions/types";
 import { useTranslation } from "@/i18n";
@@ -177,13 +176,26 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
         const didWorkingLayerChange = previousWorkingLayer !== mapWorkingLayer;
         previousWorkingLayerRef.current = mapWorkingLayer;
 
-        if (!didWorkingLayerChange || clickedControl?.interaction !== InteractionType.ADD_OBJECT) return;
+        if (!didWorkingLayerChange) return;
 
-        if (map) {
-            removeInteractionFromMap(InteractionType.ADD_OBJECT, map);
+        const activeInteraction = clickedControl?.interaction;
+        const isSplitUnavailable =
+            activeInteraction === InteractionType.SPLIT_LINE &&
+            (mapWorkingLayer === REPORTS_LAYER_TYPE ||
+                currentCommunityLayer?.role === CommunityLayerRoleType.VISU ||
+                currentCommunityLayer?.geoservice.featureType !== GeoserviceFeatureTypeProp.LINE);
+
+        if (activeInteraction !== InteractionType.ADD_OBJECT && !isSplitUnavailable) return;
+
+        if (isSplitUnavailable) {
+            lastPointedFeat?.unset(FEATURE_TYPE_SELECTED_PROPERTY);
+            lastPointedFeat = null;
+        }
+        if (map && activeInteraction) {
+            removeInteractionFromMap(activeInteraction, map);
         }
         setClickedControl(null);
-    }, [mapWorkingLayer, clickedControl, map, setClickedControl]);
+    }, [mapWorkingLayer, clickedControl, currentCommunityLayer, map, setClickedControl]);
 
     const handleSelectInteraction = useCallback(
         (e: SelectEvent) => {
@@ -652,7 +664,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
 
     const handleSplitLineInteractionPointer = useCallback(
         (e: MapBrowserEvent) => {
-            const pointedFeat = getNearestFeatureAtPixel(map, e.pixel, (layer) => layer.get("name") === mapWorkingLayer)?.feature;
+            const pointedFeat = getClosestSourceFeature(map, clickableSource, e.coordinate);
 
             if (pointedFeat) {
                 if (pointedFeat !== lastPointedFeat) {
@@ -665,12 +677,12 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                 lastPointedFeat = null;
             }
         },
-        [map, mapWorkingLayer]
+        [map, clickableSource]
     );
 
     const handleSplitLineInteractionEnd = useCallback(
         (e: MapBrowserEvent) => {
-            const originalFeat = getNearestFeatureAtPixel(map, e.pixel, (layer) => layer.get("name") === mapWorkingLayer)?.feature;
+            const originalFeat = getClosestSourceFeature(map, clickableSource, e.coordinate);
 
             if (originalFeat) {
                 const initialFeat = originalFeat.clone();
@@ -680,16 +692,16 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
 
                 const originalFeatGeometryCoords = originalFeatGeometry?.getCoordinates() as Coordinate[];
                 if (!originalFeatGeometryCoords) return;
-
-                const newCoords = originalFeatGeometry?.getClosestPoint(e.coordinate) as Coordinate;
-
                 let splitIntex = 0;
-                for (let i = 0; i < originalFeatGeometryCoords.length; i++) {
-                    const start = originalFeatGeometryCoords[i] as Coordinate;
-                    const end = originalFeatGeometryCoords[i + 1] as Coordinate;
-                    if (isPointOnSegment(start, end, newCoords)) {
+                let newCoords = originalFeatGeometryCoords[0];
+                let minSquaredDistance = Infinity;
+                for (let i = 0; i < originalFeatGeometryCoords.length - 1; i++) {
+                    const closest = closestOnSegment(e.coordinate, [originalFeatGeometryCoords[i], originalFeatGeometryCoords[i + 1]]);
+                    const distance = squaredDistance(e.coordinate, closest);
+                    if (distance < minSquaredDistance) {
+                        minSquaredDistance = distance;
                         splitIntex = i;
-                        break;
+                        newCoords = closest;
                     }
                 }
 

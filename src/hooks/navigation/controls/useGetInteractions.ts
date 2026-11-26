@@ -1,6 +1,6 @@
 import { useCommunityStore, useMapStore } from "@/store";
 import { editingGeometryStyle, getEditingOverlayStyle, isDefaultLayerStyle } from "@/constants/styles";
-import { EDITING_ORIGINAL_FEATURE_PROPERTY, FEATURE_TYPE_EDITING_PROPERTY } from "@/constants";
+import { EDITING_ORIGINAL_FEATURE_PROPERTY, FEATURE_TYPE_EDITING_PROPERTY, POINTER_HIT_DETECTION_TOLERENCE } from "@/constants";
 import { getEditedFeature } from "@/constants/contributions/utils";
 import { InteractionType } from "@/constants/communities/types";
 import { getNearestFeatureAtPixel } from "@/constants/navigation/hitDetection";
@@ -202,9 +202,9 @@ const useGetInteractions = () => {
 
     const splitInteraction = useMemo(() => {
         const split = new Modify({
-            features: new Collection(clickableSource?.getFeatures() ?? []),
+            ...(clickableSource ? { source: clickableSource } : { features: new Collection<Feature>() }),
             condition: click,
-            pixelTolerance: 10,
+            pixelTolerance: POINTER_HIT_DETECTION_TOLERENCE,
         });
         split.set("disablesTooltip", true);
         return split;
