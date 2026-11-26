@@ -2,7 +2,7 @@ import { useIsDark } from "@codegouvfr/react-dsfr/useIsDark";
 
 import { memo } from "react";
 
-import { BASE_URL } from "@/constants/urls";
+import { COLLABORATIVE_URL } from "@/constants/urls";
 
 import { useTranslation } from "@/i18n";
 import { HeaderMenuConnexion, HeaderMenuHelp, HeaderMenuServices } from "@/components/Layout/Header/HeaderMenus";
@@ -30,7 +30,7 @@ const AppHeader: React.FC = () => {
                                     </div>
                                     {/* Logo opérateur */}
                                     <div className="fr-header__operator">
-                                        <a href={BASE_URL}>
+                                        <a href={COLLABORATIVE_URL}>
                                             <img
                                                 className="fr-responsive-img"
                                                 src={
@@ -45,7 +45,7 @@ const AppHeader: React.FC = () => {
                                 </div>
                                 <div className="fr-header__service">
                                     <p className="fr-header__service-title">
-                                        <a href={BASE_URL} title={t("home_service")}>
+                                        <a href={COLLABORATIVE_URL} title={t("home_service")}>
                                             cartes.gouv.fr
                                         </a>
                                         <span className="fr-badge fr-badge--sm fr-icon-message-2-fill fr-badge--icon-left fr-badge--green-bourgeon">
