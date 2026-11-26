@@ -14,7 +14,6 @@ import {
     FEATURE_TYPE_PENDING_FORM_PROPERTY,
     FEATURE_TYPE_EDITING_PROPERTY,
     FEATURE_TYPE_SELECTED_PROPERTY,
-    POINTER_HIT_DETECTION_TOLERENCE,
 } from "@/constants";
 import {
     addFeatureProperties,
@@ -33,6 +32,7 @@ import { useCommunityStore, useContributionStore, useMapStore, useModalStore } f
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { CustomControlItem, GeoserviceFeatureTypeProp, InteractionType, StatusMessage } from "@/constants/communities/types";
 import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
+import { getNearestFeatureAtPixel } from "@/constants/navigation/hitDetection";
 import { LineString, SimpleGeometry } from "ol/geom";
 import { FeatureTypeMode } from "@/constants/contributions/types";
 import { useTranslation } from "@/i18n";
@@ -507,12 +507,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
 
             const networkLayerNames = shortestPathNetworkLayerNames.length > 0 ? shortestPathNetworkLayerNames : [mapWorkingLayer];
 
-            const featuresAtPixel = map.getFeaturesAtPixel(e.pixel, {
-                layerFilter: (layer) => networkLayerNames.includes(layer.get("name")),
-                hitTolerance: POINTER_HIT_DETECTION_TOLERENCE,
-            });
-
-            const targetFeature = (featuresAtPixel?.[0] as Feature | undefined) ?? null;
+            const targetFeature = getNearestFeatureAtPixel(map, e.pixel, (layer) => networkLayerNames.includes(layer.get("name")))?.feature ?? null;
             if (!targetFeature) return;
 
             if (!shortestPathStartRef.current) {
@@ -657,13 +652,9 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
 
     const handleSplitLineInteractionPointer = useCallback(
         (e: MapBrowserEvent) => {
-            const features = map?.getFeaturesAtPixel(e.pixel, {
-                layerFilter: (layer) => layer.get("name") === mapWorkingLayer,
-                hitTolerance: POINTER_HIT_DETECTION_TOLERENCE,
-            });
+            const pointedFeat = getNearestFeatureAtPixel(map, e.pixel, (layer) => layer.get("name") === mapWorkingLayer)?.feature;
 
-            if (features?.length) {
-                const pointedFeat = features[0] as Feature;
+            if (pointedFeat) {
                 if (pointedFeat !== lastPointedFeat) {
                     lastPointedFeat?.unset(FEATURE_TYPE_SELECTED_PROPERTY);
                     pointedFeat?.set(FEATURE_TYPE_SELECTED_PROPERTY, true);
@@ -679,13 +670,9 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
 
     const handleSplitLineInteractionEnd = useCallback(
         (e: MapBrowserEvent) => {
-            const features = map?.getFeaturesAtPixel(e.pixel, {
-                layerFilter: (layer) => layer.get("name") === mapWorkingLayer,
-                hitTolerance: 1,
-            });
+            const originalFeat = getNearestFeatureAtPixel(map, e.pixel, (layer) => layer.get("name") === mapWorkingLayer)?.feature;
 
-            if (features?.length) {
-                const originalFeat = features[0] as Feature;
+            if (originalFeat) {
                 const initialFeat = originalFeat.clone();
                 const originalFeatGeometry = originalFeat.getGeometry() as GeometryFeatueParams;
                 const createdFeat = originalFeat.clone();

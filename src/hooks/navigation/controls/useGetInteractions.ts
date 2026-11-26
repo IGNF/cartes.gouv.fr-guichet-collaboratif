@@ -3,6 +3,7 @@ import { editingGeometryStyle, getEditingOverlayStyle, isDefaultLayerStyle } fro
 import { EDITING_ORIGINAL_FEATURE_PROPERTY, FEATURE_TYPE_EDITING_PROPERTY } from "@/constants";
 import { getEditedFeature } from "@/constants/contributions/utils";
 import { InteractionType } from "@/constants/communities/types";
+import { getNearestFeatureAtPixel } from "@/constants/navigation/hitDetection";
 import { Collection, Feature } from "ol";
 import { platformModifierKeyOnly, click, shiftKeyOnly } from "ol/events/condition";
 import { Draw, Modify, Select, Snap, Translate, DragBox } from "ol/interaction";
@@ -51,7 +52,12 @@ const useGetInteractions = () => {
     const selectInteraction = useMemo(
         () =>
             new Select({
-                condition: click,
+                condition: (evt) => {
+                    if (!click(evt)) return false;
+                    const hit = getNearestFeatureAtPixel(evt.map, evt.pixel, (layer) => layer.getSource() === clickableSource);
+                    if (hit) evt.pixel = hit.pixel;
+                    return true;
+                },
                 toggleCondition: platformModifierKeyOnly,
                 addCondition: platformModifierKeyOnly,
                 removeCondition: platformModifierKeyOnly,

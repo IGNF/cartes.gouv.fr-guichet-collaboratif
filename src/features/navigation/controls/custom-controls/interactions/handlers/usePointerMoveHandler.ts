@@ -4,6 +4,7 @@ import VectorSource from "ol/source/Vector";
 import { HIT_DETECTION_TOLERENCE, FEATURE_TYPE_HOVER_PROPERTY, FEATURE_TYPE_DATA_PROPERTY } from "@/constants";
 import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import { CommunityGeoservice, InteractionType } from "@/constants/communities/types";
+import { getNearestFeatureAtPixel } from "@/constants/navigation/hitDetection";
 import { useMapStore } from "@/store";
 
 interface UsePointerMoveHandlerProps {
@@ -63,6 +64,13 @@ export const usePointerMoveHandler = (props: UsePointerMoveHandlerProps) => {
                 const shortestPathNetworkLayerNames = shortestPathNetwork.map((gs) => gs.layer);
                 const isShortestPath = clickedControl?.interaction === InteractionType.SHORTEST_PATH && shortestPathNetworkLayerNames.length > 0;
 
+                if (mapWorkingLayer !== REPORTS_LAYER_TYPE) {
+                    const hit = getNearestFeatureAtPixel(map, evt.pixel, (layer) =>
+                        isShortestPath ? shortestPathNetworkLayerNames.includes(layer.get("name")) : layer.getSource() === clickableSource
+                    );
+                    return hit && { feature: hit.feature, layerName: hit.layer.get("name") ?? "" };
+                }
+
                 let result: { feature: Feature; layerName: string } | undefined;
                 map?.forEachFeatureAtPixel(
                     evt.pixel,
@@ -70,31 +78,17 @@ export const usePointerMoveHandler = (props: UsePointerMoveHandlerProps) => {
                         //Stop after first match
                         if (result) return true;
                         const layerName: string = layer?.get("name") ?? "";
-                        if (mapWorkingLayer === REPORTS_LAYER_TYPE) {
-                            const fCluster = f.get("features");
-                            if (fCluster?.length > 1) {
-                                return false;
-                            } else {
-                                const inner = fCluster?.find((fc: Feature) => fc.get("reportData") || fc.get("new"));
-                                if (inner) result = { feature: inner as Feature, layerName };
-                            }
-                            return !!result;
+                        const fCluster = f.get("features");
+                        if (fCluster?.length > 1) {
+                            return false;
+                        } else {
+                            const inner = fCluster?.find((fc: Feature) => fc.get("reportData") || fc.get("new"));
+                            if (inner) result = { feature: inner as Feature, layerName };
                         }
-                        if (isShortestPath) {
-                            result = { feature: f as Feature, layerName };
-                            return true;
-                        }
-                        if (clickableSource?.hasFeature(f as Feature)) {
-                            result = { feature: f as Feature, layerName };
-                            return true;
-                        }
-                        return false;
+                        return !!result;
                     },
                     {
-                        layerFilter: (layer) => {
-                            if (isShortestPath) return shortestPathNetworkLayerNames.includes(layer.get("name"));
-                            return layer.get("name") === mapWorkingLayer || layer.get("type") === mapWorkingLayer;
-                        },
+                        layerFilter: (layer) => layer.get("name") === mapWorkingLayer || layer.get("type") === mapWorkingLayer,
                         hitTolerance: HIT_DETECTION_TOLERENCE,
                     }
                 );
@@ -141,13 +135,10 @@ export const usePointerMoveHandler = (props: UsePointerMoveHandlerProps) => {
             }
 
             if (hoveredFeatureRef.current !== hoveredFeature) {
-                if (hoveredFeatureRef.current) {
-                    hoveredFeatureRef.current.unset(FEATURE_TYPE_HOVER_PROPERTY);
-                    hoveredFeatureRef.current.changed();
-                }
-
-                hoveredFeature.set(FEATURE_TYPE_HOVER_PROPERTY, true);
-                hoveredFeature.changed();
+                // Silent: no style reads the hover flag, and a change event makes the WebGL layer rebuild all its buffers,
+                // which delays the redraw of a click that follows the hover
+                hoveredFeatureRef.current?.unset(FEATURE_TYPE_HOVER_PROPERTY, true);
+                hoveredFeature.set(FEATURE_TYPE_HOVER_PROPERTY, true, true);
                 hoveredFeatureRef.current = hoveredFeature;
 
                 if (tooltipRef.current) {
