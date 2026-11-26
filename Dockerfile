@@ -18,7 +18,7 @@ RUN npm ci \
 #----------------------------------------------------------------------
 # cartesgouvfr-guichet-collaboratif : Config d'un serveur statique avec nginx
 #----------------------------------------------------------------------
-FROM nginx/nginx-unprivileged:alpine3.24-perl@sha256:d3411ed56e3a0ecfdc485e584e6c8365d60ce95950e4e8cfc9c26b90e02f116f
+FROM nginx/nginx-unprivileged:alpine3.24-perl@sha256:98e51d5935e552893f5cb51da14020471b94d85b950daee7ab99c4661455a655
 COPY --from=builder /app/dist /usr/share/nginx/html/
 COPY nginx.conf /etc/nginx/nginx.conf
 # Génère /tmp/env.js au démarrage à partir des variables APP_* (voir docker/40-env-js.sh)
