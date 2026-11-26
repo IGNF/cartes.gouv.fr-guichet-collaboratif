@@ -52,6 +52,11 @@ dialog[id^="GPlayersList"] > .GPpanelBody {
     height: 6.5rem !important;
 }
 
+.GPlayerSwitcher_layer .GPlayerBasicTools,
+.GPlayerSwitcher_layer .GPbasicToolButtons {
+    flex-direction: row;
+}
+
 .map-overlay-slot {
     display: contents;
     pointer-events: auto;

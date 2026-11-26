@@ -50,7 +50,28 @@ const layerSwitcherControl = (layers: MapLayer[], symbologyLabel: string): Layer
         },
     });
 
+    orderLayerRowForTabulation(switcher);
+
     return switcher;
+};
+
+type LayerRowBuilder = (obj: unknown, tooltips: boolean) => HTMLElement;
+
+const reverseChildren = (element: Element | null) => element?.append(...Array.from(element.children).reverse());
+
+/**
+    geopf uses row reverse order for layer rows, we fix tab order here 
+ */
+const orderLayerRowForTabulation = (switcher: LayerSwitcher) => {
+    const target = switcher as unknown as { _createBasicToolElement: LayerRowBuilder };
+    const createBasicToolElement = target._createBasicToolElement;
+
+    target._createBasicToolElement = function (this: unknown, obj, tooltips) {
+        const row = createBasicToolElement.call(this, obj, tooltips);
+        reverseChildren(row.querySelector(".GPbasicToolButtons"));
+        reverseChildren(row);
+        return row;
+    };
 };
 
 export default layerSwitcherControl;
