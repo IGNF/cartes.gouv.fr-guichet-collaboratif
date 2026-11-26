@@ -124,11 +124,15 @@ export const getClosestSegment = (coordinates: Coordinate[], coordinate: Coordin
     let nearest = { index: 0, point: coordinates[0] };
     let minSquaredDistance = Infinity;
     for (let i = 0; i < coordinates.length - 1; i++) {
-        const point = closestOnSegment(coordinate, [coordinates[i], coordinates[i + 1]]);
-        const distance = squaredDistance(coordinate, point);
+        const start = coordinates[i];
+        const end = coordinates[i + 1];
+        const closest = closestOnSegment(coordinate, [start, end]);
+        const distance = squaredDistance(coordinate, closest);
         if (distance < minSquaredDistance) {
+            const squaredLength = squaredDistance(start, end);
+            const ratio = squaredLength ? Math.sqrt(squaredDistance(start, closest) / squaredLength) : 0;
             minSquaredDistance = distance;
-            nearest = { index: i, point };
+            nearest = { index: i, point: start.map((value, k) => (k < 2 ? closest[k] : value + ratio * (end[k] - value))) };
         }
     }
     return nearest;
