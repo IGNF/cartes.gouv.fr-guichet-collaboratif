@@ -1,5 +1,5 @@
 import { Feature, Map } from "ol";
-import { Coordinate } from "ol/coordinate";
+import { Coordinate, closestOnSegment, squaredDistance } from "ol/coordinate";
 import { buffer, createOrUpdateFromCoordinate } from "ol/extent";
 import Layer from "ol/layer/Layer";
 import { Pixel } from "ol/pixel";
@@ -117,4 +117,19 @@ export const getClosestSourceFeature = (
         }
     });
     return closest;
+};
+
+// Returns the segment of the line `coordinates` nearest to `coordinate`: its index and the closest point on it
+export const getClosestSegment = (coordinates: Coordinate[], coordinate: Coordinate): { index: number; point: Coordinate } => {
+    let nearest = { index: 0, point: coordinates[0] };
+    let minSquaredDistance = Infinity;
+    for (let i = 0; i < coordinates.length - 1; i++) {
+        const point = closestOnSegment(coordinate, [coordinates[i], coordinates[i + 1]]);
+        const distance = squaredDistance(coordinate, point);
+        if (distance < minSquaredDistance) {
+            minSquaredDistance = distance;
+            nearest = { index: i, point };
+        }
+    }
+    return nearest;
 };

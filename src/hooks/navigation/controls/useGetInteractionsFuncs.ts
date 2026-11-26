@@ -25,13 +25,13 @@ import {
 } from "@/constants/contributions/utils";
 import { mergeFeatureGeometries } from "@/constants/contributions/utils/mergeFeatures";
 import { GeometryFeatueParams } from "@/constants/reports/types";
-import { Coordinate, closestOnSegment, squaredDistance } from "ol/coordinate";
+import { Coordinate } from "ol/coordinate";
 import BaseEvent from "ol/events/Event";
 import { useCommunityStore, useContributionStore, useMapStore, useModalStore } from "@/store";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { CommunityLayerRoleType, CustomControlItem, GeoserviceFeatureTypeProp, InteractionType, StatusMessage } from "@/constants/communities/types";
 import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
-import { getClosestSourceFeature, getNearestFeatureAtPixel } from "@/constants/navigation/hitDetection";
+import { getClosestSegment, getClosestSourceFeature, getNearestFeatureAtPixel } from "@/constants/navigation/hitDetection";
 import { LineString, SimpleGeometry } from "ol/geom";
 import { FeatureTypeMode } from "@/constants/contributions/types";
 import { useTranslation } from "@/i18n";
@@ -692,18 +692,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
 
                 const originalFeatGeometryCoords = originalFeatGeometry?.getCoordinates() as Coordinate[];
                 if (!originalFeatGeometryCoords) return;
-                let splitIntex = 0;
-                let newCoords = originalFeatGeometryCoords[0];
-                let minSquaredDistance = Infinity;
-                for (let i = 0; i < originalFeatGeometryCoords.length - 1; i++) {
-                    const closest = closestOnSegment(e.coordinate, [originalFeatGeometryCoords[i], originalFeatGeometryCoords[i + 1]]);
-                    const distance = squaredDistance(e.coordinate, closest);
-                    if (distance < minSquaredDistance) {
-                        minSquaredDistance = distance;
-                        splitIntex = i;
-                        newCoords = closest;
-                    }
-                }
+                const { index: splitIntex, point: newCoords } = getClosestSegment(originalFeatGeometryCoords, e.coordinate);
 
                 const newCoordsOriginal = [...originalFeatGeometryCoords.slice(0, splitIntex + 1), newCoords];
                 const newCoordsCreated = [newCoords, ...originalFeatGeometryCoords.slice(splitIntex + 1)];
