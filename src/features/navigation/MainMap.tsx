@@ -47,7 +47,7 @@ export default function MainMap() {
 
     const { community, mapLayers } = useCommunityStore();
     const { localStorageData } = useLocalStorageStore();
-    const { map, mapSwitcher, setMap } = useMapStore();
+    const { map, setMap } = useMapStore();
     const { contributions, isReviewContribution, selectedObjects } = useContributionStore();
 
     const { t: tLegend } = useTranslation({ FeatureTypeLayerLegends });
@@ -150,9 +150,7 @@ export default function MainMap() {
         switcherRef.current = switcher;
 
         mapRef.current?.render();
-        if (!map && !mapSwitcher) {
-            setMap(mapRef.current, switcherRef.current);
-        }
+        setMap(mapRef.current, switcherRef.current);
     });
 
     useEffect(() => {
