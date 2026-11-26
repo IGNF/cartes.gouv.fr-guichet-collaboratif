@@ -664,7 +664,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
 
     const handleSplitLineInteractionPointer = useCallback(
         (e: MapBrowserEvent) => {
-            const pointedFeat = getClosestSourceFeature(map, clickableSource, e.coordinate);
+            const pointedFeat = getClosestSourceFeature(map, clickableLayer, e.coordinate);
 
             if (pointedFeat) {
                 if (pointedFeat !== lastPointedFeat) {
@@ -677,12 +677,12 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                 lastPointedFeat = null;
             }
         },
-        [map, clickableSource]
+        [map, clickableLayer]
     );
 
     const handleSplitLineInteractionEnd = useCallback(
         (e: MapBrowserEvent) => {
-            const originalFeat = getClosestSourceFeature(map, clickableSource, e.coordinate);
+            const originalFeat = getClosestSourceFeature(map, clickableLayer, e.coordinate);
 
             if (originalFeat) {
                 const initialFeat = originalFeat.clone();
@@ -734,6 +734,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
         [
             map,
             mapWorkingLayer,
+            clickableLayer,
             clickableSource,
             currentCommunityLayer?.geoservice,
             getCreateContributions,

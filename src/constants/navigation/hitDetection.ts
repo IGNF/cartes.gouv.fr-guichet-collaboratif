@@ -20,14 +20,17 @@ interface ProbeOffset {
 
 const probeOffsetsCache: Record<number, ProbeOffset[]> = {};
 
-// Pixel offsets within `tolerance`, sorted from the pointer outwards
+const PROBE_STEP = 2;
+
+// Pixel offsets within `tolerance` (pointer excluded), sorted from the pointer outwards
 const getProbeOffsets = (tolerance: number): ProbeOffset[] => {
     if (probeOffsetsCache[tolerance]) return probeOffsetsCache[tolerance];
     const offsets: ProbeOffset[] = [];
-    for (let dx = -tolerance; dx <= tolerance; dx++) {
-        for (let dy = -tolerance; dy <= tolerance; dy++) {
+    const max = Math.floor(tolerance / PROBE_STEP) * PROBE_STEP;
+    for (let dx = -max; dx <= max; dx += PROBE_STEP) {
+        for (let dy = -max; dy <= max; dy += PROBE_STEP) {
             const distance = Math.hypot(dx, dy);
-            if (distance <= tolerance) offsets.push({ dx, dy, distance });
+            if (distance > 0 && distance <= tolerance) offsets.push({ dx, dy, distance });
         }
     }
     offsets.sort((a, b) => a.distance - b.distance);
@@ -43,14 +46,16 @@ const getGeometryPixelDistance = (feature: Feature, coordinate: Coordinate, reso
     return Math.hypot(closest[0] - coordinate[0], closest[1] - coordinate[1]) / resolution;
 };
 
-// Cheap spatial-index lookup to skip probing when nothing is near the pointer.
-// The search is twice the tolerance wide because point symbols can be larger than the tolerance.
+// Skips the probing around the pointer when no geometry is close enough to be reached by it.
+// Twice the tolerance, to leave room for the rendered stroke width; a symbol larger than that is still hit under the pointer.
 const hasFeatureNearby = (map: Map, layerFilter: (layer: Layer) => boolean, coordinate: Coordinate, resolution: number, tolerance: number) => {
-    const extent = buffer(createOrUpdateFromCoordinate(coordinate), resolution * tolerance * 2);
+    const reach = tolerance * 2;
+    const extent = buffer(createOrUpdateFromCoordinate(coordinate), resolution * reach);
     return map.getAllLayers().some((layer) => {
         if (!layer.getVisible() || !layerFilter(layer)) return false;
         const source = layer.getSource();
-        return !(source instanceof VectorSource) || source.forEachFeatureInExtent(extent, () => true) === true;
+        if (!(source instanceof VectorSource)) return true;
+        return source.forEachFeatureInExtent(extent, (feature) => getGeometryPixelDistance(feature, coordinate, resolution) <= reach || undefined) === true;
     });
 };
 
@@ -65,13 +70,10 @@ export const getNearestFeatureAtPixel = (
     if (!map) return;
     const coordinate = map.getCoordinateFromPixel(pixel);
     const resolution = map.getView().getResolution();
-    if (!coordinate || !resolution || !hasFeatureNearby(map, layerFilter, coordinate, resolution, tolerance)) return;
+    if (!coordinate || !resolution) return;
 
     const candidates: (NearestFeatureHit & { distance: number })[] = [];
-    for (const { dx, dy, distance } of getProbeOffsets(tolerance)) {
-        // Stop once the nearest probe distance with a hit has been fully explored
-        if (candidates.length && distance > candidates[0].distance) break;
-        const probe: Pixel = [pixel[0] + dx, pixel[1] + dy];
+    const probeAt = (probe: Pixel, distance: number) => {
         map.forEachFeatureAtPixel(
             probe,
             (feature, layer) => {
@@ -82,6 +84,15 @@ export const getNearestFeatureAtPixel = (
             },
             { layerFilter }
         );
+    };
+
+    probeAt(pixel, 0);
+
+    if (!candidates.length && hasFeatureNearby(map, layerFilter, coordinate, resolution, tolerance)) {
+        for (const { dx, dy, distance } of getProbeOffsets(tolerance)) {
+            if (candidates.length && distance > candidates[0].distance) break;
+            probeAt([pixel[0] + dx, pixel[1] + dy], distance);
+        }
     }
     if (!candidates.length) return;
 
@@ -99,12 +110,13 @@ export const getNearestFeatureAtPixel = (
 
 export const getClosestSourceFeature = (
     map: Map | null | undefined,
-    source: VectorSource | null | undefined,
+    layer: Layer | null | undefined,
     coordinate: Coordinate,
     tolerance: number = POINTER_HIT_DETECTION_TOLERENCE
 ): Feature | undefined => {
     const resolution = map?.getView().getResolution();
-    if (!source || !resolution) return;
+    const source = layer?.getSource();
+    if (!map || !layer?.isVisible(map.getView()) || !(source instanceof VectorSource) || !resolution) return;
 
     let closest: Feature | undefined;
     let closestDistance = tolerance;
