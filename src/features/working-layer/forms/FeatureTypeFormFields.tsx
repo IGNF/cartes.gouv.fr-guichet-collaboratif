@@ -49,7 +49,7 @@ export const FeatureTypeFormFields: React.FC<FeatureTypeFormFieldsProps> = ({ co
                     const enumValues = normalizeColumnEnum(col.enum);
 
                     const isIdColumn = idName && col.name === idName;
-                    const isReadOnly = col.read_only || isIdColumn;
+                    const isReadOnly = col.read_only || col.automatic || isIdColumn;
 
                     const titleName = (
                         <span>
