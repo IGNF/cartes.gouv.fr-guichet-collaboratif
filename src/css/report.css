@@ -311,19 +311,18 @@
     border-top: 0rem;
 }
 
-.report-attachments img {
-    max-width: 2rem;
-    border-radius: 100%;
-    border: 0.06rem solid var(--border-plain-grey);
+.report-attachment-icon {
+    flex-shrink: 0;
     margin-right: 0.625rem;
-    box-shadow: 0 0.188rem 0.188rem 0 var(--shadow-overlap);
+    color: var(--text-action-high-blue-france);
 }
 
 .report-attachments p {
     margin: unset !important;
 }
 
-.report-attachments a {
+.report-attachments a,
+.report-attachments .report-attachment-name {
     width: 100% !important;
     background: none;
 }

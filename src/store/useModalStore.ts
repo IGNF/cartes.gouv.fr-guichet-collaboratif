@@ -19,6 +19,8 @@ interface ModalState {
     selectionExportModal: ReturnType<typeof createModal>;
     namedPositionModal: ReturnType<typeof createModal>;
     mergeFeatureAttributesModal: ReturnType<typeof createModal>;
+    documentModal: ReturnType<typeof createModal>;
+    confirmDeleteAttachmentModal: ReturnType<typeof createModal>;
 }
 
 const modalConfigs = [
@@ -40,6 +42,8 @@ const modalConfigs = [
     { key: "selectionExportModal", id: "selection-export-modal" },
     { key: "namedPositionModal", id: "named-position-modal" },
     { key: "mergeFeatureAttributesModal", id: "merge-feature-attributes-modal" },
+    { key: "documentModal", id: "document-modal" },
+    { key: "confirmDeleteAttachmentModal", id: "confirm-delete-attachment-modal" },
 ];
 
 const modals = modalConfigs.reduce((acc, { key, id }) => {

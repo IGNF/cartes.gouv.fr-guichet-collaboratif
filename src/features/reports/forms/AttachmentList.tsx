@@ -1,12 +1,24 @@
 import { Fragment, useMemo, useState } from "react";
 import { useTranslation } from "@/i18n";
 import { deleteCommunityReportAttachment } from "@/api/attachmentData";
-import { useCommunityStore, useReportStore } from "@/store";
+import { useCommunityStore, useDocumentModalStore, useModalStore, useReportStore } from "@/store";
 import { ErrorFile, attachmentData } from "@/constants/reports/types";
 import { StatusMessage } from "@/constants/communities/types";
 import Button from "@codegouvfr/react-dsfr/Button";
 import LoaderComponent from "@/components/LoaderComponent";
-import fileUploadIcon from "../../../icons/file-upload-icon.jpg";
+import ModaleComponent from "@/components/ModaleComponent";
+
+const ZIP_EXTENSIONS = ["zip", "7z"];
+const IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "gif", "bmp", "tif", "tiff", "svg"];
+const TEXT_EXTENSIONS = ["pdf", "doc", "docx", "odt", "rtf", "txt"];
+
+const getFileIconClass = (fileName: string): string => {
+    const extension = fileName.split(".").pop()?.toLowerCase() ?? "";
+    if (ZIP_EXTENSIONS.includes(extension)) return "ri-file-zip-line";
+    if (IMAGE_EXTENSIONS.includes(extension)) return "ri-image-line";
+    if (TEXT_EXTENSIONS.includes(extension)) return "ri-file-text-line";
+    return "ri-file-line";
+};
 
 interface Props {
     newFiles?: File[] | null;
@@ -18,14 +30,30 @@ interface Props {
 const AttachmentList: React.FC<Props> = ({ newFiles, errorFiles, removeFile, showDocument }) => {
     const { addAlertMessage } = useCommunityStore();
     const { reports, selectedReport, setReports, editReport } = useReportStore();
+    const { documentModal, confirmDeleteAttachmentModal } = useModalStore();
+    const { setContext } = useDocumentModalStore();
 
     const [loading, setLoading] = useState(false);
+    const [attachmentToDelete, setAttachmentToDelete] = useState<attachmentData | null>(null);
 
-    const report = useMemo(() => reports.find((r) => r.id === selectedReport?.id), [reports, selectedReport]);
+    const report = useMemo(() => reports.find((r) => r.id === selectedReport?.id) ?? selectedReport, [reports, selectedReport]);
 
     const { t } = useTranslation({ AttachmentList });
 
     if (!report && !newFiles) return null;
+    const viewAttachment = (attachment: attachmentData) => {
+        setContext({
+            canEdit: false,
+            document: {
+                id: attachment.id,
+                name: attachment.short_fileName,
+                mimeType: attachment.mime_type,
+                uri: attachment.uri,
+            },
+        });
+        documentModal.open();
+    };
+
     const deleteAttachment = async (attachment: attachmentData) => {
         if (!report) return;
         setLoading(true);
@@ -46,51 +74,93 @@ const AttachmentList: React.FC<Props> = ({ newFiles, errorFiles, removeFile, sho
         setReports(updatedReports, true);
         setLoading(false);
     };
-    return (
-        <div className="report-attachments">
-            {loading && <LoaderComponent />}
-            {!((report?.attachments?.length ?? 0) > 0 || (newFiles?.length ?? 0) > 0) && <p>{t("no_attachments")}</p>}
-            {report?.attachments?.map((attachment) => (
-                <div key={`attachment_${attachment.id}`}>
-                    <img src={fileUploadIcon} alt={t("alt_img_uploaded_file")} />
-                    <a href={attachment.uri} target="_blank">
-                        {attachment.short_fileName}
-                    </a>
 
-                    {editReport && showDocument && (
-                        <Button
-                            iconId="ri-delete-bin-2-fill"
-                            title={t("delete_file", { fileName: attachment.short_fileName })}
-                            priority="tertiary"
-                            onClick={() => deleteAttachment(attachment)}
-                        ></Button>
-                    )}
-                </div>
-            ))}
-            {newFiles &&
-                newFiles.map((file, index) => {
-                    const errorFile = errorFiles?.find((error) => error.file === file);
-                    return (
-                        <Fragment key={`file_${index}`}>
-                            <div>
-                                <img src={fileUploadIcon} alt={t("alt_img_uploaded_file")} />
-                                <a href={URL.createObjectURL(file)} target="_blank">
-                                    {file.name}
-                                </a>
-                                {removeFile && (
-                                    <Button
-                                        iconId="ri-delete-bin-2-fill"
-                                        title={t("delete_file", { fileName: file.name })}
-                                        priority="tertiary"
-                                        onClick={() => removeFile(file)}
-                                    />
-                                )}
-                            </div>
-                            {errorFile && <p className="fr-error-text">{errorFile.message}</p>}
-                        </Fragment>
-                    );
-                })}
-        </div>
+    const askDeleteAttachment = (attachment: attachmentData) => {
+        setAttachmentToDelete(attachment);
+        confirmDeleteAttachmentModal.open();
+    };
+
+    const confirmDeleteAttachment = () => {
+        if (attachmentToDelete) deleteAttachment(attachmentToDelete);
+        setAttachmentToDelete(null);
+    };
+
+    const cancelDeleteAttachment = () => setAttachmentToDelete(null);
+
+    const canDeleteAttachments = editReport && showDocument;
+    return (
+        <>
+            <div className="report-attachments">
+                {loading && <LoaderComponent />}
+                {!((report?.attachments?.length ?? 0) > 0 || (newFiles?.length ?? 0) > 0) && <p>{t("no_attachments")}</p>}
+                {report?.attachments?.map((attachment) => (
+                    <div key={`attachment_${attachment.id}`}>
+                        <span className={`${getFileIconClass(attachment.short_fileName)} report-attachment-icon`} aria-hidden="true" />
+                        {attachment.uri ? (
+                            <a href={attachment.uri} target="_blank" rel="noreferrer">
+                                {attachment.short_fileName}
+                            </a>
+                        ) : (
+                            <span className="report-attachment-name">{attachment.short_fileName}</span>
+                        )}
+                        {attachment.uri && (
+                            <Button
+                                iconId="fr-icon-eye-line"
+                                title={t("view_file", { fileName: attachment.short_fileName })}
+                                priority="tertiary"
+                                onClick={() => viewAttachment(attachment)}
+                            >
+                                {t("view")}
+                            </Button>
+                        )}
+
+                        {canDeleteAttachments && (
+                            <Button
+                                iconId="ri-delete-bin-2-fill"
+                                title={t("delete_file", { fileName: attachment.short_fileName })}
+                                priority="tertiary"
+                                onClick={() => askDeleteAttachment(attachment)}
+                            ></Button>
+                        )}
+                    </div>
+                ))}
+                {newFiles &&
+                    newFiles.map((file, index) => {
+                        const errorFile = errorFiles?.find((error) => error.file === file);
+                        return (
+                            <Fragment key={`file_${index}`}>
+                                <div>
+                                    <span className={`${getFileIconClass(file.name)} report-attachment-icon`} aria-hidden="true" />
+                                    <a href={URL.createObjectURL(file)} target="_blank">
+                                        {file.name}
+                                    </a>
+                                    {removeFile && (
+                                        <Button
+                                            iconId="ri-delete-bin-2-fill"
+                                            title={t("delete_file", { fileName: file.name })}
+                                            priority="tertiary"
+                                            onClick={() => removeFile(file)}
+                                        />
+                                    )}
+                                </div>
+                                {errorFile && <p className="fr-error-text">{errorFile.message}</p>}
+                            </Fragment>
+                        );
+                    })}
+            </div>
+            {canDeleteAttachments && (
+                <ModaleComponent
+                    modal={confirmDeleteAttachmentModal}
+                    title={t("confirm_delete_title")}
+                    onClose={cancelDeleteAttachment}
+                    onConfirm={confirmDeleteAttachment}
+                    cancelText={t("no")}
+                    confirmText={t("yes")}
+                >
+                    <p>{t("confirm_delete_description", { fileName: attachmentToDelete?.short_fileName ?? "" })}</p>
+                </ModaleComponent>
+            )}
+        </>
     );
 };
 

@@ -50,6 +50,7 @@ import { ShowFeatureTypeFormEnTranslations } from "@/features/working-layer/form
 import { EditFeatureTypeFormEnTranslations } from "@/features/working-layer/forms/locale/EditFeatureTypeForm.locale";
 import { FeatureTypeFormActionsEnTranslations } from "@/features/working-layer/forms/locale/FeatureTypeFormActions.locale";
 import { FeatureTypeFormFieldsEnTranslations } from "@/features/working-layer/forms/locale/FeatureTypeFormFields.locale";
+import { FeatureDocumentFieldEnTranslations } from "@/features/working-layer/forms/locale/FeatureDocumentField.locale";
 import { FeatureTypeFormHeaderEnTranslations } from "@/features/working-layer/forms/locale/FeatureTypeFormHeader.locale";
 import { FeatureTypeFormAutomaticEnTranslations } from "@/features/working-layer/forms/locale/FeatureTypeFormAutomatic.locale";
 import { ClickableFeaturesModalEnTranslations } from "@/features/working-layer/modal/locale/ClickableFeaturesModal.locale";
@@ -72,6 +73,7 @@ import { SearchTableEnTranslations } from "@/features/working-layer/modal/search
 import { SearchObjectsModalEnTranslations } from "@/features/working-layer/modal/searchObjects/locale/SearchObjectsModal.locale";
 import { GroupComponentEnTranslations } from "@/features/working-layer/modal/searchObjects/locale/GroupComponent.locale";
 import { ConfirmDeleteObjectModalEnTranslations } from "@/features/working-layer/modal/searchObjects/locale/ConfirmDeleteObjectModal.locale";
+import { DocumentModalEnTranslations } from "@/components/locale/DocumentModal.locale";
 import { SelectionExportModalEnTranslations } from "@/features/reports/table/locale/SelectionExportModal.locale";
 
 export const translations: Translations<"en"> = {
@@ -126,6 +128,7 @@ export const translations: Translations<"en"> = {
     EditFeatureTypeForm: EditFeatureTypeFormEnTranslations,
     FeatureTypeFormActions: FeatureTypeFormActionsEnTranslations,
     FeatureTypeFormFields: FeatureTypeFormFieldsEnTranslations,
+    FeatureDocumentField: FeatureDocumentFieldEnTranslations,
     FeatureTypeFormHeader: FeatureTypeFormHeaderEnTranslations,
     FeatureTypeFormAutomatic: FeatureTypeFormAutomaticEnTranslations,
     ClickableFeaturesModal: ClickableFeaturesModalEnTranslations,
@@ -148,5 +151,6 @@ export const translations: Translations<"en"> = {
     SearchObjectsModal: SearchObjectsModalEnTranslations,
     GroupComponent: GroupComponentEnTranslations,
     ConfirmDeleteObjectModal: ConfirmDeleteObjectModalEnTranslations,
+    DocumentModal: DocumentModalEnTranslations,
     SelectionExportModal: SelectionExportModalEnTranslations,
 };

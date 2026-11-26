@@ -15,8 +15,10 @@ export const REPORTS_LAYER_TYPE = "reports";
 
 export type ThemeAttributeError = "mandatory" | "integer" | "number" | "list";
 
-export const getThemeAttributeError = (attribute: ThemeItem, value: string | undefined): ThemeAttributeError | null => {
-    const normalizedValue = value ?? attribute.default ?? "";
+export const getThemeAttributeError = (attribute: ThemeItem, value: unknown): ThemeAttributeError | null => {
+    // API values may be numbers, booleans or null despite the string typing
+    const rawValue: unknown = value ?? attribute.default;
+    const normalizedValue = rawValue === null || rawValue === undefined ? "" : String(rawValue);
 
     if (normalizedValue.trim() === "") {
         return attribute.mandatory ? "mandatory" : null;
