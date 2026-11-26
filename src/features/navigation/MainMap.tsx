@@ -37,6 +37,7 @@ import BetaBadge from "@/components/Layout/MapCommunity/BetaBadge";
 import CommunityTitle from "@/components/Layout/MapCommunity/CommunityTitle";
 import CommunityToolbar from "@/components/Layout/MapCommunity/CommunityToolbar";
 import { MAP_MAX_TILES_LOADING } from "@/constants/navigation/rasterTiles";
+import { orderMapOverlayContainer } from "@/constants/navigation/mapOverlaySlots";
 
 export default function MainMap() {
     const mapTargetRef = useRef<HTMLDivElement>(null);
@@ -143,6 +144,8 @@ export default function MainMap() {
             maxTilesLoading: MAP_MAX_TILES_LOADING,
         });
 
+        orderMapOverlayContainer(mapRef.current);
+
         viewRef.current = mapView;
         switcherRef.current = switcher;
 
@@ -177,6 +180,8 @@ export default function MainMap() {
 
     return (
         <div className={cx(fr.cx("fr-grid-row"), "grid-map-container")}>
+            {/* DOM order = tab order: title first, then the map and its controls (see orderMapOverlayContainer) */}
+            <CommunityTitle />
             <div
                 className={cx(fr.cx("fr-col"), "map-view")}
                 ref={mapTargetRef}
@@ -193,7 +198,6 @@ export default function MainMap() {
             <WorkingLayerControl />
             <WorkingLayerLabelMap />
             <BetaBadge />
-            <CommunityTitle />
             <CommunityToolbar />
 
             {map?.getAllLayers().length && <CustomControls />}

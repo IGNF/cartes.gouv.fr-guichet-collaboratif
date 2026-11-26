@@ -52,6 +52,11 @@ dialog[id^="GPlayersList"] > .GPpanelBody {
     height: 6.5rem !important;
 }
 
+.map-overlay-slot {
+    display: contents;
+    pointer-events: auto;
+}
+
 .position-container-top-right {
     top: 4rem !important;
     height: calc(100% - 3.5rem) !important;
