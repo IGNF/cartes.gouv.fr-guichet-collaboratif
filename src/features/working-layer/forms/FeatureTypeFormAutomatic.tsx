@@ -1,110 +1,125 @@
-import { useMemo, useEffect, useState } from "react";
+import { useMemo, useEffect, useRef, useState } from "react";
 import { FeatureTypeColumn } from "@/constants/communities/types";
-import { useUserStore, useMapStore } from "@/store";
-import { AutomaticFieldType } from "@/constants/working-layer/types";
-import { calculateAutomaticField } from "@/constants/working-layer/utils";
-import { FEATURE_TYPE_GEOSERVICE_PROPERTY } from "@/constants";
+import { ContributionType } from "@/constants/contributions/types";
+import { useUserStore, useMapStore, useContributionStore } from "@/store";
+import { computeAutomaticFields, getAutomaticColumns } from "@/constants/working-layer/utils";
+import { useRefreshAutomaticFields } from "@/hooks/working-layer/useRefreshAutomaticFields";
 import { useTranslation } from "@/i18n";
-import { TranslationFunction } from "i18nifty/typeUtils/TranslationFunction";
-import { ComponentKey } from "@/i18n/types";
+
+const GEOMETRY_CHANGE_DEBOUNCE_MS = 300;
 
 interface FeatureTypeFormAutomaticProps {
     columns: FeatureTypeColumn[];
-    formData: Record<string, string | number | boolean | File[] | null>;
-    onAutomaticFieldsCalculated?: (fields: Record<string, string | number | null>) => void;
+    onAutomaticFieldsCalculated?: (fields: Record<string, string | number>) => void;
+    onCalculatingChange?: (isCalculating: boolean) => void;
 }
 
-export const FeatureTypeFormAutomatic: React.FC<FeatureTypeFormAutomaticProps> = ({ columns, formData, onAutomaticFieldsCalculated }) => {
-    const { user } = useUserStore();
-    const { clickedMapFeature } = useMapStore();
-    const [calculatedValues, setCalculatedValues] = useState<Record<string, string | number | null>>({});
-    const [isCalculating, setIsCalculating] = useState(false);
-
+/**
+ * Computes the values of automatic columns (keyword in `formula`) and reports them to the form,
+ * when the feature is opened and each time its geometry changes.
+ * The values are displayed by the form fields, where automatic columns are read-only.
+ */
+export const FeatureTypeFormAutomatic: React.FC<FeatureTypeFormAutomaticProps> = ({ columns, onAutomaticFieldsCalculated, onCalculatingChange }) => {
     const { t } = useTranslation({ FeatureTypeFormAutomatic });
-    const automaticColumns = useMemo(
-        () =>
-            columns.filter((col) => {
-                return col.read_only && col.automatic;
-            }),
-        [columns]
-    );
+    const { user } = useUserStore();
+    const { clickedMapFeature, map } = useMapStore();
+    const refreshAutomaticFields = useRefreshAutomaticFields();
+    const [isCalculating, setIsCalculating] = useState(false);
+    const userId = user?.id;
+    const username = user?.username;
+    const mapProjection = map?.getView().getProjection().getCode();
+
+    const callbackRef = useRef(onAutomaticFieldsCalculated);
+    const calculatingCallbackRef = useRef(onCalculatingChange);
+    useEffect(() => {
+        callbackRef.current = onAutomaticFieldsCalculated;
+        calculatingCallbackRef.current = onCalculatingChange;
+    }, [onAutomaticFieldsCalculated, onCalculatingChange]);
 
     useEffect(() => {
-        if (!clickedMapFeature || automaticColumns.length === 0) return;
+        calculatingCallbackRef.current?.(isCalculating);
+        if (!isCalculating) return;
+        // The global save is blocked until the values are reported to the form
+        const { beginAutomaticComputation, endAutomaticComputation } = useContributionStore.getState();
+        beginAutomaticComputation();
+        return endAutomaticComputation;
+    }, [isCalculating]);
 
-        const calculateFields = async () => {
+    const hasAutomaticColumns = useMemo(() => getAutomaticColumns(columns).length > 0, [columns]);
+
+    useEffect(() => {
+        if (!clickedMapFeature || !hasAutomaticColumns) return;
+
+        const feature = clickedMapFeature;
+        let run = 0;
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        let geometry = feature.getGeometry();
+        let revision = geometry?.getRevision();
+
+        const calculateFields = async (onlyEmpty: boolean) => {
+            const currentRun = ++run;
             setIsCalculating(true);
-            const geoservice = clickedMapFeature.get(FEATURE_TYPE_GEOSERVICE_PROPERTY);
-            const calculated: Record<string, string | number | null> = {};
-
-            for (const col of automaticColumns) {
-                const fieldType = (col.automatic || col.name) as AutomaticFieldType;
-
-                if (Object.values(AutomaticFieldType).includes(fieldType)) {
-                    const value = await calculateAutomaticField(fieldType, {
-                        feature: clickedMapFeature,
-                        userId: user?.id,
-                        username: user?.username,
-                        layerProjection: geoservice?.boxSrid,
-                    });
-
-                    if (value !== null) {
-                        calculated[col.name] = value;
-                    }
-                }
-            }
-
-            setCalculatedValues(calculated);
+            const values = await computeAutomaticFields(
+                feature,
+                {
+                    userId: userId !== undefined ? String(userId) : undefined,
+                    username,
+                    mapProjection,
+                },
+                { onlyEmpty }
+            );
+            if (currentRun !== run) return;
             setIsCalculating(false);
-
-            if (onAutomaticFieldsCalculated) {
-                onAutomaticFieldsCalculated(calculated);
-            }
+            callbackRef.current?.(values);
         };
 
-        calculateFields();
-    }, [clickedMapFeature, automaticColumns, user, onAutomaticFieldsCalculated]);
+        // The feature "change" event is also fired by the geometry changes
+        const handleFeatureChange = () => {
+            const currentGeometry = feature.getGeometry();
+            if (currentGeometry === geometry && currentGeometry?.getRevision() === revision) return;
+            geometry = currentGeometry;
+            revision = currentGeometry?.getRevision();
+            // Invalidates the computation in progress and blocks the save until the new values are computed
+            run++;
+            setIsCalculating(true);
+            clearTimeout(timer);
+            timer = setTimeout(() => void calculateFields(false), GEOMETRY_CHANGE_DEBOUNCE_MS);
+        };
 
-    if (automaticColumns.length === 0) return null;
+        // When opening the form, the existing values are kept: only the empty fields are filled
+        void calculateFields(true);
+        feature.on("change", handleFeatureChange);
+
+        return () => {
+            run++;
+            clearTimeout(timer);
+            feature.un("change", handleFeatureChange);
+            setIsCalculating(false);
+        };
+    }, [clickedMapFeature, hasAutomaticColumns, userId, username, mapProjection]);
+
+    // When leaving a modified feature whose geometry was modified while the form was opened,
+    // its automatic fields are written in its data, even if the form was not saved
+    useEffect(() => {
+        if (!clickedMapFeature || !hasAutomaticColumns) return;
+        const geometry = clickedMapFeature.getGeometry();
+        const revision = geometry?.getRevision();
+        return () => {
+            const currentGeometry = clickedMapFeature.getGeometry();
+            if (currentGeometry === geometry && currentGeometry?.getRevision() === revision) return;
+
+            const isModified = useContributionStore
+                .getState()
+                .contributions.some((contr) => contr.feature === clickedMapFeature && contr.type !== ContributionType.DELETE);
+            if (isModified) void refreshAutomaticFields([clickedMapFeature], { skipFeatureInEditForm: false });
+        };
+    }, [clickedMapFeature, hasAutomaticColumns, refreshAutomaticFields]);
+
+    if (!isCalculating) return null;
 
     return (
-        <div className="feature-type-form-automatic">
-            <div className="feature-type-form-automatic-list">
-                {automaticColumns.map((col) => (
-                    <div key={col.name} className="feature-type-form-automatic-item">
-                        <span className="feature-type-form-automatic-label">{col.title}:</span>
-                        <span className="feature-type-form-automatic-value">
-                            {isCalculating ? (
-                                <span className="calculating">{t("wait")}</span>
-                            ) : (
-                                formatValue(calculatedValues[col.name] ?? formData[col.name], col, t)
-                            )}
-                        </span>
-                    </div>
-                ))}
-            </div>
-        </div>
+        <p className="fr-text--sm fr-mb-2w" role="status">
+            {t("wait")}
+        </p>
     );
-};
-
-const formatValue = (
-    value: string | number | boolean | File[] | null,
-    col: FeatureTypeColumn,
-    t: TranslationFunction<"FeatureTypeFormAutomatic", ComponentKey>
-): string => {
-    if (value === null || value === undefined) {
-        return t("empty");
-    }
-
-    switch (col.type.toLowerCase()) {
-        case "boolean":
-            return value ? t("yes") : t("no");
-        case "date":
-            return value ? new Date(value as string).toLocaleDateString() : t("empty");
-        case "integer":
-        case "number":
-            return String(value);
-        default:
-            return String(value);
-    }
 };

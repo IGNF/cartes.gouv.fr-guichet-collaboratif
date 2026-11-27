@@ -17,7 +17,7 @@ import { MapOverlaySlot } from "@/constants/navigation/mapOverlaySlots";
 export default function CommunityToolbar() {
     const { community, hasOneEditableLayer, addAlertMessage } = useCommunityStore();
     const { user, role } = useUserStore();
-    const { contributions, isReviewContribution, pendingFeatureFormValidator, setReviewContribution } = useContributionStore();
+    const { contributions, isReviewContribution, pendingFeatureFormValidator, setReviewContribution, pendingAutomaticComputations } = useContributionStore();
     const { setClickedControl } = useMapStore();
     const { confirmSaveContributionModal } = useModalStore();
     const { guard } = useFeatureFormGuard();
@@ -57,7 +57,7 @@ export default function CommunityToolbar() {
                                         priority="tertiary no outline"
                                         title={pendingFeatureFormValidator ? t("save_disabled_pending_form") : t("save")}
                                         className="community-toolbar-save-btn"
-                                        disabled={!contributions.length || isLoading || !!pendingFeatureFormValidator}
+                                        disabled={!contributions.length || isLoading || pendingAutomaticComputations > 0 || !!pendingFeatureFormValidator}
                                         nativeButtonProps={{
                                             ...confirmSaveContributionModal.buttonProps,
                                             "aria-label": pendingFeatureFormValidator ? t("save_disabled_pending_form") : t("save"),
