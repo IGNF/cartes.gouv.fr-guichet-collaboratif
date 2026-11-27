@@ -14,13 +14,11 @@ import {
     FEATURE_TYPE_PENDING_FORM_PROPERTY,
     FEATURE_TYPE_EDITING_PROPERTY,
     FEATURE_TYPE_SELECTED_PROPERTY,
-    POINTER_HIT_DETECTION_TOLERENCE,
 } from "@/constants";
 import {
     addFeatureProperties,
     addInteractionToMap,
     getEditedFeature,
-    isPointOnSegment,
     removeInteractionFromMap,
     restoreFeature,
     setFeatNewCoords,
@@ -31,8 +29,9 @@ import { Coordinate } from "ol/coordinate";
 import BaseEvent from "ol/events/Event";
 import { useCommunityStore, useContributionStore, useMapStore, useModalStore } from "@/store";
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import { CustomControlItem, GeoserviceFeatureTypeProp, InteractionType, StatusMessage } from "@/constants/communities/types";
+import { CommunityLayerRoleType, CustomControlItem, GeoserviceFeatureTypeProp, InteractionType, StatusMessage } from "@/constants/communities/types";
 import { REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
+import { getClosestSegment, getClosestSourceFeature, getNearestFeatureAtPixel } from "@/constants/navigation/hitDetection";
 import { LineString, SimpleGeometry } from "ol/geom";
 import { FeatureTypeMode } from "@/constants/contributions/types";
 import { useTranslation } from "@/i18n";
@@ -179,13 +178,26 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
         const didWorkingLayerChange = previousWorkingLayer !== mapWorkingLayer;
         previousWorkingLayerRef.current = mapWorkingLayer;
 
-        if (!didWorkingLayerChange || clickedControl?.interaction !== InteractionType.ADD_OBJECT) return;
+        if (!didWorkingLayerChange) return;
 
-        if (map) {
-            removeInteractionFromMap(InteractionType.ADD_OBJECT, map);
+        const activeInteraction = clickedControl?.interaction;
+        const isSplitUnavailable =
+            activeInteraction === InteractionType.SPLIT_LINE &&
+            (mapWorkingLayer === REPORTS_LAYER_TYPE ||
+                currentCommunityLayer?.role === CommunityLayerRoleType.VISU ||
+                currentCommunityLayer?.geoservice.featureType !== GeoserviceFeatureTypeProp.LINE);
+
+        if (activeInteraction !== InteractionType.ADD_OBJECT && !isSplitUnavailable) return;
+
+        if (isSplitUnavailable) {
+            lastPointedFeat?.unset(FEATURE_TYPE_SELECTED_PROPERTY);
+            lastPointedFeat = null;
+        }
+        if (map && activeInteraction) {
+            removeInteractionFromMap(activeInteraction, map);
         }
         setClickedControl(null);
-    }, [mapWorkingLayer, clickedControl, map, setClickedControl]);
+    }, [mapWorkingLayer, clickedControl, currentCommunityLayer, map, setClickedControl]);
 
     const handleSelectInteraction = useCallback(
         (e: SelectEvent) => {
@@ -522,12 +534,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
 
             const networkLayerNames = shortestPathNetworkLayerNames.length > 0 ? shortestPathNetworkLayerNames : [mapWorkingLayer];
 
-            const featuresAtPixel = map.getFeaturesAtPixel(e.pixel, {
-                layerFilter: (layer) => networkLayerNames.includes(layer.get("name")),
-                hitTolerance: POINTER_HIT_DETECTION_TOLERENCE,
-            });
-
-            const targetFeature = (featuresAtPixel?.[0] as Feature | undefined) ?? null;
+            const targetFeature = getNearestFeatureAtPixel(map, e.pixel, (layer) => networkLayerNames.includes(layer.get("name")))?.feature ?? null;
             if (!targetFeature) return;
 
             if (!shortestPathStartRef.current) {
@@ -672,13 +679,9 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
 
     const handleSplitLineInteractionPointer = useCallback(
         (e: MapBrowserEvent) => {
-            const features = map?.getFeaturesAtPixel(e.pixel, {
-                layerFilter: (layer) => layer.get("name") === mapWorkingLayer,
-                hitTolerance: POINTER_HIT_DETECTION_TOLERENCE,
-            });
+            const pointedFeat = getClosestSourceFeature(map, clickableLayer, e.coordinate);
 
-            if (features?.length) {
-                const pointedFeat = features[0] as Feature;
+            if (pointedFeat) {
                 if (pointedFeat !== lastPointedFeat) {
                     lastPointedFeat?.unset(FEATURE_TYPE_SELECTED_PROPERTY);
                     pointedFeat?.set(FEATURE_TYPE_SELECTED_PROPERTY, true);
@@ -689,18 +692,14 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                 lastPointedFeat = null;
             }
         },
-        [map, mapWorkingLayer]
+        [map, clickableLayer]
     );
 
     const handleSplitLineInteractionEnd = useCallback(
         (e: MapBrowserEvent) => {
-            const features = map?.getFeaturesAtPixel(e.pixel, {
-                layerFilter: (layer) => layer.get("name") === mapWorkingLayer,
-                hitTolerance: 1,
-            });
+            const originalFeat = getClosestSourceFeature(map, clickableLayer, e.coordinate);
 
-            if (features?.length) {
-                const originalFeat = features[0] as Feature;
+            if (originalFeat) {
                 const initialFeat = originalFeat.clone();
                 const originalFeatGeometry = originalFeat.getGeometry() as GeometryFeatueParams;
                 const createdFeat = originalFeat.clone();
@@ -708,18 +707,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
 
                 const originalFeatGeometryCoords = originalFeatGeometry?.getCoordinates() as Coordinate[];
                 if (!originalFeatGeometryCoords) return;
-
-                const newCoords = originalFeatGeometry?.getClosestPoint(e.coordinate) as Coordinate;
-
-                let splitIntex = 0;
-                for (let i = 0; i < originalFeatGeometryCoords.length; i++) {
-                    const start = originalFeatGeometryCoords[i] as Coordinate;
-                    const end = originalFeatGeometryCoords[i + 1] as Coordinate;
-                    if (isPointOnSegment(start, end, newCoords)) {
-                        splitIntex = i;
-                        break;
-                    }
-                }
+                const { index: splitIntex, point: newCoords } = getClosestSegment(originalFeatGeometryCoords, e.coordinate);
 
                 const newCoordsOriginal = [...originalFeatGeometryCoords.slice(0, splitIntex + 1), newCoords];
                 const newCoordsCreated = [newCoords, ...originalFeatGeometryCoords.slice(splitIntex + 1)];
@@ -762,6 +750,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
         [
             map,
             mapWorkingLayer,
+            clickableLayer,
             clickableSource,
             currentCommunityLayer?.geoservice,
             getCreateContributions,
