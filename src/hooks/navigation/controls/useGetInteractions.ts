@@ -1,16 +1,18 @@
 import { useCommunityStore, useMapStore } from "@/store";
-import { editingGeometryStyle, getEditingOverlayStyle, isDefaultLayerStyle } from "@/constants/styles";
+import { getDrawSketchStyle, getEditingOverlayStyle, isDefaultLayerStyle } from "@/constants/styles";
+import { onceLayerRendered } from "@/constants/navigation/layerRender";
 import { EDITING_ORIGINAL_FEATURE_PROPERTY, FEATURE_TYPE_EDITING_PROPERTY } from "@/constants";
 import { getEditedFeature } from "@/constants/contributions/utils";
 import { InteractionType } from "@/constants/communities/types";
 import { Collection, Feature } from "ol";
 import { platformModifierKeyOnly, click, shiftKeyOnly } from "ol/events/condition";
 import { Draw, Modify, Select, Snap, Translate, DragBox } from "ol/interaction";
+import { DrawEvent } from "ol/interaction/Draw";
 import { ModifyEvent } from "ol/interaction/Modify";
 import VectorLayer from "ol/layer/Vector";
 import WebGLVectorLayer from "ol/layer/WebGLVector";
 import VectorSource from "ol/source/Vector";
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 
 const useGetInteractions = () => {
     const { map, mapWorkingLayer, clickedMapFeature, clickedControl, featureTypeSelectedStyle } = useMapStore();
@@ -82,11 +84,31 @@ const useGetInteractions = () => {
         return layer;
     }, [editingFeatures]);
 
+    // Bridges a just-drawn feature until the working layer (WebGL, asynchronous) displays it
+    const drawnFeatures = useMemo(() => new Collection<Feature>(), []);
+
+    const drawnLayer = useMemo(() => {
+        const layer = new VectorLayer({
+            source: new VectorSource({ features: drawnFeatures, wrapX: false }),
+            updateWhileAnimating: true,
+            updateWhileInteracting: true,
+        });
+        layer.setZIndex(1000);
+        layer.set("name", "drawn-geometry-overlay");
+        return layer;
+    }, [drawnFeatures]);
+
     const isDefaultStyle = isDefaultLayerStyle(currentCommunityLayer?.geoservice, featureTypeSelectedStyle);
 
-    useEffect(() => {
-        editingLayer.setStyle(getEditingOverlayStyle(isDefaultStyle));
-    }, [editingLayer, isDefaultStyle]);
+    // Only the latest overlay hand-over (show / hide editing proxies) may run
+    const cancelEditingHandoverRef = useRef<() => void>(undefined);
+    const handOverEditingOverlay = useCallback(
+        (apply: () => void) => {
+            cancelEditingHandoverRef.current?.();
+            cancelEditingHandoverRef.current = onceLayerRendered(clickableLayer, apply);
+        },
+        [clickableLayer]
+    );
 
     useEffect(() => {
         if (!map || clickedControl?.interaction !== InteractionType.MODIFY) return;
@@ -118,8 +140,11 @@ const useGetInteractions = () => {
                 original.on("change", onOriginalChange);
                 return proxy;
             });
-            editingFeatures.clear();
-            editingFeatures.extend(newProxies);
+            // Swap the proxies once the working layer has hidden the new originals and shown the released ones
+            handOverEditingOverlay(() => {
+                editingFeatures.clear();
+                editingFeatures.extend(newProxies);
+            });
         };
 
         syncProxies();
@@ -130,10 +155,13 @@ const useGetInteractions = () => {
         return () => {
             modifyFeatures.un(["add", "remove"], syncProxies);
             releaseOriginals();
-            editingFeatures.clear();
-            editingLayer.setMap(null);
+            // Keep the proxies until the working layer shows the originals again
+            handOverEditingOverlay(() => {
+                editingFeatures.clear();
+                editingLayer.setMap(null);
+            });
         };
-    }, [clickedControl?.interaction, editingFeatures, editingLayer, map, modifyFeatures]);
+    }, [clickedControl?.interaction, editingFeatures, editingLayer, handOverEditingOverlay, map, modifyFeatures]);
 
     const modifyInteraction = useMemo(() => {
         const modify = new Modify({ features: editingFeatures });
@@ -169,7 +197,6 @@ const useGetInteractions = () => {
             type: "LineString",
             condition: isEventInsideMapViewport,
             freehandCondition: () => false,
-            style: editingGeometryStyle,
         });
         draw.set("disablesTooltip", true);
         return draw;
@@ -180,11 +207,46 @@ const useGetInteractions = () => {
             type: "Polygon",
             condition: isEventInsideMapViewport,
             freehandCondition: () => false,
-            style: editingGeometryStyle,
         });
         draw.set("disablesTooltip", true);
         return draw;
     }, [isEventInsideMapViewport]);
+
+    useEffect(() => {
+        editingLayer.setStyle(getEditingOverlayStyle(isDefaultStyle));
+        drawnLayer.setStyle(getEditingOverlayStyle(isDefaultStyle, false));
+        drawLineInteraction.getOverlay().setStyle(getDrawSketchStyle(isDefaultStyle, "LineString"));
+        drawPolygonInteraction.getOverlay().setStyle(getDrawSketchStyle(isDefaultStyle, "Polygon"));
+    }, [drawLineInteraction, drawPolygonInteraction, drawnLayer, editingLayer, isDefaultStyle]);
+
+    useEffect(() => {
+        if (!map) return;
+
+        // Draw drops its sketch at drawend: show a copy until the working layer displays the feature
+        const onDrawEnd = (e: DrawEvent) => {
+            const geometry = e.feature.getGeometry();
+            if (!geometry) return;
+            const copy = new Feature(geometry.clone());
+            drawnFeatures.push(copy);
+            const cancel = onceLayerRendered(clickableLayer, () => drawnFeatures.remove(copy));
+            // drawend listeners have all run by now: drop the copy if the feature was refused
+            queueMicrotask(() => {
+                if (clickableSource?.hasFeature(e.feature)) return;
+                cancel();
+                drawnFeatures.remove(copy);
+            });
+        };
+
+        const draws = [drawLineInteraction, drawPolygonInteraction];
+        draws.forEach((draw) => draw.on("drawend", onDrawEnd));
+        drawnLayer.setMap(map);
+
+        return () => {
+            draws.forEach((draw) => draw.un("drawend", onDrawEnd));
+            drawnLayer.setMap(null);
+            drawnFeatures.clear();
+        };
+    }, [clickableLayer, clickableSource, drawLineInteraction, drawPolygonInteraction, drawnFeatures, drawnLayer, map]);
 
     const translateFeatures = useMemo(() => new Collection<Feature>(clickedMapFeature ? [clickedMapFeature] : []), [clickedMapFeature]);
 

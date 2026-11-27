@@ -9,5 +9,6 @@ export const POINT_COLOR = "rgba(238, 153, 0, 1)";
 export const FILL_COLOR = "rgba(238, 153, 0, 0.6)";
 
 export const WHITE_COLOR = "rgba(255, 255, 255, 1)";
+export const SELECTED_DEFAULT_POLYGON_FILL_COLOR = "rgba(255, 255, 255, 0.6)";
 
 export const HIGHLIGHT_COLOR = "rgba(250, 250, 0, 1)";

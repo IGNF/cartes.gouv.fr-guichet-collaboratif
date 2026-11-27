@@ -378,6 +378,8 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                 feature.set(FEATURE_TYPE_PENDING_FORM_PROPERTY, true);
                 if (geometryNameColumn?.is3d) setFeatNewCoords(feature);
                 if (!authoriseContribution(feature, ContributionType.CREATE)) return;
+                // Selected right away (as the form does next) so the first WebGL rebuild already shows it selected
+                feature.set(FEATURE_TYPE_SELECTED_PROPERTY, true);
                 currentMapWorkingSource.addFeature(feature);
                 saveContribution(feature, ContributionType.CREATE, initialFeat, mapWorkingLayer);
                 setClickedMapFeature(feature);
