@@ -1,7 +1,8 @@
 import { useCallback, useEffect } from "react";
+import { useIsModalOpen } from "@codegouvfr/react-dsfr/Modal/useIsModalOpen";
 import Layer from "ol/layer/Layer";
 import VectorSource from "ol/source/Vector";
-import { useCommunityStore, useLocalStorageStore, useMapStore, useReportStore, useUserStore } from "@/store";
+import { useCommunityStore, useLocalStorageStore, useMapStore, useModalStore, useReportStore, useUserStore } from "@/store";
 import { hasReportParams, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import { getCenterReportMessage, handleShowOnMap, setDrawingSketchMarkers, showCenterReportButtons, STATUS_NOT_ALLOWED } from "@/constants/utils";
 import { clearClusterStyles } from "@/constants/reports/utils/cluster";
@@ -11,6 +12,7 @@ import ShowReport from "./ShowReport";
 import CreateReport from "./CreateReport";
 import TableReportDrawer from "./table/TableReportDrawer";
 import EditReport from "./EditReport";
+import ConfirmDiscardSketchModal from "./forms/ConfirmDiscardSketchModal";
 import Button from "@codegouvfr/react-dsfr/Button";
 import { useTranslation } from "@/i18n";
 import MapListnerHandlers from "../navigation/controls/custom-controls/interactions/MapListenerHandlers";
@@ -18,6 +20,7 @@ import { getCommunityReportById } from "@/api/reportsData";
 import { useSearchParams, useNavigate } from "react-router";
 import useKeyEvent from "@/hooks/useKeyEvent";
 import { CommunityRole } from "@/constants/user/types";
+import useSketchDiscardGuard from "@/hooks/reports/useSketchDiscardGuard";
 
 const ReportDrawer = () => {
     const { user, role } = useUserStore();
@@ -49,6 +52,19 @@ const ReportDrawer = () => {
     const { t } = useTranslation({ ReportDrawer });
     const [searchParams] = useSearchParams();
 
+    const releaseReportTools = useCallback(() => {
+        const activeToolBtn = document.querySelector(`button[id*="drawing-tool-"].drawing-tool-active`) as HTMLButtonElement | null;
+        activeToolBtn?.click();
+        if (clickedTool?.clicked && clickedTool.name) {
+            setClickedTool({ name: clickedTool.name, clicked: false });
+        }
+
+        const isNotified = getCenterReportMessage(alertMessages);
+        if (isNotified) {
+            removeAlertMessage(isNotified.id);
+        }
+    }, [alertMessages, clickedTool, setClickedTool, removeAlertMessage]);
+
     const handleCloseDrawer = useCallback(() => {
         if (!selectedReport) {
             const drawingLayer = map?.getAllLayers().find((layer: Layer & { gpResultLayerId?: string }) => layer.gpResultLayerId === "drawing");
@@ -69,16 +85,7 @@ const ReportDrawer = () => {
             reportSource?.removeFeatures(reportFeatures);
         }
 
-        if (clickedTool?.clicked && clickedTool.name) {
-            const activeToolBtn = document.querySelector(`button[id*="${clickedTool.name}"].drawing-tool-active`) as HTMLButtonElement | null;
-            activeToolBtn?.click();
-            setClickedTool({ name: clickedTool.name, clicked: false });
-        }
-
-        const isNotified = getCenterReportMessage(alertMessages);
-        if (isNotified) {
-            removeAlertMessage(isNotified.id);
-        }
+        releaseReportTools();
 
         showCenterReportButtons(false);
         setDrawingSketchMarkers(map, false);
@@ -87,19 +94,12 @@ const ReportDrawer = () => {
         setTableDrawerOpened(false);
         setSelectedReport(null);
         setSelectedFeatures([]);
-    }, [
-        selectedReport,
-        alertMessages,
-        clickedTool,
-        setClickedTool,
-        setDrawerOpened,
-        setEditReport,
-        setTableDrawerOpened,
-        setSelectedReport,
-        setSelectedFeatures,
-        map,
-        removeAlertMessage,
-    ]);
+    }, [selectedReport, releaseReportTools, setDrawerOpened, setEditReport, setTableDrawerOpened, setSelectedReport, setSelectedFeatures, map]);
+
+    const guardSketchDiscard = useSketchDiscardGuard();
+    const requestCloseDrawer = useCallback(() => guardSketchDiscard(handleCloseDrawer), [guardSketchDiscard, handleCloseDrawer]);
+    const { confirmDiscardSketchModal } = useModalStore();
+    const isDiscardSketchModalOpen = useIsModalOpen(confirmDiscardSketchModal);
 
     const handleDrawingAdd = useCallback(
         (e: Event) => {
@@ -168,11 +168,12 @@ const ReportDrawer = () => {
         "keydown",
         useCallback(
             (e: KeyboardEvent) => {
-                if (e.key === "Escape" && (drawerOpened || tableDrawerOpened)) {
-                    handleCloseDrawer();
+                // Escape on the confirmation modal only dismisses the modal
+                if (e.key === "Escape" && (drawerOpened || tableDrawerOpened) && !isDiscardSketchModalOpen) {
+                    requestCloseDrawer();
                 }
             },
-            [drawerOpened, tableDrawerOpened, handleCloseDrawer]
+            [drawerOpened, tableDrawerOpened, isDiscardSketchModalOpen, requestCloseDrawer]
         )
     );
 
@@ -230,7 +231,7 @@ const ReportDrawer = () => {
                 anchor="left"
                 isOpen={drawerOpened || tableDrawerOpened}
                 create={!selectedReport}
-                onClose={handleCloseDrawer}
+                onClose={requestCloseDrawer}
                 isListingReports={tableDrawerOpened}
             >
                 <>
@@ -240,7 +241,7 @@ const ReportDrawer = () => {
                                 <Button
                                     className="fr-icon--lg"
                                     iconId="ri-close-line"
-                                    onClick={handleCloseDrawer}
+                                    onClick={requestCloseDrawer}
                                     priority="tertiary no outline"
                                     title="Fermer"
                                     size="medium"
@@ -251,17 +252,18 @@ const ReportDrawer = () => {
                             {!selectedReport ? (
                                 <CreateReport handleCloseDrawer={handleCloseDrawer} />
                             ) : !STATUS_NOT_ALLOWED.includes(selectedReport.status) && canEditReport ? (
-                                <EditReport handleCloseDrawer={handleCloseDrawer} />
+                                <EditReport handleCloseDrawer={handleCloseDrawer} handleBack={releaseReportTools} />
                             ) : (
-                                <ShowReport handleCloseDrawer={handleCloseDrawer} />
+                                <ShowReport handleCloseDrawer={handleCloseDrawer} handleBack={releaseReportTools} />
                             )}
                         </>
                     ) : tableDrawerOpened ? (
-                        <TableReportDrawer handleCloseDrawer={handleCloseDrawer} />
+                        <TableReportDrawer handleCloseDrawer={requestCloseDrawer} />
                     ) : null}
                 </>
             </DrawerComponent>
-            <MapListnerHandlers handleCloseDrawer={handleCloseDrawer} />
+            <MapListnerHandlers handleCloseDrawer={requestCloseDrawer} />
+            <ConfirmDiscardSketchModal />
         </>
     );
 };

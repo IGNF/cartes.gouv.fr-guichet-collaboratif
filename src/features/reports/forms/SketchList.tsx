@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "@/i18n";
 import { Feature } from "ol";
 import Layer from "ol/layer/Layer";
@@ -6,6 +6,7 @@ import { Size } from "ol/size";
 import VectorSource from "ol/source/Vector";
 import { Style } from "ol/style";
 import ImageStyle from "ol/style/Image";
+import { getUid } from "ol/util";
 import useReportTools from "@/hooks/reports/useReportTools";
 import { useCommunityStore, useMapStore, useReportStore } from "@/store";
 import { StatusMessage } from "@/constants/communities/types";
@@ -21,7 +22,8 @@ interface Props {
 }
 
 const SketchList = ({ showSketch, expendedDrawing }: Props) => {
-    const hoveredFeatureStyle: { strockWidth: number; imageScale: number | Size } = { strockWidth: 1, imageScale: 1 };
+    // Kept in a ref: a re-render between mouse enter and leave must not lose the original size
+    const hoveredFeatureStyle = useRef<{ strockWidth: number; imageScale: number | Size }>({ strockWidth: 1, imageScale: 1 }).current;
 
     const { t } = useTranslation({ SketchList });
     const { map } = useMapStore();
@@ -123,7 +125,7 @@ const SketchList = ({ showSketch, expendedDrawing }: Props) => {
     return (
         <div className="report-features">
             {!sketchFeatures.length && editReport && <p>{t("no_sketch")}</p>}
-            {sketchFeatures.map((feature, index) => {
+            {sketchFeatures.map((feature) => {
                 const featureType = feature.getGeometry()?.getType();
                 const raw = feature.getStyle();
                 const featureStyle = (Array.isArray(raw) ? raw.find((s) => s instanceof Style) : raw) as Style | null;
@@ -150,7 +152,7 @@ const SketchList = ({ showSketch, expendedDrawing }: Props) => {
                 }
                 return (
                     <div
-                        key={`feature_${index}`}
+                        key={`feature_${getUid(feature)}`}
                         onMouseEnter={() => handleHoverFeature(feature, true)}
                         onMouseLeave={() => handleHoverFeature(feature, false)}
                     >

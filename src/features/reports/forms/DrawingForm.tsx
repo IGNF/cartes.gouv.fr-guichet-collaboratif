@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "@/i18n";
-import { isAxiosError } from "axios";
 import { Feature } from "ol";
 import Layer from "ol/layer/Layer";
 import VectorSource, { VectorSourceEvent } from "ol/source/Vector";
 import useReportTools from "@/hooks/reports/useReportTools";
+import useSketchUnsavedChanges from "@/hooks/reports/useSketchUnsavedChanges";
 import { useMapStore, useReportStore, useUserStore } from "@/store";
 import { ClickedTool, ReportTool, toolNames } from "@/constants/reports/types";
 import { getReportAllFeatures, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
@@ -17,17 +17,26 @@ interface Props {
     clickedTool?: ClickedTool;
     handleToolClick?: (tool: ReportTool | undefined) => void;
     hideToolsDiv?: boolean;
-    onSubmitSketch?: () => Promise<void>;
+    onSubmitSketch?: (features: Feature[]) => Promise<boolean | void>;
     expendedDrawing?: boolean;
+    readOnly?: boolean;
 }
 
-const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsDiv, onSubmitSketch, expendedDrawing }) => {
+const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsDiv, onSubmitSketch, expendedDrawing, readOnly = false }) => {
     const [showSketch, setShowSketch] = useState<boolean>(false);
+    const [savingSketch, setSavingSketch] = useState<boolean>(false);
     const sketchSnapshotRef = useRef<Feature[]>([]);
 
     const { user } = useUserStore();
     const { map, setClickedTool } = useMapStore();
     const { selectedReport, selectedFeatures, setSelectedFeatures, editReport } = useReportStore();
+
+    // do not move sketch from a report to another
+    const [sketchReportId, setSketchReportId] = useState(selectedReport?.id);
+    if (sketchReportId !== selectedReport?.id) {
+        setSketchReportId(selectedReport?.id);
+        setShowSketch(false);
+    }
 
     const importFileRef = useRef<HTMLInputElement>(null);
 
@@ -41,6 +50,9 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsD
     const drawingSource = drawingLayer?.getSource() as VectorSource;
 
     const lastFeaturesRef = useRef<Feature[]>([]);
+
+    // Flags unsaved sketch edits in the report store while edit mode is open (cleared on exit and unmount).
+    useSketchUnsavedChanges(drawingSource, showSketch);
 
     const handleDrawingAdd = useCallback(
         (e: VectorSourceEvent) => {
@@ -115,8 +127,10 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsD
             lastFeaturesRef.current = selectedReportFeatures;
             setSelectedFeatures(selectedReportFeatures);
 
-            const editTool = reportTools.find((t) => t.name === toolNames.edit);
-            handleToolClick?.(editTool);
+            if (!readOnly) {
+                const editTool = reportTools.find((t) => t.name === toolNames.edit);
+                handleToolClick?.(editTool);
+            }
 
             const clusterFeatures = reportSource
                 ?.getFeatures()
@@ -145,7 +159,7 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsD
                 drawingSource.clear();
             }
         };
-    }, [selectedReport?.id, drawingSource, reportSource]);
+    }, [selectedReport?.id, drawingSource, reportSource, readOnly]);
 
     const getToolPriority = (tool: ReportTool) => {
         if (isToolDisabled(tool)) return "primary";
@@ -169,6 +183,20 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsD
             const activeToolBtn = document.querySelector(`button[id*="${clickedTool.name}"].drawing-tool-active`) as HTMLButtonElement | null;
             activeToolBtn?.click();
             setClickedTool({ name: clickedTool.name, clicked: false });
+        }
+    };
+
+    const handleSaveSketch = async () => {
+        if (!onSubmitSketch) return;
+        setSavingSketch(true);
+        try {
+            const features = drawingSource ? drawingSource.getFeatures() : selectedFeatures;
+            setSelectedFeatures(features);
+            releaseActiveTool();
+            // On failure the save handler raises the alert: stay in edit mode so the user can retry or cancel
+            if ((await onSubmitSketch(features)) !== false) setShowSketch(false);
+        } finally {
+            setSavingSketch(false);
         }
     };
 
@@ -249,37 +277,13 @@ const DrawingForm: React.FC<Props> = ({ clickedTool, handleToolClick, hideToolsD
             {showSketch && (
                 <div className="report__actions">
                     {editReport && (
-                        <Button
-                            onClick={async () => {
-                                if (drawingSource) {
-                                    setSelectedFeatures(drawingSource.getFeatures());
-                                }
-                                releaseActiveTool();
-                                setShowSketch(false);
-                                if (onSubmitSketch) {
-                                    try {
-                                        await onSubmitSketch();
-                                    } catch (error) {
-                                        if (isAxiosError(error) && error.response?.status === 403) {
-                                            // Not recoverable — revert to original state
-                                            if (drawingSource) {
-                                                drawingSource.clear();
-                                                drawingSource.addFeatures(sketchSnapshotRef.current);
-                                                setSelectedFeatures(sketchSnapshotRef.current);
-                                            }
-                                        } else {
-                                            // Recoverable (400, network…) — re-open for retry
-                                            setShowSketch(true);
-                                        }
-                                    }
-                                }
-                            }}
-                        >
+                        <Button onClick={handleSaveSketch} disabled={savingSketch}>
                             {t("save_sketch")}
                         </Button>
                     )}
                     <Button
                         priority="secondary"
+                        disabled={savingSketch}
                         onClick={() => {
                             releaseActiveTool();
                             if (drawingSource) {

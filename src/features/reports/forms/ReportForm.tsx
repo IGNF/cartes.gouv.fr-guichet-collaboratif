@@ -211,13 +211,12 @@ const ReportForm: React.FC<Props> = ({
         }
     };
 
-    const onSubmitSketch = async () => {
-        if (!community || !selectedTheme) return;
-        if (!handleSubmitSketch) return;
+    const onSubmitSketch = async (features: Feature[] = selectedFeatures): Promise<boolean> => {
+        if (!community || !handleSubmitSketch) return false;
 
         setLoading(true);
         try {
-            await handleSubmitSketch(selectedFeatures);
+            return (await handleSubmitSketch(features)) !== false;
         } finally {
             setLoading(false);
         }

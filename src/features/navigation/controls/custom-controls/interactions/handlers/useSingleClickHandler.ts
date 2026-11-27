@@ -11,8 +11,10 @@ import { getClickedMapReport, getReportSketchFeatures, REPORTS_LAYER_TYPE } from
 import { getWMSFeatureInfo, getWMTSFeatureInfo } from "@/api/featureTypesData";
 import { Map } from "ol";
 import { CommunityReport } from "@/constants/reports/types";
+import { isDrawingClickToolActive } from "@/constants/utils";
 import { useContributionStore } from "@/store/useContributionStore";
 import { useModalStore } from "@/store/useModalStore";
+import useSketchDiscardGuard from "@/hooks/reports/useSketchDiscardGuard";
 
 interface UseSingleClickHandlerProps {
     map: Map | null;
@@ -59,6 +61,7 @@ export const useSingleClickHandler = (props: UseSingleClickHandlerProps) => {
 
     const { selectedObjects } = useContributionStore();
     const { confirmMultipleDeselectionModal } = useModalStore();
+    const guardSketchDiscard = useSketchDiscardGuard();
     const pendingSingleClickEvent = useRef<MapBrowserEvent | null>(null);
 
     const handleSingleClick = useCallback(
@@ -142,6 +145,7 @@ export const useSingleClickHandler = (props: UseSingleClickHandlerProps) => {
                 .find((i) => i.get("type") !== undefined);
 
             if (activeInteraction) return;
+            if (mapWorkingLayer === REPORTS_LAYER_TYPE && isDrawingClickToolActive(map)) return;
 
             const featuresAtPixel = map?.getFeaturesAtPixel(evt.pixel);
             if (!featuresAtPixel?.length) {
@@ -199,17 +203,25 @@ export const useSingleClickHandler = (props: UseSingleClickHandlerProps) => {
             const topFeature = features[0];
             if (topFeature) {
                 if (mapWorkingLayer === REPORTS_LAYER_TYPE) {
-                    if (selectedReport) {
-                        const reportFeatures = reportClusterSource.getFeatures().filter((f) => f.get("reportData")?.id === selectedReport.id);
-                        reportClusterSource.removeFeatures(reportFeatures?.filter((f) => !f.get("main")));
-                    }
-                    const report = topFeature.feature.get("reportData");
-                    if (report) {
-                        const selectedReportFeatures = getReportSketchFeatures(report);
-                        reportClusterSource?.addFeatures(selectedReportFeatures);
-                        setSelectedFeatures([topFeature.feature, ...selectedReportFeatures]);
-                        setSelectedReport(report);
-                    }
+                    // A click on the open report or its sketch must not reload it over the current edits
+                    const clickedReport = topFeature.feature.get("reportData");
+                    if (clickedReport && clickedReport.id === selectedReport?.id && selectedFeatures.length > 0) return;
+
+                    const switchReport = () => {
+                        if (selectedReport) {
+                            const reportFeatures = reportClusterSource.getFeatures().filter((f) => f.get("reportData")?.id === selectedReport.id);
+                            reportClusterSource.removeFeatures(reportFeatures?.filter((f) => !f.get("main")));
+                        }
+                        const report = topFeature.feature.get("reportData");
+                        if (report) {
+                            const selectedReportFeatures = getReportSketchFeatures(report);
+                            reportClusterSource?.addFeatures(selectedReportFeatures);
+                            setSelectedFeatures([topFeature.feature, ...selectedReportFeatures]);
+                            setSelectedReport(report);
+                        }
+                    };
+
+                    guardSketchDiscard(switchReport);
                 } else {
                     if (features.length > 1) {
                         setClickableFeatures(features.map((f) => f.feature));
@@ -240,6 +252,7 @@ export const useSingleClickHandler = (props: UseSingleClickHandlerProps) => {
             clearHoverState,
             selectedObjects,
             confirmMultipleDeselectionModal,
+            guardSketchDiscard,
         ]
     );
 

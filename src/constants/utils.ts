@@ -9,6 +9,7 @@ import Feature from "ol/Feature";
 import { Map } from "ol";
 import { Control } from "ol/control";
 import Draw from "ol/interaction/Draw";
+import Modify from "ol/interaction/Modify";
 import { CommunityReport, GeometryFeatueParams, PostThemeReport, ReportTheme, SketchFeatureType, SketchObject, Severity } from "./reports/types";
 import { Fill, Icon, Stroke, Style, Text } from "ol/style";
 import { Geometry, LineString, MultiLineString, MultiPoint, MultiPolygon, Point, Polygon } from "ol/geom";
@@ -82,6 +83,13 @@ const getDrawingControl = (map: Map | null | undefined) =>
         ?.getControls()
         .getArray()
         .find((control): control is DrawingControlLike => "layer" in control && Array.isArray((control as Partial<DrawingControlLike>).options?.markersList));
+
+// True while a geopf Drawing tool that handles map clicks itself is active (creation, text, style, remove).
+// Geometry edition (Modify) is left out: it is switched on as soon as a report is shown.
+export const isDrawingClickToolActive = (map: Map | null | undefined) => {
+    const interaction = getDrawingControl(map)?.interactionCurrent;
+    return !!interaction && !(interaction instanceof Modify);
+};
 
 const getSketchPointStyle = () =>
     new Style({
@@ -457,15 +465,17 @@ export const getFeaturePoint = (report: CommunityReport, featData: SketchObject,
     if (featData.attributes) {
         const { nom, nature } = featData.attributes;
         if (nom) {
+            // geopf Drawing only treats a point as a text when it has a `name`; same placement as its text tool.
+            feature.set("name", nom);
             style = new Style({
                 text: new Text({
-                    offsetY: -15,
-                    fill: new Fill({ color: featData.style?.backcolor ?? FILL_COLOR }),
-                    text: featData.attributes.nom,
+                    textAlign: "left",
                     font: "16px sans",
+                    fill: new Fill({ color: parseApiColor(featData.style?.backcolor, FILL_COLOR) }),
+                    text: featData.attributes.nom,
                     stroke: new Stroke({
-                        width: featData.style?.diam,
-                        color: featData.style?.frontcolor ?? POINT_COLOR,
+                        width: featData.style?.diam ?? 3,
+                        color: parseApiColor(featData.style?.frontcolor, POINT_COLOR),
                     }),
                 }),
                 zIndex: 1,
