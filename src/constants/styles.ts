@@ -12,6 +12,7 @@ import {
     POLYGON_LINE_COLOR,
     POINT_COLOR,
     FILL_COLOR,
+    SELECTED_DEFAULT_POLYGON_FILL_COLOR,
 } from "./colors";
 import { GeometryFeatueParams } from "./reports/types";
 import { Map } from "ol";
@@ -121,27 +122,6 @@ const editingVertexStyle = new Style({
     zIndex: 4,
 });
 
-export const editingVerticesStyle = (feature: FeatureLike): Style[] => {
-    const geometryType = feature.getGeometry()?.getType();
-    if (!["LineString", "MultiLineString", "Polygon", "MultiPolygon"].includes(geometryType ?? "")) return [];
-
-    return [editingVertexStyle];
-};
-
-export const editingGeometryStyle = (feature: FeatureLike): Style[] => {
-    const geometryType = feature.getGeometry()?.getType();
-
-    if (geometryType === "Polygon" || geometryType === "MultiPolygon") {
-        return [...featureTypeSelectedPolygonStyle(), ...editingVerticesStyle(feature)];
-    }
-
-    if (geometryType === "LineString" || geometryType === "MultiLineString") {
-        return [...featureTypeSelectedLineStyle(), ...editingVerticesStyle(feature)];
-    }
-
-    return [editingVertexStyle];
-};
-
 export const clusterStyle = (feature: FeatureLike): Style => {
     const features = feature.get("features");
     const size: number = features.length;
@@ -175,6 +155,8 @@ export const strokeLineDash = function ({ strokeWidth, strokeDashstyle }: { stro
     }
 };
 
+const RGB_FUNCTION_RE = /^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*(?:,\s*(\d*\.?\d+)\s*)?\)$/i;
+
 export function hexToRgba(hex: string | undefined | null, alpha: number = 1): string {
     try {
         if (!hex || typeof hex !== "string") {
@@ -182,6 +164,18 @@ export function hexToRgba(hex: string | undefined | null, alpha: number = 1): st
         }
 
         const cleanHex = hex.trim();
+
+        const rgbMatch = RGB_FUNCTION_RE.exec(cleanHex);
+        if (rgbMatch) {
+            const [r, g, b] = rgbMatch.slice(1, 4).map(Number);
+            const ownAlpha = rgbMatch[4] === undefined ? 1 : Number(rgbMatch[4]);
+            if ([r, g, b].some((channel) => channel > 255) || !Number.isFinite(alpha) || !Number.isFinite(ownAlpha)) {
+                return POLYGON_LINE_COLOR;
+            }
+            const combinedAlpha = Math.min(Math.max(ownAlpha, 0), 1) * Math.min(Math.max(alpha, 0), 1);
+            return `rgba(${r}, ${g}, ${b}, ${Math.round(combinedAlpha * 1000) / 1000})`;
+        }
+
         const match = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.exec(cleanHex);
         if (!match) {
             return POLYGON_LINE_COLOR;
@@ -443,7 +437,7 @@ export const getStyleWebGLPolygon: (isDefault: boolean) => FlatStyle[] = (isDefa
         {
             "stroke-color": isDefault ? WHITE_COLOR : CLUSTER_CIRCLE_COLOR,
             "stroke-width": 2,
-            "fill-color": isDefault ? WHITE_COLOR : FILL_COLOR,
+            "fill-color": isDefault ? SELECTED_DEFAULT_POLYGON_FILL_COLOR : FILL_COLOR,
         },
         {
             "stroke-color": isDefault ? WHITE_COLOR : CLUSTER_CIRCLE_COLOR,
@@ -797,7 +791,8 @@ export const isDefaultLayerStyle = (geoservice: CommunityGeoservice | undefined,
 };
 
 // Copy selcted style while editing feature's geometry
-export const getEditingOverlayStyle = (isDefault: boolean): StyleFunction => {
+export const getEditingOverlayStyle = (isDefault: boolean, withVertices: boolean = true): StyleFunction => {
+    const vertexStyles = withVertices ? [editingVertexStyle] : [];
     const pointFlatStyles = [getStyleWebGLPoint(isDefault)].flat().map((style) => ({ ...style, "z-index": undefined }));
     const pointStyle = flatStylesToStyleFunction(pointFlatStyles);
     const lineStyle = flatStylesToStyleFunction(getStyleWebGLLine(isDefault));
@@ -810,13 +805,25 @@ export const getEditingOverlayStyle = (isDefault: boolean): StyleFunction => {
                 return pointStyle(feature, resolution);
             case "LineString":
             case "MultiLineString":
-                return [...((lineStyle(feature, resolution) as Style[] | undefined) ?? []), editingVertexStyle];
+                return [...((lineStyle(feature, resolution) as Style[] | undefined) ?? []), ...vertexStyles];
             case "Polygon":
             case "MultiPolygon":
-                return [...((polygonStyle(feature, resolution) as Style[] | undefined) ?? []), editingVertexStyle];
+                return [...((polygonStyle(feature, resolution) as Style[] | undefined) ?? []), ...vertexStyles];
             default:
                 return undefined;
         }
+    };
+};
+
+// Draw sketch: same look as the selected feature once drawn, plus the vertices
+export const getDrawSketchStyle = (isDefault: boolean, drawType: "LineString" | "Polygon"): StyleFunction => {
+    const overlayStyle = getEditingOverlayStyle(isDefault);
+
+    return (feature, resolution) => {
+        const geometryType = feature.getGeometry()?.getType();
+        if (geometryType === "Point") return editingVertexStyle;
+        if (drawType === "Polygon" && geometryType === "LineString") return undefined;
+        return overlayStyle(feature, resolution);
     };
 };
 

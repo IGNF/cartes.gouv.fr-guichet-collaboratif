@@ -12,6 +12,9 @@ export const useFeatureTypeValidation = () => {
 
     const validateField = useCallback(
         (col: FeatureTypeColumn, value: string | number | boolean | File[] | null): string | null => {
+            // Automatic columns are read-only and filled by the application: the user cannot fix them
+            if (col.automatic) return null;
+
             if (col.required && (value === null || value === "" || value === undefined)) {
                 return t("error_required");
             }

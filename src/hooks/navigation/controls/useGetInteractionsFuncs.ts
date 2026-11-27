@@ -40,6 +40,7 @@ import useStableCallback from "@/hooks/useStableCallback";
 import ShortestPathWorker from "./shortestPath/shortestPath.worker.ts?worker";
 import type { ShortestPathWorkerRequest, ShortestPathWorkerResponse } from "./shortestPath/shortestPath.worker";
 import { useContributionAuthorisation } from "@/hooks/working-layer/useContributionAuthorisation";
+import { useRefreshAutomaticFields } from "@/hooks/working-layer/useRefreshAutomaticFields";
 
 let initialFeat: Feature | null = null;
 let lastPointedFeat: Feature | null = null;
@@ -51,6 +52,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
     const { searchModal, exportMapModal, confirmMultipleDeselectionModal, mergeFeatureAttributesModal } = useModalStore();
     const { communityLayers, addAlertMessage, removeAlertMessage } = useCommunityStore();
     const authoriseContribution = useContributionAuthorisation();
+    const refreshAutomaticFields = useRefreshAutomaticFields();
 
     const { t } = useTranslation({ useGetInteractionsFuncs });
 
@@ -295,6 +297,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             if (hasGeometryChanged) {
                 if (authoriseContribution(feat, ContributionType.MODIFY, initialFeat)) {
                     saveContribution(feat, ContributionType.MODIFY, initialFeat, mapWorkingLayer);
+                    void refreshAutomaticFields([feat]);
                 } else {
                     restoreFeature(feat, initialFeat);
                 }
@@ -313,7 +316,17 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                 }
             }
         },
-        [authoriseContribution, currentCommunityLayer?.geoservice, mapWorkingLayer, saveContribution, setIsModifying, selectInteraction, clickedControl, map]
+        [
+            authoriseContribution,
+            currentCommunityLayer?.geoservice,
+            mapWorkingLayer,
+            saveContribution,
+            refreshAutomaticFields,
+            setIsModifying,
+            selectInteraction,
+            clickedControl,
+            map,
+        ]
     );
 
     const handleModifyInteractionStart = useCallback(
@@ -377,6 +390,8 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                 feature.set(FEATURE_TYPE_PENDING_FORM_PROPERTY, true);
                 if (geometryNameColumn?.is3d) setFeatNewCoords(feature);
                 if (!authoriseContribution(feature, ContributionType.CREATE)) return;
+                // Selected right away (as the form does next) so the first WebGL rebuild already shows it selected
+                feature.set(FEATURE_TYPE_SELECTED_PROPERTY, true);
                 currentMapWorkingSource.addFeature(feature);
                 saveContribution(feature, ContributionType.CREATE, initialFeat, mapWorkingLayer);
                 setClickedMapFeature(feature);
@@ -727,6 +742,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
                 saveContribution(createdFeat, ContributionType.CREATE, null, mapWorkingLayer);
 
                 setClickedMapFeature(createdFeat);
+                void refreshAutomaticFields([originalFeat]);
                 setClickedControl(null);
                 removeInteractionFromMap(InteractionType.SPLIT_LINE, map!);
             }
@@ -740,6 +756,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             getCreateContributions,
             authoriseContribution,
             saveContribution,
+            refreshAutomaticFields,
             setClickedMapFeature,
             setClickedControl,
         ]
@@ -1046,6 +1063,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             selectInteraction.getFeatures().push(featToKeep);
             setSelectedObjects([featToKeep]);
             setClickedMapFeature(featToKeep);
+            void refreshAutomaticFields([featToKeep]);
             setClickedControl(null);
             mergeFeatureAttributesModal.close();
         },
@@ -1057,6 +1075,7 @@ const useGetInteractionsFuncs = (props: InteractionsProps) => {
             selectInteraction,
             authoriseContribution,
             saveContribution,
+            refreshAutomaticFields,
             mapWorkingLayer,
             setSelectedObjects,
             setClickedMapFeature,

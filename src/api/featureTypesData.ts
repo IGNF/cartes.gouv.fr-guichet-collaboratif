@@ -49,6 +49,7 @@ const mapColumns = (columns: FeatureTypeColumn[]) =>
             is3d: col.is3d,
             queryable: col.queryable,
             automatic: col.automatic,
+            formula: col.formula,
         };
     });
 

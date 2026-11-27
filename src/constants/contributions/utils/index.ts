@@ -193,7 +193,6 @@ export const hasFeatureDataChanged = (feat: Feature, newData: Record<string, unk
 
     return Object.entries(newData).some(([key, value]) => {
         const column = geoservice?.columns.find((col) => col.name === key);
-        if (column?.read_only && column.automatic) return false;
 
         const currentValue = featData[key];
         if (areEqual(value, currentValue)) return false;
