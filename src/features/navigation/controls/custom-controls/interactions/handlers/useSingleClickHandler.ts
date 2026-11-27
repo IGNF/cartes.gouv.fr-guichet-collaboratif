@@ -9,7 +9,6 @@ import { FEATURE_TYPE_GEOSERVICE_PROPERTY } from "@/constants";
 import { CommunityGeoservice, CustomControlItem, InteractionType } from "@/constants/communities/types";
 import { getClickedMapReport, getReportSketchFeatures, REPORTS_LAYER_TYPE } from "@/constants/reports/utils";
 import { getWMSFeatureInfo, getWMTSFeatureInfo } from "@/api/featureTypesData";
-import { getNearestFeatureAtPixel } from "@/constants/navigation/hitDetection";
 import { Map } from "ol";
 import { CommunityReport } from "@/constants/reports/types";
 import { useContributionStore } from "@/store/useContributionStore";
@@ -144,10 +143,7 @@ export const useSingleClickHandler = (props: UseSingleClickHandlerProps) => {
 
             if (activeInteraction) return;
 
-            // Working layer : same nearest-feature lookup (and tolerance) as hover
-            const nearestHit =
-                mapWorkingLayer === REPORTS_LAYER_TYPE ? undefined : getNearestFeatureAtPixel(map, evt.pixel, (layer) => layer.get("name") === mapWorkingLayer);
-            const featuresAtPixel = mapWorkingLayer === REPORTS_LAYER_TYPE ? map?.getFeaturesAtPixel(evt.pixel) : nearestHit ? [nearestHit.feature] : [];
+            const featuresAtPixel = map?.getFeaturesAtPixel(evt.pixel);
             if (!featuresAtPixel?.length) {
                 if (selectedObjects.length > 1) {
                     pendingSingleClickEvent.current = evt;

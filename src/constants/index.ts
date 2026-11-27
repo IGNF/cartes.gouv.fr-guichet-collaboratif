@@ -16,7 +16,7 @@ export const SOURCE_REVISION_PROPERTY = "revision";
 export const SOURCE_PENDING_SWAP_PROPERTY = "pendingSwap";
 
 export const HIT_DETECTION_TOLERENCE = 1;
-export const POINTER_HIT_DETECTION_TOLERENCE = 6;
+export const POINTER_HIT_DETECTION_TOLERENCE = 10;
 export const COORD_EPSILON = 0.01;
 
 export const TILE_SIZE = 2048;

@@ -59,7 +59,8 @@ const MapListnerHandlers: React.FC<Props> = ({ handleCloseDrawer }) => {
 
     const clearHoverState = useCallback(() => {
         if (hoveredFeatureRef.current) {
-            hoveredFeatureRef.current.unset(FEATURE_TYPE_HOVER_PROPERTY, true);
+            hoveredFeatureRef.current.unset(FEATURE_TYPE_HOVER_PROPERTY);
+            hoveredFeatureRef.current.changed();
             hoveredFeatureRef.current = null;
         }
 

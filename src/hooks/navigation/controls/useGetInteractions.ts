@@ -1,10 +1,9 @@
 import { useCommunityStore, useMapStore } from "@/store";
 import { getDrawSketchStyle, getEditingOverlayStyle, isDefaultLayerStyle } from "@/constants/styles";
 import { onceLayerRendered } from "@/constants/navigation/layerRender";
-import { EDITING_ORIGINAL_FEATURE_PROPERTY, FEATURE_TYPE_EDITING_PROPERTY, POINTER_HIT_DETECTION_TOLERENCE } from "@/constants";
+import { EDITING_ORIGINAL_FEATURE_PROPERTY, FEATURE_TYPE_EDITING_PROPERTY } from "@/constants";
 import { getEditedFeature } from "@/constants/contributions/utils";
 import { InteractionType } from "@/constants/communities/types";
-import { getNearestFeatureAtPixel } from "@/constants/navigation/hitDetection";
 import { Collection, Feature } from "ol";
 import { platformModifierKeyOnly, click, shiftKeyOnly } from "ol/events/condition";
 import { Draw, Modify, Select, Snap, Translate, DragBox } from "ol/interaction";
@@ -54,12 +53,7 @@ const useGetInteractions = () => {
     const selectInteraction = useMemo(
         () =>
             new Select({
-                condition: (evt) => {
-                    if (!click(evt)) return false;
-                    const hit = getNearestFeatureAtPixel(evt.map, evt.pixel, (layer) => layer.getSource() === clickableSource);
-                    if (hit) evt.pixel = hit.pixel;
-                    return true;
-                },
+                condition: click,
                 toggleCondition: platformModifierKeyOnly,
                 addCondition: platformModifierKeyOnly,
                 removeCondition: platformModifierKeyOnly,
@@ -264,9 +258,9 @@ const useGetInteractions = () => {
 
     const splitInteraction = useMemo(() => {
         const split = new Modify({
-            ...(clickableSource ? { source: clickableSource } : { features: new Collection<Feature>() }),
+            features: new Collection(clickableSource?.getFeatures() ?? []),
             condition: click,
-            pixelTolerance: POINTER_HIT_DETECTION_TOLERENCE,
+            pixelTolerance: 10,
         });
         split.set("disablesTooltip", true);
         return split;
