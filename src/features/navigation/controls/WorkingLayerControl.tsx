@@ -9,6 +9,8 @@ import { useIsModalOpen } from "@codegouvfr/react-dsfr/Modal/useIsModalOpen";
 import Tooltip from "@mui/material/Tooltip";
 import Fade from "@mui/material/Fade";
 import { CommunityLayerRoleType } from "@/constants/communities/types";
+import MapOverlayPortal from "@/components/Layout/MapOverlayPortal";
+import { MapOverlaySlot } from "@/constants/navigation/mapOverlaySlots";
 
 const WorkingLayerControl = () => {
     const { community, mapLayers, communityLayers } = useCommunityStore();
@@ -162,24 +164,26 @@ const WorkingLayerControl = () => {
     if (!showMapWorkingLayerSelect) return null;
 
     return (
-        <Tooltip placement="left" arrow title={t("working_layer")} slots={{ transition: Fade }} enterDelay={0} leaveDelay={0}>
-            <div className="map-toolbar-bottom-select">
-                <Select
-                    label=""
-                    nativeSelectProps={{
-                        value: mapWorkingLayer,
-                        onChange: (e) => handleWorkingLayerChange(e.target.value),
-                    }}
-                >
-                    {workingLayers?.map((option, index) => (
-                        <option key={`working-layer-${index}`} value={option.value}>
-                            {option.label}
-                        </option>
-                    ))}
-                </Select>
-                <div className="separator"></div>
-            </div>
-        </Tooltip>
+        <MapOverlayPortal slot={MapOverlaySlot.WORKING_LAYER}>
+            <Tooltip placement="left" arrow title={t("working_layer")} slots={{ transition: Fade }} enterDelay={0} leaveDelay={0}>
+                <div className="map-toolbar-bottom-select">
+                    <Select
+                        label=""
+                        nativeSelectProps={{
+                            value: mapWorkingLayer,
+                            onChange: (e) => handleWorkingLayerChange(e.target.value),
+                        }}
+                    >
+                        {workingLayers?.map((option, index) => (
+                            <option key={`working-layer-${index}`} value={option.value}>
+                                {option.label}
+                            </option>
+                        ))}
+                    </Select>
+                    <div className="separator"></div>
+                </div>
+            </Tooltip>
+        </MapOverlayPortal>
     );
 };
 

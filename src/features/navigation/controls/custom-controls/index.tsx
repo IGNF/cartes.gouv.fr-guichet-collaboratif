@@ -21,6 +21,8 @@ import SearchObjectsModal from "@/features/working-layer/modal/searchObjects/Sea
 import ExportMapModal from "./ExportMapModal";
 import NamedPositionModal from "../NamedPositionModal";
 import useKeyEvent from "@/hooks/useKeyEvent";
+import MapOverlayPortal from "@/components/Layout/MapOverlayPortal";
+import { MapOverlaySlot } from "@/constants/navigation/mapOverlaySlots";
 
 const CustomControls = () => {
     const { map, mapWorkingLayer, clickedControl, setClickedControl, setWorkingLayerDrawerOpened, setClickedMapFeature, workingLayerDrawerOpened } =
@@ -229,17 +231,19 @@ const CustomControls = () => {
 
     return (
         <>
-            <div className="custom-controls">
-                <div className="control-btns">
-                    {controlsList.map((control) => {
-                        return <ButtonControl key={`custom-control-${control.id}`} control={control} onClick={onClick} />;
-                    })}
+            <MapOverlayPortal slot={MapOverlaySlot.CUSTOM_CONTROLS}>
+                <div className="custom-controls">
+                    <div className="control-btns">
+                        {controlsList.map((control) => {
+                            return <ButtonControl key={`custom-control-${control.id}`} control={control} onClick={onClick} />;
+                        })}
+                    </div>
+                    <div className="all-reports-btn">
+                        <AllReportsControl />
+                    </div>
+                    <CenterReportControl />
                 </div>
-                <div className="all-reports-btn">
-                    <AllReportsControl />
-                </div>
-                <CenterReportControl />
-            </div>
+            </MapOverlayPortal>
             <AddOrRemoveMapControlInteraction {...interactionsFuncs} {...interactions} />
             <AddOrRemoveSnapInteraction {...interactions} />
             <ConfirmMultipleDeselection onConfirm={handleConfirmUnSelectMultiple} />

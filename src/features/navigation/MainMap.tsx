@@ -37,6 +37,7 @@ import BetaBadge from "@/components/Layout/MapCommunity/BetaBadge";
 import CommunityTitle from "@/components/Layout/MapCommunity/CommunityTitle";
 import CommunityToolbar from "@/components/Layout/MapCommunity/CommunityToolbar";
 import { MAP_MAX_TILES_LOADING } from "@/constants/navigation/rasterTiles";
+import { orderMapOverlayContainer } from "@/constants/navigation/mapOverlaySlots";
 
 export default function MainMap() {
     const mapTargetRef = useRef<HTMLDivElement>(null);
@@ -46,7 +47,7 @@ export default function MainMap() {
 
     const { community, mapLayers } = useCommunityStore();
     const { localStorageData } = useLocalStorageStore();
-    const { map, mapSwitcher, setMap } = useMapStore();
+    const { map, setMap } = useMapStore();
     const { contributions, isReviewContribution, selectedObjects } = useContributionStore();
 
     const { t: tLegend } = useTranslation({ FeatureTypeLayerLegends });
@@ -143,13 +144,13 @@ export default function MainMap() {
             maxTilesLoading: MAP_MAX_TILES_LOADING,
         });
 
+        orderMapOverlayContainer(mapRef.current);
+
         viewRef.current = mapView;
         switcherRef.current = switcher;
 
         mapRef.current?.render();
-        if (!map && !mapSwitcher) {
-            setMap(mapRef.current, switcherRef.current);
-        }
+        setMap(mapRef.current, switcherRef.current);
     });
 
     useEffect(() => {
@@ -177,6 +178,8 @@ export default function MainMap() {
 
     return (
         <div className={cx(fr.cx("fr-grid-row"), "grid-map-container")}>
+            {/* DOM order = tab order: title first, then the map and its controls (see orderMapOverlayContainer) */}
+            <CommunityTitle />
             <div
                 className={cx(fr.cx("fr-col"), "map-view")}
                 ref={mapTargetRef}
@@ -193,7 +196,6 @@ export default function MainMap() {
             <WorkingLayerControl />
             <WorkingLayerLabelMap />
             <BetaBadge />
-            <CommunityTitle />
             <CommunityToolbar />
 
             {map?.getAllLayers().length && <CustomControls />}

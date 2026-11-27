@@ -11,6 +11,8 @@ import ConfirmSaveContributions from "@/features/contributions/ConfirmSaveContri
 import ContributionList from "@/features/contributions/ContributionList";
 import { useContributionsSave } from "@/hooks/working-layer/useContributionsSave";
 import { useFeatureFormGuard } from "@/hooks/working-layer/useFeatureFormGuard";
+import MapOverlayPortal from "@/components/Layout/MapOverlayPortal";
+import { MapOverlaySlot } from "@/constants/navigation/mapOverlaySlots";
 
 export default function CommunityToolbar() {
     const { community, hasOneEditableLayer, addAlertMessage } = useCommunityStore();
@@ -44,68 +46,70 @@ export default function CommunityToolbar() {
 
     return (
         <>
-            <div className="community-toolbar-wrapper">
-                <div className="community-toolbar-card">
-                    {hasOneEditableLayer && (
-                        <>
-                            <div className="community-toolbar-btn-wrap">
+            <MapOverlayPortal slot={MapOverlaySlot.COMMUNITY_TOOLBAR}>
+                <div className="community-toolbar-wrapper">
+                    <div className="community-toolbar-card">
+                        {hasOneEditableLayer && (
+                            <>
+                                <div className="community-toolbar-btn-wrap">
+                                    <Button
+                                        iconId="fr-icon-save-fill"
+                                        priority="tertiary no outline"
+                                        title={pendingFeatureFormValidator ? t("save_disabled_pending_form") : t("save")}
+                                        className="community-toolbar-save-btn"
+                                        disabled={!contributions.length || isLoading || pendingAutomaticComputations > 0 || !!pendingFeatureFormValidator}
+                                        nativeButtonProps={{
+                                            ...confirmSaveContributionModal.buttonProps,
+                                            "aria-label": pendingFeatureFormValidator ? t("save_disabled_pending_form") : t("save"),
+                                        }}
+                                    />
+                                    {contributions.length > 0 && <span className="community-toolbar-badge">{contributions.length}</span>}
+                                    {isLoading && (
+                                        <div className="community-toolbar-loader">
+                                            <LoaderComponent />
+                                        </div>
+                                    )}
+                                </div>
+                                <span className="community-toolbar-separator" />
                                 <Button
-                                    iconId="fr-icon-save-fill"
-                                    priority="tertiary no outline"
-                                    title={pendingFeatureFormValidator ? t("save_disabled_pending_form") : t("save")}
-                                    className="community-toolbar-save-btn"
-                                    disabled={!contributions.length || isLoading || pendingAutomaticComputations > 0 || !!pendingFeatureFormValidator}
-                                    nativeButtonProps={{
-                                        ...confirmSaveContributionModal.buttonProps,
-                                        "aria-label": pendingFeatureFormValidator ? t("save_disabled_pending_form") : t("save"),
-                                    }}
+                                    iconId="fr-icon-time-line"
+                                    priority={isReviewContribution ? "secondary" : "tertiary no outline"}
+                                    title={t("history")}
+                                    disabled={!contributions.length}
+                                    onClick={() =>
+                                        isReviewContribution
+                                            ? setReviewContribution(false)
+                                            : guard(() => {
+                                                  setClickedControl(null);
+                                                  setReviewContribution(true);
+                                              })
+                                    }
+                                    nativeButtonProps={{ "aria-label": t("history") }}
                                 />
-                                {contributions.length > 0 && <span className="community-toolbar-badge">{contributions.length}</span>}
-                                {isLoading && (
-                                    <div className="community-toolbar-loader">
-                                        <LoaderComponent />
-                                    </div>
-                                )}
-                            </div>
-                            <span className="community-toolbar-separator" />
-                            <Button
-                                iconId="fr-icon-time-line"
-                                priority={isReviewContribution ? "secondary" : "tertiary no outline"}
-                                title={t("history")}
-                                disabled={!contributions.length}
-                                onClick={() =>
-                                    isReviewContribution
-                                        ? setReviewContribution(false)
-                                        : guard(() => {
-                                              setClickedControl(null);
-                                              setReviewContribution(true);
-                                          })
-                                }
-                                nativeButtonProps={{ "aria-label": t("history") }}
-                            />
-                            <span className="community-toolbar-separator" />
-                        </>
-                    )}
-                    <Button
-                        iconId="fr-icon-upload-2-line"
-                        priority="tertiary no outline"
-                        title={t("share")}
-                        onClick={handleShare}
-                        nativeButtonProps={{ "aria-label": t("share") }}
-                    />
-                    {isAdmin && (
-                        <>
-                            <span className="community-toolbar-separator" />
-                            <Button
-                                iconId="fr-icon-settings-5-line"
-                                priority="tertiary no outline"
-                                title={t("settings")}
-                                linkProps={{ href: `${ADMIN_COMMUNITY_URL}/${community.id}/gerer-le-guichet` }}
-                            />
-                        </>
-                    )}
+                                <span className="community-toolbar-separator" />
+                            </>
+                        )}
+                        <Button
+                            iconId="fr-icon-upload-2-line"
+                            priority="tertiary no outline"
+                            title={t("share")}
+                            onClick={handleShare}
+                            nativeButtonProps={{ "aria-label": t("share") }}
+                        />
+                        {isAdmin && (
+                            <>
+                                <span className="community-toolbar-separator" />
+                                <Button
+                                    iconId="fr-icon-settings-5-line"
+                                    priority="tertiary no outline"
+                                    title={t("settings")}
+                                    linkProps={{ href: `${ADMIN_COMMUNITY_URL}/${community.id}/gerer-le-guichet` }}
+                                />
+                            </>
+                        )}
+                    </div>
                 </div>
-            </div>
+            </MapOverlayPortal>
             {hasOneEditableLayer && (
                 <>
                     <ContributionsConfirmReset onConfirm={onClickReset} />
