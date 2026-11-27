@@ -3,6 +3,7 @@ import { CommunityGeoservice } from "@/constants/communities/types";
 import { Contribution, ContributionType } from "@/constants/contributions/types";
 import { handleCenterToFeature } from "@/constants/utils";
 import { useTranslation } from "@/i18n";
+import useReleaseModalFocusTrap from "@/hooks/useReleaseModalFocus";
 import { useContributionStore, useMapStore, useModalStore } from "@/store";
 import Button from "@codegouvfr/react-dsfr/Button";
 import Checkbox from "@codegouvfr/react-dsfr/Checkbox";
@@ -27,6 +28,8 @@ const ContributionList = () => {
             setReviewContribution(false);
         },
     });
+
+    useReleaseModalFocusTrap(modal.id, isOpen);
 
     const validContributions = useMemo(() => contributions.filter((contr) => !!contr?.feature), [contributions]);
     const validContrToCancel = useMemo(() => contrToCancel.filter((contr) => !!contr?.feature), [contrToCancel]);
